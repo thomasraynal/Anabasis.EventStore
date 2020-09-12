@@ -119,6 +119,10 @@
           }
         }
       }
-    }},
-  "defaultProject": "anabasis"
+    }
+  },
+  "defaultProject": "anabasis",
+  "cli": {
+    "analytics": false
+  }
 }
