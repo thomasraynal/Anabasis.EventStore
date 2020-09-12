@@ -77,7 +77,7 @@
 		// show breadcrumbs
 		breadcrumbsCtrl : true,
 		// initial breadcrumb text
-		initialBreadcrumb : 'all',
+		initialBreadcrumb : 'Auteurs',
 		// show back button
 		backCtrl : true,
 		// delay between each menu item sliding animation

@@ -151,7 +151,7 @@ namespace Anabasis.Exporter
         anabasisDocuments.Add(anabasisDocument);
       }
 
-      var json = JsonConvert.SerializeObject(anabasisDocuments, Formatting.Indented, jsonSerializerSettings);
+      var json = JsonConvert.SerializeObject(anabasisDocuments, Formatting.None, jsonSerializerSettings);
 
       File.WriteAllText(Path.Combine(_exporterConfiguration.LocalDocumentFolder, "export.json"), json);
 
