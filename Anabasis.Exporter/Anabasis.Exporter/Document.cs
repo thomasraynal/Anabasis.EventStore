@@ -6,7 +6,7 @@ namespace Anabasis.Exporter
 {
   public class Document
   {
-    public string DocumentId { get; set; }
-    public string DocumentTitle { get; set; }
+    public string Id { get; set; }
+    public string Title { get; set; }
   }
 }

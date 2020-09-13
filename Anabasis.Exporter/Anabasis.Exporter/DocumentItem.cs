@@ -21,6 +21,6 @@ namespace Anabasis.Exporter
     public string SecondaryTitleId { get; set; }
     public string ParentId { get; set; }
     public string DocumentId { get; set; }
-    public int Position { get; internal set; }
+    public int Position { get;  set; }
   }
 }

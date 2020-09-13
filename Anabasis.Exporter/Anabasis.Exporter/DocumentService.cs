@@ -123,8 +123,8 @@ namespace Anabasis.Exporter
 
       return new AnabasisDocument()
       {
-        DocumentId = documentLite.Id,
-        DocumentTitle = documentLite.Title,
+        Id = documentLite.Id,
+        Title = documentLite.Title,
         DocumentItems = documentItems
       };
 
