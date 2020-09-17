@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -47,6 +48,7 @@ namespace Anabasis.Exporter
 
     private async Task<TResponse> Get<TResponse>(string requestUrl)
     {
+
       var httpClient = new HttpClient();
 
       var accessToken = await GetAccessToken();
@@ -60,6 +62,7 @@ namespace Anabasis.Exporter
       if (!httpResponseMessage.IsSuccessStatusCode) throw new InvalidOperationException($"{httpResponseMessage.StatusCode} - {content}");
 
       return JsonConvert.DeserializeObject<TResponse>(content);
+
     }
 
     public async IAsyncEnumerable<AnabasisDocument> GetDocumentFromSource(string folderId)
@@ -99,8 +102,6 @@ namespace Anabasis.Exporter
 
       foreach (var documentItem in documentItems)
       {
-        documentItem.MainTitleId = currentMainTitleId;
-        documentItem.SecondaryTitleId = currentSecondaryTitleId;
 
         documentItem.Position = position++;
 
@@ -108,6 +109,11 @@ namespace Anabasis.Exporter
         {
           currentMainTitleId = documentItem.Id;
           currentSecondaryTitleId = null;
+        }
+        else
+        {
+          documentItem.MainTitleId = currentMainTitleId;
+          documentItem.SecondaryTitleId = currentSecondaryTitleId;
         }
 
         if (documentItem.IsSecondaryTitle)
@@ -151,9 +157,56 @@ namespace Anabasis.Exporter
         anabasisDocuments.Add(anabasisDocument);
       }
 
-      var json = JsonConvert.SerializeObject(anabasisDocuments, Formatting.None, jsonSerializerSettings);
 
-      File.WriteAllText(Path.Combine(_exporterConfiguration.LocalDocumentFolder, "export.json"), json);
+      var exportJson = JsonConvert.SerializeObject(anabasisDocuments, Formatting.None, jsonSerializerSettings);
+
+      File.WriteAllText(Path.Combine(_exporterConfiguration.LocalDocumentFolder, "export.json"), exportJson);
+
+
+      var documentIndices = new List<DocumentIndex>();
+
+      foreach (var anabasisDocument in anabasisDocuments)
+      {
+        var documentIndex = new DocumentIndex()
+        {
+          Id = anabasisDocument.Id,
+          Title = anabasisDocument.Title,
+        };
+
+        documentIndex.DocumentIndices = anabasisDocument.DocumentItems
+          .Where(documentItem => documentItem.IsMainTitle)
+          .Select(documentItem=>
+          {
+            var documentIndex = new DocumentIndex()
+            {
+              Id = documentItem.Id,
+              Title = documentItem.Content,
+            };
+
+            documentIndex.DocumentIndices = anabasisDocument.DocumentItems
+              .Where(documentSubItem => documentSubItem.MainTitleId == documentItem.Id && documentSubItem.IsSecondaryTitle)
+              .Select(documentSubItem =>
+              {
+                return new DocumentIndex()
+                {
+                  Id = documentSubItem.Id,
+                  Title = documentSubItem.Content,
+                };
+
+              }).ToArray();
+
+            return documentIndex;
+          }
+          ).ToArray();
+
+
+        documentIndices.Add(documentIndex);
+
+      }
+
+      var indexJson = JsonConvert.SerializeObject(documentIndices, Formatting.None, jsonSerializerSettings);
+
+      File.WriteAllText(Path.Combine(_exporterConfiguration.LocalDocumentFolder, "index.json"), indexJson);
 
     }
 

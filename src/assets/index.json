@@ -1,0 +1,721 @@
+[
+    {
+        "id": "1OGDbFm0afnFdBH3zPMKkZwkreg4NOETNIqIztieYcts",
+        "title": "Copie de Luc Ferry",
+        "documentIndices": [
+            {
+                "id": "61189a41-e2fc-4f1e-8960-951f63560aa1",
+                "title": "L’antiquité grecque",
+                "documentIndices": [
+                    {
+                        "id": "7b4c2949-171b-4953-8541-6fd971b9448a",
+                        "title": "Des écrits sous forme de dialogues",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "47a243b2-56eb-45c9-9b16-13231e8a75bd",
+                        "title": "L'Académie de Platon",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "27f76ec5-1900-492b-a4ec-31414debfa93",
+                        "title": "Le dialogue : cheminement vers la vérité",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "b1f0557d-2872-4ddc-a164-c09bc8e79ccd",
+                        "title": "La vérité : Platon face aux sophistes",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "f7192a39-5eb0-47ed-ba6b-2c0c69b3157f",
+                        "title": "L'art de la question posée : la maïeutique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "89e778c1-edc1-45ea-a246-994377a99c3a",
+                        "title": "Détruire la séduction sophiste",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "73f3e25a-1fd7-45b5-85be-f7ca38e95813",
+                        "title": "La hiérarchie naturelle des êtres",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "f7a2ccf8-b7a2-4265-b17d-5f5b800737c3",
+                        "title": "La philosophie pour vivre dans l'éternel",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "0e029c5d-c5ad-4e86-92af-5a1fa8d3a008",
+                        "title": "La postérité de la vérité à trois temps",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "f55a202c-5e2a-4ea5-af7a-715c6a4f0503",
+                        "title": "Critique nietzschéenne : un nihilisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "745d61e1-2ca3-4a5c-aebd-d1d5712596a9",
+                        "title": "Critique nietzschéenne : une force réactive",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "7121a136-5fb6-48de-a687-3ff538916b0d",
+                        "title": "Introduction à Aristote",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "733a03a6-4c0d-410b-a9fb-44e227102632",
+                        "title": "S'inscrire dans le cosmos",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "f7efb415-a899-479a-91c3-350c20c0fb60",
+                        "title": "Cosmos vs. Chaos, l'origine de la philosophie",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "fe6696e0-90f1-46ef-aaff-a35bea1a822f",
+                        "title": "La physique selon Aristote",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "ef2229b4-1580-4b92-baa6-d7960e867e91",
+                        "title": "Ethique et politique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "28187c3e-aec9-47ae-937a-75ecdc947e0e",
+                        "title": "Le rôle de l'éducation",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "1728178f-4d79-41ee-bbca-30603ea652b1",
+                        "title": "Le renversement de la morale moderne",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "4e422e73-34fb-49e2-b7e9-2dcbac724181",
+                        "title": "Être éternel",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "37b14d7b-470e-4192-9e4e-cd4eb9e6f233",
+                        "title": "Rupture avec Platon : critique de la théorie des idées",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "a1e993ed-d285-40fa-9661-9907228d7db3",
+                        "title": "Le stoïcisme, prototype de la sagesse antique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "b7a5de2c-f1b5-4812-adf6-7617248722f2",
+                        "title": "La theoria : un monde divin et logique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "c91399a9-5425-469d-95e7-14bf702814ac",
+                        "title": "Morale, liberté et bonheur",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "55000e5b-2318-4c47-b75a-76e02a2b9714",
+                        "title": "Le manuel d'Epictète",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "3d11bec4-4b58-4a58-8359-23052a39b32f",
+                        "title": "Exercices de sagesse, l'héritage cynique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "4676febf-ab68-4b88-b352-f0508bc367de",
+                        "title": "La philosophie dépouillée de la pratique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "ff073e88-3706-4066-a49d-f2174ad1763d",
+                        "title": "Les voies de l'éternité",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "6b80c9dc-1a44-42e2-9000-7c563142b14f",
+                        "title": "La mort est un passage",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "0d0f50e5-d730-4e94-93ed-3a05847e297e",
+                        "title": "Habiter le présent",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "8c43c350-6074-4474-a38c-c48e6b939474",
+                        "title": "Repousser l'espérance et ne s'attacher à rien",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "29eb4642-c4f6-499d-9290-ebe31c470e17",
+                        "title": "Apprendre à connaître Epicure",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "12afd3ee-0248-4800-8581-d1a098fded90",
+                        "title": "Les quatre grands remèdes épicurien",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "df98a449-33ad-4fc1-907e-394702035b32",
+                        "title": "La mort n'est rien pour nous",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "62e17615-e7ba-4989-81be-16c0d6904796",
+                        "title": "Le présent confine à l'éternité",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "9d53f728-f160-4fd8-b91d-0c6b3332f354",
+                        "title": "Conclusion",
+                        "documentIndices": null
+                    }
+                ]
+            },
+            {
+                "id": "3a402c64-0831-418c-8d3c-99f133e526bb",
+                "title": "Faut-il renouer avec une politique de puissance?",
+                "documentIndices": []
+            },
+            {
+                "id": "5416a73d-1c5d-42af-9556-564640d340e2",
+                "title": "La tentation du christianisme - avec Lucien Jerphagnon",
+                "documentIndices": [
+                    {
+                        "id": "d13ff7af-4057-4632-a562-aa56f86654f3",
+                        "title": "Pourquoi le Christianisme ? Du point de vue des Romains.(Lucien Jerphagnon)",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "8ebc2440-205d-4259-ace5-92b6216b1875",
+                        "title": "Les deux leçons de la mythologie que la philosophie va reprendre sous forme sécularisée et avec lesquelles le christianisme va rompre radicalement",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "d663ea82-de5a-43e2-a6fe-498aa2c0bf2c",
+                        "title": "Les trois questions directrices de la philosophie",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "359ac238-deb6-41fb-bd18-f39e82262c13",
+                        "title": "La réponse stoïcienne",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "f832772c-47b9-463e-ac42-00f99b03d9ba",
+                        "title": "Se sauver de la peur de la mort: trois approches possibles…",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "65d5ac96-8a6d-447c-be34-cb2758f1aecb",
+                        "title": "Comment le christianisme rompt avec les trois aspects - théorique, éthique et sotériologique - des sagesses cosmologiques grecques...",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "b21cf415-10a4-409e-99ae-efa42ad3955b",
+                        "title": "Une révolution éthique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "76ff19c4-2580-4b31-9966-2168aaf9fd9d",
+                        "title": "Une révolution sotériologique (touchant à la doctrine du salut)",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "4c2c67f7-8f58-4b08-a8bc-a74767723ba8",
+                        "title": "Conclusion",
+                        "documentIndices": null
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "1Z0FeEfs7R2DVLxnbps2G2fBDXVVLpBSDlzQOogpIzQc",
+        "title": "Copie de Lucien Jerphagnon",
+        "documentIndices": [
+            {
+                "id": "ede084b0-694e-4c13-bef7-93d3b5152233",
+                "title": "Lucien Jerphagnon, rencontre avec un érudit généreux",
+                "documentIndices": []
+            },
+            {
+                "id": "864ff600-340d-4bfa-956c-25ba4052e3f9",
+                "title": "Le Néoplatonisme avec Anne Baudart",
+                "documentIndices": []
+            },
+            {
+                "id": "65815764-8e44-4504-9034-3dc77ba97ca3",
+                "title": "St Augustin - Quel serait ce Dieu « plus intime à moi que moi-même » ?, Jean-Michel Vienne",
+                "documentIndices": []
+            },
+            {
+                "id": "98baef6f-541d-4911-ba55-2abaab50c5bb",
+                "title": "Saint Augustin",
+                "documentIndices": []
+            },
+            {
+                "id": "b2f5589d-5cbb-4224-9794-952cb8f25688",
+                "title": "Les Ennéades de Plotin : D'où vient la Beauté ?",
+                "documentIndices": []
+            },
+            {
+                "id": "e33ccece-4965-404c-abed-22767ea75111",
+                "title": "Les Ennéades de Plotin : Au commencement était l'Un",
+                "documentIndices": []
+            },
+            {
+                "id": "6fd4d3d6-3374-4616-8a8f-31193fb1d940",
+                "title": "Connais-toi toi même et fais ce que tu aimes",
+                "documentIndices": [
+                    {
+                        "id": "2a07ae47-d51b-4e5d-8d1d-2fe3c422cdd2",
+                        "title": "Préface",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "08c59c34-90cb-40f0-a08c-d38b963d2225",
+                        "title": "Avant-propos",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "d1cbd515-3fa6-4b5b-a828-81397f48584b",
+                        "title": "La lumière grecque",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "66355e02-b524-4eff-b97f-8451f5af9457",
+                        "title": "Platon, la carrière d’un philosophe",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "91d6ac30-44c6-464e-a0d5-7135794997bc",
+                        "title": "Faut-il réhabiliter les sophistes?",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "16d9599d-8774-44ae-9eb1-2924993a55cf",
+                        "title": "Plotin et la figure du monde",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "6549910e-bcd8-4967-b5a1-196e2cd4479f",
+                        "title": "Que devons-nous à Rome?",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "bcc2d4e4-f93a-49bc-bc57-752c468fdcad",
+                        "title": "Roma aeterna",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "a048aa11-ad76-4440-a6bf-6385cf771ff5",
+                        "title": "Sénèque au coeur du siècle",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "f5563b14-4842-49a2-8d30-47db1f295818",
+                        "title": "Constantin sans peplum",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "e76ceaab-aa1d-42b4-a771-b0ddddc4459d",
+                        "title": "Religion romaine et religion chrétienne",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "9ae682cf-e8b4-4707-8d85-b6c8c61e345e",
+                        "title": "Saint Augustin à l’école de Plotin",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "e0a5dede-5f11-42ab-bf44-69fea9cb29e4",
+                        "title": "Saint Augustin, la conscience mise à nu",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "5f24077b-e417-4218-a1f9-3b101c2347d3",
+                        "title": "Les mythes et l’image de ma destinée d’Homère à saint Augustin",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "5354a9e7-3b73-47c5-a874-230d7a7da796",
+                        "title": "Les secrets des gnostiques",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "24de1578-2dc8-4e15-8cae-c86a84286c91",
+                        "title": "Arius sème la zizanie pour deux siècles",
+                        "documentIndices": null
+                    }
+                ]
+            },
+            {
+                "id": "46a5a475-1210-4cd6-9178-8ca9ebaddd57",
+                "title": "Portraits de l’Antiquité",
+                "documentIndices": [
+                    {
+                        "id": "01aa284f-9390-4929-b344-81a8027e14dd",
+                        "title": "Héraclite",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "e884273b-de22-487f-adac-917b482ce044",
+                        "title": "Empédocle",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "9160c318-89aa-406d-b8e8-7a645da78a50",
+                        "title": "Socrate",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "26498927-eb35-4baa-9daf-36b92c5648cf",
+                        "title": "Le platonisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "8eac97b4-9d88-49e3-a824-779a2c26557e",
+                        "title": "L’épicurisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "8ad02895-59af-43f8-81d1-ff35c8d9689e",
+                        "title": "Le stoïcisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "2d51756c-6270-494a-b63b-c09f164cbcc4",
+                        "title": "Le néoplatonisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "53e1a825-6808-43f2-8b87-bfd9a4588d3c",
+                        "title": "Quelques échos du Parménide de Platon",
+                        "documentIndices": null
+                    }
+                ]
+            },
+            {
+                "id": "3be8725f-74f8-4276-ae95-241b05b47075",
+                "title": "Histoire de la pensée",
+                "documentIndices": [
+                    {
+                        "id": "493d3150-700f-4caf-9e43-b96697c682d0",
+                        "title": "Aux origines de la philosophie",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "91d2951e-8980-4ef3-b1f9-3c5ed42577d8",
+                        "title": "Aux origines de la nature",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "85818bdc-a9f8-4ece-88f0-490d473150f8",
+                        "title": "Le tout, l’un et la pensée",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "9fca1a30-440a-4e87-a2b8-c77dbc023e44",
+                        "title": "Une conscience dans la cité",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "2caff650-5931-4a18-adb6-c9dbdf4b2920",
+                        "title": "La politique sous l’angle de l’éternel - Platon",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "600de10e-b73a-4f1d-a1d8-aabc80c85c1c",
+                        "title": "La raison sur la terre comme au ciel  - Aristote",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "6e94b926-84f4-4ef9-9e24-dc33f610f644",
+                        "title": "Prophètes et chantres de la nature - Cyniques et Cyrénaïques",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "128936b9-ff58-4af6-b97f-caada5613f33",
+                        "title": "Une vie de chien - Les Cyniques",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "f2dba7b2-1ab0-42a3-8180-9d6d0d0c633a",
+                        "title": "Le plaisir au ras du moment - Les Cyrénaïques",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "ab905df0-7606-44c6-98b8-b24d97100b90",
+                        "title": "Philosophes pour un monde nouveau: Epicuriens, Stoïciens et Sceptiques",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "570599d5-ea50-4855-a1e6-33d6cdaf9432",
+                        "title": "Citée perdue, citadelle intérieure",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "637e1180-4497-40a0-ab54-2469019a739d",
+                        "title": "Ceux du jardin - Les Epicuriens",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "31c70bad-d674-49a9-bc45-b5f34d3972a5",
+                        "title": "Ceux du portiques - Les Stoïciens",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "08a96fee-aa3c-4fd6-953b-7c3f5f2ef22a",
+                        "title": "Ces philosophes qui n’affirmaient rien - Les Sceptiques",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "160d99fd-e2ca-4fde-bf79-378fc4455d38",
+                        "title": "Le temps des héritiers : la philosophie sous la république romaine ",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "c0a1c7dd-eb15-461f-8f49-03d99635d963",
+                        "title": "L’heure des exégètes",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "bb0e7fbb-a5f6-45ae-8a38-6170f5580674",
+                        "title": "Le portique entre le pouvoir et la fronde",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "d0021a6a-dfa4-40ca-8174-067ab77df984",
+                        "title": "Des dieux et des mots",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "940be38f-6218-40eb-9e84-3f909687ae28",
+                        "title": "Athène et Jérusalem",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "8ecd35f5-75c4-424d-8c68-a5b9748c59f9",
+                        "title": "“Et le logos c’est fait chair…”",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "3a2e0065-6c1c-4b56-a5a6-546eca0fb277",
+                        "title": "Dans les secrets divins",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "f787e204-1383-41aa-b56b-cbb4159d0de7",
+                        "title": "L’absolu entrevu: les néoplatoniciens",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "4ef4b57e-3289-46c5-a015-ef2848a31617",
+                        "title": "Les cieux nouveaux et la nouvelle terre : saint Augustin",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "7a81a684-d56b-4ebd-be17-36c3aa17d394",
+                        "title": "La fin de tout: les grandes invasions",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "304844f1-ac64-4f4a-bb42-d9dd131244b9",
+                        "title": "Les lendemains du déluge: Boèce",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "779cf0d0-7902-4831-9c79-e58b045dfcaa",
+                        "title": "Résurgences néoplatoniciennes: le Pseudo-Denys, Jean Scot Erigène",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "d7e184f0-9a12-453a-9cc0-320dfe944f9d",
+                        "title": "Les penseurs de l’an Mille",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "d7d096e8-7103-4be8-85d6-bd4c90b64806",
+                        "title": "La joie de penser et de dire",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "16e73589-8d9a-4b73-b561-f5c7271d31b8",
+                        "title": "Aristote est de retour",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "2e26d7b9-4a37-4008-86a7-46e4972255fb",
+                        "title": "L’âge d’or de la scolastique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "61f2685a-7dd5-44db-9dbe-8a7c8a9a4c8c",
+                        "title": "“Parvenu à la fin des temps…”",
+                        "documentIndices": null
+                    }
+                ]
+            }
+        ]
+    },
+    {
+        "id": "1e-vnwro07TdtqGl3dlfGY0G-oU-lLr0i51aprzdwfRw",
+        "title": "Copie de Pierre Hadot",
+        "documentIndices": [
+            {
+                "id": "3f6f2675-2bc6-4f47-b9bf-edca4c07eccf",
+                "title": "La citadelle intérieure",
+                "documentIndices": []
+            },
+            {
+                "id": "0e292167-b92e-4efb-83d0-aaa5bcff505f",
+                "title": "La culture de soi: exercices spirituels et philosophie antique",
+                "documentIndices": []
+            },
+            {
+                "id": "446b63be-ad77-4b78-be01-9c274427a52f",
+                "title": "Qu’est ce que la philosophie antique?",
+                "documentIndices": []
+            },
+            {
+                "id": "52d9cf26-3305-4e27-941b-43a74aea5258",
+                "title": "Qu’est ce que la philosophie antique?",
+                "documentIndices": [
+                    {
+                        "id": "5505bd36-c5b3-49a3-bc57-876daa645b7d",
+                        "title": "La philosophie avant la philosophie",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "fc7b62d7-eb81-438d-bfbd-4b8020fe2e04",
+                        "title": "L’apparition de la notion de “philosopher”",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "3e8ed68e-db98-4ae7-bee5-4b251ca89718",
+                        "title": "La figure de Socrate",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "38c9f11d-8cfc-4cec-9cdb-0ffd2d7ee4e5",
+                        "title": "La définition du philosophe dans le banquet de Platon",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "fb452c39-18b9-4d5b-9ae3-450810446414",
+                        "title": "Platon et l’Académie",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "77d87c21-6f39-4dec-a338-c7ce4ad6ba46",
+                        "title": "Aristote et son école",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "73c88875-49ec-456c-bdae-745b036c1b63",
+                        "title": "Les écoles hellénistiques",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "bdf304dd-6971-41ce-97e1-73f3ef45cad0",
+                        "title": "Le cynisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "36055aa0-04ac-464b-b5bb-33d39ac43cf4",
+                        "title": "Le pyrrhonisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "47ed5885-eead-4cf7-93b8-559693ae1e44",
+                        "title": "L’épicurisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "198b63f1-d9e1-4e63-9e78-c1df7c6ef888",
+                        "title": "Le stoïcisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "47f9b73b-cb6a-4f96-860f-78b6ae7fe7bf",
+                        "title": "Le scepticisme",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "c05a7986-7031-4663-9068-77f69b166f8d",
+                        "title": "Les méthodes d’enseignement à l’époque impériale: l’ère du commentaire",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "fea595d8-b608-4833-9a8d-05c74eaaf691",
+                        "title": "Le choix de vie",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "4bc63d47-fa07-4e7d-aae8-1b6e509e3fc3",
+                        "title": "Plotin et Porphyre",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "5671ee84-44c7-4c0e-8aaa-cf6c90354ac5",
+                        "title": "Les niveaux du moi et les limites du discours philosophique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "49460743-178a-418f-af2c-d72800de96a6",
+                        "title": "Le mode de vie",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "a6b2d8ea-19cc-48f4-a481-fb6f48cda792",
+                        "title": "La philosophie et l’ambiguïté du discours philosophique",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "743a0324-fda9-4e1c-9164-06920b49f293",
+                        "title": "Les exercices spirituels : l’ascèse",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "59277d27-725a-4c6d-99ef-cf8a9c2afa73",
+                        "title": "Le moi, le présent et la mort",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "5959d4b2-d90f-4dd2-9d2a-79f098264443",
+                        "title": "Concentration sur soi et examen de conscience",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "7a12302d-5ebb-4193-ada2-44d91ab87ce3",
+                        "title": "L'expansion de soi dans le cosmos",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "c87bbf76-db8b-4d14-b16f-8b9ea051647d",
+                        "title": "Le regard d’en haut",
+                        "documentIndices": null
+                    },
+                    {
+                        "id": "94d22839-a5d5-4603-9068-4afc6fa96194",
+                        "title": "La physique comme exercice spirituel",
+                        "documentIndices": null
+                    }
+                ]
+            }
+        ]
+    }
+]

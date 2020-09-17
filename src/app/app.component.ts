@@ -1,15 +1,15 @@
-import { Component, AfterViewInit } from '@angular/core';
+import { Component, OnInit, AfterViewInit, Input } from '@angular/core';
 
 import '../js/modernizr-custom.js';
 import { DocumentService } from './document.service';
-
+import { ActivatedRoute, Router } from "@angular/router";
 import classie from '../js/classie.js';
 import { List } from 'linqts';
 import { conditionallyCreateMapObjectLiteral } from '@angular/compiler/src/render3/view/util';
+import { Document } from './document.js';
+import { DocumentIndex } from './document.index.js';
 
 // import '../js/main.js';
-
-
 
 @Component({
 	selector: 'app-root',
@@ -22,13 +22,23 @@ import { conditionallyCreateMapObjectLiteral } from '@angular/compiler/src/rende
 
 	]
 })
-export class AppComponent implements AfterViewInit {
-	
-	title = 'anabasis';
+export class AppComponent implements AfterViewInit, OnInit {
 
+	title = 'anabasis';
 	MLMenu = null;
 
-	constructor(private documentService: DocumentService) { }
+	@Input()
+	documentIndices: DocumentIndex[] = [];
+	content: import("e:/dev/anabasis/src/app/documentItem").DocumentItem[];
+
+
+
+	constructor(private documentService: DocumentService, private route: ActivatedRoute, private router: Router) {
+
+
+
+
+	}
 
 	createMenu() {
 
@@ -100,7 +110,7 @@ export class AppComponent implements AfterViewInit {
 			// show back button
 			backCtrl: true,
 			// delay between each menu item sliding animation
-			itemsDelayInterval: 60,
+			itemsDelayInterval: 10,
 			// direction 
 			direction: 'r2l',
 			// callback: item that doesn´t have a submenu gets clicked
@@ -359,6 +369,8 @@ export class AppComponent implements AfterViewInit {
 			}
 		};
 
+		var component = this;
+
 		MLMenu.prototype._addBreadcrumb = function (idx) {
 			if (!this.options.breadcrumbsCtrl) {
 				return false;
@@ -370,8 +382,11 @@ export class AppComponent implements AfterViewInit {
 			this.breadcrumbsCtrl.appendChild(bc);
 
 			var self = this;
+
 			bc.addEventListener('click', function (ev) {
 				ev.preventDefault();
+
+				component.resetContent();
 
 				// do nothing if this breadcrumb is the last one in the list of breadcrumbs
 				if (!bc.nextSibling || self.isAnimating) {
@@ -406,7 +421,7 @@ export class AppComponent implements AfterViewInit {
 	}
 
 
-	initMenu(documents : List<Document>) {
+	initMenu() {
 
 		var that = this;
 
@@ -416,7 +431,7 @@ export class AppComponent implements AfterViewInit {
 				// initialBreadcrumb : 'all', // initial breadcrumb text
 				backCtrl: false, // show back button
 				// itemsDelayInterval : 60, // delay between each menu item sliding animation
-				onItemClick: loadDummyData // callback: item that doesn´t have a submenu gets clicked - onItemClick([event], [inner HTML of the clicked item])
+			//	onItemClick: loadDummyData // callback: item that doesn´t have a submenu gets clicked - onItemClick([event], [inner HTML of the clicked item])
 			});
 
 		// mobile menu toggle
@@ -437,66 +452,110 @@ export class AppComponent implements AfterViewInit {
 		}
 
 		// simulate grid content loading
-		var gridWrapper = document.querySelector('.content');
+		// var gridWrapper = document.querySelector('.content');
 
-		function loadDummyData(ev, itemName) {
-			ev.preventDefault();
+		// function loadDummyData(ev, itemName) {
+		// 	ev.preventDefault();
 
-			closeMenu();
-			gridWrapper.innerHTML = '';
-			classie.add(gridWrapper, 'content--loading');
-			setTimeout(function () {
-				classie.remove(gridWrapper, 'content--loading');
-				gridWrapper.innerHTML = '<ul class="products">' + documents[0] + '<ul>';
-			}, 700);
-		}
+		// 	closeMenu();
+		// 	gridWrapper.innerHTML = '';
+		// 	classie.add(gridWrapper, 'content--loading');
+		// 	setTimeout(function () {
+		// 		classie.remove(gridWrapper, 'content--loading');
+		// 		gridWrapper.innerHTML = '<ul class="products">' + null + '<ul>';
+		// 	}, 700);
+		// }
+	}
+
+	resetContent(){
+		this.content = [];
+	}
+
+	loadContent(documentId: string, secondaryTitleId: string){
+
+		this.documentService.getDocumentItemsByMainTitleIdWithDocumentTitle(documentId,secondaryTitleId)
+		.subscribe(documents=>{
+			this.content = documents.ToArray();
+		});
+
+	}
+
+	navigateToAnchor (anchor: string){
+		this.router.navigate(['/'], {fragment: anchor}).then(res => {
+			// console.log(res);
+			  let testElement = document.getElementById(anchor);
+			//   console.log("testElement", testElement)
+			  if (testElement != undefined) testElement.scrollIntoView();
+		  })
+
 	}
 
 
+	ngOnInit() {
+
+		this.documentService.load().then(isSuccess => {
+
+			this.documentService.loadIndices().subscribe(indicies=>{
+
+				this.documentIndices = indicies.ToArray();
+
+				setTimeout(() => {
+					this.createMenu();
+					this.initMenu();
+				}, 1000);
+
+			});
+		});
+
+
+
+
+		// 
+
+
+		// 	this.documentService.getDocumentsIdAndTitle().subscribe(documents=>{
+		// 		documents.ForEach(document=>{
+
+		// 			var documentId =document[0];
+		// 			var documentTitle =document[1];
+
+		// 			console.log(documentTitle);
+
+		// 			this.documentService.getMainTitlesByDocumentId(documentId).subscribe(mainTitles=>{
+
+		// 				mainTitles.ForEach(mainTitle=>{
+
+		// 					 console.log("	" + mainTitle[1]);
+
+		// 					this.documentService.getDocumentItemsByMainTitleId(documentId, mainTitle[0]).subscribe(documentItems=>{
+
+		// 						documentItems.ForEach(documentItem=>{
+
+
+		// 							if(documentItem.isSecondaryTitle) console.log("		" + documentItem.content);
+		// 							if(documentItem.isUrl) console.log("		" + documentItem.content);
+
+		// 						});
+
+		// 					});
+
+		// 				});
+
+
+		// 			});
+
+
+		// 		});
+		// 	});
+
+
+
+		// });
+
+	}
+
 	ngAfterViewInit() {
 
-		this.documentService.getDocuments().subscribe(documents=>{
-			this.createMenu();
-			this.initMenu(documents);
-
-			this.documentService.getDocumentIdAndTitles().subscribe(documents=>{
-				documents.ForEach(document=>{
-
-					var documentId =document[0];
-					var documentTitle =document[1];
-
-					console.log(documentTitle);
-
-					this.documentService.getMainTitlesByDocumentId(documentId).subscribe(mainTitles=>{
-
-						mainTitles.ForEach(mainTitle=>{
-
-							 console.log("	" + mainTitle[1]);
-
-							this.documentService.getDocumentItemsByMainTitleId(documentId, mainTitle[0]).subscribe(documentItems=>{
-
-								documentItems.ForEach(documentItem=>{
-		
-								
-									if(documentItem.isSecondaryTitle) console.log("		" + documentItem.content);
-									if(documentItem.isUrl) console.log("		" + documentItem.content);
-									
-								});
-
-							});
-
-						});
-
-						
-					});
-
-
-				});
-			});
-
-		
-
-		});
 
 	}
 }

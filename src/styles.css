@@ -41,7 +41,7 @@
 	position: fixed;
 	top: 0px;
 	left: 0;
-	width: 300px;
+	width: 350px;
 	height: calc(100vh - 120px);
 	background: #f4f4f7;
 }
@@ -56,7 +56,7 @@
 
 .menu__level {
 	position: absolute;
-	top: 0;
+	/* top: 20px; */
 	left: 0;
 	visibility: hidden;
 	overflow: hidden;
@@ -82,10 +82,11 @@
 }
 
 .menu__link {
-	font-weight: 600;
+	font-weight: 400;
+	font-size: smaller;
 	position: relative;
 	display: block;
-	padding: 0.5em 2.5em 0em 1.5em;
+	padding: 0em 2.5em 0em 1.5em;
 	color: #9595ca;
 	-webkit-transition: color 0.1s;
 	transition: color 0.1s;
@@ -388,7 +389,7 @@ body {
 	font-family: 'Avenir Next', Avenir, 'Helvetica Neue', 'Lato', 'Segoe UI', Helvetica, Arial, sans-serif;
 	overflow: hidden;
 	margin: 0;
-	color: #cecece;
+	color: #2b2828;
 	background: #f4f4f7;
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
@@ -572,7 +573,7 @@ a:hover {
 	position: fixed;
 	top: 0;
 	left: 0;
-	width: 300px;
+	width: 350px;
 	height: 120px;
 	padding: 1em 0 0 0;
 	text-align: center;
@@ -593,7 +594,19 @@ a:hover {
 .content {
 	position: relative;
 	min-height: 300px;
-	margin: 0 0 0 300px;
+	margin: 20px 20px 20px 350px;
+}
+.content>h2 {
+	margin-block-end: 5px;
+}
+
+.content>a {
+	color: #9595ca;
+	font-size: small;
+}
+
+.content>a:hover {
+	color: #5c5edc;
 }
 
 .content--loading {
@@ -660,125 +673,11 @@ body #cdawrap a:hover.carbon-poweredby {
 		display: none;
 	}
 	.content {
-		margin: 0;
+		margin: 20px;
 	}
 	body,
 	.container {
 		height: auto;
 		overflow: auto;
 	}
-}
-
-
-/* ****************************** */
-
-
-@font-face {
-	font-family: 'organicfoodicons';
-	src:url('./fonts/organicfoodicons/organicfoodicons.eot?56tr8g');
-	src:url('./fonts/organicfoodicons/organicfoodicons.eot?56tr8g#iefix') format('embedded-opentype'),
-		url('./fonts/organicfoodicons/organicfoodicons.woff2?56tr8g') format('woff2'),
-		url('./fonts/organicfoodicons/organicfoodicons.ttf?56tr8g') format('truetype'),
-		url('./fonts/organicfoodicons/organicfoodicons.woff?56tr8g') format('woff'),
-		url('./fonts/organicfoodicons/organicfoodicons.svg?56tr8g#organicfoodicons') format('svg');
-	font-weight: normal;
-	font-style: normal;
-}
-
-.foodicon {
-	font-family: 'organicfoodicons';
-	speak: none;
-	font-style: normal;
-	font-weight: normal;
-	font-variant: normal;
-	text-transform: none;
-	line-height: 1;
-	/* Better Font Rendering =========== */
-	-webkit-font-smoothing: antialiased;
-	-moz-osx-font-smoothing: grayscale;
-}
-
-.foodicon--jam::before {
-	content: "\e900";
-}
-.foodicon--radish::before {
-	content: "\e901";
-}
-.foodicon--carrot::before {
-	content: "\e902";
-}
-.foodicon--coconut::before {
-	content: "\e903";
-}
-.foodicon--corn::before {
-	content: "\e904";
-}
-.foodicon--cucumber::before {
-	content: "\e905";
-}
-.foodicon--eggplant::before {
-	content: "\e907";
-}
-.foodicon--ekobag::before {
-	content: "\e908";
-}
-.foodicon--grain::before {
-	content: "\e909";
-}
-.foodicon--grape::before {
-	content: "\e90a";
-}
-.foodicon--leaf::before {
-	content: "\e90b";
-}
-.foodicon--lemon::before {
-	content: "\e90c";
-}
-.foodicon--lettuce::before {
-	content: "\e90d";
-}
-.foodicon--mylk::before {
-	content: "\e90e";
-}
-.foodicon--mushrooms::before {
-	content: "\e90f";
-}
-.foodicon--onion::before {
-	content: "\e910";
-}
-.foodicon--pear::before {
-	content: "\e911";
-}
-.foodicon--pepper::before {
-	content: "\e912";
-}
-.foodicon--smoothie::before {
-	content: "\e913";
-}
-.foodicon--squeezer::before {
-	content: "\e914";
-}
-.foodicon--tomato::before {
-	content: "\e915";
-}
-.foodicon--watermelon::before {
-	content: "\e916";
-}
-.foodicon--apple::before {
-	content: "\e917";
-}
-.foodicon--banana::before {
-	content: "\e918";
-}
-.foodicon--basket::before {
-	content: "\e919";
-}
-.foodicon--blender::before {
-	content: "\e91a";
-}
-.foodicon--bread::before {
-	content: "\e91b";
-}
-.foodicon--broccoli::before {
-	content: "\e91c";
 }
