@@ -7,8 +7,7 @@
     </div> -->
     <div class="bp-header__main">
       <span class="bp-header__present">Anabasis</span>
-      <h1 class="bp-header__title"><a target="_blank" href="https://tympanus.net/codrops/2015/11/17/multi-level-menu/">Template adapted from
-          Codrops</a></h1>
+      <h1 class="bp-header__title">Books against time</h1>
       <nav class="bp-nav">
         <!-- <a class="bp-nav__item bp-icon bp-icon--prev" href="http://tympanus.net/Blueprints/PageStackNavigation/" data-info="previous Blueprint"><span>Previous Blueprint</span></a>
        -->
@@ -17,6 +16,10 @@
         <a class="bp-nav__item bp-icon bp-icon--archive" href="http://tympanus.net/codrops/category/blueprints/" data-info="Blueprints archive"><span>Go to the archive</span></a>
        -->
       </nav>
+
+      <input type="text" id="uname" name="name" placeholder="Un seul mot, en minuscules">
+      <button>Envoyer</button>
+
     </div>
   </header>
   <button class="action action--open" aria-label="Open Menu"><span class="icon icon--menu"></span></button>
@@ -38,6 +41,7 @@
           role="menu" aria-label="{{documentIndex.title}}">
           <li *ngFor="let documentSubIndex of documentIndex.documentIndices" class="menu__item" role="menuitem">
             <a class="menu__link"
+               id="a_{{documentSubIndex.id}}"
               [attr.data-submenu]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null"
               [attr.aria-owns]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null"
               (click)="loadContent(documentIndex.id, documentSubIndex.id)" href="#">{{documentSubIndex.title}}</a>
@@ -184,7 +188,10 @@
       </ng-container>
 
       <ng-container *ngIf="!documentItem.isUrl && !documentItem.isSecondaryTitle && !documentItem.isMainTitle">
-         {{documentItem.content }}
+        
+        <ng-container *ngIf="documentItem.isEmphasis; else elseBlock"><u>{{documentItem.content}}</u></ng-container>
+        <ng-template #elseBlock>{{documentItem.content}}</ng-template>
+
          <br><br>
       </ng-container>
 

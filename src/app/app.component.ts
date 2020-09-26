@@ -8,6 +8,7 @@ import { List } from 'linqts';
 import { conditionallyCreateMapObjectLiteral } from '@angular/compiler/src/render3/view/util';
 import { Document } from './document.js';
 import { DocumentIndex } from './document.index.js';
+import { DocumentItem } from './documentItem.js';
 
 // import '../js/main.js';
 
@@ -29,7 +30,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 
 	@Input()
 	documentIndices: DocumentIndex[] = [];
-	content: import("e:/dev/anabasis/src/app/documentItem").DocumentItem[];
+	content: DocumentItem[];
 
 
 
@@ -106,7 +107,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 			// show breadcrumbs
 			breadcrumbsCtrl: true,
 			// initial breadcrumb text
-			initialBreadcrumb: 'Auteurs',
+			initialBreadcrumb: 'Authors',
 			// show back button
 			backCtrl: true,
 			// delay between each menu item sliding animation
@@ -473,9 +474,24 @@ export class AppComponent implements AfterViewInit, OnInit {
 
 	loadContent(documentId: string, secondaryTitleId: string){
 
+		var self = this;
+
 		this.documentService.getDocumentItemsByMainTitleIdWithDocumentTitle(documentId,secondaryTitleId)
 		.subscribe(documents=>{
-			this.content = documents.ToArray();
+
+			var gridWrapper = document.querySelector('.content');
+
+			classie.add(gridWrapper, 'content--loading');
+
+			setTimeout(function () {
+				classie.remove(gridWrapper, 'content--loading');
+
+				self.content = documents.ToArray();
+
+
+			}, 700);
+
+		
 		});
 
 	}

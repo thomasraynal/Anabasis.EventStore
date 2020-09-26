@@ -39,9 +39,9 @@
 
 .menu {
 	position: fixed;
-	top: 0px;
+	top: 100px;
 	left: 0;
-	width: 350px;
+	width: 600px;
 	height: calc(100vh - 120px);
 	background: #f4f4f7;
 }
@@ -229,10 +229,11 @@
 }
 
 .menu__breadcrumbs {
-	font-size: 0.65em;
+	font-size: 0.60em;
 	line-height: 1;
 	position: relative;
-	padding: 2.5em 3.75em 1.5em 2.5em;
+	padding: 2.5em 3.75em 1em 2.5em;
+	width: 600px;
 }
 
 .menu__breadcrumbs a {
@@ -416,12 +417,14 @@ a:hover {
 .bp-header {
 	display: -webkit-flex;
 	display: flex;
+	position: fixed;
+	left: 0;
 }
 
 .bp-header__main {
-	margin: 0 0 0 auto;
-	padding: 2em 3em 0;
-	text-align: right;
+	margin: 0 0 auto 0;
+	padding: 2em 1em 0;
+	/* text-align: right; */
 }
 
 .bp-header__title {
@@ -453,7 +456,7 @@ a:hover {
 	z-index: 100;
 	display: block;
 	/* margin: 0 -8px 0 0; */
-	padding: 0 0 0.6em 0;
+	/* padding: 0 0 0.6em 0; */
 	text-indent: 3px;
 	letter-spacing: 3px;
 	text-transform: uppercase;
@@ -594,7 +597,7 @@ a:hover {
 .content {
 	position: relative;
 	min-height: 300px;
-	margin: 20px 20px 20px 350px;
+	margin: 20px 20px 20px 600px;
 }
 .content>h2 {
 	margin-block-end: 5px;
@@ -663,6 +666,8 @@ body #cdawrap a:hover.carbon-poweredby {
 @media screen and (max-width: 40em) {
 	.bp-header {
 		padding-top: 3em;
+		position: relative;
+		left: inherit;
 	}
 	.bp-header__main,
 	.bp-nav {
@@ -675,6 +680,10 @@ body #cdawrap a:hover.carbon-poweredby {
 	.content {
 		margin: 20px;
 	}
+	/* .menu__breadcrumbs {
+		width: inherit;
+	} */
+
 	body,
 	.container {
 		height: auto;
