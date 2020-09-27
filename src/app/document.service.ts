@@ -7,6 +7,7 @@ import { List } from 'linqts';
 import { Document } from './document';
 import { DocumentItem } from './documentItem';
 import { DocumentIndex } from './document.index';
+import { DocumentSearchResult } from './document.search.result';
 
 @Injectable({
   providedIn: 'root'
@@ -50,7 +51,7 @@ export class DocumentService {
 
     var documentItems = this.documents.Where(document => document.id == documentId)
       .SelectMany(document => new List<DocumentItem>(document.documentItems))
-      .Where(documentItem => documentItem.mainTitleId == mainTitleId ||documentItem.id == mainTitleId );
+      .Where(documentItem => documentItem.mainTitleId == mainTitleId || documentItem.id == mainTitleId);
 
     return of(documentItems);
   }
@@ -75,6 +76,80 @@ export class DocumentService {
       });
 
     });
+  }
+
+
+  findTitleById(id: string) {
+
+    let title = null;
+
+    var doFindContentById = function (id: string, documentIndice: DocumentIndex) {
+
+      if (documentIndice.id == id) return title = documentIndice.title;
+      if (null == documentIndice.documentIndices) return null;
+
+      documentIndice.documentIndices.forEach(indice => {
+       var result = doFindContentById(id, indice);
+        if(null != result) return result;
+      });
+
+      return null;
+
+    };
+
+
+    this.documentIndices.ForEach(documentIndice => {
+
+      documentIndice.documentIndices.forEach(indice => {
+        var result =   doFindContentById(id, indice);
+        if(null != result) return result;
+       });
+
+    });
+
+    return title;
+
+  }
+
+  search(predicate: string): Observable<List<DocumentSearchResult>> {
+
+    var searchResults = this.documents.SelectMany(document => new List<DocumentItem>(document.documentItems))
+      .Where(documentItem => documentItem.content.toLowerCase().search(predicate.toLowerCase()) > 0)
+      //.GroupBy(documentItem => documentItem.documentId)
+      .Select(documentItem => {
+
+        var index = documentItem.content.toLowerCase().search(predicate.toLowerCase());
+
+        var document = this.documents.FirstOrDefault(document => document.id == documentItem.documentId);
+        var mainTitle = this.findTitleById(documentItem.mainTitleId);
+        var secondaryTitle = this.findTitleById(documentItem.secondaryTitleId);
+
+
+        let documentSearchResult = new DocumentSearchResult();
+        documentSearchResult.peek = documentItem.content.substring(index - 50, index + 50);
+        documentSearchResult.documentName = document.title;
+        documentSearchResult.mainTitle = mainTitle;
+        documentSearchResult.secondaryTitle = secondaryTitle;
+        // documentSearchResult
+
+
+
+
+
+
+        return documentSearchResult;
+
+
+      });
+
+
+
+
+
+    console.log(searchResults);
+
+    return null;
+
   }
 
   loadIndices(): Observable<List<DocumentIndex>> {

@@ -17,8 +17,8 @@
        -->
       </nav>
 
-      <input type="text" id="uname" name="name" placeholder="Un seul mot, en minuscules">
-      <button>Envoyer</button>
+      <input (keyup)="onKey($event)" type="text" id="uname" name="name" placeholder="Search">
+      <input  (click)="search()" type="button" value="Button">
 
     </div>
   </header>
@@ -189,7 +189,7 @@
 
       <ng-container *ngIf="!documentItem.isUrl && !documentItem.isSecondaryTitle && !documentItem.isMainTitle">
         
-        <ng-container *ngIf="documentItem.isEmphasis; else elseBlock"><u>{{documentItem.content}}</u></ng-container>
+        <div *ngIf="documentItem.isEmphasis; else elseBlock"><u>{{documentItem.content}}</u></div>
         <ng-template #elseBlock>{{documentItem.content}}</ng-template>
 
          <br><br>

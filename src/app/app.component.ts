@@ -31,6 +31,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 	@Input()
 	documentIndices: DocumentIndex[] = [];
 	content: DocumentItem[];
+	searchPredicate: any;
 
 
 
@@ -107,7 +108,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 			// show breadcrumbs
 			breadcrumbsCtrl: true,
 			// initial breadcrumb text
-			initialBreadcrumb: 'Authors',
+			initialBreadcrumb: 'Index',
 			// show back button
 			backCtrl: true,
 			// delay between each menu item sliding animation
@@ -116,7 +117,18 @@ export class AppComponent implements AfterViewInit, OnInit {
 			direction: 'r2l',
 			// callback: item that doesn´t have a submenu gets clicked
 			// onItemClick([event], [inner HTML of the clicked item])
-			onItemClick: function (ev, itemName) { return false; }
+			onItemClick: function (ev, itemName) {
+			
+				var menuEl = document.getElementById('ml-menu');
+				var openMenuCtrl = document.querySelector('.action--open');
+
+				classie.remove(menuEl, 'menu--open');
+				openMenuCtrl.focus();
+		
+
+				return false; 
+			
+			}
 		};
 
 		MLMenu.prototype._init = function () {
@@ -499,12 +511,33 @@ export class AppComponent implements AfterViewInit, OnInit {
 	navigateToAnchor (anchor: string){
 		this.router.navigate(['/'], {fragment: anchor}).then(res => {
 			// console.log(res);
+			setTimeout(function () {
+
 			  let testElement = document.getElementById(anchor);
 			//   console.log("testElement", testElement)
 			  if (testElement != undefined) testElement.scrollIntoView();
+
+			}, 200);
 		  })
 
 	}
+
+
+	findMenu (){
+
+		//var gridWrapper = document.getElementById()
+
+	}
+
+	search(){
+
+		this.documentService.search(this.searchPredicate);
+
+	}
+
+	onKey(event: any) { // without type info
+		this.searchPredicate = event.target.value;
+	  }
 
 
 	ngOnInit() {
