@@ -18,7 +18,7 @@
       </nav>
 
       <input (keyup)="onKey($event)" type="text" id="uname" name="name" placeholder="Search">
-      <input  (click)="search()" type="button" value="Button">
+      <input [disabled]="!searchPredicate" [routerLink]="['search']" [queryParams]="{q: searchPredicate}" type="button" value="Button">
 
     </div>
   </header>
@@ -26,25 +26,29 @@
   <nav id="ml-menu" class="menu">
     <button class="action action--close" aria-label="Close Menu"><span class="icon icon--cross"></span></button>
     <div class="menu__wrap">
-
-
-      <ul data-menu="main" class="menu__level" tabindex="-1" role="menu" aria-label="All">
-        <li class="menu__item" role="menuitem" *ngFor="let documentIndex of documentIndices">
-          <a class="menu__link" [attr.data-submenu]="documentIndex.id" [attr.aria-owns]="documentIndex.id"
-          (click)="resetContent()"
-            href="#">{{documentIndex.title}}</a>
+      <ul data-menu="main" [attr.ressource]="" id="index" class="menu__level" tabindex="-1" role="menu" aria-label="All">
+        <li class="menu__item"  [attr.id]="documentIndex.id" role="menuitem" *ngFor="let documentIndex of documentIndices">
+          <a 
+          class="menu__link"
+          routerLink="{{documentIndex.id}}"
+          [attr.data-parent-menu]="index" 
+          [attr.data-submenu]="documentIndex.id" 
+          [attr.aria-owns]="documentIndex.id"
+        
+            >{{documentIndex.title}}</a>
         </li>
       </ul>
 
       <ng-container *ngFor="let documentIndex of documentIndices">
-        <ul [attr.data-menu]="documentIndex.id" [attr.id]="documentIndex.id" class="menu__level" tabindex="-1"
-          role="menu" aria-label="{{documentIndex.title}}">
-          <li *ngFor="let documentSubIndex of documentIndex.documentIndices" class="menu__item" role="menuitem">
+        <ul [attr.data-menu]="documentIndex.id"  class="menu__level" tabindex="-1" role="menu"  [attr.ressource]="documentIndex.id" aria-label="{{documentIndex.title}}">
+          <li [attr.id]="documentSubIndex.id"  *ngFor="let documentSubIndex of documentIndex.documentIndices" class="menu__item" role="menuitem">
             <a class="menu__link"
-               id="a_{{documentSubIndex.id}}"
+              routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}"
+              [attr.data-parent-menu]="documentIndex.id" 
               [attr.data-submenu]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null"
               [attr.aria-owns]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null"
-              (click)="loadContent(documentIndex.id, documentSubIndex.id)" href="#">{{documentSubIndex.title}}</a>
+>
+              {{documentSubIndex.title}}</a>
           </li>
         </ul>
       </ng-container>
@@ -52,158 +56,33 @@
 
       <ng-container *ngFor="let documentIndex of documentIndices">
         <ng-container *ngFor="let documentSubIndex of documentIndex.documentIndices">
-          <ul *ngIf="documentIndex.documentIndices.length > 0" [attr.data-menu]="documentSubIndex.id"
-            [attr.id]="documentSubIndex.id" class="menu__level" tabindex="-1" role="menu"
+          <ul  *ngIf="documentIndex.documentIndices.length > 0" 
+            [attr.data-menu]="documentSubIndex.id"
+            [attr.ressource]="documentSubIndex.id"
+            class="menu__level" 
+            tabindex="-1" 
+            role="menu"
             aria-label="{{documentSubIndex.title}}">
             <li *ngFor="let documentLastIndex of documentSubIndex.documentIndices" class="menu__item" role="menuitem">
-              <a class="menu__link" (click)="navigateToAnchor(documentLastIndex.id)" href="#">{{documentLastIndex.title}}</a>
+              <a
+              routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}/{{documentLastIndex.id}}"
+              [attr.data-parent-menu]="documentSubIndex.id" 
+              class="menu__link" 
+   
+             >{{documentLastIndex.title}}</a>
             </li>
           </ul>
 
         </ng-container>
       </ng-container>
-
-
-      <!-- <ng-container *ngFor="let documentIndex of documentIndices">
-
-        <ul [attr.data-submenu]="documentIndex.id" [attr.id]="documentIndex.id" class="menu__level" tabindex="-1"
-          role="menu" [attr.aria-label]="documentIndex.title">
-          <li *ngFor="let subDocumentIndex of documentIndex.documentIndices" class="menu__item" role="menuitem">
-            <a class="menu__link" href="#">{{subDocumentIndex.title}}</a>
-          </li>
-        </ul>
-
-      </ng-container> -->
-
-      <!-- <ul data-menu="submenu-1-1" id="submenu-1-1" class="menu__level" tabindex="-1" role="menu" aria-label="Sale %">
-          <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Fair Trade Roots</a></li>
-          <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Dried Veggies</a></li>
-          <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Our Brand</a></li>
-          <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Homemade</a></li>
-        </ul> -->
-
-      <!-- <div *ngFor="let documentIndex of documentIndices">
-
-          <ul *ngFor="let documentSubIndex of documentIndex.documentIndices" data-menu="{{documentIndex.id}}" id="{{documentSubIndex.id}}" class="menu__level" tabindex="-1" role="menu"
-            aria-label="{{documentIndex.title}}">
-            <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Stalk Vegetables</a></li>
-            <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Roots &amp; Seeds</a></li>
-            <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Cabbages</a></li>
-            <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Salad Greens</a></li>
-            <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Mushrooms</a></li>
-            <li class="menu__item" role="menuitem"><a class="menu__link" data-submenu="submenu-1-1"
-                aria-owns="submenu-1-1" href="#">Sale %</a></li>
-          </ul>
-       
-      </div> -->
-
-      <!-- 
-      <ul data-menu="main" class="menu__level" tabindex="-1" role="menu" aria-label="All">
-        <li class="menu__item" role="menuitem">
-          <a class="menu__link" data-submenu="submenu-1" aria-owns="submenu-1" href="#">Vegetables</a>
-        </li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" data-submenu="submenu-2" aria-owns="submenu-2" href="#">Fruits</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" data-submenu="submenu-3" aria-owns="submenu-3" href="#">Grains</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" data-submenu="submenu-4" aria-owns="submenu-4" href="#">Mylk &amp; Drinks</a></li>
-      </ul>
-
-      <ul data-menu="submenu-1" id="submenu-1" class="menu__level" tabindex="-1" role="menu" aria-label="Vegetables">
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Stalk Vegetables</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Roots &amp; Seeds</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Cabbages</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Salad Greens</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Mushrooms</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" data-submenu="submenu-1-1" aria-owns="submenu-1-1" href="#">Sale %</a></li>
-      </ul>
-
-      <ul data-menu="submenu-1-1" id="submenu-1-1" class="menu__level" tabindex="-1" role="menu" aria-label="Sale %">
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Fair Trade Roots</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Dried Veggies</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Our Brand</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Homemade</a></li>
-      </ul>
-    
-      <ul data-menu="submenu-2" id="submenu-2" class="menu__level" tabindex="-1" role="menu" aria-label="Fruits">
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Citrus Fruits</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Berries</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" data-submenu="submenu-2-1" aria-owns="submenu-2-1" href="#">Special Selection</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Tropical Fruits</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Melons</a></li>
-      </ul>
-
-      <ul data-menu="submenu-2-1" id="submenu-2-1" class="menu__level" tabindex="-1" role="menu" aria-label="Special Selection">
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Exotic Mixes</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Wild Pick</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Vitamin Boosters</a></li>
-      </ul>
-  
-      <ul data-menu="submenu-3" id="submenu-3" class="menu__level" tabindex="-1" role="menu" aria-label="Grains">
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Buckwheat</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Millet</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Quinoa</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Wild Rice</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Durum Wheat</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" data-submenu="submenu-3-1" aria-owns="submenu-3-1" href="#">Promo Packs</a></li>
-      </ul>
- 
-      <ul data-menu="submenu-3-1" id="submenu-3-1" class="menu__level" tabindex="-1" role="menu" aria-label="Promo Packs">
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Starter Kit</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">The Essential 8</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Bolivian Secrets</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Flour Packs</a></li>
-      </ul>
-
-      <ul data-menu="submenu-4" id="submenu-4" class="menu__level" tabindex="-1" role="menu" aria-label="Mylk &amp; Drinks">
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Grain Mylks</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Seed Mylks</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Nut Mylks</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Nutri Drinks</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" data-submenu="submenu-4-1" aria-owns="submenu-4-1" href="#">Selection</a></li>
-      </ul>
-  
-      <ul data-menu="submenu-4-1" id="submenu-4-1" class="menu__level" tabindex="-1" role="menu" aria-label="Selection">
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Nut Mylk Packs</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Amino Acid Heaven</a></li>
-        <li class="menu__item" role="menuitem"><a class="menu__link" href="#">Allergy Free</a></li>
-      </ul> -->
-
-
+      
     </div>
   </nav>
-  <div class="content">
 
-    <ng-container *ngFor="let documentItem of content">
-
-      <ng-container *ngIf="documentItem.isUrl">
-        <a target="_blank" href="{{documentItem.content }}">Source</a>
-        <br><br>
-      </ng-container>
-
-      <ng-container *ngIf="documentItem.isMainTitle">
-        <h2 [attr.id]="documentItem.id"> {{documentItem.content }}</h2>
-      </ng-container>
-
-      <ng-container *ngIf="documentItem.isSecondaryTitle">
-        <h3 [attr.id]="documentItem.id"> {{documentItem.content }}</h3>
-      </ng-container>
-
-      <ng-container *ngIf="!documentItem.isUrl && !documentItem.isSecondaryTitle && !documentItem.isMainTitle">
-        
-        <div *ngIf="documentItem.isEmphasis; else elseBlock"><u>{{documentItem.content}}</u></div>
-        <ng-template #elseBlock>{{documentItem.content}}</ng-template>
-
-         <br><br>
-      </ng-container>
-
-    </ng-container>
-
-
-    <!-- <p class="info">Choisissez un auteur</p> -->
-    <!-- Ajax loaded content here -->
-  </div>
+  <router-outlet>
+  </router-outlet>
 
 </div>
 
 
 
-<router-outlet></router-outlet>

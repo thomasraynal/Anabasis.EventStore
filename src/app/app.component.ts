@@ -1,48 +1,72 @@
 import { Component, OnInit, AfterViewInit, Input } from '@angular/core';
-
+import { Location } from '@angular/common';
 import '../js/modernizr-custom.js';
 import { DocumentService } from './document.service';
-import { ActivatedRoute, Router } from "@angular/router";
+import { ActivatedRoute, ActivationEnd, NavigationStart, Router } from "@angular/router";
 import classie from '../js/classie.js';
 import { List } from 'linqts';
 import { conditionallyCreateMapObjectLiteral } from '@angular/compiler/src/render3/view/util';
 import { Document } from './document.js';
 import { DocumentIndex } from './document.index.js';
 import { DocumentItem } from './documentItem.js';
-
-// import '../js/main.js';
+import { filter, map } from 'rxjs/operators';
+import { MergeScanSubscriber } from 'rxjs/internal/operators/mergeScan';
+import { ViewChild } from '@angular/core';
+import { AppDocument } from './app.document.js';
+import { Subject } from 'rxjs';
+import { AppState } from './app.state.js';
+import { AppStateService } from './app.state.service.js';
 
 @Component({
 	selector: 'app-root',
-	templateUrl: './app.component.html',
-	styleUrls: [
-		// '../css/organicfoodicons.css',
-		// '../css/demo.css',
-		// '../css/component.css'
-
-
-	]
+	templateUrl: './app.component.html'
 })
-export class AppComponent implements AfterViewInit, OnInit {
+export class AppComponent {
 
 	title = 'anabasis';
 	MLMenu = null;
 
-	@Input()
 	documentIndices: DocumentIndex[] = [];
-	content: DocumentItem[];
-	searchPredicate: any;
+	searchPredicate: string;
+	currentState: AppState;
 
+	constructor(private documentService: DocumentService, private appStateService: AppStateService, private activatedRoute: ActivatedRoute, private router: Router) {
 
+		appStateService.state.subscribe(state => {
 
-	constructor(private documentService: DocumentService, private route: ActivatedRoute, private router: Router) {
+			this.activateMenu(state,false);
+			this.currentState = state;
 
+		});
 
+		this.documentService.load().then(isSuccess => {
+
+			this.documentService.loadIndices().subscribe(indicies => {
+
+				this.documentIndices = indicies.ToArray();
+
+				 setTimeout(() => {
+
+					this.createMenu();
+					this.initMenu();
+
+					 setTimeout(() => {
+
+						this.activateMenu(this.currentState, true);
+
+					 }, 100);
+
+				 }, 100);
+
+			});
+		});
 
 
 	}
 
 	createMenu() {
+
+		var component = this;
 
 		var support = { animations: Modernizr.cssanimations },
 			animEndEventNames = { 'WebkitAnimation': 'webkitAnimationEnd', 'OAnimation': 'oAnimationEnd', 'msAnimation': 'MSAnimationEnd', 'animation': 'animationend' },
@@ -118,16 +142,15 @@ export class AppComponent implements AfterViewInit, OnInit {
 			// callback: item that doesn´t have a submenu gets clicked
 			// onItemClick([event], [inner HTML of the clicked item])
 			onItemClick: function (ev, itemName) {
-			
+
 				var menuEl = document.getElementById('ml-menu');
 				var openMenuCtrl = document.querySelector('.action--open');
 
 				classie.remove(menuEl, 'menu--open');
 				openMenuCtrl.focus();
-		
 
-				return false; 
-			
+				return false;
+
 			}
 		};
 
@@ -222,11 +245,18 @@ export class AppComponent implements AfterViewInit, OnInit {
 			var self = this;
 
 			for (var i = 0, len = this.menusArr.length; i < len; ++i) {
+
 				this.menusArr[i].menuItems.forEach(function (item, pos) {
+
 					item.querySelector('a').addEventListener('click', function (ev) {
+
+						//document or title
 						var submenu = ev.target.getAttribute('data-submenu'),
 							itemName = ev.target.innerHTML,
 							subMenuEl = self.el.querySelector('ul[data-menu="' + submenu + '"]');
+
+						var url = ev.target.getAttribute('href');
+						component.router.navigateByUrl(url);
 
 						// check if there's a sub menu for this item
 						if (submenu && subMenuEl) {
@@ -245,7 +275,10 @@ export class AppComponent implements AfterViewInit, OnInit {
 							// callback
 							self.options.onItemClick(ev, itemName);
 						}
+
 					});
+
+
 				});
 			}
 
@@ -384,13 +417,14 @@ export class AppComponent implements AfterViewInit, OnInit {
 
 		var component = this;
 
-		MLMenu.prototype._addBreadcrumb = function (idx) {
+		MLMenu.prototype._addBreadcrumb = function (idx, id) {
 			if (!this.options.breadcrumbsCtrl) {
 				return false;
 			}
 
 			var bc = document.createElement('a');
 			bc.href = '#'; // make it focusable
+			bc.id = "b." + id;
 			bc.innerHTML = idx ? this.menusArr[idx].name : this.options.initialBreadcrumb;
 			this.breadcrumbsCtrl.appendChild(bc);
 
@@ -399,7 +433,12 @@ export class AppComponent implements AfterViewInit, OnInit {
 			bc.addEventListener('click', function (ev) {
 				ev.preventDefault();
 
-				component.resetContent();
+				var url = self.menusArr[idx].menuEl.getAttribute("ressource");
+
+				if (url == null) component.router.navigateByUrl("/")
+				else {
+					component.router.navigateByUrl(url)
+				}
 
 				// do nothing if this breadcrumb is the last one in the list of breadcrumbs
 				if (!bc.nextSibling || self.isAnimating) {
@@ -433,7 +472,6 @@ export class AppComponent implements AfterViewInit, OnInit {
 
 	}
 
-
 	initMenu() {
 
 		var that = this;
@@ -444,7 +482,7 @@ export class AppComponent implements AfterViewInit, OnInit {
 				// initialBreadcrumb : 'all', // initial breadcrumb text
 				backCtrl: false, // show back button
 				// itemsDelayInterval : 60, // delay between each menu item sliding animation
-			//	onItemClick: loadDummyData // callback: item that doesn´t have a submenu gets clicked - onItemClick([event], [inner HTML of the clicked item])
+				//	onItemClick: loadDummyData // callback: item that doesn´t have a submenu gets clicked - onItemClick([event], [inner HTML of the clicked item])
 			});
 
 		// mobile menu toggle
@@ -463,148 +501,40 @@ export class AppComponent implements AfterViewInit, OnInit {
 			classie.remove(menuEl, 'menu--open');
 			openMenuCtrl.focus();
 		}
-
-		// simulate grid content loading
-		// var gridWrapper = document.querySelector('.content');
-
-		// function loadDummyData(ev, itemName) {
-		// 	ev.preventDefault();
-
-		// 	closeMenu();
-		// 	gridWrapper.innerHTML = '';
-		// 	classie.add(gridWrapper, 'content--loading');
-		// 	setTimeout(function () {
-		// 		classie.remove(gridWrapper, 'content--loading');
-		// 		gridWrapper.innerHTML = '<ul class="products">' + null + '<ul>';
-		// 	}, 700);
-		// }
 	}
 
-	resetContent(){
-		this.content = [];
-	}
+	activateMenu(state: AppState, force: boolean) {
 
-	loadContent(documentId: string, secondaryTitleId: string){
+		if (!state) return;
 
-		var self = this;
+		if (!force && this.currentState) {
 
-		this.documentService.getDocumentItemsByMainTitleIdWithDocumentTitle(documentId,secondaryTitleId)
-		.subscribe(documents=>{
+			if (this.currentState.equals(state)) return;
+			if (!state.document) return;
 
-			var gridWrapper = document.querySelector('.content');
+		}
 
-			classie.add(gridWrapper, 'content--loading');
+		setTimeout(() => {
+			var menu = null;
 
-			setTimeout(function () {
-				classie.remove(gridWrapper, 'content--loading');
+			if (!state.title) {
+				menu = document.getElementById(state.document);
+			} else {
+				menu = document.getElementById(state.title);
+			}
 
-				self.content = documents.ToArray();
+				var link = menu.querySelector("a");
 
+			console.log(link.href);
 
-			}, 700);
+				link.click();
 
-		
-		});
-
-	}
-
-	navigateToAnchor (anchor: string){
-		this.router.navigate(['/'], {fragment: anchor}).then(res => {
-			// console.log(res);
-			setTimeout(function () {
-
-			  let testElement = document.getElementById(anchor);
-			//   console.log("testElement", testElement)
-			  if (testElement != undefined) testElement.scrollIntoView();
-
-			}, 200);
-		  })
+		}, 500);
 
 	}
-
-
-	findMenu (){
-
-		//var gridWrapper = document.getElementById()
-
-	}
-
-	search(){
-
-		this.documentService.search(this.searchPredicate);
-
-	}
-
-	onKey(event: any) { // without type info
+	
+	onKey(event: any) {
 		this.searchPredicate = event.target.value;
-	  }
-
-
-	ngOnInit() {
-
-		this.documentService.load().then(isSuccess => {
-
-			this.documentService.loadIndices().subscribe(indicies=>{
-
-				this.documentIndices = indicies.ToArray();
-
-				setTimeout(() => {
-					this.createMenu();
-					this.initMenu();
-				}, 1000);
-
-			});
-		});
-
-
-
-
-		// 
-
-
-		// 	this.documentService.getDocumentsIdAndTitle().subscribe(documents=>{
-		// 		documents.ForEach(document=>{
-
-		// 			var documentId =document[0];
-		// 			var documentTitle =document[1];
-
-		// 			console.log(documentTitle);
-
-		// 			this.documentService.getMainTitlesByDocumentId(documentId).subscribe(mainTitles=>{
-
-		// 				mainTitles.ForEach(mainTitle=>{
-
-		// 					 console.log("	" + mainTitle[1]);
-
-		// 					this.documentService.getDocumentItemsByMainTitleId(documentId, mainTitle[0]).subscribe(documentItems=>{
-
-		// 						documentItems.ForEach(documentItem=>{
-
-
-		// 							if(documentItem.isSecondaryTitle) console.log("		" + documentItem.content);
-		// 							if(documentItem.isUrl) console.log("		" + documentItem.content);
-
-		// 						});
-
-		// 					});
-
-		// 				});
-
-
-		// 			});
-
-
-		// 		});
-		// 	});
-
-
-
-		// });
-
 	}
 
-	ngAfterViewInit() {
-
-
-	}
 }

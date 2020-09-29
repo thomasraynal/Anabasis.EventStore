@@ -1,3 +1,9 @@
 search feature
 close menu on click to final item in small screen
 back button handling 
+uri base navigation
+    secondary title as query parameter
+    breadcrumbs uri navigation
+    readable url segment
+
+https://blog.angular-university.io/angular-2-router-nested-routes-and-nested-auxiliary-routes-build-a-menu-navigation-system/

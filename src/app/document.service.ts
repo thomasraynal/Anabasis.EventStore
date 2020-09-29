@@ -89,8 +89,8 @@ export class DocumentService {
       if (null == documentIndice.documentIndices) return null;
 
       documentIndice.documentIndices.forEach(indice => {
-       var result = doFindContentById(id, indice);
-        if(null != result) return result;
+        var result = doFindContentById(id, indice);
+        if (null != result) return result;
       });
 
       return null;
@@ -101,9 +101,9 @@ export class DocumentService {
     this.documentIndices.ForEach(documentIndice => {
 
       documentIndice.documentIndices.forEach(indice => {
-        var result =   doFindContentById(id, indice);
-        if(null != result) return result;
-       });
+        var result = doFindContentById(id, indice);
+        if (null != result) return result;
+      });
 
     });
 

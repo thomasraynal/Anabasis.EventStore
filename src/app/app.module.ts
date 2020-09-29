@@ -5,10 +5,12 @@ import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
 
 import { HttpClientModule } from '@angular/common/http';
+import { AppDocument } from './app.document';
 
 @NgModule({
   declarations: [
-    AppComponent
+    AppComponent,
+    AppDocument
   ],
   imports: [
     BrowserModule,
@@ -16,6 +18,6 @@ import { HttpClientModule } from '@angular/common/http';
     HttpClientModule
   ],
   providers: [],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent, AppDocument]
 })
 export class AppModule { }

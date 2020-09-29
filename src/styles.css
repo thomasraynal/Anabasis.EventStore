@@ -90,13 +90,14 @@
 	color: #9595ca;
 	-webkit-transition: color 0.1s;
 	transition: color 0.1s;
+	cursor: pointer;
 }
 
 .menu__link[data-submenu]::after {
 	content: '\e904';
 	font-family: 'feather';
 	position: absolute;
-	right: 0;
+	right: 30px;
 	padding: 0.25em 1.25em;
 	color: #2a2b30;
 }
@@ -596,8 +597,13 @@ a:hover {
 
 .content {
 	position: relative;
-	min-height: 300px;
-	margin: 20px 20px 20px 600px;
+    /* min-height: 300px; */
+    margin: 20px 20px 20px 600px;
+    font-family: medium-content-serif-font, Georgia, Cambria, "Times New Roman", Times, serif;
+    font-size: 21px;
+	color: rgba(41, 41, 41, 1);
+	letter-spacing: -0.003em;
+	line-height: 1.58;
 }
 .content>h2 {
 	margin-block-end: 5px;
