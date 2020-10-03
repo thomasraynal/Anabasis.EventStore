@@ -2,12 +2,12 @@ import { DocumentItem } from './documentItem';
 
 export class  DocumentSearchResult {
     predicate: string;
-    documentName: string;
+    document: string;
+    documentId: string;
     mainTitle: string;
+    mainTitleId: string;
     secondaryTitle: string;
-    isMainTitle: boolean;
-    isSecondaryTitle: boolean;
-    menuId: string;
+    secondaryTitleId: string;
     peek : string
 
     constructor() {}

@@ -124,31 +124,25 @@ export class DocumentService {
         var mainTitle = this.findTitleById(documentItem.mainTitleId);
         var secondaryTitle = this.findTitleById(documentItem.secondaryTitleId);
 
-
         let documentSearchResult = new DocumentSearchResult();
         documentSearchResult.peek = documentItem.content.substring(index - 50, index + 50);
-        documentSearchResult.documentName = document.title;
+
+        documentSearchResult.document = document.title;
+        documentSearchResult.documentId = document.id;
+        
         documentSearchResult.mainTitle = mainTitle;
+        documentSearchResult.mainTitleId = documentItem.mainTitleId;
+        
         documentSearchResult.secondaryTitle = secondaryTitle;
-        // documentSearchResult
+        documentSearchResult.secondaryTitleId = documentItem.secondaryTitleId;
 
-
-
-
-
+        documentSearchResult.predicate =predicate;
 
         return documentSearchResult;
 
-
       });
 
-
-
-
-
-    console.log(searchResults);
-
-    return null;
+    return of(searchResults);
 
   }
 

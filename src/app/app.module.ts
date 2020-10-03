@@ -6,11 +6,13 @@ import { AppComponent } from './app.component';
 
 import { HttpClientModule } from '@angular/common/http';
 import { AppDocument } from './app.document';
+import { AppSearch } from './app.search';
 
 @NgModule({
   declarations: [
     AppComponent,
-    AppDocument
+    AppDocument,
+    AppSearch
   ],
   imports: [
     BrowserModule,
@@ -18,6 +20,6 @@ import { AppDocument } from './app.document';
     HttpClientModule
   ],
   providers: [],
-  bootstrap: [AppComponent, AppDocument]
+  bootstrap: [AppComponent]
 })
 export class AppModule { }
