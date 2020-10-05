@@ -136,7 +136,7 @@ export class AppComponent {
 			// show back button
 			backCtrl: true,
 			// delay between each menu item sliding animation
-			itemsDelayInterval: 10,
+			itemsDelayInterval: 5,
 			// direction 
 			direction: 'r2l',
 			// callback: item that doesn´t have a submenu gets clicked
@@ -529,10 +529,14 @@ export class AppComponent {
 
 				link.click();
 
-		}, 500);
+		}, 100);
 
 	}
-	
+
+	searchFromKeyStroke(){
+		this.router.navigate(['/search'], { queryParams: { q: this.searchPredicate } });
+	}
+
 	onKey(event: any) {
 		this.searchPredicate = event.target.value;
 	}

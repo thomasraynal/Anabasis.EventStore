@@ -16,7 +16,7 @@ import { DocumentSearchResult } from './document.search.result.js';
 })
 export class AppSearch {
 
-    documentSearchResults: DocumentSearchResult[];
+    searchResult: {};
     searchPredicate: string;
 
     constructor(private documentService: DocumentService, private activatedRoute: ActivatedRoute) {
@@ -32,30 +32,41 @@ export class AppSearch {
 
                         this.documentService.search(this.searchPredicate).subscribe(documentSearchResults => {
 
-                            var byDocument = documentSearchResults.GroupBy(result => result.document);
-
-                            var searchResult = {};
+                            const byDocument = documentSearchResults.GroupBy(result => result.document);
+                            
+                            const searchResult = {};
 
                             for (const document in byDocument) {
 
                                 searchResult[document] = {};
 
-                                var byMainTitle = new List<DocumentSearchResult>(byDocument[document])
+                                const byMainTitle = new List<DocumentSearchResult>(byDocument[document])
                                     .GroupBy(result => result.mainTitle);
 
                                 for (const mainTitle in byMainTitle) {
 
-                                    var bySecondaryTitle = new List<DocumentSearchResult>(byMainTitle[mainTitle])
-                                        .GroupBy(result => result.secondaryTitle);
 
-                                    searchResult[document][mainTitle] = bySecondaryTitle;
+                                    const bySecondaryTitleList =  new List<DocumentSearchResult>(byMainTitle[mainTitle]);
+
+                                    if(bySecondaryTitleList.All(result => result.secondaryTitleId == null)){
+
+                                        searchResult[document][mainTitle] = byMainTitle[mainTitle];
+
+                                    } else{
+
+                                        const bySecondaryTitle = bySecondaryTitleList.GroupBy(result => result.secondaryTitle);
+                                        searchResult[document][mainTitle] = bySecondaryTitle;
+
+                                    }
+
+                        
 
                                 }
                             }
 
                             console.log(searchResult);
 
-                            this.documentSearchResults = documentSearchResults.ToArray();
+                            this.searchResult = searchResult;
 
                         });
                     });

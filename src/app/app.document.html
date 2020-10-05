@@ -4,7 +4,6 @@
 
         <ng-container *ngIf="documentItem.isUrl">
             <a target="_blank" href="{{documentItem.content }}">Source</a>
-
         </ng-container>
 
         <ng-container *ngIf="documentItem.isMainTitle">
@@ -16,11 +15,8 @@
         </ng-container>
 
         <ng-container *ngIf="!documentItem.isUrl && !documentItem.isSecondaryTitle && !documentItem.isMainTitle">
-
-            <ng-container *ngIf="documentItem.isEmphasis; else elseBlock"><u>{{documentItem.content}}</u></ng-container>
-            <ng-template #elseBlock>{{documentItem.content}}</ng-template>
-
-
+            <ng-container *ngIf="documentItem.isEmphasis; else elseBlock"><div class="content-item" ><u>{{documentItem.content}}</u></div></ng-container>
+            <ng-template #elseBlock><div class="content-item" >{{documentItem.content}}</div></ng-template>
         </ng-container>
 
     </ng-container>
