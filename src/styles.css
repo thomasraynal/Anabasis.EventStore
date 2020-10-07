@@ -58,7 +58,7 @@
 	position: absolute;
 	/* top: 20px; */
 	left: 0;
-	visibility: hidden;
+	/* visibility: hidden; */
 	overflow: hidden;
 	overflow-y: scroll;
 	width: calc(100% + 50px);
@@ -233,7 +233,7 @@
 	font-size: 0.60em;
 	line-height: 1;
 	position: relative;
-	padding: 2.5em 3.75em 1em 2em;
+	padding: 1.85em 3.75em 1em 2em;
 	width: 600px;
 }
 

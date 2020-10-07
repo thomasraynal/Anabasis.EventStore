@@ -20,6 +20,10 @@ export class DocumentService {
   constructor(private http: HttpClient) {
   }
 
+  async getDocumentById(id: string): Promise<Document> {
+    return this.documents.FirstOrDefault(document => document.id == id);
+  }
+
   getDocumentsIdAndTitle(): Observable<List<[id: string, title: string]>> {
 
     return of(this.documents.Select<[id: string, title: string]>(document => [document.id, document.title]));
@@ -79,13 +83,13 @@ export class DocumentService {
   }
 
 
-  findTitleById(id: string) {
+  findById(id: string) : Document {
 
     let title = null;
 
     var doFindContentById = function (id: string, documentIndice: DocumentIndex) {
 
-      if (documentIndice.id == id) return title = documentIndice.title;
+      if (documentIndice.id == id) return title = documentIndice;
       if (null == documentIndice.documentIndices) return null;
 
       documentIndice.documentIndices.forEach(indice => {
@@ -99,6 +103,8 @@ export class DocumentService {
 
 
     this.documentIndices.ForEach(documentIndice => {
+
+      if (documentIndice.id == id) return title = documentIndice;
 
       documentIndice.documentIndices.forEach(indice => {
         var result = doFindContentById(id, indice);
@@ -121,22 +127,22 @@ export class DocumentService {
         var index = documentItem.content.toLowerCase().search(predicate.toLowerCase());
 
         var document = this.documents.FirstOrDefault(document => document.id == documentItem.documentId);
-        var mainTitle = this.findTitleById(documentItem.mainTitleId);
-        var secondaryTitle = this.findTitleById(documentItem.secondaryTitleId);
+        var mainTitle = this.findById(documentItem.mainTitleId);
+        var secondaryTitle = this.findById(documentItem.secondaryTitleId);
 
         let documentSearchResult = new DocumentSearchResult();
         documentSearchResult.peek = documentItem.content.substring(index - 50, index + 50);
 
         documentSearchResult.document = document.title;
         documentSearchResult.documentId = document.id;
-        
-        documentSearchResult.mainTitle = mainTitle;
+
+        documentSearchResult.mainTitle = mainTitle.title;
         documentSearchResult.mainTitleId = documentItem.mainTitleId;
-        
-        documentSearchResult.secondaryTitle = secondaryTitle;
+
+        documentSearchResult.secondaryTitle = secondaryTitle.title;
         documentSearchResult.secondaryTitleId = documentItem.secondaryTitleId;
 
-        documentSearchResult.predicate =predicate;
+        documentSearchResult.predicate = predicate;
 
         return documentSearchResult;
 

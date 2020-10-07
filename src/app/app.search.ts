@@ -33,7 +33,7 @@ export class AppSearch {
                         this.documentService.search(this.searchPredicate).subscribe(documentSearchResults => {
 
                             const byDocument = documentSearchResults.GroupBy(result => result.document);
-                            
+
                             const searchResult = {};
 
                             for (const document in byDocument) {
@@ -63,9 +63,7 @@ export class AppSearch {
 
                                 }
                             }
-
-                            console.log(searchResult);
-
+                            
                             this.searchResult = searchResult;
 
                         });

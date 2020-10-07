@@ -1,53 +1,95 @@
 <div class="container">
-  <!-- Blueprint header -->
 
   <header class="bp-header cf">
-    <!-- <div class="dummy-logo">
-      <h2 class="dummy-heading">Anabasis</h2>
-    </div> -->
+
     <div class="bp-header__main">
       <span class="bp-header__present">Anabasis</span>
       <h1 class="bp-header__title">Books against time</h1>
+
       <nav class="bp-nav">
-        <!-- <a class="bp-nav__item bp-icon bp-icon--prev" href="http://tympanus.net/Blueprints/PageStackNavigation/" data-info="previous Blueprint"><span>Previous Blueprint</span></a>
-       -->
-        <!--a class="bp-nav__item bp-icon bp-icon--next" href="" data-info="next Blueprint"><span>Next Blueprint</span></a-->
-        <!-- <a class="bp-nav__item bp-icon bp-icon--drop" href="http://tympanus.net/codrops/?p=25521" data-info="back to the Codrops article"><span>back to the Codrops article</span></a>
-        <a class="bp-nav__item bp-icon bp-icon--archive" href="http://tympanus.net/codrops/category/blueprints/" data-info="Blueprints archive"><span>Go to the archive</span></a>
-       -->
       </nav>
 
       <input (keyup)="onKey($event)" type="text" id="uname" name="name" placeholder="Search">
-      <input [disabled]="!searchPredicate" (keyup.enter)="searchFromKeyStroke()" [routerLink]="['search']" [queryParams]="{q: searchPredicate}" type="button" value="Button">
+      <input [disabled]="!searchPredicate" (keyup.enter)="searchFromKeyStroke()" [routerLink]="['search']"
+        [queryParams]="{q: searchPredicate}" type="button" value="Button">
 
     </div>
   </header>
+
   <button class="action action--open" aria-label="Open Menu"><span class="icon icon--menu"></span></button>
   <nav id="ml-menu" class="menu">
     <button class="action action--close" aria-label="Close Menu"><span class="icon icon--cross"></span></button>
+    <nav class="menu__breadcrumbs">
+      <a *ngFor="let breadcrumb of breadcrumbs" href="{{breadcrumb.link}}">{{breadcrumb.name}}</a>
+    </nav>
+
     <div class="menu__wrap">
-      <ul data-menu="main" [attr.ressource]="" id="index" class="menu__level" tabindex="-1" role="menu" aria-label="All">
-        <li class="menu__item"  [attr.id]="documentIndex.id" role="menuitem" *ngFor="let documentIndex of documentIndices">
-          <a 
-          class="menu__link"
-          routerLink="{{documentIndex.id}}"
-          [attr.data-parent-menu]="index" 
-          [attr.data-submenu]="documentIndex.id" 
-          [attr.aria-owns]="documentIndex.id"
-        
-            >{{documentIndex.title}}</a>
+      <ul  [hidden]="currentState.document != undefined" data-menu="main" [attr.ressource]="" id="index" class="menu__level" tabindex="-1" role="menu"
+        aria-label="All">
+        <li class="menu__item" [attr.id]="documentIndex.id" role="menuitem"
+          *ngFor="let documentIndex of documentIndices">
+          <a  class="menu__link" routerLink="{{documentIndex.id}}" [attr.data-parent-menu]="index"
+            [attr.data-submenu]="documentIndex.id" [attr.aria-owns]="documentIndex.id">{{documentIndex.title}}</a>
         </li>
       </ul>
 
       <ng-container *ngFor="let documentIndex of documentIndices">
-        <ul [attr.data-menu]="documentIndex.id"  class="menu__level" tabindex="-1" role="menu"  [attr.ressource]="documentIndex.id" aria-label="{{documentIndex.title}}">
-          <li [attr.id]="documentSubIndex.id"  *ngFor="let documentSubIndex of documentIndex.documentIndices" class="menu__item" role="menuitem">
-            <a class="menu__link"
-              routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}"
-              [attr.data-parent-menu]="documentIndex.id" 
+        <ul [hidden]="(currentState.document != documentIndex.id) || (currentState.title && currentTitle.documentIndices.length > 0)"  [attr.data-menu]="documentIndex.id" class="menu__level" tabindex="-1" role="menu"
+          [attr.ressource]="documentIndex.id" aria-label="{{documentIndex.title}}">
+          <li [attr.id]="documentSubIndex.id" *ngFor="let documentSubIndex of documentIndex.documentIndices"
+            class="menu__item" role="menuitem">
+            <a class="menu__link" routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}"
+              [attr.data-parent-menu]="documentIndex.id"
               [attr.data-submenu]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null"
-              [attr.aria-owns]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null"
->
+              [attr.aria-owns]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null">
+              {{documentSubIndex.title}}</a>
+          </li>
+        </ul>
+      </ng-container>
+
+      <ng-container *ngFor="let documentIndex of documentIndices">
+        <ng-container *ngFor="let documentSubIndex of documentIndex.documentIndices">
+          <ul  [hidden]="(currentState.title != documentSubIndex.id) || currentTitle.documentIndices.length == 0" *ngIf="documentIndex.documentIndices.length > 0" [attr.data-menu]="documentSubIndex.id"
+            [attr.ressource]="documentSubIndex.id" class="menu__level" tabindex="-1" role="menu"
+            aria-label="{{documentSubIndex.title}}">
+            <li *ngFor="let documentLastIndex of documentSubIndex.documentIndices" class="menu__item" role="menuitem">
+              <a routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}/{{documentLastIndex.id}}"
+                [attr.data-parent-menu]="documentSubIndex.id" class="menu__link">{{documentLastIndex.title}}</a>
+            </li>
+          </ul>
+        </ng-container>
+      </ng-container>
+
+    </div>
+    
+  </nav>
+
+
+
+
+
+  <!-- > -->
+  <!-- <nav id="ml-menu" class="menu">
+    <button class="action action--close" aria-label="Close Menu"><span class="icon icon--cross"></span></button>
+    <div class="menu__wrap">
+      <ul data-menu="main" [attr.ressource]="" id="index" class="menu__level" tabindex="-1" role="menu"
+        aria-label="All">
+        <li class="menu__item" [attr.id]="documentIndex.id" role="menuitem"
+          *ngFor="let documentIndex of documentIndices">
+          <a class="menu__link" routerLink="{{documentIndex.id}}" [attr.data-parent-menu]="index"
+            [attr.data-submenu]="documentIndex.id" [attr.aria-owns]="documentIndex.id">{{documentIndex.title}}</a>
+        </li>
+      </ul>
+
+      <ng-container *ngFor="let documentIndex of documentIndices">
+        <ul [attr.data-menu]="documentIndex.id" class="menu__level" tabindex="-1" role="menu"
+          [attr.ressource]="documentIndex.id" aria-label="{{documentIndex.title}}">
+          <li [attr.id]="documentSubIndex.id" *ngFor="let documentSubIndex of documentIndex.documentIndices"
+            class="menu__item" role="menuitem">
+            <a class="menu__link" routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}"
+              [attr.data-parent-menu]="documentIndex.id"
+              [attr.data-submenu]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null"
+              [attr.aria-owns]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null">
               {{documentSubIndex.title}}</a>
           </li>
         </ul>
@@ -56,33 +98,22 @@
 
       <ng-container *ngFor="let documentIndex of documentIndices">
         <ng-container *ngFor="let documentSubIndex of documentIndex.documentIndices">
-          <ul  *ngIf="documentIndex.documentIndices.length > 0" 
-            [attr.data-menu]="documentSubIndex.id"
-            [attr.ressource]="documentSubIndex.id"
-            class="menu__level" 
-            tabindex="-1" 
-            role="menu"
+          <ul *ngIf="documentIndex.documentIndices.length > 0" [attr.data-menu]="documentSubIndex.id"
+            [attr.ressource]="documentSubIndex.id" class="menu__level" tabindex="-1" role="menu"
             aria-label="{{documentSubIndex.title}}">
             <li *ngFor="let documentLastIndex of documentSubIndex.documentIndices" class="menu__item" role="menuitem">
-              <a
-              routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}/{{documentLastIndex.id}}"
-              [attr.data-parent-menu]="documentSubIndex.id" 
-              class="menu__link" 
-   
-             >{{documentLastIndex.title}}</a>
+              <a routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}/{{documentLastIndex.id}}"
+                [attr.data-parent-menu]="documentSubIndex.id" class="menu__link">{{documentLastIndex.title}}</a>
             </li>
           </ul>
 
         </ng-container>
       </ng-container>
-      
-    </div>
-  </nav>
 
-  <router-outlet>
-  </router-outlet>
+    </div>
+  </nav> -->
+
+
+  <router-outlet></router-outlet>
 
 </div>
-
-
-

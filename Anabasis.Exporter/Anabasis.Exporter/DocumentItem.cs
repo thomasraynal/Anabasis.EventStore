@@ -16,7 +16,7 @@ namespace Anabasis.Exporter
     public bool IsMainTitle { get; set; }
     public string Content { get; set; }
     public bool IsSecondaryTitle { get; set; }
-    public bool IsEmphasis { get; set; }
+    public bool IsEmphasis { get; set; }  
     public string MainTitleId { get; set; }
     public string SecondaryTitleId { get; set; }
     public string ParentId { get; set; }
