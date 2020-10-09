@@ -16,31 +16,37 @@ export class AppDocument {
 
 
     content: DocumentItem[];
+    textToHighlight: string;
 
     constructor(private documentService: DocumentService, private appStateService: AppStateService, private activatedRoute: ActivatedRoute) {
 
         this.activatedRoute.params.subscribe(
             params => {
 
-                var document = params['document'];
-                var title = params['title'];
-                var subtitle = params['subtitle'];
+                this.activatedRoute.queryParams.subscribe(
+                    queryParams => {
 
-                var state = new AppState(document, title, subtitle);
+                        var document = params['document'];
+                        var title = params['title'];
+                        var subtitle = params['subtitle'];
 
-                this.appStateService.change(state);
+                        this.textToHighlight = queryParams['h'];
 
-                this.documentService.load().then(_ => {
+                        var state = new AppState(document, title, subtitle);
 
-                    this.documentService.loadIndices().subscribe(_ => {
+                        this.appStateService.change(state);
 
-                        this.load(state);
+                        this.documentService.load().then(_ => {
 
-                        this.navigateToAnchor(state.subtitle);
+                            this.documentService.loadIndices().subscribe(_ => {
 
+                                this.load(state);
+
+                                this.navigateToAnchor(state.subtitle);
+
+                            });
+                        });
                     });
-
-                });
 
             });
 
@@ -69,20 +75,7 @@ export class AppDocument {
 
         this.documentService.getDocumentItemsByMainTitleIdWithDocumentTitle(state.document, state.title)
             .subscribe(documents => {
-
                 self.content = documents.ToArray();
-
-                // var gridWrapper = document.querySelector('.content');
-
-                // classie.add(gridWrapper, 'content--loading');
-
-                // setTimeout(function () {
-
-                //     classie.remove(gridWrapper, 'content--loading');
-           
-
-                // }, 500);
-
             });
 
     }

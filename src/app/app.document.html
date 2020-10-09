@@ -16,10 +16,15 @@
 
         <ng-container *ngIf="!documentItem.isUrl && !documentItem.isSecondaryTitle && !documentItem.isMainTitle">
             <ng-container *ngIf="documentItem.isEmphasis; else elseBlock">
-                <div class="content-item"><u>{{documentItem.content}}</u></div>
+                <div class="content-item underline" [innerHTML]="documentItem.content | highlight : textToHighlight">
+                </div>
             </ng-container>
             <ng-template #elseBlock>
-                <div class="content-item">{{documentItem.content}}</div>
+                <div  class="content-item" [innerHTML]="documentItem.content | highlight : textToHighlight"> </div>
+
+                <!-- ng-mouseover="documentItem.highlight = true" ng-class="{'mark': documentItem.highlight}" -->
+
+
             </ng-template>
         </ng-container>
 

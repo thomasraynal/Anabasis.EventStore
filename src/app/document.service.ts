@@ -83,7 +83,7 @@ export class DocumentService {
   }
 
 
-  findById(id: string) : Document {
+  findById(id: string): DocumentIndex {
 
     let title = null;
 
@@ -100,7 +100,6 @@ export class DocumentService {
       return null;
 
     };
-
 
     this.documentIndices.ForEach(documentIndice => {
 
@@ -120,8 +119,9 @@ export class DocumentService {
   search(predicate: string): Observable<List<DocumentSearchResult>> {
 
     var searchResults = this.documents.SelectMany(document => new List<DocumentItem>(document.documentItems))
-      .Where(documentItem => documentItem.content.toLowerCase().search(predicate.toLowerCase()) > 0)
-      //.GroupBy(documentItem => documentItem.documentId)
+      .Where(documentItem =>
+        !documentItem.isSecondaryTitle && !documentItem.isMainTitle && documentItem.parentId &&
+        documentItem.content.toLowerCase().search(predicate.toLowerCase()) > 0)
       .Select(documentItem => {
 
         var index = documentItem.content.toLowerCase().search(predicate.toLowerCase());
@@ -136,11 +136,15 @@ export class DocumentService {
         documentSearchResult.document = document.title;
         documentSearchResult.documentId = document.id;
 
-        documentSearchResult.mainTitle = mainTitle.title;
-        documentSearchResult.mainTitleId = documentItem.mainTitleId;
+        if (mainTitle) {
+          documentSearchResult.mainTitle = mainTitle.title;
+          documentSearchResult.mainTitleId = documentItem.mainTitleId;
+        }
 
-        documentSearchResult.secondaryTitle = secondaryTitle.title;
-        documentSearchResult.secondaryTitleId = documentItem.secondaryTitleId;
+        if (secondaryTitle) {
+          documentSearchResult.secondaryTitle = secondaryTitle.title;
+          documentSearchResult.secondaryTitleId = documentItem.secondaryTitleId;
+        }
 
         documentSearchResult.predicate = predicate;
 

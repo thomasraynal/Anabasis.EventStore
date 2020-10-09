@@ -75,7 +75,7 @@ namespace Anabasis.Exporter
 
         foreach (var child in childList.ChildReferences)
         {
-          yield return await GetDocumentAnabasisDocument(child);
+          yield return await GetAnabasisDocument(child);
 
         }
 
@@ -85,12 +85,14 @@ namespace Anabasis.Exporter
 
     }
 
-    private async Task<AnabasisDocument> GetDocumentAnabasisDocument(ChildReference childReference)
+    private async Task<AnabasisDocument> GetAnabasisDocument(ChildReference childReference)
     {
 
       var documentLite = await Get<DocumentLite>($"https://docs.googleapis.com/v1/documents/{childReference.Id}");
 
-      var documentItems = documentLite.Paragraphs.Select(paragraph => paragraph.ToDocumentItem(documentLite))
+      var rootDocumentid = documentLite.Title.GetReadableId();
+
+      var documentItems = documentLite.Paragraphs.Select(paragraph => paragraph.ToDocumentItem(rootDocumentid))
                                            .Where(documentItem => !string.IsNullOrEmpty(documentItem.Content))
                                            .ToArray();
 
@@ -99,6 +101,8 @@ namespace Anabasis.Exporter
       string parentId = null;
 
       var position = 0;
+
+  
 
       foreach (var documentItem in documentItems)
       {
@@ -129,7 +133,7 @@ namespace Anabasis.Exporter
 
       return new AnabasisDocument()
       {
-        Id = documentLite.Id,
+        Id = rootDocumentid,
         Title = documentLite.Title,
         DocumentItems = documentItems
       };
@@ -157,11 +161,9 @@ namespace Anabasis.Exporter
         anabasisDocuments.Add(anabasisDocument);
       }
 
-
       var exportJson = JsonConvert.SerializeObject(anabasisDocuments, Formatting.None, jsonSerializerSettings);
 
       File.WriteAllText(Path.Combine(_exporterConfiguration.LocalDocumentFolder, "export.json"), exportJson);
-
 
       var documentIndices = new List<DocumentIndex>();
 
@@ -177,6 +179,7 @@ namespace Anabasis.Exporter
           .Where(documentItem => documentItem.IsMainTitle)
           .Select(documentItem=>
           {
+
             var documentIndex = new DocumentIndex()
             {
               Id = documentItem.Id,
@@ -210,53 +213,6 @@ namespace Anabasis.Exporter
 
     }
 
-    public async Task<Document> GetDocument(string documentId)
-    {
-      throw new NotImplementedException();
-    }
-
-    public async Task<DocumentItem[]> GetDocumentItemsByDocumentId(string documentId)
-    {
-
-      var documentLite = await Get<DocumentLite>($"https://docs.googleapis.com/v1/documents/{documentId}");
-
-      var documentItems = documentLite.Paragraphs.Select(paragraph => paragraph.ToDocumentItem(documentLite))
-                                           .Where(documentItem => !string.IsNullOrEmpty(documentItem.Content))
-                                           .ToArray();
-
-      string currentMainTitleId = null;
-      string currentSecondaryTitleId = null;
-      string parentId = null;
-
-      var position = 0;
-
-      foreach (var documentItem in documentItems)
-      {
-        documentItem.MainTitleId = currentMainTitleId;
-        documentItem.SecondaryTitleId = currentSecondaryTitleId;
-
-        documentItem.Position = position++;
-
-        if (documentItem.IsMainTitle)
-        {
-          currentMainTitleId = documentItem.Id;
-          currentSecondaryTitleId = null;
-        }
-
-        if (documentItem.IsSecondaryTitle)
-        {
-          currentSecondaryTitleId = documentItem.Id;
-        }
-
-        documentItem.ParentId = parentId;
-
-        parentId = documentItem.Id;
-
-      }
-
-      return documentItems;
-
-    }
 
     public Task<DocumentItem[]> GetDocumentItemsByMainSecondaryTitleId(string secondaryTitleId)
     {

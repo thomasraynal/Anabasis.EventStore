@@ -1,44 +1,59 @@
 <div class="content">
-    <h2 style="box-sizing: border-box;
+    <div class="content-search">
+        <div style="
+        color: #5c5edc;
+        border-bottom: 1px solid #5c5edc;
+
+       
+    box-sizing: border-box;
+
     margin-block-start: 0.5em;
-    margin-block-end: 0.5em">Search results for: <span><u>{{searchPredicate}}</u></span></h2>
+    margin-block-end: 0.5em">Search results for: <span><u>{{searchPredicate}}</u></span></div>
 
-    <div *ngFor="let document of searchResult | keyvalue">
+        <div class="search-document" *ngFor="let document of searchResult | keyvalue">
 
-        <h3 style="margin-left: 10px;box-sizing: border-box;
-        margin-block-start: 0.5em;
-        margin-block-end: 0.5em">{{document.key}}</h3>
+            <div style="font-size: smaller;" (click)="document.toggle=!document.toggle">{{document.key}}</div>
 
-        <ng-container *ngFor="let title of document.value | keyvalue">
+            <ng-container *ngFor="let title of document.value | keyvalue">
 
-            <h4 style="margin-left: 20px;box-sizing: border-box;
-            margin-block-start: 0.5em;
-            margin-block-end: 0.5em">{{title.key}}</h4>
-
-            <ng-container *ngIf="title.value.length;">
-
-                <ng-container *ngFor="let result of title.value">
-                    <a [routerLink]="result.link()" class="menu__link" style="margin-left: 40px;font-size: 15px;line-height: 0;">{{result.peek}}</a>
-                </ng-container>
-
-            </ng-container>
-
-            <ng-container *ngIf="!title.value.length;">
-                <ng-container *ngFor="let subtitle of title.value | keyvalue">
-
-                    <h5 style="margin-left: 30px;box-sizing: border-box;
+                <div *ngIf="document.toggle" style="margin-left: 20px;
+                  font-size: smaller;
+                    box-sizing: border-box;
                     margin-block-start: 0.5em;
-                    margin-block-end: 0.5em">{{subtitle.key}}</h5>
+                    margin-block-end: 0.5em" (click)="title.toggle=!title.toggle">{{title.key}}
 
-                    <ng-container *ngFor="let result of subtitle.value">
-                        <a [routerLink]="result.link()" class="menu__link" style="margin-left: 40px;font-size: 15px;">"{{result.peek}}"</a>
+                    <ng-container *ngIf="title.value.length">
+
+                        <ng-container *ngFor="let result of title.value">
+                            <div [routerLink]="result.link()" [queryParams]="{h: searchPredicate }"
+                                style="margin-left: 40px;font-size: 15px;">{{result.peek}}
+                            </div>
+                        </ng-container>
+
                     </ng-container>
 
-                </ng-container>
+                    <ng-container *ngIf="!title.value.length;">
+                        <ng-container *ngFor="let subtitle of title.value | keyvalue">
+
+                            <div *ngIf="title.toggle" style="margin-left: 30px;box-sizing: border-box;
+                    margin-block-start: 0.5em;
+                    margin-block-end: 0.5em">{{subtitle.key}}
+
+                                <ng-container *ngFor="let result of subtitle.value">
+                                    <a [routerLink]="result.link()" [queryParams]="{h: searchPredicate }"
+                                        class="menu__link"
+                                        style="margin-left: 40px;font-size: 15px;">"{{result.peek}}"</a>
+                                </ng-container>
+                            </div>
+                        </ng-container>
+                    </ng-container>
+                </div>
+
+
+
             </ng-container>
 
-        </ng-container>
-
-
+        </div>
 
     </div>
+</div>

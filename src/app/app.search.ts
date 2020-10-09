@@ -46,24 +46,20 @@ export class AppSearch {
                                 for (const mainTitle in byMainTitle) {
 
 
-                                    const bySecondaryTitleList =  new List<DocumentSearchResult>(byMainTitle[mainTitle]);
+                                    const bySecondaryTitleList = new List<DocumentSearchResult>(byMainTitle[mainTitle]);
 
-                                    if(bySecondaryTitleList.All(result => result.secondaryTitleId == null)){
+                                    if (bySecondaryTitleList.All(result => result.secondaryTitleId == null)) {
 
                                         searchResult[document][mainTitle] = byMainTitle[mainTitle];
 
-                                    } else{
+                                    } else {
 
                                         const bySecondaryTitle = bySecondaryTitleList.GroupBy(result => result.secondaryTitle);
                                         searchResult[document][mainTitle] = bySecondaryTitle;
-
                                     }
-
-                        
-
                                 }
                             }
-                            
+
                             this.searchResult = searchResult;
 
                         });
@@ -71,7 +67,4 @@ export class AppSearch {
                 });
             });
     }
-
-
-
 }

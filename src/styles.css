@@ -19,7 +19,6 @@
 	/* Better Font Rendering =========== */
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
-	speak: none;
 }
 
 .icon--arrow-left:before {
@@ -607,8 +606,11 @@ a:hover {
 }
 
 .content-item {
-
 	margin-top: 15px;
+}
+
+.content-item.underline{
+	text-decoration: underline;
 }
 
 .content>h2 {
@@ -617,7 +619,8 @@ a:hover {
 
 .content>a {
 	color: #9595ca;
-	font-size: small;
+	font-size: medium;
+    text-decoration: underline;
 }
 
 .content>a:hover {
@@ -628,25 +631,14 @@ a:hover {
 	background: url(./img/loading.svg) no-repeat 50% 50%;
 }
 
-.products {
-	margin: 0;
-	padding: 2em;
-	text-align: center;
+.content .search-document {
+
+	color: #9595ca; 
+	cursor: pointer;
 }
 
-.product {
-	display: inline-block;
-	width: 200px;
-	height: 200px;
-	margin: 10px;
-	border-radius: 5px;
-	background: #f4f4f7;
-}
-
-.product .foodicon {
-	font-size: 4em;
-	line-height: 190px;
-	color: #3b3d4a;
+.search-document>div:hover {
+	color: #5c5edc;
 }
 
 .info {
@@ -697,7 +689,6 @@ input[type=text]:focus {
 	margin: 4px 2px;
 	cursor: pointer;
   }
-  
   
 
 @media screen and (max-width: 40em) {

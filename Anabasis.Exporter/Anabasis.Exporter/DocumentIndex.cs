@@ -10,5 +10,6 @@ namespace Anabasis.Exporter
     public string Title { get; set; }
 
     public DocumentIndex[] DocumentIndices { get; set; }
+
   }
 }

@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -9,6 +10,8 @@ namespace Anabasis.Exporter.Tests
     [Fact]
     public async Task ShouldExportFolder()
     {
+      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+
       var exporterConfiguration = new ExporterConfiguration()
       {
         ClientId = "699173273524-aalbhs95og7ci38ink060v8bj166mej3.apps.googleusercontent.com",

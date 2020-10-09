@@ -5,14 +5,14 @@ import { AppComponent } from './app.component';
 import { HttpClientModule } from '@angular/common/http';
 import { AppDocument } from './app.document';
 import { AppSearch } from './app.search';
-import { AppMenu } from './app.menu';
+import { HighlightPipeline } from './highlight.pipeline';
 
 @NgModule({
   declarations: [
     AppComponent,
     AppDocument,
     AppSearch,
-    AppMenu
+    HighlightPipeline
   ],
   imports: [
     BrowserModule,

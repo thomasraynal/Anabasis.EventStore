@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Web;
 
 namespace Anabasis.Exporter
 {
@@ -8,7 +9,7 @@ namespace Anabasis.Exporter
   {
     public DocumentItem()
     {
-      Id = $"{Guid.NewGuid()}";
+      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
 
     public string Id { get; set; }
@@ -22,5 +23,9 @@ namespace Anabasis.Exporter
     public string ParentId { get; set; }
     public string DocumentId { get; set; }
     public int Position { get;  set; }
+
+    public bool IsRootDocument => ParentId == null;
+
+ 
   }
 }
