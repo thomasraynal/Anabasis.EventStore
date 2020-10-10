@@ -25,7 +25,7 @@ namespace Anabasis.Exporter
     public bool Underline { get; set; }
 
 
-    public DocumentItem ToDocumentItem(DocumentLite documentLite, string rootDocumentid)
+    public DocumentItem ToDocumentItem(string rootDocumentid)
     {
       var documentItem = new DocumentItem()
       {

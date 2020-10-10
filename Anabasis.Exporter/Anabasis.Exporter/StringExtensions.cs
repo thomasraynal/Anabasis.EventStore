@@ -8,6 +8,8 @@ namespace Anabasis.Exporter
 {
   public static class StringExtensions
   {
+    static List<string> _alreadyusedId = new List<string>();
+
     public static string GetReadableId(this string title)
     {
       byte[] temp;
@@ -20,7 +22,8 @@ namespace Anabasis.Exporter
 
       var str = HttpUtility.UrlEncode(new string(readbleId
         .Where(@char => !char.IsControl(@char))
-        .Select(@char => {
+        .Select(@char =>
+        {
 
           if (char.IsPunctuation(@char)) return '-';
 
@@ -28,7 +31,30 @@ namespace Anabasis.Exporter
 
         }).ToArray()));
 
-      return str.Replace("---", "-").Replace("--", "-").Trim('-');
+      var iUsed = true;
+      var index = 1;
+
+
+      var id = str.Replace("---", "-").Replace("--", "-").Trim('-');
+
+      while (iUsed)
+      {
+        if (_alreadyusedId.Contains(id))
+        {
+          id = str.Replace("---", "-").Replace("--", "-").Trim('-') + $"_{index}";
+          index++;
+        }
+        else
+        {
+          iUsed = false;
+        }
+
+      }
+
+      _alreadyusedId.Add(id);
+
+      return id;
     }
   }
 }
+

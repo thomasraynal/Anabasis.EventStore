@@ -6,7 +6,7 @@ import { List } from 'linqts';
 import { DocumentIndex } from './document.index.js';
 import { AppState } from './app.state.js';
 import { AppStateService } from './app.state.service.js';
-
+import classie from '../js/classie.js';
 import { BreadCrumb } from './breadcrumb.js';
 
 @Component({
@@ -81,9 +81,27 @@ export class AppComponent {
 
 				this.breadcrumbs = breadcrumbs.ToArray();
 
+				var menuEl = document.getElementById('ml-menu');
+				var openMenuCtrl = document.querySelector('.action--open'),
+					closeMenuCtrl = document.querySelector('.action--close');
+		
+				openMenuCtrl.addEventListener('click', openMenu);
+				closeMenuCtrl.addEventListener('click', closeMenu);
+		
+				function openMenu() {
+					classie.add(menuEl, 'menu--open');
+					(closeMenuCtrl as HTMLElement).focus();
+				}
+		
+				function closeMenu() {
+					classie.remove(menuEl, 'menu--open');
+					(openMenuCtrl as HTMLElement).focus();
+				}
 
 			});
 		});
+
+
 
 	}
 
