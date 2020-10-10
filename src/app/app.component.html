@@ -10,7 +10,7 @@
       </nav>
 
       <input (keyup)="onKey($event)" type="text" id="uname" name="name" placeholder="Search">
-      <input [disabled]="!searchPredicate" (keyup.enter)="searchFromKeyStroke()" [routerLink]="['search']"
+      <input [disabled]="!searchPredicate" [routerLink]="['search']"
         [queryParams]="{q: searchPredicate}" type="button" value="Button">
 
     </div>
