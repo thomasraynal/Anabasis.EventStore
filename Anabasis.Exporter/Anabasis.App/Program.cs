@@ -1,27 +1,16 @@
+using Anabasis.Common.Events;
+using Anabasis.Common.Mediator;
+using Anabasis.Exporter;
 using Anabasis.Importer;
 using System;
 using System.Text;
-using System.Threading.Tasks;
-using Xunit;
 
-namespace Anabasis.Exporter.Tests
+namespace Anabasis.App
 {
- 
-  public class TestService
-  {
-
-    [Fact]
-    public async Task ShouldTestActor()
+    class Program
     {
-
-
-    }
-
-      [Fact]
-    public async Task ShouldExportFolder()
+    static void Main(string[] args)
     {
-      //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
-
       //var fileSystemDocumentRepositoryConfiguration = new FileSystemDocumentRepositoryConfiguration()
       //{
       //  ClientId = "699173273524-aalbhs95og7ci38ink060v8bj166mej3.apps.googleusercontent.com",
@@ -35,8 +24,17 @@ namespace Anabasis.Exporter.Tests
 
       //var documentService = new AnabasisExporter<FileSystemDocumentRepositoryConfiguration>(fileSystemDocumentRepositoryConfiguration, fileSystemDocumentRepository);
 
-      //await documentService.GetExportedDocuments();
 
+      var mediator = World.Create<FileSystemRegistry>();
+
+      mediator.Emit(new StartExport(Guid.NewGuid()));
+
+
+      Console.Read();
+
+      //SimpleMediator.Emit(new StartExport(Guid.NewGuid()));
+
+      //  await documentService.GetExportedDocuments();
 
     }
   }

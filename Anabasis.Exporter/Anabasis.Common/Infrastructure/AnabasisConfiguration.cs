@@ -2,14 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.Exporter
+namespace Anabasis.Common
 {
-  public class ExporterConfiguration
+  public abstract class AnabasisConfiguration : IAnabasisConfiguration
   {
     public string ClientId { get; set; }
     public string ClientSecret { get; set; }
     public string RefreshToken { get; set; }
     public string DriveRootFolder { get; set; }
-    public string LocalDocumentFolder { get; set; }
   }
 }

@@ -5,7 +5,13 @@ VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Exporter", "Anabasis.Exporter\Anabasis.Exporter.csproj", "{E05D1C7F-2CE1-45AC-967A-C1B4D65B362C}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Exporter.Tests", "Anabasis.Exporter.Tests\Anabasis.Exporter.Tests.csproj", "{880494C5-7D5A-45EC-AA9D-45C21B429ED6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Tests", "Anabasis.Exporter.Tests\Anabasis.Tests.csproj", "{880494C5-7D5A-45EC-AA9D-45C21B429ED6}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Importer", "Anabasis.Importer\Anabasis.Importer.csproj", "{77595727-BF79-4C46-A9C7-56C8CCED46DC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Common", "Anabasis.Common\Anabasis.Common.csproj", "{280FD381-AEA5-4410-A102-61E929397A85}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.App", "Anabasis.App\Anabasis.App.csproj", "{67C92DD6-5ED8-415C-9424-15F0A60E17FD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -31,6 +37,30 @@ Global
 		{880494C5-7D5A-45EC-AA9D-45C21B429ED6}.Release|Any CPU.Build.0 = Release|Any CPU
 		{880494C5-7D5A-45EC-AA9D-45C21B429ED6}.Release|x64.ActiveCfg = Release|x64
 		{880494C5-7D5A-45EC-AA9D-45C21B429ED6}.Release|x64.Build.0 = Release|x64
+		{77595727-BF79-4C46-A9C7-56C8CCED46DC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{77595727-BF79-4C46-A9C7-56C8CCED46DC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{77595727-BF79-4C46-A9C7-56C8CCED46DC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{77595727-BF79-4C46-A9C7-56C8CCED46DC}.Debug|x64.Build.0 = Debug|Any CPU
+		{77595727-BF79-4C46-A9C7-56C8CCED46DC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{77595727-BF79-4C46-A9C7-56C8CCED46DC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{77595727-BF79-4C46-A9C7-56C8CCED46DC}.Release|x64.ActiveCfg = Release|Any CPU
+		{77595727-BF79-4C46-A9C7-56C8CCED46DC}.Release|x64.Build.0 = Release|Any CPU
+		{280FD381-AEA5-4410-A102-61E929397A85}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{280FD381-AEA5-4410-A102-61E929397A85}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{280FD381-AEA5-4410-A102-61E929397A85}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{280FD381-AEA5-4410-A102-61E929397A85}.Debug|x64.Build.0 = Debug|Any CPU
+		{280FD381-AEA5-4410-A102-61E929397A85}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{280FD381-AEA5-4410-A102-61E929397A85}.Release|Any CPU.Build.0 = Release|Any CPU
+		{280FD381-AEA5-4410-A102-61E929397A85}.Release|x64.ActiveCfg = Release|Any CPU
+		{280FD381-AEA5-4410-A102-61E929397A85}.Release|x64.Build.0 = Release|Any CPU
+		{67C92DD6-5ED8-415C-9424-15F0A60E17FD}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{67C92DD6-5ED8-415C-9424-15F0A60E17FD}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{67C92DD6-5ED8-415C-9424-15F0A60E17FD}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{67C92DD6-5ED8-415C-9424-15F0A60E17FD}.Debug|x64.Build.0 = Debug|Any CPU
+		{67C92DD6-5ED8-415C-9424-15F0A60E17FD}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{67C92DD6-5ED8-415C-9424-15F0A60E17FD}.Release|Any CPU.Build.0 = Release|Any CPU
+		{67C92DD6-5ED8-415C-9424-15F0A60E17FD}.Release|x64.ActiveCfg = Release|Any CPU
+		{67C92DD6-5ED8-415C-9424-15F0A60E17FD}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

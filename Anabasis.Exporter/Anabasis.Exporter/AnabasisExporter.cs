@@ -1,24 +1,33 @@
+using Anabasis.Common;
+using Anabasis.Common.Actor;
+using Anabasis.Common.Events;
+using Anabasis.Common.Infrastructure;
+using Anabasis.Common.Mediator;
+using Anabasis.Importer;
+using Lamar;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
+using Polly;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Exporter
 {
-  public class DocumentService : IDocumentService
+  public class AnabasisExporter: BaseActor, IAnabasisExporter
   {
-    private readonly ExporterConfiguration _exporterConfiguration;
+    private readonly IAnabasisConfiguration _exporterConfiguration;
+    private readonly PolicyBuilder _policyBuilder;
 
-    public DocumentService(ExporterConfiguration exporterConfiguration)
+    public AnabasisExporter(IAnabasisConfiguration exporterConfiguration, SimpleMediator simpleMediator): base(simpleMediator)
     {
       _exporterConfiguration = exporterConfiguration;
+
+      _policyBuilder = Policy.Handle<Exception>();
     }
 
     private async Task<string> GetAccessToken()
@@ -48,24 +57,29 @@ namespace Anabasis.Exporter
 
     private async Task<TResponse> Get<TResponse>(string requestUrl)
     {
+      var retryPolicy = _policyBuilder.WaitAndRetry(5, (_) => TimeSpan.FromSeconds(1));
 
-      var httpClient = new HttpClient();
+      return await retryPolicy.Execute(async () =>
+      {
+        var httpClient = new HttpClient();
 
-      var accessToken = await GetAccessToken();
+        var accessToken = await GetAccessToken();
 
-      httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
+        httpClient.DefaultRequestHeaders.Add("Authorization", $"Bearer {accessToken}");
 
-      var httpResponseMessage = await httpClient.GetAsync(requestUrl);
+        var httpResponseMessage = await httpClient.GetAsync(requestUrl);
 
-      var content = await httpResponseMessage.Content.ReadAsStringAsync();
+        var content = await httpResponseMessage.Content.ReadAsStringAsync();
 
-      if (!httpResponseMessage.IsSuccessStatusCode) throw new InvalidOperationException($"{httpResponseMessage.StatusCode} - {content}");
+        if (!httpResponseMessage.IsSuccessStatusCode) throw new InvalidOperationException($"{httpResponseMessage.StatusCode} - {content}");
 
-      return JsonConvert.DeserializeObject<TResponse>(content);
+        return JsonConvert.DeserializeObject<TResponse>(content);
+
+      });
 
     }
 
-    public async IAsyncEnumerable<AnabasisDocument> GetDocumentFromSource(string folderId)
+    private async IAsyncEnumerable<AnabasisDocument> GetDocumentFromSource(StartExport startExport, string folderId)
     {
       var nextUrl = $"https://www.googleapis.com/drive/v2/files/{folderId}/children";
 
@@ -75,7 +89,7 @@ namespace Anabasis.Exporter
 
         foreach (var child in childList.ChildReferences)
         {
-          yield return await GetAnabasisDocument(child);
+          yield return await GetAnabasisDocument(startExport, child);
 
         }
 
@@ -85,7 +99,7 @@ namespace Anabasis.Exporter
 
     }
 
-    private async Task<AnabasisDocument> GetAnabasisDocument(ChildReference childReference)
+    private async Task<AnabasisDocument> GetAnabasisDocument(StartExport startExport, ChildReference childReference)
     {
 
       var documentLite = await Get<DocumentLite>($"https://docs.googleapis.com/v1/documents/{childReference.Id}");
@@ -101,8 +115,6 @@ namespace Anabasis.Exporter
       string parentId = null;
 
       var position = 0;
-
-  
 
       foreach (var documentItem in documentItems)
       {
@@ -140,8 +152,9 @@ namespace Anabasis.Exporter
 
     }
 
-    public async Task ExportFolder()
+    public async Task ExportDocuments(StartExport startExport)
     {
+
       var jsonSerializerSettings = new JsonSerializerSettings
       {
 
@@ -156,19 +169,11 @@ namespace Anabasis.Exporter
 
       var anabasisDocuments = new List<AnabasisDocument>();
 
-      await foreach (var anabasisDocument in GetDocumentFromSource(_exporterConfiguration.DriveRootFolder))
+      await foreach (var anabasisDocument in GetDocumentFromSource(startExport, _exporterConfiguration.DriveRootFolder))
       {
-        anabasisDocuments.Add(anabasisDocument);
-      }
 
-      var exportJson = JsonConvert.SerializeObject(anabasisDocuments, Formatting.None, jsonSerializerSettings);
+        Mediator.Emit(new DocumentExported(startExport.CorrelationID, anabasisDocument));
 
-      File.WriteAllText(Path.Combine(_exporterConfiguration.LocalDocumentFolder, "export.json"), exportJson);
-
-      var documentIndices = new List<DocumentIndex>();
-
-      foreach (var anabasisDocument in anabasisDocuments)
-      {
         var documentIndex = new DocumentIndex()
         {
           Id = anabasisDocument.Id,
@@ -177,7 +182,7 @@ namespace Anabasis.Exporter
 
         documentIndex.DocumentIndices = anabasisDocument.DocumentItems
           .Where(documentItem => documentItem.IsMainTitle)
-          .Select(documentItem=>
+          .Select(documentItem =>
           {
 
             var documentIndex = new DocumentIndex()
@@ -202,41 +207,22 @@ namespace Anabasis.Exporter
           }
           ).ToArray();
 
-
-        documentIndices.Add(documentIndex);
+        Mediator.Emit(new IndexExported(documentIndex, startExport.CorrelationID));
 
       }
 
-      var indexJson = JsonConvert.SerializeObject(documentIndices, Formatting.None, jsonSerializerSettings);
-
-      File.WriteAllText(Path.Combine(_exporterConfiguration.LocalDocumentFolder, "index.json"), indexJson);
+      Mediator.Emit(new EndExport(startExport.CorrelationID));
 
     }
 
-
-    public Task<DocumentItem[]> GetDocumentItemsByMainSecondaryTitleId(string secondaryTitleId)
+    protected async override Task Handle(IEvent @event)
     {
-      throw new NotImplementedException();
-    }
 
-    public Task<DocumentItem[]> GetDocumentItemsByMainTitleId(string mainTitleId)
-    {
-      throw new NotImplementedException();
-    }
-
-    public Task<Document[]> GetDocuments(bool fetchDocumentItems = false)
-    {
-      throw new NotImplementedException();
-    }
-
-    public Task<DocumentItem[]> GetMainTitlesByDocumentId(string documentId)
-    {
-      throw new NotImplementedException();
-    }
-
-    public Task<DocumentItem[]> GetSecondaryTitlesByMainTitleId(string mainTitle)
-    {
-      throw new NotImplementedException();
+      if (@event.GetType() == typeof(StartExport))
+      {
+        await ExportDocuments(@event as StartExport);
+      }
+       
     }
   }
 }

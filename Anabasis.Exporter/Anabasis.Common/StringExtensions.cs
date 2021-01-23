@@ -4,11 +4,17 @@ using System.Linq;
 using System.Text;
 using System.Web;
 
-namespace Anabasis.Exporter
+namespace Anabasis.Common
 {
   public static class StringExtensions
   {
     static List<string> _alreadyusedId = new List<string>();
+
+
+    static StringExtensions()
+    {
+      Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    }
 
     public static string GetReadableId(this string title)
     {

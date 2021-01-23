@@ -40,7 +40,7 @@
 	position: fixed;
 	top: 100px;
 	left: 0;
-	width: 600px;
+	width: 500px;
 	height: calc(100vh - 120px);
 	background: #f4f4f7;
 }
@@ -233,7 +233,7 @@
 	line-height: 1;
 	position: relative;
 	padding: 1.85em 3.75em 1em 2em;
-	width: 550px;
+	width: 500px;
 }
 
 .menu__breadcrumbs a {
@@ -597,7 +597,7 @@ a:hover {
 .content {
 	position: relative;
     /* min-height: 300px; */
-    margin: 20px 20px 20px 600px;
+    margin: 20px 20px 20px 500px;
     font-family: medium-content-serif-font, Georgia, Cambria, "Times New Roman", Times, serif;
     font-size: 18px;
 	color: rgba(41, 41, 41, 1);
@@ -639,6 +639,22 @@ a:hover {
 
 .search-document>div:hover {
 	color: #5c5edc;
+}
+
+ .search-link {
+	font-weight: 400;
+	font-size: smaller;
+	position: relative;
+	display: block;
+	padding: 0em 2.5em 0em 1.5em;
+	color: #9595ca;
+	-webkit-transition: color 0.1s;
+	transition: color 0.1s;
+	cursor: pointer;
+}
+
+.search-link:hover {
+	color: #3e3e98;
 }
 
 .info {

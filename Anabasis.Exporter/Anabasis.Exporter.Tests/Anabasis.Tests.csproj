@@ -14,7 +14,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
     <ProjectReference Include="..\Anabasis.Exporter\Anabasis.Exporter.csproj" />
+    <ProjectReference Include="..\Anabasis.Importer\Anabasis.Importer.csproj" />
   </ItemGroup>
 
 </Project>
