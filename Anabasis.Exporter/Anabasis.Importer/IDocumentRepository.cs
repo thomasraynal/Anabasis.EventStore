@@ -11,8 +11,8 @@ namespace Anabasis.Importer
     Task SaveDocument(Guid exportId, AnabasisDocument anabasisDocument);
     Task SaveIndex(Guid exportId, DocumentIndex index);
 
-    Task OnExportStarted(Guid exportId);
+    Task OnExportStarted(ExportStarted exportStarted);
 
-    Task OnExportEnded(Guid exportId);
+    Task OnExportEnd(Guid exportId);
   }
 }

@@ -17,12 +17,12 @@ namespace Anabasis.Importer
 
     public TConfiguration Configuration { get; }
 
-    public virtual Task OnExportEnded(Guid exportId)
+    public virtual Task OnExportEnd(Guid exportId)
     {
       return Task.CompletedTask;
     }
 
-    public virtual Task OnExportStarted(Guid exportId)
+    public virtual Task OnExportStarted(ExportStarted exportStarted)
     {
       return Task.CompletedTask;
     }
@@ -49,14 +49,14 @@ namespace Anabasis.Importer
 
       }
 
-      if (@event.GetType() == typeof(StartExport))
+      if (@event.GetType() == typeof(ExportStarted))
       {
-        await OnExportStarted(@event.CorrelationID);
+        await OnExportStarted(@event as ExportStarted);
       }
 
       if (@event.GetType() == typeof(EndExport))
       {
-        await OnExportEnded(@event.CorrelationID);
+        await OnExportEnd(@event.CorrelationID);
       }
 
     }

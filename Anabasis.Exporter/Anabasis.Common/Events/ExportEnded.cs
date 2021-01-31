@@ -5,15 +5,15 @@ using System.Text;
 
 namespace Anabasis.Common.Events
 {
-  public class StartExport : BaseEvent, ICommand
+  public class ExportEnded : BaseEvent
   {
-    public StartExport(Guid exportId) : base(exportId)
+    public ExportEnded(Guid correlationId) : base(correlationId)
     {
     }
 
     public override string Log()
     {
-      return "Starting export";
+      return "Export ended";
     }
   }
 }

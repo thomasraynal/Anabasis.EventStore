@@ -3,22 +3,19 @@ using Anabasis.Common.Actor;
 using Anabasis.Common.Events;
 using Anabasis.Common.Infrastructure;
 using Anabasis.Common.Mediator;
-using Anabasis.Importer;
-using Lamar;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using Polly;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Anabasis.Exporter
 {
-  public class AnabasisExporter: BaseActor, IAnabasisExporter
+  public class AnabasisExporter: BaseActor
   {
     private readonly IAnabasisConfiguration _exporterConfiguration;
     private readonly PolicyBuilder _policyBuilder;
@@ -86,6 +83,9 @@ namespace Anabasis.Exporter
       while (!string.IsNullOrEmpty(nextUrl))
       {
         var childList = await Get<ChildList>(nextUrl);
+
+        //only have one folder - but we should handle many and keep track of the original gdoc id
+        Mediator.Emit(new ExportStarted(startExport.CorrelationID, childList.ChildReferences.Select(reference=> reference.Id).ToArray()));
 
         foreach (var child in childList.ChildReferences)
         {
@@ -155,60 +155,10 @@ namespace Anabasis.Exporter
     public async Task ExportDocuments(StartExport startExport)
     {
 
-      var jsonSerializerSettings = new JsonSerializerSettings
-      {
-
-        ContractResolver = new DefaultContractResolver
-        {
-          NamingStrategy = new CamelCaseNamingStrategy()
-        },
-
-        Formatting = Formatting.Indented
-
-      };
-
-      var anabasisDocuments = new List<AnabasisDocument>();
-
       await foreach (var anabasisDocument in GetDocumentFromSource(startExport, _exporterConfiguration.DriveRootFolder))
       {
 
         Mediator.Emit(new DocumentExported(startExport.CorrelationID, anabasisDocument));
-
-        var documentIndex = new DocumentIndex()
-        {
-          Id = anabasisDocument.Id,
-          Title = anabasisDocument.Title,
-        };
-
-        documentIndex.DocumentIndices = anabasisDocument.DocumentItems
-          .Where(documentItem => documentItem.IsMainTitle)
-          .Select(documentItem =>
-          {
-
-            var documentIndex = new DocumentIndex()
-            {
-              Id = documentItem.Id,
-              Title = documentItem.Content,
-            };
-
-            documentIndex.DocumentIndices = anabasisDocument.DocumentItems
-              .Where(documentSubItem => documentSubItem.MainTitleId == documentItem.Id && documentSubItem.IsSecondaryTitle)
-              .Select(documentSubItem =>
-              {
-                return new DocumentIndex()
-                {
-                  Id = documentSubItem.Id,
-                  Title = documentSubItem.Content,
-                };
-
-              }).ToArray();
-
-            return documentIndex;
-          }
-          ).ToArray();
-
-        Mediator.Emit(new IndexExported(documentIndex, startExport.CorrelationID));
-
       }
 
       Mediator.Emit(new EndExport(startExport.CorrelationID));

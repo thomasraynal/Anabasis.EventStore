@@ -6,6 +6,7 @@ namespace Anabasis.Common.Infrastructure
 {
   public abstract class BaseEvent : IEvent
   {
+
     public BaseEvent(Guid correlationId)
     {
       EventID = Guid.NewGuid();

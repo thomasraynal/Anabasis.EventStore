@@ -11,4 +11,13 @@
     <ProjectReference Include="..\Anabasis.Importer\Anabasis.Importer.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="DummyConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="ProdConfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

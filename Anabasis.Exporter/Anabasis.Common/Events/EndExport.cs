@@ -1,7 +1,5 @@
 using Anabasis.Common.Infrastructure;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.Common.Events
 {
@@ -13,7 +11,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return "Export ended";
+      return "Export has finished";
     }
   }
 }

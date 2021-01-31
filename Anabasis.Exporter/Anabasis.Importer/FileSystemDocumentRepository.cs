@@ -2,41 +2,28 @@ using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.Common.Mediator;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using Newtonsoft.Json.Serialization;
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 
 namespace Anabasis.Importer
 {
-  public class Export
+  public class ExportFile: IDisposable
   {
-    public ConcurrentBag<AnabasisDocument> AnabasisDocuments;
-    public ConcurrentBag<DocumentIndex> DocumentIndices;
+    private readonly StreamWriter _streamWriter;
+    private readonly JsonTextWriter _jsonTextWriter;
+    private readonly JsonSerializer _jsonSerializer;
 
-    public Export()
+    public ExportFile(string path)
     {
-      AnabasisDocuments = new ConcurrentBag<AnabasisDocument>();
-      DocumentIndices = new ConcurrentBag<DocumentIndex>();
-    }
-  }
+      _streamWriter = File.CreateText(path);
+      _jsonTextWriter = new JsonTextWriter(_streamWriter);
 
-  public class FileSystemDocumentRepository : BaseDocumentRepository<FileSystemDocumentRepositoryConfiguration>
-  {
-    private readonly JsonSerializerSettings _jsonSerializerSettings;
-
-    private readonly Dictionary<Guid, Export> _exports;
-
-    public FileSystemDocumentRepository(FileSystemDocumentRepositoryConfiguration configuration, SimpleMediator simpleMediator) : base(configuration, simpleMediator)
-    {
-
-      _exports = new Dictionary<Guid, Export>();
-
-      _jsonSerializerSettings = new JsonSerializerSettings
+      _jsonSerializer = new JsonSerializer()
       {
-
         ContractResolver = new DefaultContractResolver
         {
           NamingStrategy = new CamelCaseNamingStrategy()
@@ -45,40 +32,122 @@ namespace Anabasis.Importer
         Formatting = Formatting.Indented
 
       };
-
     }
 
-    public override Task OnExportStarted(Guid exportId)
+    public void StartWriting()
     {
+      _jsonTextWriter.WriteStartArray();
+    }
 
-      _exports[exportId] = new Export();
+    public void EndWriting()
+    {
+      _jsonTextWriter.WriteEndArray();
+    }
+
+    public void Append(object item)
+    {
+      var jObject = JObject.FromObject(item, _jsonSerializer);
+
+      jObject.WriteTo(_jsonTextWriter);
+    }
+
+    public void Dispose()
+    {
+      _streamWriter.Dispose();
+      _jsonTextWriter.Close();
+    }
+  }
+
+
+  public class Export : IDisposable
+  {
+    public ExportFile Documents { get; }
+    public ExportFile Indices { get; }
+    public string[] ExpectedDocumentIds { get; }
+    public bool HasExportEnded { get; set; }
+    public int ImportedDocumentCount { get; set; }
+    public int ImportedIndicesCount { get; set; }
+    public Export(string documentPath, string indicesPath, string[] documentIds)
+    {
+      Documents = new ExportFile(documentPath);
+      Indices = new ExportFile(indicesPath);
+      ExpectedDocumentIds = documentIds;
+    }
+
+    public void Dispose()
+    {
+      Documents.Dispose();
+      Indices.Dispose();
+    }
+  }
+
+  public class FileSystemDocumentRepository : BaseDocumentRepository<FileSystemDocumentRepositoryConfiguration>
+  {
+
+    private readonly Dictionary<Guid, Export> _exports;
+
+    public FileSystemDocumentRepository(FileSystemDocumentRepositoryConfiguration configuration, SimpleMediator simpleMediator) : base(configuration, simpleMediator)
+    {
+      _exports = new Dictionary<Guid, Export>();
+    }
+
+    public override Task OnExportStarted(ExportStarted exportStarted)
+    {
+      var export = _exports[exportStarted.CorrelationID] = new Export(
+        Path.Combine(Configuration.LocalDocumentFolder, "export.json"),
+        Path.Combine(Configuration.LocalDocumentFolder, "index.json"),
+        exportStarted.DocumentsIds);
+
+      export.Documents.StartWriting();
+      export.Indices.StartWriting();
 
       return Task.CompletedTask;
     }
 
-    public override Task OnExportEnded(Guid exportId)
+    private void TryCompleteExport(Guid exportId)
     {
-
       var export = _exports[exportId];
 
-      var exportJson = JsonConvert.SerializeObject(export.AnabasisDocuments, Formatting.None, _jsonSerializerSettings);
+      if (export.HasExportEnded &&
+        export.ImportedDocumentCount == export.ExpectedDocumentIds.Length &&
+        export.ImportedIndicesCount == export.ExpectedDocumentIds.Length)
+      {
+        export.Documents.EndWriting();
+        export.Indices.EndWriting();
 
-      File.WriteAllText(Path.Combine(Configuration.LocalDocumentFolder, "export.json"), exportJson);
+        export.Dispose();
 
-      var indexJson = JsonConvert.SerializeObject(export.DocumentIndices, Formatting.None, _jsonSerializerSettings);
+        Mediator.Emit(new ExportEnded(exportId));
 
-      File.WriteAllText(Path.Combine(Configuration.LocalDocumentFolder, "index.json"), indexJson);
+      }
+
+
+    }
+
+    public override Task OnExportEnd(Guid exportId)
+    {
+      
+      var export = _exports[exportId];
+
+      export.HasExportEnded = true;
+
+      TryCompleteExport(exportId);
 
       return Task.CompletedTask;
+
     }
 
     public override Task SaveDocument(Guid exportId, AnabasisDocument anabasisDocument)
     {
       var export = _exports[exportId];
 
-      export.AnabasisDocuments.Add(anabasisDocument);
+      export.Documents.Append(anabasisDocument);
+
+      export.ImportedDocumentCount++;
 
       Mediator.Emit(new DocumentImported(anabasisDocument, exportId));
+
+      TryCompleteExport(exportId);
 
       return Task.CompletedTask;
     }
@@ -87,9 +156,13 @@ namespace Anabasis.Importer
     {
       var export = _exports[exportId];
 
-      export.DocumentIndices.Add(documentIndex);
+      export.Indices.Append(documentIndex);
+
+      export.ImportedIndicesCount++;
 
       Mediator.Emit(new IndexImported(documentIndex, exportId));
+
+      TryCompleteExport(exportId);
 
       return Task.CompletedTask;
     }
