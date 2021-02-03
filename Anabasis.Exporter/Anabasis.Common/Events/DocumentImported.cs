@@ -5,7 +5,7 @@ namespace Anabasis.Common.Events
 {
   public class DocumentImported : BaseEvent
   {
-    public DocumentImported(AnabasisDocument anabasisDocument, Guid correlationId) : base(correlationId)
+    public DocumentImported(AnabasisDocument anabasisDocument, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
     {
       Document = anabasisDocument;
     }

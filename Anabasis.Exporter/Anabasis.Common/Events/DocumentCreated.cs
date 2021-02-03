@@ -3,9 +3,9 @@ using System;
 
 namespace Anabasis.Common.Events
 {
-  public class DocumentExported : BaseEvent
+  public class DocumentCreated : BaseEvent
   {
-    public DocumentExported(Guid correlationId, AnabasisDocument anabasisDocument) : base(correlationId)
+    public DocumentCreated(Guid correlationId, string streamId, string topicId, AnabasisDocument anabasisDocument) : base(correlationId, streamId, topicId)
     {
       Document = anabasisDocument;
     }

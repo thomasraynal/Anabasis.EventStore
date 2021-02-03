@@ -1,9 +1,6 @@
 using Anabasis.Common.Actor;
-using Anabasis.Common.Events;
 using Anabasis.Common.Mediator;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Common.Infrastructure
@@ -14,9 +11,11 @@ namespace Anabasis.Common.Infrastructure
     {
     }
 
+    public override string StreamId => AllStream;
+
     protected override Task Handle(IEvent @event)
     {
-      Console.WriteLine($"{@event.CorrelationID} - {@event.Log()}");
+      Console.WriteLine($"{@event.CorrelationID} - {@event.StreamId} - {@event.TopicId} - {@event.Log()}");
 
       return Task.CompletedTask;
 

@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Anabasis.Common.Events
 {
-  public class IndexExported : BaseEvent
+  public class IndexCreated : BaseEvent
   {
-    public IndexExported(DocumentIndex documentIndex, Guid correlationId) : base(correlationId)
+    public IndexCreated(DocumentIndex documentIndex, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
     {
       Index = documentIndex;
     }

@@ -7,7 +7,7 @@ namespace Anabasis.Common.Events
 {
   public class StartExport : BaseEvent, ICommand
   {
-    public StartExport(Guid exportId) : base(exportId)
+    public StartExport(Guid correlationId, string streamId) : base(correlationId, streamId, $"{streamId}-{DateTime.UtcNow:yyyyMMddHHmmss}")
     {
     }
 

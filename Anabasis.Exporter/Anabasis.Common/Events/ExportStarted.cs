@@ -7,7 +7,7 @@ namespace Anabasis.Common.Events
 {
   public class ExportStarted : BaseEvent
   {
-    public ExportStarted(Guid correlationId, string[] documentsIds) : base(correlationId)
+    public ExportStarted(Guid correlationId, string[] documentsIds, string streamId, string topicId) : base(correlationId, streamId, topicId)
     {
       DocumentsIds = documentsIds;
     }

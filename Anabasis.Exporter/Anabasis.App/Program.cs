@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.Common.Mediator;
 using Anabasis.Exporter;
@@ -14,7 +15,7 @@ namespace Anabasis.App
 
       var mediator = World.Create<FileSystemRegistry>();
 
-      mediator.Emit(new StartExport(Guid.NewGuid()));
+      mediator.Emit(new StartExport(Guid.NewGuid(), StreamIds.GoogleDoc));
 
       Console.Read();
 

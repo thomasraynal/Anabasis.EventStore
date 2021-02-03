@@ -15,12 +15,14 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Exporter
 {
-  public class AnabasisExporter: BaseActor
+  public class GoogleDocExporter: BaseActor
   {
     private readonly IAnabasisConfiguration _exporterConfiguration;
     private readonly PolicyBuilder _policyBuilder;
 
-    public AnabasisExporter(IAnabasisConfiguration exporterConfiguration, SimpleMediator simpleMediator): base(simpleMediator)
+    public override string StreamId => StreamIds.GoogleDoc;
+
+    public GoogleDocExporter(IAnabasisConfiguration exporterConfiguration, SimpleMediator simpleMediator): base(simpleMediator)
     {
       _exporterConfiguration = exporterConfiguration;
 
@@ -85,7 +87,10 @@ namespace Anabasis.Exporter
         var childList = await Get<ChildList>(nextUrl);
 
         //only have one folder - but we should handle many and keep track of the original gdoc id
-        Mediator.Emit(new ExportStarted(startExport.CorrelationID, childList.ChildReferences.Select(reference=> reference.Id).ToArray()));
+        Mediator.Emit(new ExportStarted(startExport.CorrelationID,
+          childList.ChildReferences.Select(reference=> reference.Id).ToArray(),
+          startExport.StreamId,
+          startExport.TopicId));
 
         foreach (var child in childList.ChildReferences)
         {
@@ -158,10 +163,10 @@ namespace Anabasis.Exporter
       await foreach (var anabasisDocument in GetDocumentFromSource(startExport, _exporterConfiguration.DriveRootFolder))
       {
 
-        Mediator.Emit(new DocumentExported(startExport.CorrelationID, anabasisDocument));
+        Mediator.Emit(new DocumentCreated(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, anabasisDocument));
       }
 
-      Mediator.Emit(new EndExport(startExport.CorrelationID));
+      Mediator.Emit(new ExportFinished(startExport.CorrelationID, startExport.StreamId, startExport.TopicId));
 
     }
 

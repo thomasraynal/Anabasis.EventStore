@@ -8,11 +8,11 @@ namespace Anabasis.Importer
 {
   public interface IDocumentRepository<TConfiguration> : IActor where TConfiguration : IAnabasisConfiguration
   {
-    Task SaveDocument(Guid exportId, AnabasisDocument anabasisDocument);
-    Task SaveIndex(Guid exportId, DocumentIndex index);
+    Task SaveDocument(DocumentCreated documentExported);
+    Task SaveIndex(IndexCreated indexExported);
 
     Task OnExportStarted(ExportStarted exportStarted);
 
-    Task OnExportEnd(Guid exportId);
+    Task OnExportEnd(ExportEnded endExport);
   }
 }

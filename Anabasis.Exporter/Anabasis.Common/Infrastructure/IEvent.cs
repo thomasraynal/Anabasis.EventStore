@@ -1,6 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.Common.Infrastructure
 {
@@ -8,6 +6,8 @@ namespace Anabasis.Common.Infrastructure
   {
     Guid EventID { get; }
     Guid CorrelationID { get; }
+    string StreamId { get; }
+    string TopicId { get; }
     string Log();
   }
 }

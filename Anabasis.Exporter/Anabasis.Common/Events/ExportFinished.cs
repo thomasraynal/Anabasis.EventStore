@@ -3,9 +3,9 @@ using System;
 
 namespace Anabasis.Common.Events
 {
-  public class EndExport : BaseEvent, ICommand
+  public class ExportFinished : BaseEvent, ICommand
   {
-    public EndExport(Guid correlationId) : base(correlationId)
+    public ExportFinished(Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
     {
     }
 

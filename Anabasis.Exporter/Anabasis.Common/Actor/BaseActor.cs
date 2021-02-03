@@ -11,18 +11,23 @@ namespace Anabasis.Common.Actor
 {
   public abstract class BaseActor : IActor
   {
+
+    public string AllStream => "*";
+
     protected BaseActor(SimpleMediator simpleMediator)
     {
       Mediator = simpleMediator;
     }
 
-    public SimpleMediator Mediator { get; }
+    public IMediator Mediator { get; }
+
+    public abstract string StreamId { get; }
 
     public void Emit(IEvent @event)
     {
       var serializedEvent = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(@event));
 
-      var message = new Message(serializedEvent, @event.GetType());
+      var message = new Message(@event.StreamId, serializedEvent, @event.GetType());
 
       Mediator.Send(message);
     }

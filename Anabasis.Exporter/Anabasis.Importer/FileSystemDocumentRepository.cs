@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using Anabasis.Common.Events;
+using Anabasis.Common.Infrastructure;
 using Anabasis.Common.Mediator;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -86,6 +87,8 @@ namespace Anabasis.Importer
 
     private readonly Dictionary<Guid, Export> _exports;
 
+    public override string StreamId => StreamIds.GoogleDoc;
+
     public FileSystemDocumentRepository(FileSystemDocumentRepositoryConfiguration configuration, SimpleMediator simpleMediator) : base(configuration, simpleMediator)
     {
       _exports = new Dictionary<Guid, Export>();
@@ -104,9 +107,9 @@ namespace Anabasis.Importer
       return Task.CompletedTask;
     }
 
-    private void TryCompleteExport(Guid exportId)
+    private void TryCompleteExport(IEvent exportEnded)
     {
-      var export = _exports[exportId];
+      var export = _exports[exportEnded.CorrelationID];
 
       if (export.HasExportEnded &&
         export.ImportedDocumentCount == export.ExpectedDocumentIds.Length &&
@@ -117,52 +120,50 @@ namespace Anabasis.Importer
 
         export.Dispose();
 
-        Mediator.Emit(new ExportEnded(exportId));
+        Mediator.Emit(new ExportFinished(exportEnded.CorrelationID, exportEnded.StreamId, exportEnded.TopicId));
 
       }
-
-
     }
 
-    public override Task OnExportEnd(Guid exportId)
+    public override Task OnExportEnd(ExportEnded exportEnded)
     {
       
-      var export = _exports[exportId];
+      var export = _exports[exportEnded.ExportId];
 
       export.HasExportEnded = true;
 
-      TryCompleteExport(exportId);
+      TryCompleteExport(exportEnded);
 
       return Task.CompletedTask;
 
     }
 
-    public override Task SaveDocument(Guid exportId, AnabasisDocument anabasisDocument)
+    public override Task SaveDocument(DocumentCreated documentCreated)
     {
-      var export = _exports[exportId];
+      var export = _exports[documentCreated.ExportId];
 
-      export.Documents.Append(anabasisDocument);
+      export.Documents.Append(documentCreated.Document);
 
       export.ImportedDocumentCount++;
 
-      Mediator.Emit(new DocumentImported(anabasisDocument, exportId));
+      Mediator.Emit(new DocumentImported(documentCreated.Document, documentCreated.CorrelationID, documentCreated.StreamId, documentCreated.TopicId));
 
-      TryCompleteExport(exportId);
+      TryCompleteExport(documentCreated);
 
       return Task.CompletedTask;
     }
 
-    public override Task SaveIndex(Guid exportId, DocumentIndex documentIndex)
+    public override Task SaveIndex(IndexCreated indexCreated)
     {
-      var export = _exports[exportId];
+      var export = _exports[indexCreated.ExportId];
 
-      export.Indices.Append(documentIndex);
+      export.Indices.Append(indexCreated.Index);
 
       export.ImportedIndicesCount++;
 
-      Mediator.Emit(new IndexImported(documentIndex, exportId));
+      Mediator.Emit(new IndexImported(indexCreated.Index, indexCreated.CorrelationID, indexCreated.StreamId, indexCreated.TopicId));
 
-      TryCompleteExport(exportId);
+      TryCompleteExport(indexCreated);
 
       return Task.CompletedTask;
     }

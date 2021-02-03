@@ -17,7 +17,7 @@ namespace Anabasis.Importer
 
     public TConfiguration Configuration { get; }
 
-    public virtual Task OnExportEnd(Guid exportId)
+    public virtual Task OnExportEnd(ExportEnded endExport)
     {
       return Task.CompletedTask;
     }
@@ -27,36 +27,40 @@ namespace Anabasis.Importer
       return Task.CompletedTask;
     }
 
-    public abstract Task SaveDocument(Guid exportId, AnabasisDocument anabasisDocument);
+    public abstract Task SaveDocument(DocumentCreated documentExported);
 
-    public abstract Task SaveIndex(Guid exportId, DocumentIndex documentIndex);
+    public abstract Task SaveIndex(IndexCreated indexExported);
 
     protected async override Task Handle(IEvent @event)
     {
-      if (@event.GetType() == typeof(DocumentExported))
+      if (@event.GetType() == typeof(DocumentCreated))
       {
-        var documentExported = @event as DocumentExported;
+        var documentExported = @event as DocumentCreated;
 
-        await SaveDocument(@event.CorrelationID, documentExported.Document);
+        await SaveDocument(documentExported);
 
       }
 
-      if (@event.GetType() == typeof(IndexExported))
+      if (@event.GetType() == typeof(IndexCreated))
       {
-        var indexExported = @event as IndexExported;
+        var indexExported = @event as IndexCreated;
 
-        await SaveIndex(@event.CorrelationID, indexExported.Index);
+        await SaveIndex(indexExported);
 
       }
 
       if (@event.GetType() == typeof(ExportStarted))
       {
-        await OnExportStarted(@event as ExportStarted);
+        var exportStarted = @event as ExportStarted;
+
+        await OnExportStarted(exportStarted);
       }
 
-      if (@event.GetType() == typeof(EndExport))
+      if (@event.GetType() == typeof(ExportEnded))
       {
-        await OnExportEnd(@event.CorrelationID);
+        var endExport = @event as ExportEnded;
+
+        await OnExportEnd(endExport);
       }
 
     }

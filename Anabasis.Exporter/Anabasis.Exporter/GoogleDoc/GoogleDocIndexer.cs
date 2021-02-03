@@ -11,13 +11,16 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Exporter
 {
-  public class AnabasisIndexer : BaseActor
+  public class GoogleDocIndexer : BaseActor
   {
-    public AnabasisIndexer(SimpleMediator simpleMediator) : base(simpleMediator)
+
+    public GoogleDocIndexer(SimpleMediator simpleMediator) : base(simpleMediator)
     {
     }
 
-    public Task IndexDocument(DocumentExported documentExported)
+    public override string StreamId => StreamIds.GoogleDoc;
+
+    public Task IndexDocument(DocumentCreated documentExported)
     {
 
       var anabasisDocument = documentExported.Document;
@@ -55,16 +58,16 @@ namespace Anabasis.Exporter
         }
         ).ToArray();
 
-      Mediator.Emit(new IndexExported(documentIndex, documentExported.CorrelationID));
+      Mediator.Emit(new IndexCreated(documentIndex, documentExported.CorrelationID, documentExported.StreamId, documentExported.TopicId));
 
       return Task.CompletedTask;
     }
 
     protected async override Task Handle(IEvent @event)
     {
-      if (@event.GetType() == typeof(DocumentExported))
+      if (@event.GetType() == typeof(DocumentCreated))
       {
-        await IndexDocument(@event as DocumentExported);
+        await IndexDocument(@event as DocumentCreated);
       }
     }
   }

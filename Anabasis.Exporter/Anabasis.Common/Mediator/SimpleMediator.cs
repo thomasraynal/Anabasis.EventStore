@@ -1,5 +1,4 @@
 using Anabasis.Common.Actor;
-using Anabasis.Common.Events;
 using Anabasis.Common.Infrastructure;
 using Lamar;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,9 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -20,6 +17,7 @@ namespace Anabasis.Common.Mediator
   {
     private static IReadOnlyList<IActor> _allActors;
     private readonly Task _workProc;
+    private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
     private readonly Container _container;
     private readonly BlockingCollection<Message> _workQueue;
 
@@ -28,6 +26,8 @@ namespace Anabasis.Common.Mediator
       _container = container;
       _workQueue = new BlockingCollection<Message>();
       _workProc = Task.Run(HandleWork, CancellationToken.None);
+
+      _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
 
       container.Configure(services =>
       {
@@ -47,11 +47,23 @@ namespace Anabasis.Common.Mediator
 
       foreach (var message in _workQueue.GetConsumingEnumerable())
       {
-        Parallel.ForEach(_allActors, async (actor) =>
-         {
-           await actor.Handle(message);
+        Parallel.ForEach(_allActors.Where(actor => actor.StreamId == message.StreamId), async (actor) =>
+          {
 
-         });
+            var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(actor.GetType(), message.EventType);
+
+            if (null != candidateHandler)
+            {
+              var @event = (IEvent)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Event), message.EventType);
+
+              candidateHandler.Invoke(actor, new object[] { @event });
+            }
+            else
+            {
+              await actor.Handle(message);
+            }
+
+          });
 
       }
     }
@@ -60,7 +72,7 @@ namespace Anabasis.Common.Mediator
     {
       var serializedEvent = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(@event));
 
-      var message = new Message(serializedEvent, @event.GetType());
+      var message = new Message(@event.StreamId, serializedEvent, @event.GetType());
 
       Send(message);
     }
