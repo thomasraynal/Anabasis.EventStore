@@ -58,10 +58,6 @@ namespace Anabasis.Common.Mediator
 
               candidateHandler.Invoke(actor, new object[] { @event });
             }
-            else
-            {
-              await actor.Handle(message);
-            }
 
           });
 

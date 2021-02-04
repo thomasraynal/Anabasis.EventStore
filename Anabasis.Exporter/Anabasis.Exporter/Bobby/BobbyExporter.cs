@@ -1,4 +1,6 @@
+using Anabasis.Common;
 using Anabasis.Common.Actor;
+using Anabasis.Common.Events;
 using Anabasis.Common.Infrastructure;
 using Anabasis.Common.Mediator;
 using HtmlAgilityPack;
@@ -16,32 +18,11 @@ namespace Anabasis.Exporter.Bobby
     {
     }
 
-    public override string StreamId => throw new NotImplementedException();
+    public override string StreamId => StreamIds.Bobby;
 
-    private IEnumerable<Path> GetUrls()
+    public Task Handle(StartExport startExport)
     {
-      var index = "http://bobbymedit.fr/table-des-matieres/";
-
-      var parser = new HtmlWeb();
-      var doc = parser.Load(index);
-
-      foreach (var node in doc.DocumentNode.SelectNodes("//a"))
-      {
-        var href = node.Attributes["href"];
-
-        if (null != href)
-        {
-          yield return new Path(href.Value);
-        }
-      }
-    }
-
-    protected override Task Handle(IEvent @event)
-    {
-      var context = new QuotationParsingContext();
-
-      var urls = GetUrls().Distinct().ToArray();
-      context.AddUrls(urls);
+      var context = new QuoteParsingContext();
 
       context.Build();
 
@@ -53,6 +34,11 @@ namespace Anabasis.Exporter.Bobby
 
       //var importer = new Importer();
       //importer.Import(quotations).Wait();
+    }
+
+    protected override Task Handle(IEvent @event)
+    {
+      throw new NotImplementedException();
     }
   }
 }

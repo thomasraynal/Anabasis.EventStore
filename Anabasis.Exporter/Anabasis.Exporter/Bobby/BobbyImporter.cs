@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.Common.Actor;
 using Anabasis.Common.Infrastructure;
 using Anabasis.Common.Mediator;
@@ -14,7 +15,7 @@ namespace Anabasis.Exporter.Bobby
     {
     }
 
-    public override string StreamId => throw new NotImplementedException();
+    public override string StreamId => StreamIds.Bobby;
 
     protected override Task Handle(IEvent @event)
     {
