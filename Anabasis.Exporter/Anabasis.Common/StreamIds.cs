@@ -6,7 +6,8 @@ namespace Anabasis.Common
 {
   public static class StreamIds
   {
-    public static string GoogleDoc { get; } = "GoogleDoc";
-    public static string Bobby { get; } = "Bobby";
+    public static string GoogleDoc => "GoogleDoc";
+    public static string Bobby => "Bobby";
+    public static string AllStream => "*";
   }
 }

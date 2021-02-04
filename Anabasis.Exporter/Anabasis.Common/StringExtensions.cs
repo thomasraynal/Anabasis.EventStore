@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Web;
 
@@ -8,12 +9,27 @@ namespace Anabasis.Common
 {
   public static class StringExtensions
   {
-    static List<string> _alreadyusedId = new List<string>();
+    static readonly List<string> _alreadyusedId = new List<string>();
 
 
     static StringExtensions()
     {
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+    }
+
+    public static string Md5( params string[] str)
+    {
+      var crypt = new SHA256Managed();
+      var hash = string.Empty;
+      var crypto = crypt.ComputeHash(Encoding.ASCII.GetBytes(string.Concat(str)));
+
+      foreach (var b in crypto)
+      {
+        hash += b.ToString("x2");
+      }
+
+      return hash;
+
     }
 
     public static string GetReadableId(this string title)

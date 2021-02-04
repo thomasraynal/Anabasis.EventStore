@@ -10,60 +10,26 @@ namespace Anabasis.Importer
 {
   public abstract class BaseDocumentRepository<TConfiguration> : BaseActor, IDocumentRepository<TConfiguration> where TConfiguration : IAnabasisConfiguration
   {
-    protected BaseDocumentRepository(TConfiguration configuration, SimpleMediator simpleMediator) : base(simpleMediator)
+    protected BaseDocumentRepository(TConfiguration configuration, IMediator simpleMediator) : base(simpleMediator)
     {
       Configuration = configuration;
     }
 
     public TConfiguration Configuration { get; }
 
-    public virtual Task OnExportEnd(ExportEnded endExport)
+    public virtual Task Handle(ExportEnded endExport)
     {
       return Task.CompletedTask;
     }
 
-    public virtual Task OnExportStarted(ExportStarted exportStarted)
+    public virtual Task Handle(ExportStarted exportStarted)
     {
       return Task.CompletedTask;
     }
 
-    public abstract Task SaveDocument(DocumentCreated documentExported);
+    public abstract Task Handle(DocumentCreated documentExported);
 
-    public abstract Task SaveIndex(IndexCreated indexExported);
-
-    protected async override Task Handle(IEvent @event)
-    {
-      if (@event.GetType() == typeof(DocumentCreated))
-      {
-        var documentExported = @event as DocumentCreated;
-
-        await SaveDocument(documentExported);
-
-      }
-
-      if (@event.GetType() == typeof(IndexCreated))
-      {
-        var indexExported = @event as IndexCreated;
-
-        await SaveIndex(indexExported);
-
-      }
-
-      if (@event.GetType() == typeof(ExportStarted))
-      {
-        var exportStarted = @event as ExportStarted;
-
-        await OnExportStarted(exportStarted);
-      }
-
-      if (@event.GetType() == typeof(ExportEnded))
-      {
-        var endExport = @event as ExportEnded;
-
-        await OnExportEnd(endExport);
-      }
-
-    }
+    public abstract Task Handle(IndexCreated indexExported);
 
   }
 }

@@ -7,13 +7,13 @@ namespace Anabasis.Common.Infrastructure
 {
   public class Logger : BaseActor
   {
-    public Logger(SimpleMediator simpleMediator) : base(simpleMediator)
+    public Logger(IMediator simpleMediator) : base(simpleMediator)
     {
     }
 
-    public override string StreamId => AllStream;
+    public override string StreamId => StreamIds.AllStream;
 
-    protected override Task Handle(IEvent @event)
+    public Task Handle(IEvent @event)
     {
       Console.WriteLine($"{@event.CorrelationID} - {@event.StreamId} - {@event.TopicId} - {@event.Log()}");
 

@@ -31,7 +31,7 @@ namespace Anabasis.Common.Mediator
 
       container.Configure(services =>
       {
-        services.AddSingleton(this);
+        services.AddSingleton<IMediator>(this);
       });
 
       _allActors = _container.GetAllInstances<IActor>();
@@ -47,15 +47,14 @@ namespace Anabasis.Common.Mediator
 
       foreach (var message in _workQueue.GetConsumingEnumerable())
       {
-        Parallel.ForEach(_allActors.Where(actor => actor.StreamId == message.StreamId), async (actor) =>
-          {
+        var @event = (IEvent)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Event), message.EventType);
 
+        Parallel.ForEach(_allActors.Where(actor => actor.StreamId == message.StreamId || actor.StreamId == StreamIds.AllStream), (actor) =>
+          {
             var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(actor.GetType(), message.EventType);
 
             if (null != candidateHandler)
             {
-              var @event = (IEvent)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Event), message.EventType);
-
               candidateHandler.Invoke(actor, new object[] { @event });
             }
 

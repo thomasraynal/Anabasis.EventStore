@@ -1,4 +1,6 @@
+using Anabasis.Common;
 using HtmlAgilityPack;
+using Polly;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -9,25 +11,31 @@ using System.Text.RegularExpressions;
 
 namespace Anabasis.Exporter.Bobby
 {
-  public class QuoteParser
+  public class QuotesBuilder
   {
+    private readonly PolicyBuilder _policyBuilder;
 
-    public QuoteParser(string url)
+    public QuotesBuilder(string url, string headingUrl)
     {
       Url = url;
 
-      var matches = Regex.Matches(url, "(?<!\\?.+)(?<=\\/)[\\w-]+(?=[/\r\n?]|$)");
+      _policyBuilder = Policy.Handle<Exception>();
 
-      if (!matches.Any()) throw new Exception("untaged");
+      var tags = Regex.Matches(url, "(?<!\\?.+)(?<=\\/)[\\w-]+(?=[/\r\n?]|$)");
+      var headings = Regex.Matches(headingUrl, "(?<!\\?.+)(?<=\\/)[\\w-]+(?=[/\r\n?]|$)");
 
-      Tag = matches.Last().Value;
+      if (!tags.Any() || !headings.Any()) throw new Exception("untaged");
+
+      Heading = headings.Last().Value;
+      Tags = tags.Last().Value;
 
     }
-    
-    public string Tag { get; }
+
+    public string Heading { get; }
+    public string Tags { get; }
     public string Url { get; }
-    public string Text { get; private set; } = string.Empty;
-    public List<Quote> Quotations { get; private set; } = new List<Quote>();
+    public string Text { get; private set; }
+    public List<Quote> Quotes { get; private set; } = new List<Quote>();
 
     public string GetAuthor(Match quote)
     {
@@ -55,10 +63,16 @@ namespace Anabasis.Exporter.Bobby
     public void Build()
     {
 
-      Quotations = new List<Quote>();
-
       var parser = new HtmlWeb();
-      var doc = parser.Load(Url);
+
+      var retryPolicy = _policyBuilder.WaitAndRetry(5, (_) => TimeSpan.FromSeconds(1));
+
+      var doc = retryPolicy.Execute(() =>
+      {
+        return parser.Load(Url);
+      });
+
+      Quotes.Clear();
 
       foreach (var node in doc.DocumentNode.SelectSingleNode("//div[@class='entry-content']").Elements("p"))
       {
@@ -72,43 +86,45 @@ namespace Anabasis.Exporter.Bobby
 
       foreach (Match match in quotes)
       {
-        var author = GetAuthor(match);
-
-        if (author == string.Empty)
-        {
-          //   Program.Logger.Warning($"Unable to find author for quote [{Path.Tag}] [{new String(quote.Value.Take(quote.Value.Count() > 200 ? 200 : quote.Value.Count()).ToArray())}]");
-        }
 
         var quote = new Quote
         {
           Text = match.Value.Trim(),
-          Tag = Tag.Trim(),
+          Tag = Tags.Trim(),
           Author = GetAuthor(match),
-
         };
 
-        var crypt = new SHA256Managed();
-        var hash = string.Empty;
-        var crypto = crypt.ComputeHash(Encoding.ASCII.GetBytes(quote.Author + quote.Text + quote.Tag));
+        quote.Id = StringExtensions.Md5(quote.Author, quote.Text, quote.Tag);
 
-        foreach (var b in crypto)
-        {
-          hash += b.ToString("x2");
-        }
+        Quotes.Add(quote);
 
-        quote.Id = hash;
-
-        Quotations.Add(quote);
-
-        // Program.Logger.Information($"Parsed [{Path.Url}]");
       }
+
+
+      var anabasisDocument = new AnabasisDocument()
+      {
+        Id = Tags.GetReadableId(),
+        Title = Tags,
+        DocumentItems = parser.Quotes.Select(quote => new DocumentItem()
+        {
+          Content = quote.Text,
+          Id = quote.Id,
+          DocumentId = documentId,
+          SecondaryTitleId = quote.Tag,
+          // MainTitleId = quote.
+
+        }).ToArray()
+
+      };
+
+
     }
 
 
 
     public override bool Equals(object obj)
     {
-      var parser = obj as QuoteParser;
+      var parser = obj as QuotesBuilder;
       return parser != null &&
              Url == parser.Url;
     }

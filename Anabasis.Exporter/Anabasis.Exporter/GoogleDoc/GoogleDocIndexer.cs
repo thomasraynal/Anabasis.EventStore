@@ -14,13 +14,13 @@ namespace Anabasis.Exporter
   public class GoogleDocIndexer : BaseActor
   {
 
-    public GoogleDocIndexer(SimpleMediator simpleMediator) : base(simpleMediator)
+    public GoogleDocIndexer(IMediator simpleMediator) : base(simpleMediator)
     {
     }
 
     public override string StreamId => StreamIds.GoogleDoc;
 
-    public Task IndexDocument(DocumentCreated documentExported)
+    public Task Handle(DocumentCreated documentExported)
     {
 
       var anabasisDocument = documentExported.Document;
@@ -63,12 +63,6 @@ namespace Anabasis.Exporter
       return Task.CompletedTask;
     }
 
-    protected async override Task Handle(IEvent @event)
-    {
-      if (@event.GetType() == typeof(DocumentCreated))
-      {
-        await IndexDocument(@event as DocumentCreated);
-      }
-    }
+
   }
 }

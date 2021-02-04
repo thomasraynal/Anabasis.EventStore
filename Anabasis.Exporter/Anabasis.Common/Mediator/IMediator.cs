@@ -1,9 +1,10 @@
 using Anabasis.Common.Actor;
+using Anabasis.Common.Infrastructure;
 
 namespace Anabasis.Common.Mediator
 {
-  public interface IMediator: IEventEmitter
+  public interface IMediator
   {
-    void Send(Message message);
+    void Emit(IEvent @event);
   }
 }

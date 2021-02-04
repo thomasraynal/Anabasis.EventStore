@@ -89,12 +89,12 @@ namespace Anabasis.Importer
 
     public override string StreamId => StreamIds.GoogleDoc;
 
-    public FileSystemDocumentRepository(FileSystemDocumentRepositoryConfiguration configuration, SimpleMediator simpleMediator) : base(configuration, simpleMediator)
+    public FileSystemDocumentRepository(FileSystemDocumentRepositoryConfiguration configuration, IMediator simpleMediator) : base(configuration, simpleMediator)
     {
       _exports = new Dictionary<Guid, Export>();
     }
 
-    public override Task OnExportStarted(ExportStarted exportStarted)
+    public override Task Handle(ExportStarted exportStarted)
     {
       var export = _exports[exportStarted.CorrelationID] = new Export(
         Path.Combine(Configuration.LocalDocumentFolder, "export.json"),
@@ -125,7 +125,7 @@ namespace Anabasis.Importer
       }
     }
 
-    public override Task OnExportEnd(ExportEnded exportEnded)
+    public override Task Handle(ExportEnded exportEnded)
     {
       
       var export = _exports[exportEnded.ExportId];
@@ -138,7 +138,7 @@ namespace Anabasis.Importer
 
     }
 
-    public override Task SaveDocument(DocumentCreated documentCreated)
+    public override Task Handle(DocumentCreated documentCreated)
     {
       var export = _exports[documentCreated.ExportId];
 
@@ -153,7 +153,7 @@ namespace Anabasis.Importer
       return Task.CompletedTask;
     }
 
-    public override Task SaveIndex(IndexCreated indexCreated)
+    public override Task Handle(IndexCreated indexCreated)
     {
       var export = _exports[indexCreated.ExportId];
 

@@ -15,14 +15,14 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Exporter
 {
-  public class GoogleDocExporter: BaseActor
+  public class GoogleDocExporter : BaseActor
   {
     private readonly IAnabasisConfiguration _exporterConfiguration;
     private readonly PolicyBuilder _policyBuilder;
 
     public override string StreamId => StreamIds.GoogleDoc;
 
-    public GoogleDocExporter(IAnabasisConfiguration exporterConfiguration, SimpleMediator simpleMediator): base(simpleMediator)
+    public GoogleDocExporter(IAnabasisConfiguration exporterConfiguration, IMediator simpleMediator) : base(simpleMediator)
     {
       _exporterConfiguration = exporterConfiguration;
 
@@ -88,7 +88,7 @@ namespace Anabasis.Exporter
 
         //only have one folder - but we should handle many and keep track of the original gdoc id
         Mediator.Emit(new ExportStarted(startExport.CorrelationID,
-          childList.ChildReferences.Select(reference=> reference.Id).ToArray(),
+          childList.ChildReferences.Select(reference => reference.Id).ToArray(),
           startExport.StreamId,
           startExport.TopicId));
 
@@ -157,7 +157,7 @@ namespace Anabasis.Exporter
 
     }
 
-    public async Task ExportDocuments(StartExport startExport)
+    public async Task Handle(StartExport startExport)
     {
 
       await foreach (var anabasisDocument in GetDocumentFromSource(startExport, _exporterConfiguration.DriveRootFolder))
@@ -166,18 +166,8 @@ namespace Anabasis.Exporter
         Mediator.Emit(new DocumentCreated(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, anabasisDocument));
       }
 
-      Mediator.Emit(new ExportFinished(startExport.CorrelationID, startExport.StreamId, startExport.TopicId));
+      Mediator.Emit(new ExportEnded(startExport.CorrelationID, startExport.StreamId, startExport.TopicId));
 
-    }
-
-    protected async override Task Handle(IEvent @event)
-    {
-
-      if (@event.GetType() == typeof(StartExport))
-      {
-        await ExportDocuments(@event as StartExport);
-      }
-       
     }
   }
 }

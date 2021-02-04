@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common.Actor
 {
-  public interface IActor: IEventEmitter, IEventHandler
+  public interface IActor
   {
     string StreamId { get; }
   }
