@@ -97,8 +97,8 @@ namespace Anabasis.Importer
     public override Task Handle(ExportStarted exportStarted)
     {
       var export = _exports[exportStarted.CorrelationID] = new Export(
-        Path.Combine(Configuration.LocalDocumentFolder, "export.json"),
-        Path.Combine(Configuration.LocalDocumentFolder, "index.json"),
+        Path.Combine(Configuration.LocalDocumentFolder, exportStarted.StreamId, "export.json"),
+        Path.Combine(Configuration.LocalDocumentFolder, exportStarted.StreamId, "index.json"),
         exportStarted.DocumentsIds);
 
       export.Documents.StartWriting();

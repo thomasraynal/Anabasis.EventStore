@@ -3,19 +3,16 @@ using HtmlAgilityPack;
 using Polly;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
-using System.Security.Cryptography;
-using System.Text;
 using System.Text.RegularExpressions;
 
 namespace Anabasis.Exporter.Bobby
 {
-  public class QuotesBuilder
+  public class DocumentBuilder
   {
     private readonly PolicyBuilder _policyBuilder;
 
-    public QuotesBuilder(string url, string headingUrl)
+    public DocumentBuilder(string url, string headingUrl)
     {
       Url = url;
 
@@ -35,7 +32,6 @@ namespace Anabasis.Exporter.Bobby
     public string Tags { get; }
     public string Url { get; }
     public string Text { get; private set; }
-    public List<Quote> Quotes { get; private set; } = new List<Quote>();
 
     public string GetAuthor(Match quote)
     {
@@ -60,10 +56,12 @@ namespace Anabasis.Exporter.Bobby
 
     }
 
-    public void Build()
+    public AnabasisDocument Build()
     {
 
       var parser = new HtmlWeb();
+
+      var quotes = new List<Quote>();
 
       var retryPolicy = _policyBuilder.WaitAndRetry(5, (_) => TimeSpan.FromSeconds(1));
 
@@ -72,7 +70,6 @@ namespace Anabasis.Exporter.Bobby
         return parser.Load(Url);
       });
 
-      Quotes.Clear();
 
       foreach (var node in doc.DocumentNode.SelectSingleNode("//div[@class='entry-content']").Elements("p"))
       {
@@ -82,9 +79,9 @@ namespace Anabasis.Exporter.Bobby
         }
       }
 
-      var quotes = Regex.Matches(Text, "(?<=«).*?(?=»)");
+      var allMatch = Regex.Matches(Text, "(?<=«).*?(?=»)");
 
-      foreach (Match match in quotes)
+      foreach (Match match in allMatch)
       {
 
         var quote = new Quote
@@ -96,35 +93,34 @@ namespace Anabasis.Exporter.Bobby
 
         quote.Id = StringExtensions.Md5(quote.Author, quote.Text, quote.Tag);
 
-        Quotes.Add(quote);
+        quotes.Add(quote);
 
       }
 
+      var documentId = Tags.GetReadableId();
 
       var anabasisDocument = new AnabasisDocument()
       {
-        Id = Tags.GetReadableId(),
-        Title = Tags,
-        DocumentItems = parser.Quotes.Select(quote => new DocumentItem()
+        Id = documentId,
+        Title = Heading,
+        DocumentItems = quotes.Select(quote => new DocumentItem()
         {
           Content = quote.Text,
           Id = quote.Id,
           DocumentId = documentId,
-          SecondaryTitleId = quote.Tag,
-          // MainTitleId = quote.
+          MainTitleId = Heading
 
         }).ToArray()
 
       };
 
+      return anabasisDocument;
 
     }
 
-
-
     public override bool Equals(object obj)
     {
-      var parser = obj as QuotesBuilder;
+      var parser = obj as DocumentBuilder;
       return parser != null &&
              Url == parser.Url;
     }

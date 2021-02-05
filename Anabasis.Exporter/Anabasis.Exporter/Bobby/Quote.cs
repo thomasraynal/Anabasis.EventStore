@@ -14,11 +14,11 @@ namespace Anabasis.Exporter.Bobby
     public string Author { get; set; }
     public string Tag { get; set; }
 
-    public List<string> Tags
+    public string[] Tags
     {
       get
       {
-        return Tag.Split("-").ToList();
+        return Tag.Split("-");
       }
     }
 

@@ -26,7 +26,7 @@ namespace Anabasis.Exporter.Bobby
     {
 
       var htmlWeb = new HtmlWeb();
-      var quotationParsers = new List<QuotesBuilder>();
+      var quotationParsers = new List<DocumentBuilder>();
 
       var doc = htmlWeb.Load(quotesIndex);
 
@@ -47,7 +47,7 @@ namespace Anabasis.Exporter.Bobby
 
             else
             {
-              var quoteParser = new QuotesBuilder(href.Value, currentHeading);
+              var quoteParser = new DocumentBuilder(href.Value, currentHeading);
 
               if (quotationParsers.Contains(quoteParser))
               {
@@ -66,35 +66,14 @@ namespace Anabasis.Exporter.Bobby
 
       }
 
-      //Parallel.ForEach(quotationParsers, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (parser) =>
-      //{
-
-      foreach (var parser in quotationParsers)
+      Parallel.ForEach(quotationParsers, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (parser) =>
       {
 
         try
         {
-          parser.Build();
+          var anabasisDocument = parser.Build();
 
-          var documentId = StringExtensions.Md5(parser.Url);
-
-          var anabasisDocument = new AnabasisDocument()
-          {
-            Id = documentId,
-            Title = parser.Tags,
-            DocumentItems = parser.Quotes.Select(quote => new DocumentItem()
-            {
-              Content = quote.Text,
-              Id = quote.Id,
-              DocumentId = documentId,
-              SecondaryTitleId = quote.Tag,
-              // MainTitleId = quote.
-
-            }).ToArray()
-
-          };
-
-          Mediator.Emit(new DocumentDefined(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, $"{parser.Url}"));
+          Mediator.Emit(new DocumentCreated(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, anabasisDocument));
 
         }
         catch (Exception)
@@ -102,13 +81,10 @@ namespace Anabasis.Exporter.Bobby
           Mediator.Emit(new DocumentCreationFailed(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, $"{parser.Url}"));
         }
 
-      }
-
-      //});
+      });
 
       return Task.CompletedTask;
 
     }
-
   }
 }
