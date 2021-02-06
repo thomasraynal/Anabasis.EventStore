@@ -32,7 +32,7 @@ namespace Anabasis.Common
 
     }
 
-    public static string GetReadableId(this string title)
+    public static string GetReadableId(this string title, bool throwIfDuplicate = false)
     {
       byte[] temp;
 
@@ -63,6 +63,9 @@ namespace Anabasis.Common
       {
         if (_alreadyusedId.Contains(id))
         {
+          if (throwIfDuplicate)
+            throw new InvalidOperationException($"{id} is already used");
+
           id = str.Replace("---", "-").Replace("--", "-").Trim('-') + $"_{index}";
           index++;
         }

@@ -23,13 +23,13 @@ namespace Anabasis.Exporter.Bobby
 
       if (!tags.Any() || !headings.Any()) throw new Exception("untaged");
 
-      Heading = headings.Last().Value;
-      Tags = tags.Last().Value;
+      DocumentId = headings.Last().Value;
+      MainTitle = tags.Last().Value;
 
     }
 
-    public string Heading { get; }
-    public string Tags { get; }
+    public string DocumentId { get; }
+    public string MainTitle { get; }
     public string Url { get; }
     public string Text { get; private set; }
 
@@ -56,7 +56,7 @@ namespace Anabasis.Exporter.Bobby
 
     }
 
-    public AnabasisDocument Build()
+    public AnabasisDocumentItem[] BuildItems(AnabasisDocument anabasisDocument)
     {
 
       var parser = new HtmlWeb();
@@ -65,13 +65,13 @@ namespace Anabasis.Exporter.Bobby
 
       var retryPolicy = _policyBuilder.WaitAndRetry(5, (_) => TimeSpan.FromSeconds(1));
 
-      var doc = retryPolicy.Execute(() =>
+      var htmlDocument = retryPolicy.Execute(() =>
       {
         return parser.Load(Url);
       });
 
 
-      foreach (var node in doc.DocumentNode.SelectSingleNode("//div[@class='entry-content']").Elements("p"))
+      foreach (var node in htmlDocument.DocumentNode.SelectSingleNode("//div[@class='entry-content']").Elements("p"))
       {
         if (!string.IsNullOrEmpty(node.InnerText))
         {
@@ -87,7 +87,7 @@ namespace Anabasis.Exporter.Bobby
         var quote = new Quote
         {
           Text = match.Value.Trim(),
-          Tag = Tags.Trim(),
+          Tag = MainTitle.Trim(),
           Author = GetAuthor(match),
         };
 
@@ -97,24 +97,33 @@ namespace Anabasis.Exporter.Bobby
 
       }
 
-      var documentId = Tags.GetReadableId();
+      var mainTitleId = MainTitle.GetReadableId();
 
-      var anabasisDocument = new AnabasisDocument()
+      var documentPosition = 0;
+
+      var mainTitle = new AnabasisDocumentItem()
       {
-        Id = documentId,
-        Title = Heading,
-        DocumentItems = quotes.Select(quote => new DocumentItem()
-        {
-          Content = quote.Text,
-          Id = quote.Id,
-          DocumentId = documentId,
-          MainTitleId = Heading
-
-        }).ToArray()
+        Id = mainTitleId,
+        IsMainTitle = true,
+        Content = MainTitle,
+        DocumentId = anabasisDocument.Id,
+        ParentId = anabasisDocument.Id,
+        Position = documentPosition
 
       };
 
-      return anabasisDocument;
+      var anabasisDocumentItem = quotes.Select(quote => new AnabasisDocumentItem()
+      {
+        Content = $"{quote.Text} ({quote.Author})",
+        Id = quote.Id,
+        DocumentId = anabasisDocument.Id,
+        ParentId = mainTitleId,
+        MainTitleId = mainTitleId,
+        Position = ++documentPosition
+
+      }).ToArray();
+
+      return new[] { mainTitle }.Concat(anabasisDocumentItem).ToArray();
 
     }
 

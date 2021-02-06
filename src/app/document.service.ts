@@ -8,6 +8,7 @@ import { Document } from './document';
 import { DocumentItem } from './documentItem';
 import { DocumentIndex } from './document.index';
 import { DocumentSearchResult } from './document.search.result';
+import { Env } from './env';
 
 @Injectable({
   providedIn: 'root'
@@ -160,7 +161,7 @@ export class DocumentService {
 
     if (this.documentIndices != null) return of(this.documentIndices);
 
-    return this.http.get<DocumentIndex[]>('assets/index.json', { responseType: 'json' })
+    return this.http.get<DocumentIndex[]>('assets/'+Env.source+'/index.json', { responseType: 'json' })
       .pipe(map(documentIndices => {
         this.documentIndices = new List<DocumentIndex>(documentIndices);
         return this.documentIndices;
@@ -173,7 +174,7 @@ export class DocumentService {
 
     if (this.documents != null) return of(this.documents);
 
-    return this.http.get<Document[]>('assets/export.json', { responseType: 'json' })
+    return this.http.get<Document[]>('assets/'+Env.source+'/export.json', { responseType: 'json' })
       .pipe(map(documents => {
         this.documents = new List<Document>(documents);
         return this.documents;

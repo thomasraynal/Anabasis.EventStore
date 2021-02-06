@@ -6,10 +6,12 @@ using System.Web;
 
 namespace Anabasis.Common
 {
-  public class AnabasisDocument: Document
+  public class AnabasisDocument
   {
+    public string Id { get; set; }
+    public string Title { get; set; }
 
-    public DocumentItem[] DocumentItems { get; set; }
+    public AnabasisDocumentItem[] DocumentItems { get; set; }
 
     public override bool Equals(object obj)
     {

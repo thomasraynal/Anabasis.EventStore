@@ -1,13 +1,11 @@
 using Anabasis.Common;
 using Anabasis.Common.Actor;
 using Anabasis.Common.Events;
-using Anabasis.Common.Infrastructure;
 using Anabasis.Common.Mediator;
 using HtmlAgilityPack;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Exporter.Bobby
@@ -26,7 +24,7 @@ namespace Anabasis.Exporter.Bobby
     {
 
       var htmlWeb = new HtmlWeb();
-      var quotationParsers = new List<DocumentBuilder>();
+      var documentBuilders = new List<DocumentBuilder>();
 
       var doc = htmlWeb.Load(quotesIndex);
 
@@ -47,14 +45,14 @@ namespace Anabasis.Exporter.Bobby
 
             else
             {
-              var quoteParser = new DocumentBuilder(href.Value, currentHeading);
+              var documentBuilder = new DocumentBuilder(href.Value, currentHeading);
 
-              if (quotationParsers.Contains(quoteParser))
+              if (documentBuilders.Contains(documentBuilder))
               {
-                quotationParsers.Remove(quoteParser);
+                documentBuilders.Remove(documentBuilder);
               }
 
-              quotationParsers.Add(quoteParser);
+              documentBuilders.Add(documentBuilder);
             }
 
           }
@@ -66,22 +64,53 @@ namespace Anabasis.Exporter.Bobby
 
       }
 
-      Parallel.ForEach(quotationParsers, new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (parser) =>
+      var expectedDocuments = documentBuilders.GroupBy(builder => builder.DocumentId).Select(group => group.Key).ToArray();
+
+      Mediator.Emit(new ExportStarted(startExport.CorrelationID, expectedDocuments, startExport.StreamId, startExport.TopicId));
+
+      Parallel.ForEach(documentBuilders.OrderBy(builder=> builder.MainTitle).GroupBy(builder => builder.DocumentId), new ParallelOptions() { MaxDegreeOfParallelism = 4 }, (parserBatch) =>
       {
 
-        try
-        {
-          var anabasisDocument = parser.Build();
+        var aggregatedDocumentId = parserBatch.Key;
 
-          Mediator.Emit(new DocumentCreated(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, anabasisDocument));
-
-        }
-        catch (Exception)
+        var aggregatedDocument = new AnabasisDocument()
         {
-          Mediator.Emit(new DocumentCreationFailed(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, $"{parser.Url}"));
-        }
+          Id = aggregatedDocumentId,
+          Title = parserBatch.Key
+        };
+
+        var anabasisDocumentItems = parserBatch.SelectMany(parser =>
+        {
+
+          try
+          {
+            var anabasisDocumentItems = parser.BuildItems(aggregatedDocument);
+
+            Mediator.Emit(new DocumentDefined(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, $"{parser.Url}"));
+
+            return anabasisDocumentItems;
+
+          }
+          catch (Exception)
+          {
+            Mediator.Emit(new DocumentCreationFailed(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, $"{parser.Url}"));
+
+            return null;
+          }
+
+        }).ToArray();
+
+
+        aggregatedDocument.DocumentItems = anabasisDocumentItems;
+
+
+        Mediator.Emit(new DocumentCreated(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, aggregatedDocument));
+
 
       });
+
+
+      Mediator.Emit(new ExportEnded(startExport.CorrelationID, startExport.StreamId, startExport.TopicId));
 
       return Task.CompletedTask;
 

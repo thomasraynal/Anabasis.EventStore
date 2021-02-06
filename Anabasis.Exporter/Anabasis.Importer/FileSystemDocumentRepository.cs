@@ -20,6 +20,10 @@ namespace Anabasis.Importer
 
     public ExportFile(string path)
     {
+      var directory = Path.GetDirectoryName(path);
+
+      Directory.CreateDirectory(directory);
+
       _streamWriter = File.CreateText(path);
       _jsonTextWriter = new JsonTextWriter(_streamWriter);
 
@@ -65,7 +69,6 @@ namespace Anabasis.Importer
     public ExportFile Documents { get; }
     public ExportFile Indices { get; }
     public string[] ExpectedDocumentIds { get; }
-    public bool HasExportEnded { get; set; }
     public int ImportedDocumentCount { get; set; }
     public int ImportedIndicesCount { get; set; }
     public Export(string documentPath, string indicesPath, string[] documentIds)
@@ -87,7 +90,7 @@ namespace Anabasis.Importer
 
     private readonly Dictionary<Guid, Export> _exports;
 
-    public override string StreamId => StreamIds.GoogleDoc;
+    public override string StreamId => StreamIds.AllStream;
 
     public FileSystemDocumentRepository(FileSystemDocumentRepositoryConfiguration configuration, IMediator simpleMediator) : base(configuration, simpleMediator)
     {
@@ -111,8 +114,7 @@ namespace Anabasis.Importer
     {
       var export = _exports[exportEnded.CorrelationID];
 
-      if (export.HasExportEnded &&
-        export.ImportedDocumentCount == export.ExpectedDocumentIds.Length &&
+      if (export.ImportedDocumentCount == export.ExpectedDocumentIds.Length &&
         export.ImportedIndicesCount == export.ExpectedDocumentIds.Length)
       {
         export.Documents.EndWriting();
@@ -128,10 +130,6 @@ namespace Anabasis.Importer
     public override Task Handle(ExportEnded exportEnded)
     {
       
-      var export = _exports[exportEnded.ExportId];
-
-      export.HasExportEnded = true;
-
       TryCompleteExport(exportEnded);
 
       return Task.CompletedTask;

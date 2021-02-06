@@ -26,9 +26,9 @@ namespace Anabasis.Exporter
     public bool Underline { get; set; }
 
 
-    public DocumentItem ToDocumentItem(string rootDocumentid)
+    public AnabasisDocumentItem ToDocumentItem(string rootDocumentid)
     {
-      var documentItem = new DocumentItem()
+      var documentItem = new AnabasisDocumentItem()
       {
         Id = (Bold || Italic) ? Content.GetReadableId() : $"{Guid.NewGuid()}",
         IsMainTitle = Bold,

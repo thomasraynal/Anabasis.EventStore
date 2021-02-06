@@ -49,13 +49,13 @@ namespace Anabasis.Common.Mediator
       {
         var @event = (IEvent)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Event), message.EventType);
 
-        Parallel.ForEach(_allActors.Where(actor => actor.StreamId == message.StreamId || actor.StreamId == StreamIds.AllStream), async (actor) =>
+        Parallel.ForEach(_allActors.Where(actor => actor.StreamId == message.StreamId || actor.StreamId == StreamIds.AllStream), (actor) =>
            {
              var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(actor.GetType(), message.EventType);
 
              if (null != candidateHandler)
              {
-               await (Task)candidateHandler.Invoke(actor, new object[] { @event });
+               Task.Run(() => (Task)candidateHandler.Invoke(actor, new object[] { @event }));
              }
 
            });
