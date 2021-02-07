@@ -8,11 +8,11 @@ using System.Text.RegularExpressions;
 
 namespace Anabasis.Exporter.Bobby
 {
-  public class DocumentBuilder
+  public class BobbyDocumentBuilder
   {
     private readonly PolicyBuilder _policyBuilder;
 
-    public DocumentBuilder(string url, string headingUrl)
+    public BobbyDocumentBuilder(string url, string headingUrl)
     {
       Url = url;
 
@@ -61,9 +61,9 @@ namespace Anabasis.Exporter.Bobby
 
       var parser = new HtmlWeb();
 
-      var quotes = new List<Quote>();
+      var quotes = new List<BobbyQuote>();
 
-      var retryPolicy = _policyBuilder.WaitAndRetry(5, (_) => TimeSpan.FromSeconds(1));
+      var retryPolicy = _policyBuilder.WaitAndRetry(5, (_) => TimeSpan.FromSeconds(10));
 
       var htmlDocument = retryPolicy.Execute(() =>
       {
@@ -84,7 +84,7 @@ namespace Anabasis.Exporter.Bobby
       foreach (Match match in allMatch)
       {
 
-        var quote = new Quote
+        var quote = new BobbyQuote
         {
           Text = match.Value.Trim(),
           Tag = MainTitle.Trim(),
@@ -129,7 +129,7 @@ namespace Anabasis.Exporter.Bobby
 
     public override bool Equals(object obj)
     {
-      var parser = obj as DocumentBuilder;
+      var parser = obj as BobbyDocumentBuilder;
       return parser != null &&
              Url == parser.Url;
     }

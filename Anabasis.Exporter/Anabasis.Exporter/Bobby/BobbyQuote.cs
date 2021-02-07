@@ -6,7 +6,7 @@ using System.Text;
 namespace Anabasis.Exporter.Bobby
 {
 
-  public class Quote : IEquatable<Quote>
+  public class BobbyQuote : IEquatable<BobbyQuote>
   {
  
     public string Id { get; set; }
@@ -24,8 +24,8 @@ namespace Anabasis.Exporter.Bobby
 
     public override bool Equals(object obj)
     {
-      if (!(obj is Quote)) return false;
-      return (obj as Quote).GetHashCode() == base.GetHashCode();
+      if (!(obj is BobbyQuote)) return false;
+      return (obj as BobbyQuote).GetHashCode() == base.GetHashCode();
     }
 
     public override int GetHashCode()
@@ -33,7 +33,7 @@ namespace Anabasis.Exporter.Bobby
       return Id.GetHashCode();
     }
 
-    public bool Equals(Quote other)
+    public bool Equals(BobbyQuote other)
     {
       return other.Id == Id;
     }

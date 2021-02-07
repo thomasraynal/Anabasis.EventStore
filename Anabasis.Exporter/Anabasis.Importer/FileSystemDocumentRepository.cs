@@ -18,6 +18,10 @@ namespace Anabasis.Importer
     private readonly JsonTextWriter _jsonTextWriter;
     private readonly JsonSerializer _jsonSerializer;
 
+    private bool _isDisposed;
+
+    private object _syncLock = new object();
+
     public ExportFile(string path)
     {
       var directory = Path.GetDirectoryName(path);
@@ -41,12 +45,23 @@ namespace Anabasis.Importer
 
     public void StartWriting()
     {
-      _jsonTextWriter.WriteStartArray();
+      lock (_syncLock)
+      {
+        if (_isDisposed) return;
+        _jsonTextWriter.WriteStartArray();
+      }
+
+
     }
 
     public void EndWriting()
     {
-      _jsonTextWriter.WriteEndArray();
+      lock (_syncLock)
+      {
+        if (_isDisposed) return;
+        _jsonTextWriter.WriteEndArray();
+
+      }
     }
 
     public void Append(object item)
@@ -58,8 +73,19 @@ namespace Anabasis.Importer
 
     public void Dispose()
     {
-      _streamWriter.Dispose();
-      _jsonTextWriter.Close();
+      lock (_syncLock)
+      {
+
+        if (_isDisposed) return;
+
+        _isDisposed = true;
+
+        _streamWriter.Dispose();
+        _jsonTextWriter.Close();
+
+      }
+
+     
     }
   }
 

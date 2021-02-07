@@ -8,6 +8,7 @@ namespace Anabasis.Common
   {
     public static string GoogleDoc => "googledoc";
     public static string Bobby => "bobby";
+    public static string Illiad => "illiad";
     public static string AllStream => "*";
   }
 }

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Web;
 
 namespace Anabasis.Common
@@ -17,6 +18,20 @@ namespace Anabasis.Common
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
 
+    public static string Clean(this string str)
+    {
+      var cleanString = str.Replace("&nbsp;", " ");
+
+       cleanString = new string(HttpUtility.HtmlDecode(cleanString).Where(c =>
+      {
+        if (c == 173 || char.IsControl(c)) return false;
+
+        return char.IsLetterOrDigit(c) || char.IsWhiteSpace(c) || char.IsPunctuation(c);
+
+      }).ToArray());
+
+      return cleanString;
+    }
     public static string Md5( params string[] str)
     {
       var crypt = new SHA256Managed();

@@ -148,7 +148,7 @@ namespace Anabasis.Exporter
 
       }
 
-      return new  AnabasisDocument()
+      return new AnabasisDocument()
       {
         Id = rootDocumentid,
         Title = documentLite.Title,
