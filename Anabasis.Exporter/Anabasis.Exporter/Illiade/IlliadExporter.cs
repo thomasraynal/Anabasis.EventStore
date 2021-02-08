@@ -12,6 +12,7 @@ using System.Web;
 
 namespace Anabasis.Exporter.Illiade
 {
+  [InMemoryInstance(1)]
   public class IlliadExporter : BaseActor
   {
     private const string quotesIndex = "https://citations.institut-iliade.com/plan-du-site/";

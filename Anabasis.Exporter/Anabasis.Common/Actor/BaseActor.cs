@@ -12,10 +12,15 @@ namespace Anabasis.Common.Actor
   public abstract class BaseActor : DispatchQueue<Message>, IActor
   {
 
+    [ThreadStatic]
+    public string _actorId;
+
     protected BaseActor(IMediator simpleMediator)
     {
+      
       Mediator = simpleMediator;
 
+      _actorId = $"{this.GetType()}-{Guid.NewGuid()}";
       _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
     }
 

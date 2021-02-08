@@ -12,7 +12,7 @@ namespace Anabasis.Common.Mediator
 {
   public class SimpleMediator : DispatchQueue<Message>, IMediator
   {
-    private static IReadOnlyList<IActor> _allActors;
+    private static IActor[] _allActors;
     private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
     private readonly Container _container;
 
@@ -27,7 +27,24 @@ namespace Anabasis.Common.Mediator
         services.AddSingleton(_messageHandlerInvokerCache);
       });
 
-      _allActors = _container.GetAllInstances<IActor>();
+      _allActors = container.Model.AllInstances
+                                   .Where(instance => instance.ServiceType.Equals(typeof(IActor)))
+                                   .SelectMany(type =>
+                                   {
+                                     var inMemoryInstanceAttribute = type.ImplementationType.GetCustomAttributes(typeof(InMemoryInstanceAttribute), true).FirstOrDefault();
+
+                                     var requiredInstanceCount = 1;
+
+                                     if (null != inMemoryInstanceAttribute)
+                                     {
+                                       requiredInstanceCount = ((InMemoryInstanceAttribute)inMemoryInstanceAttribute).InstanceCount;
+                                     }
+
+                                     return Enumerable.Range(0, requiredInstanceCount).Select(_ => (IActor)container.GetInstance(type.ImplementationType));
+
+                                   }).ToArray();
+
+
     }
 
     public void Emit(IEvent @event)
