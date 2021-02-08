@@ -14,7 +14,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return $"Document exported - {Document.Title}";
+      return $"Document exported - {Document.Id}";
     }
   }
 }

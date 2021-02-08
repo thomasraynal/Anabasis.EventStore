@@ -20,7 +20,7 @@ namespace Anabasis.Importer
 
     private bool _isDisposed;
 
-    private object _syncLock = new object();
+    private readonly object _syncLock = new object();
 
     public ExportFile(string path)
     {
