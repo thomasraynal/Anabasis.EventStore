@@ -1,6 +1,7 @@
 namespace Anabasis.Common.Infrastructure
 {
-  public interface ICommand: IEvent
+  public interface ICommand: IStreamable
   {
+    string CallerId { get;  }
   }
 }

@@ -78,7 +78,7 @@ namespace Anabasis.Exporter
 
     }
 
-    private async IAsyncEnumerable<AnabasisDocument> GetDocumentFromSource(StartExport startExport, string folderId)
+    private async IAsyncEnumerable<AnabasisDocument> GetDocumentFromSource(StartExportRequest startExport, string folderId)
     {
       var nextUrl = $"https://www.googleapis.com/drive/v2/files/{folderId}/children";
 
@@ -104,7 +104,7 @@ namespace Anabasis.Exporter
 
     }
 
-    private async Task<AnabasisDocument> GetAnabasisDocument(StartExport startExport, ChildReference childReference)
+    private async Task<AnabasisDocument> GetAnabasisDocument(StartExportRequest startExport, ChildReference childReference)
     {
 
       var documentLite = await Get<DocumentLite>($"https://docs.googleapis.com/v1/documents/{childReference.Id}");
@@ -157,7 +157,7 @@ namespace Anabasis.Exporter
 
     }
 
-    public async Task Handle(StartExport startExport)
+    public async Task Handle(StartExportRequest startExport)
     {
 
       await foreach (var anabasisDocument in GetDocumentFromSource(startExport, _exporterConfiguration.DriveRootFolder))
@@ -165,8 +165,6 @@ namespace Anabasis.Exporter
 
         Mediator.Emit(new DocumentCreated(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, anabasisDocument));
       }
-
-      Mediator.Emit(new ExportEnded(startExport.CorrelationID, startExport.StreamId, startExport.TopicId));
 
     }
   }

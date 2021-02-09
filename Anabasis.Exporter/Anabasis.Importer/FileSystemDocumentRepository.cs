@@ -51,7 +51,6 @@ namespace Anabasis.Importer
         _jsonTextWriter.WriteStartArray();
       }
 
-
     }
 
     public void EndWriting()
@@ -151,15 +150,6 @@ namespace Anabasis.Importer
         Mediator.Emit(new ExportFinished(exportEnded.CorrelationID, exportEnded.StreamId, exportEnded.TopicId));
 
       }
-    }
-
-    public override Task Handle(ExportEnded exportEnded)
-    {
-      
-      TryCompleteExport(exportEnded);
-
-      return Task.CompletedTask;
-
     }
 
     public override Task Handle(DocumentCreated documentCreated)

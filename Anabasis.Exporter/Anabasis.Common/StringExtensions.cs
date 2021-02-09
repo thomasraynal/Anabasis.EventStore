@@ -71,7 +71,6 @@ namespace Anabasis.Common
       var iUsed = true;
       var index = 1;
 
-
       var id = str.Replace("---", "-").Replace("--", "-").Trim('-');
 
       while (iUsed)

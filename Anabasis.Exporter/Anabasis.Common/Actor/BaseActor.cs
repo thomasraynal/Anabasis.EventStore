@@ -12,25 +12,24 @@ namespace Anabasis.Common.Actor
   public abstract class BaseActor : DispatchQueue<Message>, IActor
   {
 
-    [ThreadStatic]
-    public string _actorId;
-
     protected BaseActor(IMediator simpleMediator)
     {
       
       Mediator = simpleMediator;
+      ActorId = $"{GetType()}-{Guid.NewGuid()}";
 
-      _actorId = $"{this.GetType()}-{Guid.NewGuid()}";
       _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
     }
 
     public IMediator Mediator { get; }
 
-    private MessageHandlerInvokerCache _messageHandlerInvokerCache;
+    private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
 
     public abstract string StreamId { get; }
 
-    public override async Task OnMessageReceived(Message message)
+    public string ActorId { get; }
+
+    protected override async Task OnMessageReceived(Message message)
     {
       var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), message.EventType);
 
@@ -41,6 +40,10 @@ namespace Anabasis.Common.Actor
         await (Task)candidateHandler.Invoke(this, new object[] { @event });
 
       }
+    }
+    public bool CanConsume(Message message)
+    {
+      return null != _messageHandlerInvokerCache.GetMethodInfo(GetType(), message.EventType);
     }
   }
 }

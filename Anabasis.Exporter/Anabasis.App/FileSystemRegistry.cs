@@ -20,8 +20,6 @@ namespace Anabasis.App
 
       var configuration = JsonConvert.DeserializeObject<FileSystemDocumentRepositoryConfiguration>(File.ReadAllText("ProdConfig.json"));
 
-
-
       For<IAnabasisConfiguration>().Use(configuration);
       For<FileSystemDocumentRepositoryConfiguration>().Use(configuration);
 

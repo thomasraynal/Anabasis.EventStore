@@ -23,7 +23,7 @@ namespace Anabasis.Exporter.Bobby
 
     public override string StreamId => StreamIds.Bobby;
 
-    public Task Handle(StartExport startExport)
+    public Task Handle(StartExportRequest startExport)
     {
 
       var htmlWeb = new HtmlWeb();
@@ -117,8 +117,6 @@ namespace Anabasis.Exporter.Bobby
 
       });
 
-
-      Mediator.Emit(new ExportEnded(startExport.CorrelationID, startExport.StreamId, startExport.TopicId));
 
       return Task.CompletedTask;
 

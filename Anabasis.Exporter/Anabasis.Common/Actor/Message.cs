@@ -14,6 +14,7 @@ namespace Anabasis.Common.Actor
       EventType = eventType;
     }
 
+    public string CallerId { get; }
     public Type EventType { get; }
     public byte[] Event { get; }
     public Guid MessageId { get; }

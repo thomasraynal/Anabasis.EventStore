@@ -1,11 +1,14 @@
 using Anabasis.Common.Infrastructure;
+using Anabasis.Common.Mediator;
+using System;
 using System.Threading.Tasks;
 
 namespace Anabasis.Common.Actor
 {
-  public interface IActor
+  public interface IActor: IDispatchQueue<Message>
   {
+    string ActorId { get; }
     string StreamId { get; }
-    Task OnMessageReceived(Message message);
+    bool CanConsume(Message message);
   }
 }

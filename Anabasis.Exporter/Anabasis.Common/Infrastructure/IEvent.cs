@@ -2,12 +2,7 @@ using System;
 
 namespace Anabasis.Common.Infrastructure
 {
-  public interface IEvent
+  public interface IEvent : IStreamable
   {
-    Guid EventID { get; }
-    Guid CorrelationID { get; }
-    string StreamId { get; }
-    string TopicId { get; }
-    string Log();
   }
 }
