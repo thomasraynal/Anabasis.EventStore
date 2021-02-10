@@ -3,14 +3,11 @@ using System;
 
 namespace Anabasis.Common.Events
 {
-  public class ExportFinished : BaseEvent, ICommand
+  public class ExportFinished : BaseEvent
   {
-    public ExportFinished(string callerId, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
+    public ExportFinished(Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
     {
-      CallerId = callerId;
     }
-
-    public string CallerId { get; };
 
     public override string Log()
     {

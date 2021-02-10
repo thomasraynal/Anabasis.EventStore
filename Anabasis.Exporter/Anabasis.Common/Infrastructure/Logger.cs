@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common.Infrastructure
 {
+  [AlwaysConsume]
   public class Logger : BaseActor
   {
     public Logger(IMediator simpleMediator) : base(simpleMediator)

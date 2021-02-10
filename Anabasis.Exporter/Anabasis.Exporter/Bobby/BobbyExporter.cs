@@ -23,7 +23,7 @@ namespace Anabasis.Exporter.Bobby
 
     public override string StreamId => StreamIds.Bobby;
 
-    public Task Handle(StartExportRequest startExport)
+    public Task Handle(StartExportCommand startExport)
     {
 
       var htmlWeb = new HtmlWeb();

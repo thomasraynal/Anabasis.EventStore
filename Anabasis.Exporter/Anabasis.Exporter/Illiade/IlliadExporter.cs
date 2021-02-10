@@ -16,7 +16,7 @@ namespace Anabasis.Exporter.Illiade
 
     public override string StreamId => StreamIds.Illiad;
 
-    public Task Handle(ExportDocumentRequest exportDocumentRequest)
+    public Task Handle(ExportDocument exportDocumentRequest)
     {
 
       var documentBuilder = new IlliadDocumentBuilder(exportDocumentRequest.DocumentTitle,

@@ -17,7 +17,6 @@ namespace Anabasis.Common.Events
     public override string Log()
     {
       return $"Index imported - {Index.Id}";
-
     }
 
   }

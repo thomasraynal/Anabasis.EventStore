@@ -4,14 +4,14 @@ using System.Text;
 
 namespace Anabasis.Common.Infrastructure
 {
+  [SingleConsumer]
   public abstract class BaseCommandResponse : BaseEvent, ICommandResponse
   {
-    public BaseCommandResponse(Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
+    public BaseCommandResponse(Guid commandId, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
     {
+      CommandId = commandId;
     }
 
-    public string CallerId { get; internal set; }
-
-    public Guid CommandId { get;  set; }
+    public Guid CommandId { get; internal set; }
   }
 }

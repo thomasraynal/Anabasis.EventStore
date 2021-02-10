@@ -19,22 +19,26 @@ namespace Anabasis.Common.Mediator
   public class SimpleMediator : DispatchQueue<Message>, IMediator
   {
 
+    class ActorConfiguration
+    {
+      public bool AlwaysConsume { get; set; }
+      public IActor Actor{ get; set; }
+    }
+
     class EventConfiguration
     {
       public bool IsSingleConsummer { get; set; }
       public bool IsCommandResponse { get; set; }
+      public bool AlwaysConsume { get; set; }
     }
 
-    private readonly IActor[] _allActors;
-    private readonly string _simpleMediatorId;
+    private readonly ActorConfiguration[] _actors;
     private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
     private readonly ConcurrentDictionary<Type, EventConfiguration> _eventConfiguration;
     private readonly ConcurrentDictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
 
     public SimpleMediator(Container container)
     {
-
-      _simpleMediatorId = $"{nameof(SimpleMediator)}{Guid.NewGuid()}";
 
       _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
       _pendingCommands = new ConcurrentDictionary<Guid, TaskCompletionSource<ICommandResponse>>();
@@ -47,36 +51,41 @@ namespace Anabasis.Common.Mediator
 
       _eventConfiguration = new ConcurrentDictionary<Type, EventConfiguration>();
 
-      _allActors = container.Model.AllInstances
-                                   .Where(instance => instance.ServiceType.Equals(typeof(IActor)))
-                                   .SelectMany(type =>
-                                   {
-                                     var inMemoryInstanceAttribute = type.ImplementationType.GetCustomAttributes(typeof(InMemoryInstanceAttribute), true).FirstOrDefault();
+      _actors = container.Model.AllInstances
+                                .Where(instance => instance.ServiceType.Equals(typeof(IActor)))
+                                .SelectMany(type =>
+                                {
+                                  var inMemoryInstanceAttribute = type.ImplementationType.GetCustomAttributes(typeof(InMemoryInstanceAttribute), true).FirstOrDefault();
 
-                                     var requiredInstanceCount = 1;
+                                  var requiredInstanceCount = 1;
 
-                                     if (null != inMemoryInstanceAttribute)
-                                     {
-                                       requiredInstanceCount = ((InMemoryInstanceAttribute)inMemoryInstanceAttribute).InstanceCount;
-                                     }
+                                  if (null != inMemoryInstanceAttribute)
+                                  {
+                                    requiredInstanceCount = ((InMemoryInstanceAttribute)inMemoryInstanceAttribute).InstanceCount;
+                                  }
 
-                                     return Enumerable.Range(0, requiredInstanceCount).Select(_ => (IActor)container.GetInstance(type.ImplementationType));
+                                  return Enumerable.Range(0, requiredInstanceCount).Select(_ =>
+                                  {
+                                    return new ActorConfiguration()
+                                    {
+                                      Actor = (IActor)container.GetInstance(type.ImplementationType),
+                                      AlwaysConsume = type.ImplementationType.GetCustomAttributes(typeof(AlwaysConsume), true).Any()
+                                    };
 
-                                   }).ToArray();
+                                  });
+
+                                }).ToArray();
 
 
     }
 
-    public Task Send<TCommand, TCommandResult>(TCommand command, TimeSpan? timeout)
-      where TCommand : BaseCommand // use a wrapper
+    public Task Send<TCommandResult>(ICommand command, TimeSpan? timeout)
       where TCommandResult : ICommandResponse
     {
 
-      command.CallerId = _simpleMediatorId;
-
       var taskSource = new TaskCompletionSource<ICommandResponse>();
 
-      var cancellationTokenSource = null == timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
+      var cancellationTokenSource = null != timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
 
       cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
 
@@ -111,8 +120,8 @@ namespace Anabasis.Common.Mediator
       {
         var eventConfiguration = new EventConfiguration()
         {
-          IsCommandResponse = key.GetCustomAttributes(typeof(ICommandResponse), true).Any(),
-          IsSingleConsummer = key.GetCustomAttributes(typeof(SingleConsumer), true).Any()
+          IsCommandResponse = key.GetInterfaces().Contains(typeof(ICommandResponse)),
+          IsSingleConsummer = key.GetCustomAttributes(typeof(SingleConsumer), true).Any(),
         };
 
         return eventConfiguration;
@@ -121,41 +130,53 @@ namespace Anabasis.Common.Mediator
 
       if (eventConfiguration.IsCommandResponse)
       {
-        if (_simpleMediatorId == message.CallerId)
-        {
-          var commandResponse = (ICommandResponse)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Event), message.EventType);
 
-          var task = _pendingCommands[commandResponse.CommandId];
+        var commandResponse = (ICommandResponse)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Event), message.EventType);
 
-          task.SetResult(commandResponse);
+        if (!_pendingCommands.ContainsKey(commandResponse.CommandId)) return Task.CompletedTask;
 
-          _pendingCommands.Remove(commandResponse.CommandId, out _);
+        var task = _pendingCommands[commandResponse.CommandId];
 
-        }
+        task.SetResult(commandResponse);
 
-        var consumer = _allActors.FirstOrDefault(actor => actor.ActorId == message.CallerId);
-
-        if (null == consumer) throw new InvalidOperationException("Caller not found");
-
-        consumer.Enqueue(message);
+        _pendingCommands.Remove(commandResponse.EventID, out _);
 
       }
 
       else if (eventConfiguration.IsSingleConsummer)
       {
-        var consumer = _allActors.FirstOrDefault(actor => actor.CanConsume(message));
+        var candidateConsumerGroups = _actors.Where(actor => actor.Actor.CanConsume(message) && (actor.Actor.StreamId == message.StreamId || actor.Actor.StreamId == StreamIds.AllStream))
+                                             .GroupBy(actor => actor.AlwaysConsume);
 
-        if (null != consumer)
+        foreach (var candidateConsumer in candidateConsumerGroups)
         {
-          consumer.Enqueue(message);
+          if (candidateConsumer.Key)
+          {
+            Parallel.ForEach(candidateConsumer, (actorDescriptor) =>
+            {
+              Task.Run(() => actorDescriptor.Actor.Enqueue(message));
+            });
+
+          }
+          else
+          {
+            var consumer = candidateConsumer.FirstOrDefault();
+
+            if (null != consumer)
+            {
+              Task.Run(() => consumer.Actor.Enqueue(message));
+            }
+          }
         }
+
+
       }
 
       else
       {
-        Parallel.ForEach(_allActors.Where(actor => actor.StreamId == message.StreamId || actor.StreamId == StreamIds.AllStream), (actor) =>
+        Parallel.ForEach(_actors.Where(actor => actor.Actor.StreamId == message.StreamId || actor.Actor.StreamId == StreamIds.AllStream), (actor) =>
         {
-          Task.Run(() => actor.Enqueue(message));
+          Task.Run(() => actor.Actor.Enqueue(message));
 
         });
       }

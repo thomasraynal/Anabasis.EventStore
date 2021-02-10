@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using Anabasis.Common.Events;
+using Anabasis.Common.Events.Commands;
 using Anabasis.Common.Infrastructure;
 using Anabasis.Common.Mediator;
 using Newtonsoft.Json;
@@ -114,12 +115,20 @@ namespace Anabasis.Importer
   {
 
     private readonly Dictionary<Guid, Export> _exports;
+    private readonly Dictionary<Guid, ICommand> _exportCallers;
 
     public override string StreamId => StreamIds.AllStream;
 
     public FileSystemDocumentRepository(FileSystemDocumentRepositoryConfiguration configuration, IMediator simpleMediator) : base(configuration, simpleMediator)
     {
       _exports = new Dictionary<Guid, Export>();
+      _exportCallers = new Dictionary<Guid, ICommand>();
+    }
+    public override Task Handle(StartExportCommand startExportRequest)
+    {
+      _exportCallers.Add(startExportRequest.ExportId, startExportRequest);
+
+      return Task.CompletedTask;
     }
 
     public override Task Handle(ExportStarted exportStarted)
@@ -147,7 +156,9 @@ namespace Anabasis.Importer
 
         export.Dispose();
 
-        Mediator.Emit(new ExportFinished(exportEnded.CorrelationID, exportEnded.StreamId, exportEnded.TopicId));
+        var exportCommand = _exportCallers[exportEnded.CorrelationID];
+
+        Mediator.Emit(new StartExportCommandResponse(exportCommand.EventID, exportEnded.CorrelationID, exportEnded.StreamId, exportEnded.TopicId));
 
       }
     }

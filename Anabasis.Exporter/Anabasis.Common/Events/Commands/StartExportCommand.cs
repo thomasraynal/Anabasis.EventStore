@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Anabasis.Common.Events
 {
-  public class StartExportRequest : BaseCommand
+  public class StartExportCommand : BaseCommand
   {
-    public StartExportRequest(Guid correlationId, string streamId) : base(Guid.NewGuid(), correlationId, streamId, $"{streamId}-{DateTime.UtcNow:yyyyMMddHHmmss}")
+    public StartExportCommand(Guid correlationId, string streamId) : base(correlationId, streamId, $"{streamId}-{DateTime.UtcNow:yyyyMMddHHmmss}")
     {
     }
 

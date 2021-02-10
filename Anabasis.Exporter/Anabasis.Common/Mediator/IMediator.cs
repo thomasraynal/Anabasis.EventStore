@@ -8,8 +8,7 @@ namespace Anabasis.Common.Mediator
   public interface IMediator
   {
     void Emit(IEvent @event);
-    Task Send<TCommand, TCommandResult>(TCommand command, TimeSpan? timeout = null)
-    where TCommand : BaseCommand // use a wrapper
+    Task Send<TCommandResult>(ICommand command, TimeSpan? timeout = null)
     where TCommandResult : ICommandResponse;
   }
 }

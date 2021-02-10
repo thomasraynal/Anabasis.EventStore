@@ -6,14 +6,14 @@ using System.Text;
 namespace Anabasis.Common.Events
 {
   [SingleConsumer]
-  public class ExportDocumentRequest : BaseEvent
+  public class ExportDocument : BaseEvent
   {
-    public ExportDocumentRequest(Guid correlationId,
+    public ExportDocument(Guid correlationId,
       string streamId,
       string topicId,
       string documentId,
       string documentTitle,
-      string url) : base(correlationId, streamId, topicId)
+      string url= null) : base(correlationId, streamId, topicId)
     {
       DocumentId = documentId;
       DocumentTitle = documentTitle;

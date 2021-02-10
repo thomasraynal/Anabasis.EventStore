@@ -19,7 +19,7 @@ namespace Anabasis.Common.Mediator
       _cancellationTokenSource = new CancellationTokenSource();
     }
 
-    public abstract Task OnMessageReceived(TMessage message);
+    protected abstract Task OnMessageReceived(TMessage message);
 
     public void Enqueue(TMessage message)
     {
@@ -43,6 +43,8 @@ namespace Anabasis.Common.Mediator
       }
 
       _cancellationTokenSource.Cancel();
+
+      _workProc.Dispose();
 
     }
 

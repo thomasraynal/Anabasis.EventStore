@@ -15,7 +15,7 @@ namespace Anabasis.Importer
 
     public TConfiguration Configuration { get; }
 
-    public virtual Task Handle(ExportEnded endExport)
+    public virtual Task Handle(StartExportCommand startExportRequest)
     {
       return Task.CompletedTask;
     }

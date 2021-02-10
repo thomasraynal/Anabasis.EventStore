@@ -29,7 +29,7 @@ namespace Anabasis.Common.Actor
 
     public string ActorId { get; }
 
-    protected override async Task OnMessageReceived(Message message)
+    protected async override Task OnMessageReceived(Message message)
     {
       var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), message.EventType);
 
@@ -41,9 +41,21 @@ namespace Anabasis.Common.Actor
 
       }
     }
+    
     public bool CanConsume(Message message)
     {
       return null != _messageHandlerInvokerCache.GetMethodInfo(GetType(), message.EventType);
+    }
+
+    public override bool Equals(object obj)
+    {
+      return obj is BaseActor actor &&
+             ActorId == actor.ActorId;
+    }
+
+    public override int GetHashCode()
+    {
+      return HashCode.Combine(ActorId);
     }
   }
 }

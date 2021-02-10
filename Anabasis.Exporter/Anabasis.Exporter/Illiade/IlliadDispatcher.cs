@@ -22,7 +22,7 @@ namespace Anabasis.Common
 
     public override string StreamId => StreamIds.Illiad;
 
-    public Task Handle(StartExportRequest startExport)
+    public Task Handle(StartExportCommand startExport)
     {
       var htmlWeb = new HtmlWeb();
       var documentBuilders = new List<IlliadDocumentBuilder>();
@@ -43,7 +43,7 @@ namespace Anabasis.Common
       foreach (var (documentTitle, documentId, documentUrl) in nodes)
       {
 
-        Mediator.Emit(new ExportDocumentRequest(
+        Mediator.Emit(new ExportDocument(
           startExport.CorrelationID,
           startExport.StreamId,
           startExport.TopicId,
