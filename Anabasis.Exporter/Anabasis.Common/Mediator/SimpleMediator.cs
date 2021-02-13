@@ -1,5 +1,4 @@
 using Anabasis.Common.Actor;
-using Anabasis.Common.Events;
 using Anabasis.Common.Infrastructure;
 using Lamar;
 using Microsoft.Extensions.DependencyInjection;
@@ -9,7 +8,6 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.Common.Mediator
@@ -22,34 +20,28 @@ namespace Anabasis.Common.Mediator
     class ActorConfiguration
     {
       public bool AlwaysConsume { get; set; }
-      public IActor Actor{ get; set; }
+      public IActor Actor { get; set; }
     }
 
     class EventConfiguration
     {
       public bool IsSingleConsummer { get; set; }
       public bool IsCommandResponse { get; set; }
-      public bool AlwaysConsume { get; set; }
     }
 
+    private readonly Dictionary<Type, EventConfiguration> _eventConfiguration;
     private readonly ActorConfiguration[] _actors;
-    private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
-    private readonly ConcurrentDictionary<Type, EventConfiguration> _eventConfiguration;
-    private readonly ConcurrentDictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
+
 
     public SimpleMediator(Container container)
     {
 
-      _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
-      _pendingCommands = new ConcurrentDictionary<Guid, TaskCompletionSource<ICommandResponse>>();
-
       container.Configure(services =>
       {
         services.AddSingleton<IMediator>(this);
-        services.AddSingleton(_messageHandlerInvokerCache);
       });
 
-      _eventConfiguration = new ConcurrentDictionary<Type, EventConfiguration>();
+      _eventConfiguration = new Dictionary<Type, EventConfiguration>();
 
       _actors = container.Model.AllInstances
                                 .Where(instance => instance.ServiceType.Equals(typeof(IActor)))
@@ -78,32 +70,6 @@ namespace Anabasis.Common.Mediator
 
 
     }
-
-    public Task Send<TCommandResult>(ICommand command, TimeSpan? timeout)
-      where TCommandResult : ICommandResponse
-    {
-
-      var taskSource = new TaskCompletionSource<ICommandResponse>();
-
-      var cancellationTokenSource = null != timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
-
-      cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
-
-      _pendingCommands[command.EventID] = taskSource;
-
-      Emit(command);
-
-      return taskSource.Task.ContinueWith(task =>
-      {
-        if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
-        if (task.IsCanceled) throw new Exception("timeout");
-
-        throw task.Exception;
-
-      }, cancellationTokenSource.Token);
-
-    }
-
     public void Emit(IEvent @event)
     {
       var serializedEvent = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(@event));
@@ -128,24 +94,12 @@ namespace Anabasis.Common.Mediator
       });
 
 
-      if (eventConfiguration.IsCommandResponse)
+      var @event = (IEvent)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Event), message.EventType);
+
+
+      if (eventConfiguration.IsSingleConsummer)
       {
-
-        var commandResponse = (ICommandResponse)JsonConvert.DeserializeObject(Encoding.UTF8.GetString(message.Event), message.EventType);
-
-        if (!_pendingCommands.ContainsKey(commandResponse.CommandId)) return Task.CompletedTask;
-
-        var task = _pendingCommands[commandResponse.CommandId];
-
-        task.SetResult(commandResponse);
-
-        _pendingCommands.Remove(commandResponse.EventID, out _);
-
-      }
-
-      else if (eventConfiguration.IsSingleConsummer)
-      {
-        var candidateConsumerGroups = _actors.Where(actor => actor.Actor.CanConsume(message) && (actor.Actor.StreamId == message.StreamId || actor.Actor.StreamId == StreamIds.AllStream))
+        var candidateConsumerGroups = _actors.Where(actor => actor.Actor.CanConsume(@event) && (actor.Actor.StreamId == message.StreamId || actor.Actor.StreamId == StreamIds.AllStream))
                                              .GroupBy(actor => actor.AlwaysConsume);
 
         foreach (var candidateConsumer in candidateConsumerGroups)
@@ -154,29 +108,27 @@ namespace Anabasis.Common.Mediator
           {
             Parallel.ForEach(candidateConsumer, (actorDescriptor) =>
             {
-              Task.Run(() => actorDescriptor.Actor.Enqueue(message));
+              Task.Run(() => actorDescriptor.Actor.Enqueue(@event));
             });
 
           }
           else
           {
-            var consumer = candidateConsumer.FirstOrDefault();
+            var consumer = candidateConsumer.ElementAt(new Random().Next(0, candidateConsumer.Count() - 1));
 
             if (null != consumer)
             {
-              Task.Run(() => consumer.Actor.Enqueue(message));
+              Task.Run(() => consumer.Actor.Enqueue(@event));
             }
           }
         }
-
-
       }
 
       else
       {
         Parallel.ForEach(_actors.Where(actor => actor.Actor.StreamId == message.StreamId || actor.Actor.StreamId == StreamIds.AllStream), (actor) =>
         {
-          Task.Run(() => actor.Actor.Enqueue(message));
+          Task.Run(() => actor.Actor.Enqueue(@event));
 
         });
       }

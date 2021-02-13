@@ -18,7 +18,7 @@ namespace Anabasis.App
 
       var mediator = World.Create<FileSystemRegistry>();
 
-      mediator.Emit(new StartExportCommand(Guid.NewGuid(), StreamIds.GoogleDoc));
+      mediator.Emit(new StartExportCommand(Guid.NewGuid(), StreamIds.Illiad));
 
       Console.Read();
 

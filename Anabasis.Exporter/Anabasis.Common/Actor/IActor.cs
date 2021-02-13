@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common.Actor
 {
-  public interface IActor: IDispatchQueue<Message>
+  public interface IActor: IDispatchQueue<IEvent>
   {
     string ActorId { get; }
     string StreamId { get; }
-    bool CanConsume(Message message);
+    bool CanConsume(IEvent message);
   }
 }

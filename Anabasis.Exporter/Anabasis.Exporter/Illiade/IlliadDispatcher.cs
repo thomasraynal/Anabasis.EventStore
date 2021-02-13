@@ -36,7 +36,7 @@ namespace Anabasis.Common
 
                                     return (title, id: title.GetReadableId(), url: node.Attributes["href"].Value);
 
-                                  }).ToArray();
+                                  }).Take(5).ToArray();
 
       Mediator.Emit(new ExportStarted(startExport.CorrelationID, nodes.Select(node => node.id).ToArray(), startExport.StreamId, startExport.TopicId));
 
