@@ -167,11 +167,19 @@ namespace Anabasis.Importer
     {
       var export = _exports[documentCreated.ExportId];
 
-      export.Documents.Append(documentCreated.Document);
+      AnabasisDocument anabasisDocument = null;
+
+      if (documentCreated.DocumentUri.IsFile)
+      {
+        anabasisDocument = JsonConvert.DeserializeObject<AnabasisDocument>(File.ReadAllText(documentCreated.DocumentUri.AbsolutePath));
+      }
+
+      //work out double deserialization
+      export.Documents.Append(anabasisDocument);
 
       export.ImportedDocumentCount++;
 
-      Mediator.Emit(new DocumentImported(documentCreated.Document, documentCreated.CorrelationID, documentCreated.StreamId, documentCreated.TopicId));
+      Mediator.Emit(new DocumentImported(anabasisDocument.Id, documentCreated.CorrelationID, documentCreated.StreamId, documentCreated.TopicId));
 
       TryCompleteExport(documentCreated);
 
@@ -182,11 +190,18 @@ namespace Anabasis.Importer
     {
       var export = _exports[indexCreated.ExportId];
 
-      export.Indices.Append(indexCreated.Index);
+      AnabasisDocumentIndex anabasisDocumentIndex = null;
+
+      if (indexCreated.AnabasisDocumentIndexUri.IsFile)
+      {
+        anabasisDocumentIndex = JsonConvert.DeserializeObject<AnabasisDocumentIndex>(File.ReadAllText(indexCreated.AnabasisDocumentIndexUri.AbsolutePath));
+      }
+      //work out double deserialization
+      export.Indices.Append(anabasisDocumentIndex);
 
       export.ImportedIndicesCount++;
 
-      Mediator.Emit(new IndexImported(indexCreated.Index, indexCreated.CorrelationID, indexCreated.StreamId, indexCreated.TopicId));
+      Mediator.Emit(new IndexImported(indexCreated.DocumentId, indexCreated.CorrelationID, indexCreated.StreamId, indexCreated.TopicId));
 
       TryCompleteExport(indexCreated);
 

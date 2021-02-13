@@ -3,6 +3,9 @@ using Anabasis.Common.Actor;
 using Anabasis.Common.Events;
 using Anabasis.Common.Mediator;
 using Anabasis.Exporter.GoogleDoc;
+using Newtonsoft.Json;
+using System;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -79,7 +82,11 @@ namespace Anabasis.Exporter
 
       var anabasisDocument = await GetAnabasisDocument(exportDocument.DocumentId);
 
-      Mediator.Emit(new DocumentCreated(exportDocument.CorrelationID, exportDocument.StreamId, exportDocument.TopicId, anabasisDocument));
+      var path = Path.GetFullPath($"{anabasisDocument.Id}");
+
+      File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument));
+
+      Mediator.Emit(new DocumentCreated(exportDocument.CorrelationID, exportDocument.StreamId, exportDocument.TopicId, anabasisDocument.Id, new Uri(path)));
 
     }
   }

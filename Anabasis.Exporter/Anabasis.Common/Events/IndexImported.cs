@@ -7,16 +7,16 @@ namespace Anabasis.Common.Events
 {
   public class IndexImported : BaseEvent
   {
-    public IndexImported(AnabasisDocumentIndex documentIndex, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
+    public IndexImported(string documentId, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
     {
-      Index = documentIndex;
+      DocumentId = documentId;
     }
 
-    public AnabasisDocumentIndex Index { get; set; }
+    public string DocumentId { get; set; }
 
     public override string Log()
     {
-      return $"Index imported - {Index.Id}";
+      return $"Index imported - {DocumentId}";
     }
 
   }

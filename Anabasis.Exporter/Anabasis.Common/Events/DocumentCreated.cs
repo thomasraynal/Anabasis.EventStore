@@ -5,16 +5,18 @@ namespace Anabasis.Common.Events
 {
   public class DocumentCreated : BaseEvent
   {
-    public DocumentCreated(Guid correlationId, string streamId, string topicId, AnabasisDocument anabasisDocument) : base(correlationId, streamId, topicId)
+    public DocumentCreated(Guid correlationId, string streamId, string topicId, string documentId, Uri documentUrl) : base(correlationId, streamId, topicId)
     {
-      Document = anabasisDocument;
+      DocumentUri = documentUrl;
+      DocumentId = documentId;
     }
 
-    public AnabasisDocument Document { get; set; }
+    public Uri DocumentUri { get; set; }
+    public string DocumentId { get; set; }
 
     public override string Log()
     {
-      return $"Document exported - {Document.Id}";
+      return $"Document exported @ {DocumentId}";
     }
   }
 }

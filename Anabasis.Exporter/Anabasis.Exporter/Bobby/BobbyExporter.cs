@@ -3,9 +3,11 @@ using Anabasis.Common.Actor;
 using Anabasis.Common.Events;
 using Anabasis.Common.Mediator;
 using HtmlAgilityPack;
+using Newtonsoft.Json;
 using Polly;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -111,9 +113,11 @@ namespace Anabasis.Exporter.Bobby
 
         aggregatedDocument.DocumentItems = anabasisDocumentItems;
 
+        var path = Path.GetFullPath($"{aggregatedDocument.Id}");
 
-        Mediator.Emit(new DocumentCreated(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, aggregatedDocument));
+        File.WriteAllText(path, JsonConvert.SerializeObject(aggregatedDocument));
 
+        Mediator.Emit(new DocumentCreated(startExport.CorrelationID, startExport.StreamId, startExport.TopicId, aggregatedDocument.Id, new Uri(path)));
 
       });
 

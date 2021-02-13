@@ -5,16 +5,16 @@ namespace Anabasis.Common.Events
 {
   public class DocumentImported : BaseEvent
   {
-    public DocumentImported(AnabasisDocument anabasisDocument, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
+    public DocumentImported(string documentId, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
     {
-      Document = anabasisDocument;
+      DocumentId = documentId;
     }
 
-    public AnabasisDocument Document { get; set; }
+    public string DocumentId { get; set; }
 
     public override string Log()
     {
-      return $"Document imported - {Document.Id}";
+      return $"Document imported - {DocumentId}";
     }
   }
 }

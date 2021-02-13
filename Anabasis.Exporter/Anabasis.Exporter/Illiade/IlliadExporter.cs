@@ -2,6 +2,9 @@ using Anabasis.Common;
 using Anabasis.Common.Actor;
 using Anabasis.Common.Events;
 using Anabasis.Common.Mediator;
+using Newtonsoft.Json;
+using System;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Anabasis.Exporter.Illiade
@@ -25,7 +28,11 @@ namespace Anabasis.Exporter.Illiade
 
       var anabasisDocument = documentBuilder.BuildDocument();
 
-      Mediator.Emit(new DocumentCreated(exportDocumentRequest.CorrelationID, exportDocumentRequest.StreamId, exportDocumentRequest.TopicId, anabasisDocument));
+      var path = Path.GetFullPath($"{anabasisDocument.Id}");
+
+      File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument));
+
+      Mediator.Emit(new DocumentCreated(exportDocumentRequest.CorrelationID, exportDocumentRequest.StreamId, exportDocumentRequest.TopicId, anabasisDocument.Id, new Uri(path)));
 
       return Task.CompletedTask;
 
