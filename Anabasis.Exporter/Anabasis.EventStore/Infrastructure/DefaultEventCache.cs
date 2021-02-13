@@ -1,3 +1,4 @@
+using Anabasis.EventStore.Infrastructure;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
@@ -11,11 +12,11 @@ namespace Anabasis.EventStore
         where TCacheItem : IAggregate<TKey>, new()
     {
         public DefaultEventCache(IConnectionStatusMonitor connectionMonitor,
-          Type[] eventTypes,
           IEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
           IEventStoreRepositoryConfiguration<TKey> repositoryConfiguration,
+          IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
           ILogger<EventStoreCache<TKey, TCacheItem>> logger = null)
-            : base(connectionMonitor, cacheConfiguration, eventTypes, repositoryConfiguration, logger)
+            : base(connectionMonitor, cacheConfiguration, eventTypeProvider, repositoryConfiguration, logger)
         {
         }
 

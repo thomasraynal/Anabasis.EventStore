@@ -1,3 +1,4 @@
+using Anabasis.EventStore.Infrastructure;
 using EventStore.ClientAPI;
 using EventStore.Core;
 using Microsoft.Extensions.DependencyInjection;
@@ -25,6 +26,7 @@ namespace Anabasis.EventStore
     {
       var configuration = new EventStoreCacheConfiguration<TKey, TCacheItem>();
       cacheBuilder?.Invoke(configuration);
+      services.AddTransient<IEventTypeProvider<TKey, TCacheItem>, ServiceCollectionEventTypeProvider<TKey, TCacheItem>>();
       services.AddSingleton<IEventStoreCacheConfiguration<TKey, TCacheItem>>(configuration);
     }
 
@@ -63,8 +65,10 @@ namespace Anabasis.EventStore
     private static IServiceCollection RegisterEventStoreRepository<TKey>(IEventStoreConnection eventStoreConnection, IServiceCollection services, Action<IEventStoreRepositoryConfiguration<TKey>> repositoryBuilder = null)
     {
       services.AddSingleton(eventStoreConnection);
+
       services.AddSingleton<IConnectionStatusMonitor, ConnectionStatusMonitor>();
       services.AddSingleton<IEventStoreRepository<TKey>, EventStoreRepository<TKey>>();
+      services.AddTransient<IEventTypeProvider<TKey>, ServiceCollectionEventTypeProvider<TKey>>();
 
       var configuration = new EventStoreRepositoryConfiguration<TKey>();
 

@@ -20,7 +20,7 @@ namespace Anabasis.EventStore
     private readonly IConnectableObservable<IConnected<IEventStoreConnection>> _connectionChanged;
     private readonly IEventStoreRepositoryConfiguration<TKey> _repositoryConfiguration;
     private readonly IEventStoreCacheConfiguration<TKey, TCacheItem> _cacheConfiguration;
-
+    private readonly IEventTypeProvider<TKey, TCacheItem> _eventTypeProvider;
     public readonly IScheduler _eventLoopScheduler = new EventLoopScheduler();
     private ILogger<EventStoreCache<TKey, TCacheItem>> _logger;
 
@@ -31,11 +31,11 @@ namespace Anabasis.EventStore
     private readonly SerialDisposable _eventsSubscription = new SerialDisposable();
 
     private SourceCache<TCacheItem, TKey> _cache { get; } = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
-    private SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
+    private readonly SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
 
-    private BehaviorSubject<bool> _connectionStatus;
-    private BehaviorSubject<bool> _isCaughtUp;
-    private BehaviorSubject<bool> _isStale;
+    private readonly BehaviorSubject<bool> _connectionStatus;
+    private readonly BehaviorSubject<bool> _isCaughtUp;
+    private readonly BehaviorSubject<bool> _isStale;
 
 
     public IObservable<bool> IsCaughtUp
@@ -56,7 +56,7 @@ namespace Anabasis.EventStore
 
     public EventStoreCache(IConnectionStatusMonitor connectionMonitor,
       IEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
-      Type[] eventTypes,
+      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
       IEventStoreRepositoryConfiguration<TKey> repositoryConfiguration,
       ILogger<EventStoreCache<TKey, TCacheItem>> logger =null)
     {
@@ -74,14 +74,11 @@ namespace Anabasis.EventStore
 
       _repositoryConfiguration = repositoryConfiguration;
       _cacheConfiguration = cacheConfiguration;
+      _eventTypeProvider = eventTypeProvider;
 
       _isStale = new BehaviorSubject<bool>(true);
 
       _isCaughtUp = new BehaviorSubject<bool>(false);
-
-      _eventTypes = eventTypes.ToDictionary(ev => ev.Name, ev => ev.GetType());
-
-      //serviceProvider.GetServices<IMutable<TKey, TCacheItem>>()
 
       _cleanup.Add(_connectionChanged.Connect());
 
