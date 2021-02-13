@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Text;
@@ -7,7 +7,7 @@ namespace Anabasis.EventStore
 {
     public class DefaultRepositoryEventCache<TKey> : IRepositoryEventCache<TKey>
     {
-        private ConcurrentStack<RepositoryCacheItem<TKey>> _cacheItems;
+        private readonly ConcurrentStack<RepositoryCacheItem<TKey>> _cacheItems;
 
         public int Count => _cacheItems.Count;
 

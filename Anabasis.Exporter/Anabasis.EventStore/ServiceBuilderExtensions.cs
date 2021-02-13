@@ -1,5 +1,6 @@
 using Anabasis.EventStore.Infrastructure;
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.Embedded;
 using EventStore.Core;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -19,7 +20,7 @@ namespace Anabasis.EventStore
     public static IServiceCollection AddEventStoreCache<TKey, TCacheItem>(this IServiceCollection services, Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> cacheBuilder = null) where TCacheItem : IAggregate<TKey>, new()
     {
       RegisterCacheConfiguration(services, cacheBuilder);
-      return services.AddSingleton<IEventStoreCache<TKey, TCacheItem>, DefaultEventCache<TKey, TCacheItem>>();
+      return services.AddSingleton<IEventStoreCache<TKey, TCacheItem>, EventStoreCache<TKey, TCacheItem>>();
     }
 
     private static void RegisterCacheConfiguration<TKey, TCacheItem>(IServiceCollection services, Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> cacheBuilder) where TCacheItem : IAggregate<TKey>
@@ -32,7 +33,7 @@ namespace Anabasis.EventStore
 
     public static IServiceCollection AddEventStore<TKey, TRepository>(this IServiceCollection services, string eventStoreUrl, ConnectionSettings settings, Action<IEventStoreRepositoryConfiguration<TKey>> repositoryBuilder = null) where TRepository : class, IEventStoreRepository<TKey>
     {
-      var eventStoreConnection = new ExternalEventStore(eventStoreUrl, settings).Connection;
+      var eventStoreConnection = EventStoreConnection.Create(settings, new Uri(eventStoreUrl));
 
       return AddEventStoreInternal<TKey, TRepository>(eventStoreConnection, services, repositoryBuilder);
     }
@@ -40,14 +41,14 @@ namespace Anabasis.EventStore
 
     public static IServiceCollection AddEventStore<TKey, TRepository>(this IServiceCollection services, ClusterVNode  clusterVNode, ConnectionSettings settings, Action<IEventStoreRepositoryConfiguration<TKey>> repositoryBuilder = null) where TRepository : class, IEventStoreRepository<TKey>
     {
-      var eventStoreConnection = new ExternalEventStore(clusterVNode, settings).Connection;
+      var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, settings);
 
       return AddEventStoreInternal<TKey, TRepository>(eventStoreConnection, services, repositoryBuilder);
     }
 
     public static IServiceCollection AddEventStore<TKey, TRepository>(this IServiceCollection services, string eventStoreUrl, Action<IEventStoreRepositoryConfiguration<TKey>> repositoryBuilder = null) where TRepository : class, IEventStoreRepository<TKey>
     {
-      var eventStoreConnection = new ExternalEventStore(eventStoreUrl).Connection;
+      var eventStoreConnection = EventStoreConnection.Create(new Uri(eventStoreUrl));
 
       return AddEventStoreInternal<TKey, TRepository>(eventStoreConnection, services, repositoryBuilder);
     }

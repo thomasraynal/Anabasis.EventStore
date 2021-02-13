@@ -6,13 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.DependencyInjection;
 using MoreLinq;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
-using System.Collections.Concurrent;
 using Anabasis.EventStore.Infrastructure;
-using System.Reflection;
 
 namespace Anabasis.EventStore
 {
@@ -20,7 +17,7 @@ namespace Anabasis.EventStore
   {
     private readonly IEventStoreConnection _eventStoreConnection;
     private readonly IEventTypeProvider<TKey> _eventTypeProvider;
-    private readonly ILogger<EventStoreRepository<TKey>> _logger;
+    private readonly Microsoft.Extensions.Logging.ILogger _logger;
     private readonly IEventStoreRepositoryConfiguration<TKey> _configuration;
 
     private readonly IScheduler _eventLoopScheduler = new EventLoopScheduler();
@@ -28,40 +25,37 @@ namespace Anabasis.EventStore
     private bool _isConnected;
     private readonly IDisposable _cleanup;
 
-    public EventStoreRepository(IEventStoreRepositoryConfiguration<TKey> configuration,
+    public EventStoreRepository(
+        IEventStoreRepositoryConfiguration<TKey> configuration,
         IEventStoreConnection eventStoreConnection,
         IConnectionStatusMonitor connectionMonitor,
         IEventTypeProvider<TKey> eventTypeProvider,
-        ILogger<EventStoreRepository<TKey>> logger = null)
+        Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
-      _logger = logger ?? new DummyLogger<EventStoreRepository<TKey>>();
+      _logger = logger ?? new DummyLogger();
 
       _configuration = configuration;
       _eventStoreConnection = eventStoreConnection;
       _eventTypeProvider = eventTypeProvider;
 
-      _cleanup = connectionMonitor
-                  .IsConnected
-                  .Subscribe(obs =>
-                  {
-                    _isConnected = obs;
+      _cleanup = connectionMonitor.IsConnected
+                  .Subscribe(async obs =>
+                 {
+                   _isConnected = obs;
 
-                    _eventLoopScheduler.Schedule(() =>
-                          {
 
-                        while (_isConnected && _configuration.RepositoryEventCache.Count > 0)
-                        {
+                   while (_isConnected && _configuration.RepositoryEventCache.Count > 0)
+                   {
 
-                          if (_configuration.RepositoryEventCache.TryPop(out RepositoryCacheItem<TKey> item))
-                          {
-                            Save(item.Aggregate);
-                          }
+                     if (_configuration.RepositoryEventCache.TryPop(out RepositoryCacheItem<TKey> item))
+                     {
+                       await Save(item.Aggregate);
+                     }
 
-                        }
-                      });
+                   }
 
-                  });
+                 });
 
     }
 
@@ -104,53 +98,37 @@ namespace Anabasis.EventStore
       return aggregate;
     }
 
-    private void Save(IAggregate<TKey> aggregate, params KeyValuePair<string, string>[] extraHeaders)
+    private async Task Save(IAggregate<TKey> aggregate, params KeyValuePair<string, string>[] extraHeaders)
     {
 
-      _eventLoopScheduler.Schedule(async () =>
+      var streamName = aggregate.ToStreamId();
+      var pendingEvents = aggregate.GetPendingEvents();
+      var originalVersion = aggregate.Version;
+
+      WriteResult result;
+
+      var commitHeaders = CreateCommitHeaders(aggregate, extraHeaders);
+      var eventsToSave = pendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders));
+
+      var eventBatches = GetEventBatches(eventsToSave);
+
+      if (eventBatches.Count == 1)
       {
+        result = await _eventStoreConnection.AppendToStreamAsync(streamName, originalVersion, eventBatches[0]);
+      }
+      else
+      {
+        using var transaction = await _eventStoreConnection.StartTransactionAsync(streamName, originalVersion);
 
-        var streamName = aggregate.ToStreamId();
-        var pendingEvents = aggregate.GetPendingEvents();
-        var originalVersion = aggregate.Version;
-
-        try
+        foreach (var batch in eventBatches)
         {
-          WriteResult result;
-
-          var commitHeaders = CreateCommitHeaders(aggregate, extraHeaders);
-          var eventsToSave = pendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders));
-
-          var eventBatches = GetEventBatches(eventsToSave);
-
-          if (eventBatches.Count == 1)
-          {
-            result = await _eventStoreConnection.AppendToStreamAsync(streamName, originalVersion, eventBatches[0]);
-          }
-          else
-          {
-            using (var transaction = await _eventStoreConnection.StartTransactionAsync(streamName, originalVersion))
-            {
-              foreach (var batch in eventBatches)
-              {
-                await transaction.WriteAsync(batch);
-              }
-
-              result = await transaction.CommitAsync();
-            }
-          }
-
-          aggregate.ClearPendingEvents();
-
-        }
-        catch (Exception ex)
-        {
-          _logger.LogError($"Failed to write events for stream {streamName}.", ex);
-
-          ExceptionDispatchInfo.Capture(ex).Throw();
+          await transaction.WriteAsync(batch);
         }
 
-      });
+        result = await transaction.CommitAsync();
+      }
+
+      aggregate.ClearPendingEvents();
 
     }
 
@@ -211,7 +189,7 @@ namespace Anabasis.EventStore
       return new EventData(eventId, typeName, true, data, metadata);
     }
 
-    public void Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
+    public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
         where TEntity : IAggregate<TKey>
         where TEvent : IEvent<TKey>, IMutable<TKey, TEntity>
     {
@@ -229,7 +207,8 @@ namespace Anabasis.EventStore
         return;
       }
 
-      Save(aggregate, extraHeaders);
+      await Save(aggregate, extraHeaders);
+
     }
 
     public void Dispose()

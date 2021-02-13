@@ -13,8 +13,8 @@ namespace Anabasis.EventStore
     private readonly IConnectableObservable<ConnectionInfo> _connectionInfoChanged;
     private readonly IDisposable _connection;
     private readonly IEventStoreConnection _eventStoreConnection;
-    private readonly ILogger<ConnectionStatusMonitor> _logger;
-    private BehaviorSubject<bool> _isConnected;
+    private readonly Microsoft.Extensions.Logging.ILogger _logger;
+    private readonly BehaviorSubject<bool> _isConnected;
 
     public IObservable<bool> IsConnected
     {
@@ -24,16 +24,10 @@ namespace Anabasis.EventStore
       }
     }
 
-    //refacto - for testing purpose, until a proper embedded EventStore test bed
-    public void Disconnect(bool isDisconnected)
-    {
-      _isConnected.OnNext(!isDisconnected);
-    }
-
-    public ConnectionStatusMonitor(IEventStoreConnection connection, ILogger<ConnectionStatusMonitor> logger = null)
+    public ConnectionStatusMonitor(IEventStoreConnection connection, Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
-      _logger = logger ?? new DummyLogger<ConnectionStatusMonitor>();
+      _logger = logger ?? new DummyLogger();
 
       _isConnected = new BehaviorSubject<bool>(false);
 
@@ -41,6 +35,7 @@ namespace Anabasis.EventStore
 
       var connected = Observable.FromEventPattern<ClientConnectionEventArgs>(h => connection.Connected += h, h => connection.Connected -= h).Select(_ =>
       {
+
         return ConnectionStatus.Connected;
       });
 
@@ -75,8 +70,12 @@ namespace Anabasis.EventStore
       _connectionInfoChanged = Observable.Merge(connected, disconnected, reconnecting, closed, errorOccurred, authenticationFailed)
                                          .Scan(ConnectionInfo.Initial, UpdateConnectionInfo)
                                          .StartWith(ConnectionInfo.Initial)
-                                         .Do(c => _logger.LogInformation($"{c}"))
-                                         .Do(c => _isConnected.OnNext(c.Status == ConnectionStatus.Connected))
+                                         .Do(connectionInfo =>
+                                         {
+                                           _logger.LogWarning($"C{connectionInfo}");
+                                           _isConnected.OnNext(connectionInfo.Status == ConnectionStatus.Connected);
+
+                                         })
                                          .Replay(1);
 
       _connection = _connectionInfoChanged.Connect();

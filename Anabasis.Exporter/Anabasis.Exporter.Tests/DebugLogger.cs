@@ -1,12 +1,13 @@
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Reactive.Disposables;
 using System.Text;
 
-namespace Anabasis.EventStore.Infrastructure
+namespace Anabasis.Tests
 {
-  public class DummyLogger : ILogger
+  public class DebugLogger : ILogger
   {
     public IDisposable BeginScope<TState>(TState state)
     {
@@ -20,6 +21,7 @@ namespace Anabasis.EventStore.Infrastructure
 
     public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
     {
+      Debug.WriteLine($"{state}");
     }
   }
 }

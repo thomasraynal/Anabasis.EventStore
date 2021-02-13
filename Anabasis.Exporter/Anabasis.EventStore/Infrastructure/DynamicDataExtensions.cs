@@ -1,4 +1,4 @@
-﻿using DynamicData;
+using DynamicData;
 using System;
 using System.Reactive;
 

@@ -50,6 +50,7 @@ namespace Anabasis.Tests.Tests
       services.AddSingleton<IConsumer, Consumer>();
       services.AddSingleton<IProducer, Producer>();
       services.AddSingleton<TestBed>();
+      services.AddTransient<Microsoft.Extensions.Logging.ILogger, DebugLogger>();
 
       services.Scan(scan => scan.FromApplicationDependencies()
                                 .AddClasses(classes => classes.AssignableTo<IEvent<Guid>>()).AsImplementedInterfaces());
@@ -105,7 +106,7 @@ namespace Anabasis.Tests.Tests
 
       var events = _host.Services.GetServices<IEvent<Guid>>();
 
-      Assert.AreEqual(5, events.Count(), "Should have registered 5 events");
+      Assert.AreEqual(6, events.Count(), "Should have registered 5 events");
 
       Assert.IsNotNull(itemsCache, "An IEventStoreCache<Guid, Item, Item> should have been registered");
       Assert.IsNotNull(blobCache, "An IEventStoreCache<Guid, Blob, BlobOutput> should have been registered");
@@ -223,8 +224,6 @@ namespace Anabasis.Tests.Tests
       var monitor = _host.Services.GetService<IConnectionStatusMonitor>() as ConnectionStatusMonitor;
       var repository = _host.Services.GetService<IEventStoreRepository<Guid>>();
 
-      monitor.Disconnect(true);
-
       var items = Enumerable.Range(0, 10).Select(_ => _testBed.Producer.Create()).ToList();
 
 
@@ -243,8 +242,6 @@ namespace Anabasis.Tests.Tests
       await Task.Delay(200);
 
       cleanup.Dispose();
-
-      monitor.Disconnect(false);
 
       //give CI some rope...
       await Task.Delay(200);

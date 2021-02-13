@@ -14,15 +14,13 @@ using Microsoft.Extensions.Logging;
 namespace Anabasis.EventStore
 {
 
-  public abstract class EventStoreCache<TKey, TCacheItem> : IDisposable, IEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  public class EventStoreCache<TKey, TCacheItem> : IDisposable, IEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
 
     private readonly IConnectableObservable<IConnected<IEventStoreConnection>> _connectionChanged;
-    private readonly IEventStoreRepositoryConfiguration<TKey> _repositoryConfiguration;
-    private readonly IEventStoreCacheConfiguration<TKey, TCacheItem> _cacheConfiguration;
+    private readonly IEventStoreCacheConfiguration<TKey, TCacheItem> eventStoreCacheConfiguration;
     private readonly IEventTypeProvider<TKey, TCacheItem> _eventTypeProvider;
-    public readonly IScheduler _eventLoopScheduler = new EventLoopScheduler();
-    private ILogger<EventStoreCache<TKey, TCacheItem>> _logger;
+    private Microsoft.Extensions.Logging.ILogger _logger;
 
     private CompositeDisposable _cleanup { get; }
     private Dictionary<string, Type> _eventTypes { get; set; }
@@ -57,11 +55,10 @@ namespace Anabasis.EventStore
     public EventStoreCache(IConnectionStatusMonitor connectionMonitor,
       IEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-      IEventStoreRepositoryConfiguration<TKey> repositoryConfiguration,
-      ILogger<EventStoreCache<TKey, TCacheItem>> logger =null)
+      Microsoft.Extensions.Logging.ILogger logger =null)
     {
 
-      _logger = logger ?? new DummyLogger<EventStoreCache<TKey, TCacheItem>>();
+      _logger = logger ?? new DummyLogger();
 
       _cleanup = new CompositeDisposable(_eventsConnection, _eventsSubscription);
 
@@ -69,11 +66,9 @@ namespace Anabasis.EventStore
 
       _connectionChanged = connectionMonitor
                                       .GetEventStoreConnectedStream()
-                                      .ObserveOn(_eventLoopScheduler)
                                       .Publish();
 
-      _repositoryConfiguration = repositoryConfiguration;
-      _cacheConfiguration = cacheConfiguration;
+      eventStoreCacheConfiguration = cacheConfiguration;
       _eventTypeProvider = eventTypeProvider;
 
       _isStale = new BehaviorSubject<bool>(true);
@@ -122,9 +117,8 @@ namespace Anabasis.EventStore
 
       _isCaughtUp.OnNext(false);
 
-      _eventsConnection.Disposable = GetAllEvents(connection)
+      _eventsConnection.Disposable = StreamEvents(connection)
                                       .Where(ev => CanApply(ev.EventType))
-                                      .SubscribeOn(_eventLoopScheduler)
                                       .Subscribe(evt =>
                                           {
                                             var cache = _isCaughtUp.Value ? _cache : _caughtingUpCache;
@@ -137,13 +131,13 @@ namespace Anabasis.EventStore
     }
 
 
-    private void UpdateCacheState(SourceCache<TCacheItem, TKey> cache, RecordedEvent evt)
+    private void UpdateCacheState(SourceCache<TCacheItem, TKey> cache, RecordedEvent recordedEvent)
     {
-      var @event = evt.GetMutator<TKey, TCacheItem>(_eventTypes[evt.EventType], _repositoryConfiguration.Serializer);
+      var @event = recordedEvent.GetMutator<TKey, TCacheItem>(_eventTypes[recordedEvent.EventType], eventStoreCacheConfiguration.Serializer);
 
       if (null == @event)
       {
-        throw new EventNotSupportedException(evt);
+        throw new EventNotSupportedException(recordedEvent);
       }
 
       var entry = cache.Lookup(@event.EntityId);
@@ -154,7 +148,7 @@ namespace Anabasis.EventStore
       {
         entity = entry.Value;
 
-        if (entity.Version == evt.EventNumber)
+        if (entity.Version == recordedEvent.EventNumber)
         {
           return;
         }
@@ -164,13 +158,13 @@ namespace Anabasis.EventStore
         entity = new TCacheItem();
       }
 
-      entity.ApplyEvent(@event, false, _cacheConfiguration.AddAppliedEventsOnAggregate);
+      entity.ApplyEvent(@event, false);
 
       cache.AddOrUpdate(entity);
 
     }
 
-    private IObservable<RecordedEvent> GetAllEvents(IEventStoreConnection connection)
+    private IObservable<RecordedEvent> StreamEvents(IEventStoreConnection connection)
     {
 
       return Observable.Create<RecordedEvent>(obs =>
@@ -178,31 +172,27 @@ namespace Anabasis.EventStore
 
         Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent e)
         {
-          _eventLoopScheduler.Schedule(() =>
-                {
-                obs.OnNext(e.Event);
-              });
+
+          obs.OnNext(e.Event);
 
           return Task.CompletedTask;
         }
 
         void onCaughtUp(EventStoreCatchUpSubscription evt)
         {
-          _eventLoopScheduler.Schedule(() =>
-                {
 
-                _cache.Edit(innerCache =>
-                              {
-                            innerCache.Load(_caughtingUpCache.Items);
-                            _caughtingUpCache.Clear();
-                          });
+          _cache.Edit(innerCache =>
+                        {
+                          innerCache.Load(_caughtingUpCache.Items);
+                          _caughtingUpCache.Clear();
+                        });
 
 
-                _isCaughtUp.OnNext(true);
+          _isCaughtUp.OnNext(true);
 
-                _isStale.OnNext(false);
+          _isStale.OnNext(false);
 
-              });
+
         }
 
         var subscription = connection.SubscribeToAllFrom(null, CatchUpSubscriptionSettings.Default, onEvent, onCaughtUp);

@@ -7,37 +7,92 @@ using System.Text;
 using System.Threading.Tasks;
 using EventStore.Core.Data;
 using NUnit.Framework;
+using EventStore.ClientAPI.SystemData;
+using ExpectedVersion = EventStore.Core.Data.ExpectedVersion;
+using System.Diagnostics;
+using EventStore.Common.Options;
+using Anabasis.EventStore;
+using Anabasis.EventStore.Infrastructure;
+using Anabasis.Tests;
+using System.Threading;
 
 namespace Anabasis.Exporter.Tests
 {
+
+  public class SomeData : EventBase<Guid, EventDataAggregate>
+  {
+    protected override void ApplyInternal(EventDataAggregate entity)
+    {
+    }
+  }
+
+  public class EventDataAggregate : AggregateBase<Guid>
+  {
+    public EventDataAggregate()
+    {
+      EntityId = Guid.NewGuid();
+    }
+  }
 
   public class TestService
   {
 
     [Test]
-    public async Task ShouldTestActor()
+    public async Task ShouldPersistantSubscription()
     {
+      const string streamName = "newstream";
+      const string eventType = "event-type";
+      const string data = "{ \"a\":\"2\"}";
+      const string metadata = "{}";
 
-      //var node = EmbeddedVNodeBuilder
-      //.AsSingleNode()
-      //.RunInMemory()
-      //.OnDefaultEndpoints()
-      //.Build();
 
-      //bool isNodeMaster = false;
-      //node.NodeStatusChanged += (sender, args) => {
-      //  isNodeMaster = args.NewVNodeState == VNodeState.Manager;
-      //};
-      //node.Start();
-      
-      //var connection = EmbeddedEventStoreConnection.Create(node);
+      var node = EmbeddedVNodeBuilder
+      .AsSingleNode()
+      .RunInMemory()
+      .RunProjections(ProjectionType.All)
+      .StartStandardProjections()
+      .WithWorkerThreads(16)
+      .Build();
 
-      //await connection.ConnectAsync();
 
-      //const string streamName = "newstream";
-      //const string eventType = "event-type";
-      //const string data = "{ \"a\":\"2\"}";
-      //const string metadata = "{}";
+      await node.StartAsync(true);
+
+      var connectionSettings = PersistentSubscriptionSettings
+          .Create()
+          .StartFromBeginning();
+
+      var userCredentials = new UserCredentials("admin", "changeit");
+
+      var connectionOne = EmbeddedEventStoreConnection.Create(node);
+
+      await connectionOne.CreatePersistentSubscriptionAsync(
+       "myStream",
+       "agroup",
+       connectionSettings,
+       userCredentials
+      );
+
+      var eventPayload = new EventData(
+          eventId: Guid.NewGuid(),
+          type: eventType,
+          isJson: true,
+          data: Encoding.UTF8.GetBytes(data),
+          metadata: Encoding.UTF8.GetBytes(metadata)
+      );
+
+      var subscription = await connectionOne.ConnectToPersistentSubscriptionAsync(
+        "myStream",
+        "agroup",
+        (_, evt)
+            => Debug.WriteLine("event appeared"),
+        (sub, reason, exception)
+        => Debug.WriteLine($"Subscription dropped: {reason}"), userCredentials: userCredentials);
+
+
+       var result = await connectionOne.AppendToStreamAsync("myStream", ExpectedVersion.NoStream, eventPayload);
+
+
+
 
       //var eventPayload = new EventData(
       //    eventId: Guid.NewGuid(),
@@ -46,7 +101,10 @@ namespace Anabasis.Exporter.Tests
       //    data: Encoding.UTF8.GetBytes(data),
       //    metadata: Encoding.UTF8.GetBytes(metadata)
       //);
-      //var result = await connection.AppendToStreamAsync(streamName, EventStore.ClientAPI.ExpectedVersion.NoStream, eventPayload);
+
+      // result = await connection.AppendToStreamAsync(streamName, ExpectedVersion.NoStream, eventPayload);
+
+
 
 
       //var readEvents = await connection.ReadStreamEventsForwardAsync(streamName, 0, 10, true);
@@ -56,28 +114,55 @@ namespace Anabasis.Exporter.Tests
       //  Console.WriteLine(Encoding.UTF8.GetString(evt.Event.Data));
       //}
 
+      await Task.Delay(2000);
+
     }
 
     [Test]
     public async Task ShouldExportFolder()
     {
-      //Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+      ClusterVNode node = EmbeddedVNodeBuilder
+          .AsSingleNode()
+          .RunInMemory()
+          .OnDefaultEndpoints()
+          .Build();
 
-      //var fileSystemDocumentRepositoryConfiguration = new FileSystemDocumentRepositoryConfiguration()
-      //{
-      //  ClientId = "699173273524-aalbhs95og7ci38ink060v8bj166mej3.apps.googleusercontent.com",
-      //  ClientSecret = "_9La2dPSNsZtRgo-0fUG00kV",
-      //  DriveRootFolder = "1e-fnRCTrPxpbo6Aq7-xiw3sQraFvQ-XM",
-      //  LocalDocumentFolder = @"E:\dev\anabasis\src\assets",
-      //  RefreshToken = "1//03dpBmmfoO2X3CgYIARAAGAMSNwF-L9Ir9qcyc48kXirb_mr2yyPt8vnA4sJvSATu8EaScrKjb5-nyzw2uP69sP_EftPdrVy6YDE"
-      //};
+   
+     await node.StartAsync(true);
 
-      //var fileSystemDocumentRepository = new FileSystemDocumentRepository(fileSystemDocumentRepositoryConfiguration);
+      var connection = EmbeddedEventStoreConnection.Create(node);
+      var userCredentials = new UserCredentials("admin", "changeit");
+      await connection.ConnectAsync();
 
-      //var documentService = new AnabasisExporter<FileSystemDocumentRepositoryConfiguration>(fileSystemDocumentRepositoryConfiguration, fileSystemDocumentRepository);
+      var sampleEventData = new EventData(Guid.NewGuid(), "myTestEvent", false, Encoding.UTF8.GetBytes("bkabbjkhbjk"), null);
 
-      //await documentService.GetExportedDocuments();
 
+     await connection.SubscribeToStreamAsync("sampleStream",  true, (sub, evt) =>
+      {
+        Debug.WriteLine("Event appeared");
+      },
+       (sub, reason, exception) =>
+       {
+         Debug.WriteLine($"Ex : {reason}  {exception}");
+       });
+
+      await connection.SubscribeToAllAsync(true, (sub, evt) =>
+        {
+          Debug.WriteLine("Event appeared2");
+        },
+    (sub, reason, exception) =>
+    {
+      Debug.WriteLine($"Ex : {reason}  {exception}");
+    }, userCredentials: userCredentials);
+
+
+      WriteResult writeResult = await connection.AppendToStreamAsync("sampleStream", ExpectedVersion.Any, sampleEventData);
+      var readEvents = await connection.ReadStreamEventsForwardAsync("sampleStream", 0, 10, true);
+
+      foreach (var evt in readEvents.Events)
+      {
+        Debug.WriteLine(Encoding.UTF8.GetString(evt.Event.Data));
+      }
 
     }
   }
