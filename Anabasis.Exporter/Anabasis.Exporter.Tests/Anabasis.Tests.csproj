@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
@@ -6,17 +6,38 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="xunit" Version="2.4.1" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.3">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
-    </PackageReference>
+    <PackageReference Include="DynamicData" Version="7.1.1" />
+    <PackageReference Include="EventStore.Client.Embedded" Version="20.6.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.12" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
+    <PackageReference Include="nunit" Version="3.13.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.8.3" />
+    <PackageReference Include="Scrutor" Version="3.3.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
     <ProjectReference Include="..\Anabasis.Exporter\Anabasis.Exporter.csproj" />
     <ProjectReference Include="..\Anabasis.Importer\Anabasis.Importer.csproj" />
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\thoma\.nuget\packages\eventstore.client.embedded\20.6.0\build\..\runtimes\win-x64\native\js1.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\thoma\.nuget\packages\eventstore.client.embedded\20.6.0\build\..\runtimes\win-x64\native\js1.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\thoma\.nuget\packages\eventstore.client.embedded\20.6.0\build\..\runtimes\win-x64\native\js1.dll" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="C:\Users\thoma\.nuget\packages\eventstore.client.embedded\20.6.0\build\..\runtimes\win-x64\native\js1.dll" />
+  </ItemGroup>
+
 
 </Project>

@@ -1,0 +1,15 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DynamicData" Version="7.1.1" />
+    <PackageReference Include="EventStore.Client" Version="20.10.0" />
+    <PackageReference Include="EventStore.Client.Embedded" Version="20.6.0" />
+    <PackageReference Include="morelinq" Version="3.3.2" />
+    <PackageReference Include="Scrutor" Version="3.3.0" />
+  </ItemGroup>
+
+</Project>
