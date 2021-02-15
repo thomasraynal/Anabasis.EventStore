@@ -1,44 +1,26 @@
-using Anabasis.Importer;
 using EventStore.Core;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using System;
 using System.Text;
 using System.Threading.Tasks;
-using EventStore.Core.Data;
-using NUnit.Framework;
 using EventStore.ClientAPI.SystemData;
 using ExpectedVersion = EventStore.Core.Data.ExpectedVersion;
 using System.Diagnostics;
 using EventStore.Common.Options;
 using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure;
-using Anabasis.Tests;
-using System.Threading;
+using Xunit;
 
 namespace Anabasis.Exporter.Tests
 {
 
-  public class SomeData : EventBase<Guid, EventDataAggregate>
-  {
-    protected override void ApplyInternal(EventDataAggregate entity)
-    {
-    }
-  }
 
-  public class EventDataAggregate : AggregateBase<Guid>
-  {
-    public EventDataAggregate()
-    {
-      EntityId = Guid.NewGuid();
-    }
-  }
 
   public class TestService
   {
 
-    [Test]
-    public async Task ShouldPersistantSubscription()
+    [Fact]
+    public async Task ShouldCreatePersistantSubscription()
     {
       const string streamName = "newstream";
       const string eventType = "event-type";
@@ -118,8 +100,8 @@ namespace Anabasis.Exporter.Tests
 
     }
 
-    [Test]
-    public async Task ShouldExportFolder()
+    [Fact]
+    public async Task ShouldCreateVolatileSubscription()
     {
       ClusterVNode node = EmbeddedVNodeBuilder
           .AsSingleNode()
@@ -163,6 +145,49 @@ namespace Anabasis.Exporter.Tests
       {
         Debug.WriteLine(Encoding.UTF8.GetString(evt.Event.Data));
       }
+
+    }
+
+
+    [Fact]
+    public async Task ShouldCreateCatchupSubscription()
+    {
+      ClusterVNode node = EmbeddedVNodeBuilder
+          .AsSingleNode()
+          .RunInMemory()
+          .OnDefaultEndpoints()
+          .Build();
+
+
+      await node.StartAsync(true);
+
+      var connection = EmbeddedEventStoreConnection.Create(node);
+      var userCredentials = new UserCredentials("admin", "changeit");
+      await connection.ConnectAsync();
+
+      var sampleEventData = new EventData(Guid.NewGuid(), "myTestEvent", false, Encoding.UTF8.GetBytes("bkabbjkhbjk"), null);
+
+
+      connection.SubscribeToAllFrom(null, CatchUpSubscriptionSettings.Default,  (sub, evt) =>
+      {
+        Debug.WriteLine("Event appeared");
+    
+         
+      },userCredentials: userCredentials);
+
+
+
+
+      WriteResult writeResult = await connection.AppendToStreamAsync("sampleStream", ExpectedVersion.Any, sampleEventData);
+
+      await Task.Delay(1000);
+
+      //var readEvents = await connection.ReadStreamEventsForwardAsync("sampleStream", 0, 10, true);
+
+      //foreach (var evt in readEvents.Events)
+      //{
+      //  Debug.WriteLine(Encoding.UTF8.GetString(evt.Event.Data));
+      //}
 
     }
   }

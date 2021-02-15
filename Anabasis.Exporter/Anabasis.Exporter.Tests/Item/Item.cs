@@ -7,7 +7,7 @@ using System.Text;
 
 namespace Anabasis.Tests.Demo
 {
-    public class Item : AggregateBase<Guid>
+    public class Item : BaseAggregate<Guid>
     {
         public Item()
         {

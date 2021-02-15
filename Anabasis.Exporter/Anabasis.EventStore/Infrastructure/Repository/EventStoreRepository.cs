@@ -103,6 +103,7 @@ namespace Anabasis.EventStore
 
       var streamName = aggregate.ToStreamId();
       var pendingEvents = aggregate.GetPendingEvents();
+
       var originalVersion = aggregate.Version;
 
       WriteResult result;

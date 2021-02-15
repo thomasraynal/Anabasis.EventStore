@@ -1,10 +1,10 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 
 namespace Anabasis.EventStore
 {
 
-    public abstract class AggregateBase<TKey> : IAggregate<TKey>
+    public abstract class BaseAggregate<TKey> : IAggregate<TKey>
     {
         private readonly List<IEvent<TKey>> _pendingEvents = new List<IEvent<TKey>>();
         private readonly List<IEvent<TKey>> _appliedEvents = new List<IEvent<TKey>>();

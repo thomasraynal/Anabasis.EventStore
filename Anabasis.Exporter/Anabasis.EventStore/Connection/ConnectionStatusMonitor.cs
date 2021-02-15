@@ -92,8 +92,12 @@ namespace Anabasis.EventStore
     public IObservable<IConnected<IEventStoreConnection>> GetEventStoreConnectedStream()
     {
       return _connectionInfoChanged
-                    .Where(con => con.Status == ConnectionStatus.Connected || con.Status == ConnectionStatus.Disconnected)
-                    .Select(con => con.Status == ConnectionStatus.Connected ? Connected.Yes(_eventStoreConnection) : Connected.No<IEventStoreConnection>());
+                    .Where(connectioInfo => connectioInfo.Status == ConnectionStatus.Connected || connectioInfo.Status == ConnectionStatus.Disconnected)
+                    .Select(connectioInfo =>
+                    {
+                      return connectioInfo.Status == ConnectionStatus.Connected ? Connected.Yes(_eventStoreConnection) : Connected.No<IEventStoreConnection>();
+
+                    });
     }
 
     private ConnectionInfo UpdateConnectionInfo(ConnectionInfo previousConnectionInfo, ConnectionStatus connectionStatus)

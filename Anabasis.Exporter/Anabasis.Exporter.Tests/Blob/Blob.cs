@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Anabasis.Tests.Demo
 {
-    public class Blob : AggregateBase<Guid>
+    public class Blob : BaseAggregate<Guid>
     {
         public Blob()
         {

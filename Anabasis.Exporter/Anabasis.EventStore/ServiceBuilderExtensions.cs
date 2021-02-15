@@ -20,12 +20,12 @@ namespace Anabasis.EventStore
     public static IServiceCollection AddEventStoreCache<TKey, TCacheItem>(this IServiceCollection services, Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> cacheBuilder = null) where TCacheItem : IAggregate<TKey>, new()
     {
       RegisterCacheConfiguration(services, cacheBuilder);
-      return services.AddSingleton<IEventStoreCache<TKey, TCacheItem>, EventStoreCache<TKey, TCacheItem>>();
+      return services.AddSingleton<IEventStoreCache<TKey, TCacheItem>, CatchupEventStoreCache<TKey, TCacheItem>>();
     }
 
     private static void RegisterCacheConfiguration<TKey, TCacheItem>(IServiceCollection services, Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> cacheBuilder) where TCacheItem : IAggregate<TKey>
     {
-      var configuration = new EventStoreCacheConfiguration<TKey, TCacheItem>();
+      var configuration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>();
       cacheBuilder?.Invoke(configuration);
       services.AddTransient<IEventTypeProvider<TKey, TCacheItem>, ServiceCollectionEventTypeProvider<TKey, TCacheItem>>();
       services.AddSingleton<IEventStoreCacheConfiguration<TKey, TCacheItem>>(configuration);

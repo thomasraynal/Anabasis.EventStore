@@ -8,7 +8,6 @@ namespace Anabasis.EventStore
   {
     IObservable<bool> IsStale { get; }
     IObservable<bool> IsCaughtUp { get; }
-    IObservable<bool> IsCaughtingUP { get; }
     IObservableCache<TCacheItem, TKey> AsObservableCache();
   }
 }

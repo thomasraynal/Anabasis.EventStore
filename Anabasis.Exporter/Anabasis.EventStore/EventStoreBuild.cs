@@ -14,7 +14,7 @@ namespace Anabasis.EventStore
   public static class EventStoreBuild
   {
 
-    public static EventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
       ClusterVNode clusterVNode,
       ConnectionSettings settings,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
@@ -26,7 +26,7 @@ namespace Anabasis.EventStore
       return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
     }
 
-    public static EventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
       IEventStoreConnection eventStoreConnection,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
       Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
@@ -35,7 +35,7 @@ namespace Anabasis.EventStore
       return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
     }
 
-    public static EventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
       string eventStoreUrl,
       ConnectionSettings settings,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
@@ -101,7 +101,7 @@ namespace Anabasis.EventStore
 
     }
 
-    private static EventStoreCache<TKey, TCacheItem> GetEventStoreCacheInternal<TKey, TCacheItem>(
+    private static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCacheInternal<TKey, TCacheItem>(
       IEventStoreConnection eventStoreConnection,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
       Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder,
@@ -110,11 +110,11 @@ namespace Anabasis.EventStore
     {
       var connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger);
 
-      var eventStoreCacheConfiguration = new EventStoreCacheConfiguration<TKey, TCacheItem>();
+      var eventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>();
 
       eventStoreCacheConfigurationBuilder?.Invoke(eventStoreCacheConfiguration);
 
-      return new EventStoreCache<TKey, TCacheItem>(connectionMonitor,
+      return new CatchupEventStoreCache<TKey, TCacheItem>(connectionMonitor,
         eventStoreCacheConfiguration,
         eventTypeProvider,
         logger);
