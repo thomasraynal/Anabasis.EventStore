@@ -19,10 +19,10 @@ namespace Anabasis.EventStore
             Version++;
         }
 
-        public void ApplyEvent(IEvent<TKey> @event, bool saveAsPendingEvent = true, bool saveEvent = true)
+        public void ApplyEvent(IEvent<TKey> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true)
         {
             //we only save applied events
-            if (saveEvent && !saveAsPendingEvent)
+            if (keepAppliedEventsOnAggregate && !saveAsPendingEvent)
             {
                 _appliedEvents.Add(@event);
             }
@@ -48,7 +48,7 @@ namespace Anabasis.EventStore
             _pendingEvents.Clear();
         }
 
-        public virtual string ToStreamId()
+        public virtual string GetStreamName()
         {
             return EntityId.ToString();
         }

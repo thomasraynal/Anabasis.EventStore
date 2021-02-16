@@ -49,7 +49,7 @@ namespace Anabasis.EventStore.Infrastructure
 
         if (null == type) throw new InvalidOperationException($"Event {name} is not registered");
 
-        return type.GetType();
+        return type;
 
       });
     }

@@ -28,7 +28,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
       IsCaughtUpSubject.OnNext(true);
 
-      _eventsConnection.Disposable = ConnectToEventStream(connection)
+      _eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
                                       .Where(ev => CanApply(ev.EventType))
                                       .Subscribe(evt =>
                                       {

@@ -31,13 +31,13 @@ namespace Anabasis.EventStore
 
       IsCaughtUpSubject.OnNext(false);
 
-      _eventsConnection.Disposable = ConnectToEventStream(connection)
-                                      .Where(ev => CanApply(ev.EventType))
-                                      .Subscribe(evt =>
+      _eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
+                                      .Where(@event => CanApply(@event.EventType))
+                                      .Subscribe(@event =>
                                       {
                                         var cache = IsCaughtUpSubject.Value ? Cache : _caughtingUpCache;
 
-                                        UpdateCacheState(evt, cache);
+                                        UpdateCacheState(@event, cache);
 
                                       });
 
@@ -53,7 +53,10 @@ namespace Anabasis.EventStore
         Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent e)
         {
 
-          obs.OnNext(e.Event);
+          if (!e.Event.EventType.StartsWith("$"))
+          {
+            obs.OnNext(e.Event);
+          }
 
           return Task.CompletedTask;
         }
@@ -77,7 +80,7 @@ namespace Anabasis.EventStore
 
         }
 
-        var subscription = connection.SubscribeToAllFrom(Position.Start, CatchUpSubscriptionSettings.Default, onEvent, onCaughtUp, userCredentials: _eventStoreCacheConfiguration.UserCredentials);
+        var subscription = connection.SubscribeToAllFrom(null, CatchUpSubscriptionSettings.Default, onEvent, onCaughtUp, userCredentials: _eventStoreCacheConfiguration.UserCredentials);
 
         return Disposable.Create(() => subscription.Stop());
 

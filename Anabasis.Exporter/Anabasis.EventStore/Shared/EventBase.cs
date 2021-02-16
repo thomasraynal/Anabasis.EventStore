@@ -21,7 +21,7 @@ namespace Anabasis.EventStore
             entity.EntityId = EntityId;
         }
 
-        public virtual string ToStreamId()
+        public virtual string GetStreamName()
         {
             return EntityId.ToString();
         }

@@ -13,5 +13,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     public ISerializer Serializer { get; set; }
     public PersistentSubscriptionSettings PersistentSubscriptionSettings { get; set; }
     public UserCredentials UserCredentials { get; set; }
+
+    public bool KeepAppliedEventsOnAggregate { get; set; } = false;
   }
 }

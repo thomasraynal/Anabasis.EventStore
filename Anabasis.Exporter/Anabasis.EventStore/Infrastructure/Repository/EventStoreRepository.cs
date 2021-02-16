@@ -17,13 +17,10 @@ namespace Anabasis.EventStore
   {
     private readonly IEventStoreConnection _eventStoreConnection;
     private readonly IEventTypeProvider<TKey> _eventTypeProvider;
+    private readonly IDisposable _cleanup;
     private readonly Microsoft.Extensions.Logging.ILogger _logger;
     private readonly IEventStoreRepositoryConfiguration<TKey> _configuration;
-
-    private readonly IScheduler _eventLoopScheduler = new EventLoopScheduler();
-
     private bool _isConnected;
-    private readonly IDisposable _cleanup;
 
     public EventStoreRepository(
         IEventStoreRepositoryConfiguration<TKey> configuration,
@@ -40,22 +37,11 @@ namespace Anabasis.EventStore
       _eventTypeProvider = eventTypeProvider;
 
       _cleanup = connectionMonitor.IsConnected
-                  .Subscribe(async obs =>
-                 {
-                   _isConnected = obs;
+            .Subscribe( isConnected =>
+            {
+              _isConnected = isConnected;
 
-
-                   while (_isConnected && _configuration.RepositoryEventCache.Count > 0)
-                   {
-
-                     if (_configuration.RepositoryEventCache.TryPop(out RepositoryCacheItem<TKey> item))
-                     {
-                       await Save(item.Aggregate);
-                     }
-
-                   }
-
-                 });
+            });
 
     }
 
@@ -89,8 +75,9 @@ namespace Anabasis.EventStore
 
         foreach (var resolvedEvent in currentSlice.Events)
         {
-          var payload = DeserializeEvent(resolvedEvent.Event);
-          aggregate.ApplyEvent(payload, false, loadEvents);
+          var @event = DeserializeEvent(resolvedEvent.Event);
+
+          aggregate.ApplyEvent(@event, false, loadEvents);
         }
 
       } while (!currentSlice.IsEndOfStream);
@@ -98,38 +85,55 @@ namespace Anabasis.EventStore
       return aggregate;
     }
 
+    private async Task Save<TEvent>(IEvent<TKey> @event, params KeyValuePair<string, string>[] extraHeaders)
+        where TEvent : IEvent<TKey>
+    {
+
+      var commitHeaders = CreateCommitHeaders(@event, extraHeaders);
+
+      var eventsToSave = new[] { ToEventData(Guid.NewGuid(), @event, commitHeaders) };
+
+      await SaveEventBatch(@event.GetStreamName(), ExpectedVersion.Any, eventsToSave);
+
+    }
+
     private async Task Save(IAggregate<TKey> aggregate, params KeyValuePair<string, string>[] extraHeaders)
     {
 
-      var streamName = aggregate.ToStreamId();
+      var streamName = aggregate.GetStreamName();
+
       var pendingEvents = aggregate.GetPendingEvents();
 
-      var originalVersion = aggregate.Version;
-
-      WriteResult result;
+      var afterApplyAggregateVersion = aggregate.Version;
 
       var commitHeaders = CreateCommitHeaders(aggregate, extraHeaders);
-      var eventsToSave = pendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders));
 
+      var eventsToSave = pendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders)).ToArray();
+
+      await SaveEventBatch(streamName, afterApplyAggregateVersion, eventsToSave);
+
+      aggregate.ClearPendingEvents();
+    }
+
+    private async Task SaveEventBatch(string streamName, int expectedVersion, EventData[] eventsToSave)
+    {
       var eventBatches = GetEventBatches(eventsToSave);
 
       if (eventBatches.Count == 1)
       {
-        result = await _eventStoreConnection.AppendToStreamAsync(streamName, originalVersion, eventBatches[0]);
+        await _eventStoreConnection.AppendToStreamAsync(streamName, expectedVersion, eventBatches.Single());
       }
       else
       {
-        using var transaction = await _eventStoreConnection.StartTransactionAsync(streamName, originalVersion);
+        using var transaction = await _eventStoreConnection.StartTransactionAsync(streamName, expectedVersion);
 
         foreach (var batch in eventBatches)
         {
           await transaction.WriteAsync(batch);
         }
 
-        result = await transaction.CommitAsync();
+        await transaction.CommitAsync();
       }
-
-      aggregate.ClearPendingEvents();
 
     }
 
@@ -139,7 +143,6 @@ namespace Anabasis.EventStore
 
       if (null == targetType) throw new InvalidOperationException($"{evt.EventType} cannot be handled");
 
-
       return _configuration.Serializer.DeserializeObject(evt.Data, targetType) as IEvent<TKey>;
     }
 
@@ -148,7 +151,7 @@ namespace Anabasis.EventStore
       return events.Batch(_configuration.WritePageSize).Select(x => (IList<EventData>)x.ToList()).ToList();
     }
 
-    protected virtual IDictionary<string, string> GetCommitHeaders(IAggregate<TKey> aggregate)
+    protected virtual IDictionary<string, string> GetCommitHeaders(object aggregate)
     {
       var commitId = Guid.NewGuid();
 
@@ -162,7 +165,7 @@ namespace Anabasis.EventStore
             };
     }
 
-    private IDictionary<string, string> CreateCommitHeaders(IAggregate<TKey> aggregate, KeyValuePair<string, string>[] extraHeaders)
+    private IDictionary<string, string> CreateCommitHeaders(object aggregate, KeyValuePair<string, string>[] extraHeaders)
     {
       var commitHeaders = GetCommitHeaders(aggregate);
 
@@ -184,10 +187,17 @@ namespace Anabasis.EventStore
             {
                 {MetadataKeys.EventClrTypeHeader, @event.GetType().AssemblyQualifiedName}
             };
+
       var metadata = _configuration.Serializer.SerializeObject(eventHeaders);
       var typeName = @event.Name;
 
       return new EventData(eventId, typeName, true, data, metadata);
+    }
+
+    public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+        where TEvent : IEvent<TKey>
+    {
+      await Save<TEvent>(@event, extraHeaders);
     }
 
     public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
@@ -196,17 +206,6 @@ namespace Anabasis.EventStore
     {
 
       aggregate.ApplyEvent(ev);
-
-      if (!_isConnected)
-      {
-        _configuration.RepositoryEventCache.Push(new RepositoryCacheItem<TKey>()
-        {
-          Aggregate = aggregate,
-          Headers = extraHeaders
-        });
-
-        return;
-      }
 
       await Save(aggregate, extraHeaders);
 

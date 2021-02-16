@@ -6,24 +6,23 @@ using System.Reactive.Subjects;
 using EventStore.ClientAPI;
 using DynamicData;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
+using System.Linq;
 
 namespace Anabasis.EventStore.Infrastructure.Cache
 {
   public abstract class BaseEventStoreCache<TKey, TCacheItem> : IDisposable, IEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
-    private readonly IConnectableObservable<IConnected<IEventStoreConnection>> _connectionChanged;
     protected readonly IEventStoreCacheConfiguration<TKey, TCacheItem> _eventStoreCacheConfiguration;
     private readonly IEventTypeProvider<TKey, TCacheItem> _eventTypeProvider;
     private readonly ILogger _logger;
 
     private CompositeDisposable _cleanup { get; }
 
-    protected readonly SerialDisposable _eventsConnection = new SerialDisposable();
-    private readonly SerialDisposable _eventsSubscription = new SerialDisposable();
+    protected readonly SerialDisposable _eventStreamConnectionDisposable = new SerialDisposable();
+    private readonly SerialDisposable _eventStoreConnectionDisposable = new SerialDisposable();
 
     protected SourceCache<TCacheItem, TKey> Cache { get; } = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
-    protected BehaviorSubject<bool> _connectionStatus { get; }
-
+    protected BehaviorSubject<bool> _connectionStatusSubject { get; }
     protected BehaviorSubject<bool> IsStaleSubject { get; }
     protected BehaviorSubject<bool> IsCaughtUpSubject { get; }
 
@@ -43,29 +42,31 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       }
     }
 
+    public TCacheItem GetCurrent(TKey key)
+    {
+      return Cache.Items.FirstOrDefault(item => item.EntityId.Equals(key));
+    }
+
     public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       IEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
       ILogger logger = null)
     {
-
+  
       _logger = logger ?? new DummyLogger();
       _eventStoreCacheConfiguration = cacheConfiguration;
       _eventTypeProvider = eventTypeProvider;
 
-      _cleanup = new CompositeDisposable(_eventsConnection, _eventsSubscription);
+      _cleanup = new CompositeDisposable(_eventStreamConnectionDisposable, _eventStoreConnectionDisposable);
 
-      _connectionStatus = new BehaviorSubject<bool>(false);
+      _connectionStatusSubject = new BehaviorSubject<bool>(false);
 
-      _connectionChanged = connectionMonitor.GetEventStoreConnectedStream().Publish();
-
+      IsCaughtUpSubject = new BehaviorSubject<bool>(false);
       IsStaleSubject = new BehaviorSubject<bool>(true);
 
-      _cleanup.Add(_connectionChanged.Connect());
-
-      _cleanup.Add(_connectionChanged.Subscribe(connectionChanged =>
+      _eventStoreConnectionDisposable.Disposable = connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
       {
-        _connectionStatus.OnNext(connectionChanged.IsConnected);
+        _connectionStatusSubject.OnNext(connectionChanged.IsConnected);
 
         if (connectionChanged.IsConnected)
         {
@@ -78,7 +79,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
             IsStaleSubject.OnNext(true);
           }
         }
-      }));
+      });
+
     }
 
     public IObservableCache<TCacheItem, TKey> AsObservableCache()
@@ -98,7 +100,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     protected abstract void OnInitialize(IEventStoreConnection connection);
 
-    protected void UpdateCacheState(RecordedEvent recordedEvent, SourceCache<TCacheItem, TKey> specificCache=null)
+    protected void UpdateCacheState(RecordedEvent recordedEvent, SourceCache<TCacheItem, TKey> specificCache = null)
     {
 
       var cache = specificCache ?? Cache;
@@ -130,7 +132,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
         entity = new TCacheItem();
       }
 
-      entity.ApplyEvent(@event, false);
+      entity.ApplyEvent(@event, false, _eventStoreCacheConfiguration.KeepAppliedEventsOnAggregate);
 
       cache.AddOrUpdate(entity);
 

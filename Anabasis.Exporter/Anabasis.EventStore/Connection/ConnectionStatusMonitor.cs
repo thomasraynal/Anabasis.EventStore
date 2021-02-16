@@ -11,7 +11,6 @@ namespace Anabasis.EventStore
   public class ConnectionStatusMonitor : IConnectionStatusMonitor
   {
     private readonly IConnectableObservable<ConnectionInfo> _connectionInfoChanged;
-    private readonly IDisposable _connection;
     private readonly IEventStoreConnection _eventStoreConnection;
     private readonly Microsoft.Extensions.Logging.ILogger _logger;
     private readonly BehaviorSubject<bool> _isConnected;
@@ -29,13 +28,12 @@ namespace Anabasis.EventStore
 
       _logger = logger ?? new DummyLogger();
 
-      _isConnected = new BehaviorSubject<bool>(false);
+      _eventStoreConnection = connection;
 
-      connection.ConnectAsync().Wait();
+      _isConnected = new BehaviorSubject<bool>(false);
 
       var connected = Observable.FromEventPattern<ClientConnectionEventArgs>(h => connection.Connected += h, h => connection.Connected -= h).Select(_ =>
       {
-
         return ConnectionStatus.Connected;
       });
 
@@ -78,26 +76,25 @@ namespace Anabasis.EventStore
                                          })
                                          .Replay(1);
 
-      _connection = _connectionInfoChanged.Connect();
+      _connectionInfoChanged.Connect();
 
-      _eventStoreConnection = connection;
+      _eventStoreConnection.ConnectAsync().Wait();
 
     }
 
     public void Dispose()
     {
-      _connection.Dispose();
     }
 
-    public IObservable<IConnected<IEventStoreConnection>> GetEventStoreConnectedStream()
+    public IObservable<IConnected<IEventStoreConnection>> GetEvenStoreConnectionStatus()
     {
       return _connectionInfoChanged
-                    .Where(connectioInfo => connectioInfo.Status == ConnectionStatus.Connected || connectioInfo.Status == ConnectionStatus.Disconnected)
-                    .Select(connectioInfo =>
+                    .Where(connectionInfo => connectionInfo.Status == ConnectionStatus.Connected || connectionInfo.Status == ConnectionStatus.Disconnected)
+                    .Select(connectionInfo =>
                     {
-                      return connectioInfo.Status == ConnectionStatus.Connected ? Connected.Yes(_eventStoreConnection) : Connected.No<IEventStoreConnection>();
-
+                      return connectionInfo.Status == ConnectionStatus.Connected ? Connected.Yes(_eventStoreConnection) : Connected.No<IEventStoreConnection>();
                     });
+                    
     }
 
     private ConnectionInfo UpdateConnectionInfo(ConnectionInfo previousConnectionInfo, ConnectionStatus connectionStatus)

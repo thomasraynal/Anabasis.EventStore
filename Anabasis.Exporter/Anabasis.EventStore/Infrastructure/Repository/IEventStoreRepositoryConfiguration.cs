@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
@@ -9,6 +9,5 @@ namespace Anabasis.EventStore
         int WritePageSize { get; set; }
         int ReadPageSize { get; set; }
         ISerializer Serializer { get; set; }
-        IRepositoryEventCache<TKey> RepositoryEventCache { get; set; }
     }
 }

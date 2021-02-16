@@ -10,5 +10,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     public string StreamId { get; set; }
     public ISerializer Serializer { get; set; }
     public UserCredentials UserCredentials { get; set; }
+
+    public bool KeepAppliedEventsOnAggregate { get; set; } = false;
   }
 }

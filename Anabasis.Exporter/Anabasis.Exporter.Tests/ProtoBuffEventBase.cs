@@ -33,7 +33,7 @@ namespace Anabasis.Tests.Demo
             entity.EntityId = EntityId;
         }
 
-        public virtual string ToStreamId()
+        public virtual string GetStreamName()
         {
             return EntityId.ToString();
         }

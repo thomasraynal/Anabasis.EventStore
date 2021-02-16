@@ -28,11 +28,11 @@ namespace Anabasis.EventStore.Infrastructure
 
       IsCaughtUpSubject.OnNext(true);
 
-      _eventsConnection.Disposable = ConnectToEventStream(connection)
-                                      .Where(ev => CanApply(ev.EventType))
-                                      .Subscribe(evt =>
+      _eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
+                                      .Where(@event => CanApply(@event.EventType))
+                                      .Subscribe(@event =>
                                       {
-                                        UpdateCacheState(evt);
+                                        UpdateCacheState(@event);
                                       });
     }
 
