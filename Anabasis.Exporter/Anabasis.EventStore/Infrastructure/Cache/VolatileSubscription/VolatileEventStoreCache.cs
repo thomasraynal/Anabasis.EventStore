@@ -19,6 +19,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       ILogger logger = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, logger)
     {
       _volatileEventStoreCacheConfiguration = volatileEventStoreCacheConfiguration;
+
+      Run();
     }
 
     protected override void OnInitialize(IEventStoreConnection connection)
@@ -28,13 +30,13 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
       IsCaughtUpSubject.OnNext(true);
 
-      _eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
-                                      .Where(ev => CanApply(ev.EventType))
-                                      .Subscribe(evt =>
-                                      {
-                                        UpdateCacheState(evt);
+      //_eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
+      //                                .Where(ev => CanApply(ev.EventType))
+      //                                .Subscribe(evt =>
+      //                                {
+      //                                  UpdateCacheState(evt);
 
-                                      });
+      //                                });
     }
 
     private IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)

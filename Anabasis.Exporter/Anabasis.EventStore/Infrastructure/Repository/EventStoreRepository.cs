@@ -36,7 +36,7 @@ namespace Anabasis.EventStore
       _eventStoreConnection = eventStoreConnection;
       _eventTypeProvider = eventTypeProvider;
 
-      _cleanup = connectionMonitor.IsConnected
+      _cleanup = connectionMonitor.OnConnected
             .Subscribe( isConnected =>
             {
               _isConnected = isConnected;
@@ -102,13 +102,11 @@ namespace Anabasis.EventStore
 
       var streamName = aggregate.GetStreamName();
 
-      var pendingEvents = aggregate.GetPendingEvents();
-
       var afterApplyAggregateVersion = aggregate.Version;
 
       var commitHeaders = CreateCommitHeaders(aggregate, extraHeaders);
 
-      var eventsToSave = pendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders)).ToArray();
+      var eventsToSave = aggregate.PendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders)).ToArray();
 
       await SaveEventBatch(streamName, afterApplyAggregateVersion, eventsToSave);
 

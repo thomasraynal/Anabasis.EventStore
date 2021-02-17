@@ -1,5 +1,4 @@
 using System;
-using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -14,37 +13,48 @@ namespace Anabasis.EventStore.Infrastructure.Cache
   {
     protected readonly IEventStoreCacheConfiguration<TKey, TCacheItem> _eventStoreCacheConfiguration;
     private readonly IEventTypeProvider<TKey, TCacheItem> _eventTypeProvider;
+    private readonly IConnectionStatusMonitor _connectionMonitor;
     private readonly ILogger _logger;
 
-    private CompositeDisposable _cleanup { get; }
-
-    protected readonly SerialDisposable _eventStreamConnectionDisposable = new SerialDisposable();
-    private readonly SerialDisposable _eventStoreConnectionDisposable = new SerialDisposable();
+    private IDisposable _eventStoreConnectionStatus;
 
     protected SourceCache<TCacheItem, TKey> Cache { get; } = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
     protected BehaviorSubject<bool> _connectionStatusSubject { get; }
     protected BehaviorSubject<bool> IsStaleSubject { get; }
     protected BehaviorSubject<bool> IsCaughtUpSubject { get; }
 
-    public IObservable<bool> IsStale
+    public IObservable<bool> OnStale => IsStaleSubject.AsObservable();
+
+    public IObservable<bool> OnCaughtUp => IsCaughtUpSubject.AsObservable();
+
+    public bool IsStale
     {
       get
       {
-        return IsStaleSubject.AsObservable();
+        return IsStaleSubject.Value;
       }
     }
 
-    public IObservable<bool> IsCaughtUp
+    public bool IsCaughtUp
     {
       get
       {
-        return IsCaughtUpSubject.AsObservable();
+        return IsCaughtUpSubject.Value;
       }
     }
+
+    public bool IsConnected => _connectionMonitor.IsConnected;
+
+    public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
     public TCacheItem GetCurrent(TKey key)
     {
       return Cache.Items.FirstOrDefault(item => item.EntityId.Equals(key));
+    }
+
+    public TCacheItem[] GetCurrents()
+    {
+      return Cache.Items.ToArray();
     }
 
     public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
@@ -52,19 +62,22 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
       ILogger logger = null)
     {
-  
+
       _logger = logger ?? new DummyLogger();
       _eventStoreCacheConfiguration = cacheConfiguration;
       _eventTypeProvider = eventTypeProvider;
-
-      _cleanup = new CompositeDisposable(_eventStreamConnectionDisposable, _eventStoreConnectionDisposable);
+      _connectionMonitor = connectionMonitor;
 
       _connectionStatusSubject = new BehaviorSubject<bool>(false);
 
       IsCaughtUpSubject = new BehaviorSubject<bool>(false);
       IsStaleSubject = new BehaviorSubject<bool>(true);
 
-      _eventStoreConnectionDisposable.Disposable = connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
+    }
+
+    protected void Run()
+    {
+      _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
       {
         _connectionStatusSubject.OnNext(connectionChanged.IsConnected);
 
@@ -74,13 +87,17 @@ namespace Anabasis.EventStore.Infrastructure.Cache
         }
         else
         {
-          if (!IsStaleSubject.Value)
+          if (!IsStale)
           {
             IsStaleSubject.OnNext(true);
           }
+
+          if (IsCaughtUp)
+          {
+            IsCaughtUpSubject.OnNext(false);
+          }
         }
       });
-
     }
 
     public IObservableCache<TCacheItem, TKey> AsObservableCache()
@@ -90,7 +107,13 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     public virtual void Dispose()
     {
-      _cleanup.Dispose();
+
+      DisposeInternal();
+
+      _eventStoreConnectionStatus.Dispose();
+
+      IsCaughtUpSubject.Dispose();
+      IsStaleSubject.Dispose();
     }
 
     protected bool CanApply(string eventType)
@@ -137,6 +160,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       cache.AddOrUpdate(entity);
 
     }
+
+    protected virtual void DisposeInternal() { }
 
   }
 }

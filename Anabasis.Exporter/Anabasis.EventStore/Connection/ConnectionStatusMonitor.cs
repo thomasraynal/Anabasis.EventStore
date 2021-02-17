@@ -12,16 +12,22 @@ namespace Anabasis.EventStore
   {
     private readonly IConnectableObservable<ConnectionInfo> _connectionInfoChanged;
     private readonly IEventStoreConnection _eventStoreConnection;
+    private readonly Subject<ConnectionStatus> _forceConnectionStatus;
     private readonly Microsoft.Extensions.Logging.ILogger _logger;
     private readonly BehaviorSubject<bool> _isConnected;
-
-    public IObservable<bool> IsConnected
+    private readonly IDisposable _cleanUp;
+    public bool IsConnected
     {
       get
       {
-        return _isConnected.AsObservable();
+        return _isConnected.Value;
       }
     }
+
+    public ConnectionInfo ConnectionInfo { get; private set; }
+
+    public IObservable<ConnectionInfo> OnConnectionChanged => _connectionInfoChanged.AsObservable();
+    public IObservable<bool> OnConnected => _isConnected.AsObservable();
 
     public ConnectionStatusMonitor(IEventStoreConnection connection, Microsoft.Extensions.Logging.ILogger logger = null)
     {
@@ -29,6 +35,8 @@ namespace Anabasis.EventStore
       _logger = logger ?? new DummyLogger();
 
       _eventStoreConnection = connection;
+
+      _forceConnectionStatus = new Subject<ConnectionStatus>();
 
       _isConnected = new BehaviorSubject<bool>(false);
 
@@ -65,18 +73,20 @@ namespace Anabasis.EventStore
          return ConnectionStatus.AuthenticationFailed;
        });
 
-      _connectionInfoChanged = Observable.Merge(connected, disconnected, reconnecting, closed, errorOccurred, authenticationFailed)
+      var forceConnectionStatus = 
+
+      _connectionInfoChanged = Observable.Merge(connected, disconnected, reconnecting, closed, errorOccurred, authenticationFailed, _forceConnectionStatus)
                                          .Scan(ConnectionInfo.Initial, UpdateConnectionInfo)
                                          .StartWith(ConnectionInfo.Initial)
                                          .Do(connectionInfo =>
                                          {
-                                           _logger.LogWarning($"C{connectionInfo}");
+                                           ConnectionInfo = connectionInfo;
+                                           _logger.LogInformation($"{connectionInfo}");
                                            _isConnected.OnNext(connectionInfo.Status == ConnectionStatus.Connected);
-
                                          })
                                          .Replay(1);
 
-      _connectionInfoChanged.Connect();
+      _cleanUp = _connectionInfoChanged.Connect();
 
       _eventStoreConnection.ConnectAsync().Wait();
 
@@ -84,6 +94,13 @@ namespace Anabasis.EventStore
 
     public void Dispose()
     {
+      _cleanUp.Dispose();
+    }
+
+    //for testing purpose
+    public void ForceConnectionStatus(bool isConnected)
+    {
+      _forceConnectionStatus.OnNext(isConnected ? ConnectionStatus.Connected : ConnectionStatus.Disconnected);
     }
 
     public IObservable<IConnected<IEventStoreConnection>> GetEvenStoreConnectionStatus()

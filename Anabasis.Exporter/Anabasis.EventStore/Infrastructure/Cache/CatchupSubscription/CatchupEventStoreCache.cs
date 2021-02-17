@@ -16,12 +16,19 @@ namespace Anabasis.EventStore
   {
 
     private readonly SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
+    private readonly CatchupEventStoreCacheConfiguration<TKey, TCacheItem> _catchupEventStoreCacheConfiguration;
+
+    private IDisposable _eventStreamConnectionDisposable;
 
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
-      IEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
+      CatchupEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
       ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
     {
+      _catchupEventStoreCacheConfiguration = cacheConfiguration;
+
+      //expose it
+      Run();
     }
 
     protected override void OnInitialize(IEventStoreConnection connection)
@@ -31,16 +38,17 @@ namespace Anabasis.EventStore
 
       IsCaughtUpSubject.OnNext(false);
 
-      _eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
+      if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
+
+      _eventStreamConnectionDisposable = ConnectToEventStream(connection)
                                       .Where(@event => CanApply(@event.EventType))
                                       .Subscribe(@event =>
                                       {
-                                        var cache = IsCaughtUpSubject.Value ? Cache : _caughtingUpCache;
+                                        var cache = IsCaughtUp ? Cache : _caughtingUpCache;
 
                                         UpdateCacheState(@event, cache);
 
                                       });
-
 
     }
 
@@ -80,11 +88,16 @@ namespace Anabasis.EventStore
 
         }
 
-        var subscription = connection.SubscribeToAllFrom(null, CatchUpSubscriptionSettings.Default, onEvent, onCaughtUp, userCredentials: _eventStoreCacheConfiguration.UserCredentials);
+        var subscription = connection.SubscribeToAllFrom(Position.Start, _catchupEventStoreCacheConfiguration.CatchUpSubscriptionSettings, onEvent, onCaughtUp, userCredentials: _eventStoreCacheConfiguration.UserCredentials);
 
         return Disposable.Create(() => subscription.Stop());
 
       });
+    }
+
+    protected override void DisposeInternal()
+    {
+      _eventStreamConnectionDisposable.Dispose();
     }
   }
 }

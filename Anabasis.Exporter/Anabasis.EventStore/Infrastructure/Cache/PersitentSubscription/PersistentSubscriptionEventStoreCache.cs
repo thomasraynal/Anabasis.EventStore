@@ -19,6 +19,8 @@ namespace Anabasis.EventStore.Infrastructure
       ILogger logger = null) : base(connectionMonitor, persistentSubscriptionCacheConfiguration, eventTypeProvider, logger)
     {
       _persistentSubscriptionCacheConfiguration = persistentSubscriptionCacheConfiguration;
+
+      Run();
     }
 
     protected override void OnInitialize(IEventStoreConnection connection)
@@ -28,12 +30,12 @@ namespace Anabasis.EventStore.Infrastructure
 
       IsCaughtUpSubject.OnNext(true);
 
-      _eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
-                                      .Where(@event => CanApply(@event.EventType))
-                                      .Subscribe(@event =>
-                                      {
-                                        UpdateCacheState(@event);
-                                      });
+      //_eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
+      //                                .Where(@event => CanApply(@event.EventType))
+      //                                .Subscribe(@event =>
+      //                                {
+      //                                  UpdateCacheState(@event);
+      //                                });
     }
 
     private IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)

@@ -26,7 +26,7 @@ namespace Anabasis.Tests.Demo
             _cache = cache;
             _logger = logger;
 
-            var isConnected = monitor.IsConnected
+            var isConnected = monitor.OnConnected
                 .ObserveOn(Scheduler.Default)
                 .Subscribe(obs =>
             {
