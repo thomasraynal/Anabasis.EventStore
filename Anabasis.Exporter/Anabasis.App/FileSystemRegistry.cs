@@ -15,7 +15,6 @@ namespace Anabasis.App
       {
         scanner.AssembliesAndExecutablesFromApplicationBaseDirectory();
         scanner.AddAllTypesOf<IActor>();
-        scanner.WithDefaultConventions();
       });
 
       var configuration = JsonConvert.DeserializeObject<FileSystemDocumentRepositoryConfiguration>(File.ReadAllText("ProdConfig.json"));
