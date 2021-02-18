@@ -23,7 +23,12 @@ namespace Anabasis.EventStore.Infrastructure
       Run();
     }
 
-    protected override void OnInitialize(IEventStoreConnection connection)
+    protected override IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    {
+      throw new NotImplementedException();
+    }
+
+    protected override void OnInitialize(bool isConnected)
     {
 
       IsStaleSubject.OnNext(true);
@@ -38,47 +43,52 @@ namespace Anabasis.EventStore.Infrastructure
       //                                });
     }
 
-    private IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    protected override void OnRecordedEvent(RecordedEvent @event)
     {
-
-      return Observable.Create<RecordedEvent>(async obs =>
-      {
-
-        Task onEvent(EventStorePersistentSubscriptionBase _, ResolvedEvent e)
-        {
-
-          obs.OnNext(e.Event);
-
-          return Task.FromResult<int?>(null);
-
-        }
-
-        void onSubscriptionDropped(EventStorePersistentSubscriptionBase _, SubscriptionDropReason subscriptionDropReason, Exception exception)
-        {
-
-        }
-
-        await connection.CreatePersistentSubscriptionAsync(
-          _persistentSubscriptionCacheConfiguration.StreamId,
-          _persistentSubscriptionCacheConfiguration.GroupId,
-          _persistentSubscriptionCacheConfiguration.PersistentSubscriptionSettings,
-          _persistentSubscriptionCacheConfiguration.UserCredentials
-      );
-
-        var subscription = await connection.ConnectToPersistentSubscriptionAsync(
-          _persistentSubscriptionCacheConfiguration.StreamId,
-          _persistentSubscriptionCacheConfiguration.GroupId,
-          onEvent,
-          onSubscriptionDropped,
-          _persistentSubscriptionCacheConfiguration.UserCredentials,
-          autoAck: true);
-
-        return Disposable.Create(() =>
-        {
-          subscription.Stop(TimeSpan.FromSeconds(10));
-        });
-
-      });
+      throw new NotImplementedException();
     }
+
+    //private IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    //{
+
+    //  return Observable.Create<RecordedEvent>(async obs =>
+    //  {
+
+    //    Task onEvent(EventStorePersistentSubscriptionBase _, ResolvedEvent e)
+    //    {
+
+    //      obs.OnNext(e.Event);
+
+    //      return Task.FromResult<int?>(null);
+
+    //    }
+
+    //    void onSubscriptionDropped(EventStorePersistentSubscriptionBase _, SubscriptionDropReason subscriptionDropReason, Exception exception)
+    //    {
+
+    //    }
+
+    //    await connection.CreatePersistentSubscriptionAsync(
+    //      _persistentSubscriptionCacheConfiguration.StreamId,
+    //      _persistentSubscriptionCacheConfiguration.GroupId,
+    //      _persistentSubscriptionCacheConfiguration.PersistentSubscriptionSettings,
+    //      _persistentSubscriptionCacheConfiguration.UserCredentials
+    //  );
+
+    //    var subscription = await connection.ConnectToPersistentSubscriptionAsync(
+    //      _persistentSubscriptionCacheConfiguration.StreamId,
+    //      _persistentSubscriptionCacheConfiguration.GroupId,
+    //      onEvent,
+    //      onSubscriptionDropped,
+    //      _persistentSubscriptionCacheConfiguration.UserCredentials,
+    //      autoAck: true);
+
+    //    return Disposable.Create(() =>
+    //    {
+    //      subscription.Stop(TimeSpan.FromSeconds(10));
+    //    });
+
+    //  });
+    //}
   }
 }

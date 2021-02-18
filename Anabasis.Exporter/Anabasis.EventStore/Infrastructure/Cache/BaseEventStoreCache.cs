@@ -17,6 +17,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     private readonly ILogger _logger;
 
     private IDisposable _eventStoreConnectionStatus;
+    private IDisposable _eventStreamConnectionDisposable;
 
     protected SourceCache<TCacheItem, TKey> Cache { get; } = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
     protected BehaviorSubject<bool> _connectionStatusSubject { get; }
@@ -75,15 +76,30 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     }
 
-    protected void Run()
+    public void Run()
     {
+
+      
+
       _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
       {
         _connectionStatusSubject.OnNext(connectionChanged.IsConnected);
 
         if (connectionChanged.IsConnected)
         {
-          OnInitialize(connectionChanged.Value);
+
+          OnInitialize(connectionChanged.IsConnected);
+
+          if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
+
+          _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
+              .Where(@event => CanApply(@event.EventType))
+              .Subscribe(@event =>
+              {
+                OnRecordedEvent(@event);
+
+              });
+
         }
         else
         {
@@ -100,28 +116,35 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       });
     }
 
+    protected abstract IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection);
+    protected abstract void OnRecordedEvent(RecordedEvent @event);
+
     public IObservableCache<TCacheItem, TKey> AsObservableCache()
     {
       return Cache.AsObservableCache();
     }
 
-    public virtual void Dispose()
+    public void Dispose()
     {
 
-      DisposeInternal();
+      OnDispose();
 
       _eventStoreConnectionStatus.Dispose();
+      _connectionStatusSubject.Dispose();
 
       IsCaughtUpSubject.Dispose();
       IsStaleSubject.Dispose();
+
+      Cache.Dispose();
     }
+
 
     protected bool CanApply(string eventType)
     {
       return null != _eventTypeProvider.GetEventTypeByName(eventType);
     }
 
-    protected abstract void OnInitialize(IEventStoreConnection connection);
+    protected abstract void OnInitialize(bool isConnected);
 
     protected void UpdateCacheState(RecordedEvent recordedEvent, SourceCache<TCacheItem, TKey> specificCache = null)
     {
@@ -161,7 +184,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     }
 
-    protected virtual void DisposeInternal() { }
+    protected virtual void OnDispose() { }
 
   }
 }

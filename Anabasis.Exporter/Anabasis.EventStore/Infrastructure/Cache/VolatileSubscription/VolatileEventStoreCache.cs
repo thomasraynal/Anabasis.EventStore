@@ -23,7 +23,12 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       Run();
     }
 
-    protected override void OnInitialize(IEventStoreConnection connection)
+    protected override IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    {
+      throw new NotImplementedException();
+    }
+
+    protected override void OnInitialize(bool isConnected)
     {
 
       IsStaleSubject.OnNext(true);
@@ -39,31 +44,36 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       //                                });
     }
 
-    private IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    protected override void OnRecordedEvent(RecordedEvent @event)
     {
-
-      return Observable.Create<RecordedEvent> (async obs =>
-      {
-
-        Task onEvent(EventStoreSubscription _, ResolvedEvent e)
-        {
-
-          obs.OnNext(e.Event);
-
-          return Task.CompletedTask;
-        }
-
-        var subscription = await connection.SubscribeToStreamAsync(_volatileEventStoreCacheConfiguration.StreamId, true, onEvent);
-
-        return Disposable.Create(() =>
-        {
-
-          subscription.Unsubscribe();
-          subscription.Dispose();
-
-        });
-
-      });
+      throw new NotImplementedException();
     }
+
+    //protected override IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    //{
+
+    //  return Observable.Create<RecordedEvent> (async obs =>
+    //  {
+
+    //    Task onEvent(EventStoreSubscription _, ResolvedEvent e)
+    //    {
+
+    //      obs.OnNext(e.Event);
+
+    //      return Task.CompletedTask;
+    //    }
+
+    //    var subscription = await connection.SubscribeToStreamAsync(_volatileEventStoreCacheConfiguration.StreamId, true, onEvent);
+
+    //    return Disposable.Create(() =>
+    //    {
+
+    //      subscription.Unsubscribe();
+    //      subscription.Dispose();
+
+    //    });
+
+    //  });
+    //}
   }
 }

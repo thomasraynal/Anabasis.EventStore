@@ -36,7 +36,7 @@ namespace Anabasis.Tests
         .RunInMemory()
         .RunProjections(ProjectionType.All)
         .StartStandardProjections()
-        .WithWorkerThreads(2)
+        .WithWorkerThreads(1)
         .Build();
 
       await _clusterVNode.StartAsync(true);
@@ -78,6 +78,8 @@ namespace Anabasis.Tests
         cacheConfiguration,
         new DefaultEventTypeProvider<Guid, SomeDataAggregate>((_) => typeof(SomeData)),
         _debugLogger);
+
+      catchUpCache.Run();
 
       var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 

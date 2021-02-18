@@ -2,7 +2,6 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using EventStore.ClientAPI;
-using System.Linq;
 using System.Threading.Tasks;
 using DynamicData;
 using Anabasis.EventStore.Infrastructure;
@@ -11,14 +10,12 @@ using Anabasis.EventStore.Infrastructure.Cache;
 
 namespace Anabasis.EventStore
 {
-
+  //todo: handle stale status
   public class CatchupEventStoreCache<TKey, TCacheItem> : BaseEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
 
     private readonly SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
     private readonly CatchupEventStoreCacheConfiguration<TKey, TCacheItem> _catchupEventStoreCacheConfiguration;
-
-    private IDisposable _eventStreamConnectionDisposable;
 
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       CatchupEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
@@ -26,33 +23,35 @@ namespace Anabasis.EventStore
       ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
     {
       _catchupEventStoreCacheConfiguration = cacheConfiguration;
-
-      //expose it
-      Run();
     }
 
-    protected override void OnInitialize(IEventStoreConnection connection)
+    protected override void OnDispose()
+    {
+      _caughtingUpCache.Dispose();
+    }
+
+    protected override void OnInitialize(bool isConnected)
     {
 
-      IsStaleSubject.OnNext(true);
+      if (!isConnected)
+      {
+        IsStaleSubject.OnNext(true);
 
-      IsCaughtUpSubject.OnNext(false);
-
-      if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
-
-      _eventStreamConnectionDisposable = ConnectToEventStream(connection)
-                                      .Where(@event => CanApply(@event.EventType))
-                                      .Subscribe(@event =>
-                                      {
-                                        var cache = IsCaughtUp ? Cache : _caughtingUpCache;
-
-                                        UpdateCacheState(@event, cache);
-
-                                      });
+        IsCaughtUpSubject.OnNext(false);
+      }
 
     }
 
-    private IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    protected override void OnRecordedEvent(RecordedEvent @event)
+    {
+
+      var cache = IsCaughtUp ? Cache : _caughtingUpCache;
+
+      UpdateCacheState(@event, cache);
+
+    }
+
+    protected override IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
 
       return Observable.Create<RecordedEvent>(obs =>
@@ -90,14 +89,14 @@ namespace Anabasis.EventStore
 
         var subscription = connection.SubscribeToAllFrom(Position.Start, _catchupEventStoreCacheConfiguration.CatchUpSubscriptionSettings, onEvent, onCaughtUp, userCredentials: _eventStoreCacheConfiguration.UserCredentials);
 
-        return Disposable.Create(() => subscription.Stop());
+        return Disposable.Create(() =>
+        {
+          subscription.Stop();
+        });
 
       });
     }
 
-    protected override void DisposeInternal()
-    {
-      _eventStreamConnectionDisposable.Dispose();
-    }
+
   }
 }
