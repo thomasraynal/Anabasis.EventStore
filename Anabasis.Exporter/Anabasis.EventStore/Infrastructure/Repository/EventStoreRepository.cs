@@ -1,13 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using Microsoft.Extensions.Logging;
 using MoreLinq;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using Anabasis.EventStore.Infrastructure;
 
@@ -42,7 +39,6 @@ namespace Anabasis.EventStore
               _isConnected = isConnected;
 
             });
-
     }
 
     public async Task<TAggregate> GetById<TAggregate>(TKey id, bool loadEvents = false) where TAggregate : IAggregate<TKey>, new()

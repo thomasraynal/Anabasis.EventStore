@@ -12,5 +12,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     public UserCredentials UserCredentials { get; set; }
 
     public bool KeepAppliedEventsOnAggregate { get; set; } = false;
+
+    public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.MaxValue;
   }
 }

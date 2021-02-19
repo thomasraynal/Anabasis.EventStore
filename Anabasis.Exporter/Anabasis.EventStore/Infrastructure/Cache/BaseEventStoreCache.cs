@@ -18,14 +18,20 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     private IDisposable _eventStoreConnectionStatus;
     private IDisposable _eventStreamConnectionDisposable;
+    private IDisposable _isStaleDisposable;
+
+    private DateTime _lastProcessedEventTimestamp;
 
     protected SourceCache<TCacheItem, TKey> Cache { get; } = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
+
     protected BehaviorSubject<bool> _connectionStatusSubject { get; }
     protected BehaviorSubject<bool> IsStaleSubject { get; }
+
+
+
     protected BehaviorSubject<bool> IsCaughtUpSubject { get; }
 
     public IObservable<bool> OnStale => IsStaleSubject.AsObservable();
-
     public IObservable<bool> OnCaughtUp => IsCaughtUpSubject.AsObservable();
 
     public bool IsStale
@@ -65,21 +71,31 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     {
 
       _logger = logger ?? new DummyLogger();
+
       _eventStoreCacheConfiguration = cacheConfiguration;
       _eventTypeProvider = eventTypeProvider;
       _connectionMonitor = connectionMonitor;
+
+      _lastProcessedEventTimestamp = DateTime.MinValue;
 
       _connectionStatusSubject = new BehaviorSubject<bool>(false);
 
       IsCaughtUpSubject = new BehaviorSubject<bool>(false);
       IsStaleSubject = new BehaviorSubject<bool>(true);
 
+       _isStaleDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ =>
+      {
+        if (DateTime.UtcNow > _lastProcessedEventTimestamp.Add(_eventStoreCacheConfiguration.IsStaleTimeSpan))
+        {
+          IsStaleSubject.OnNext(true);
+        }
+
+      });
+
     }
 
     public void Run()
     {
-
-      
 
       _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
       {
@@ -93,20 +109,19 @@ namespace Anabasis.EventStore.Infrastructure.Cache
           if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
 
           _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
-              //.Where(@event => CanApply(@event.Event.EventType))
               .Subscribe(@event =>
               {
                 OnResolvedEvent(@event);
+
+                if(IsStale) IsStaleSubject.OnNext(false);
+
+                _lastProcessedEventTimestamp = DateTime.UtcNow;
 
               });
 
         }
         else
         {
-          if (!IsStale)
-          {
-            IsStaleSubject.OnNext(true);
-          }
 
           if (IsCaughtUp)
           {
@@ -129,20 +144,16 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
       OnDispose();
 
+      _isStaleDisposable.Dispose();
       _eventStoreConnectionStatus.Dispose();
       _connectionStatusSubject.Dispose();
+      _isStaleDisposable.Dispose();
 
       IsCaughtUpSubject.Dispose();
       IsStaleSubject.Dispose();
 
       Cache.Dispose();
     }
-
-
-    //protected bool CanApply(string eventType)
-    //{
-    //  return null != _eventTypeProvider.GetEventTypeByName(eventType);
-    //}
 
     protected abstract void OnInitialize(bool isConnected);
 

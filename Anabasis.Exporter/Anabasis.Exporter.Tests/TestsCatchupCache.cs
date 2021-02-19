@@ -74,7 +74,8 @@ namespace Anabasis.Tests
       var cacheConfiguration = new CatchupEventStoreCacheConfiguration<Guid, SomeDataAggregate>()
       {
         UserCredentials = _userCredentials,
-        KeepAppliedEventsOnAggregate = true
+        KeepAppliedEventsOnAggregate = true,
+        IsStaleTimeSpan = TimeSpan.FromSeconds(2)
       };
 
       var catchUpCache = new CatchupEventStoreCache<Guid, SomeDataAggregate>(
@@ -105,7 +106,7 @@ namespace Anabasis.Tests
       await Task.Delay(500);
 
       Assert.IsTrue(catchupEventStoreCacheOne.IsCaughtUp);
-      Assert.IsFalse(catchupEventStoreCacheOne.IsStale);
+      Assert.IsTrue(catchupEventStoreCacheOne.IsStale);
       Assert.IsTrue(catchupEventStoreCacheOne.IsConnected);
 
       var (_, eventStoreRepository) = CreateEventRepository();
@@ -153,6 +154,12 @@ namespace Anabasis.Tests
       connectionMonitorOne.ForceConnectionStatus(false);
 
       await Task.Delay(500);
+
+      Assert.IsFalse(catchupEventStoreCacheOne.IsCaughtUp);
+      Assert.IsFalse(catchupEventStoreCacheOne.IsStale);
+      Assert.IsFalse(catchupEventStoreCacheOne.IsConnected);
+
+      await Task.Delay(2000);
 
       Assert.IsFalse(catchupEventStoreCacheOne.IsCaughtUp);
       Assert.IsTrue(catchupEventStoreCacheOne.IsStale);

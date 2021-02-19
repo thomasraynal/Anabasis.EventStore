@@ -19,7 +19,6 @@ namespace Anabasis.EventStore
     private readonly SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
     private readonly CatchupEventStoreCacheConfiguration<TKey, TCacheItem> _catchupEventStoreCacheConfiguration;
 
-
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       CatchupEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
@@ -38,8 +37,6 @@ namespace Anabasis.EventStore
 
       if (!isConnected)
       {
-        IsStaleSubject.OnNext(true);
-
         IsCaughtUpSubject.OnNext(false);
       }
 
@@ -82,15 +79,12 @@ namespace Anabasis.EventStore
 
           IsCaughtUpSubject.OnNext(true);
 
-          IsStaleSubject.OnNext(false);
-
         }
 
         var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
 
         var filter = Filter.EventType.Prefix(eventTypeFilter);
 
-        //todo: combine filters
         var subscription = connection.FilteredSubscribeToAllFrom(
           Position.Start,
           filter,

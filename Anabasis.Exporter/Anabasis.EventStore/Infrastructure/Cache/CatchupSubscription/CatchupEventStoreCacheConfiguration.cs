@@ -15,5 +15,7 @@ namespace Anabasis.EventStore
     public bool KeepAppliedEventsOnAggregate { get; set; } = false;
 
     public CatchUpSubscriptionSettings CatchUpSubscriptionSettings { get; set; } = CatchUpSubscriptionSettings.Default;
+
+    public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.MaxValue;
   }
 }

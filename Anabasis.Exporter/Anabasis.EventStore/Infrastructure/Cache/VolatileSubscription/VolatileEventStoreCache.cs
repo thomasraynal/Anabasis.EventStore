@@ -31,8 +31,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     protected override void OnInitialize(bool isConnected)
     {
 
-      IsStaleSubject.OnNext(true);
-
       IsCaughtUpSubject.OnNext(true);
 
       //_eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
