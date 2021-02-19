@@ -18,7 +18,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     private IDisposable _eventStoreConnectionStatus;
     private IDisposable _eventStreamConnectionDisposable;
-    private IDisposable _isStaleDisposable;
+    private readonly IDisposable _isStaleDisposable;
 
     private DateTime _lastProcessedEventTimestamp;
 
@@ -94,9 +94,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     }
 
-    public void Run()
+    protected void Run()
     {
-
       _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
       {
         _connectionStatusSubject.OnNext(connectionChanged.IsConnected);
@@ -113,7 +112,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
               {
                 OnResolvedEvent(@event);
 
-                if(IsStale) IsStaleSubject.OnNext(false);
+                if (IsStale) IsStaleSubject.OnNext(false);
 
                 _lastProcessedEventTimestamp = DateTime.UtcNow;
 
@@ -147,7 +146,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       _isStaleDisposable.Dispose();
       _eventStoreConnectionStatus.Dispose();
       _connectionStatusSubject.Dispose();
-      _isStaleDisposable.Dispose();
 
       IsCaughtUpSubject.Dispose();
       IsStaleSubject.Dispose();
@@ -155,7 +153,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       Cache.Dispose();
     }
 
-    protected abstract void OnInitialize(bool isConnected);
+    protected virtual void OnInitialize(bool isConnected) { }
 
     protected void UpdateCacheState(ResolvedEvent resolvedEvent, SourceCache<TCacheItem, TKey> specificCache = null)
     {

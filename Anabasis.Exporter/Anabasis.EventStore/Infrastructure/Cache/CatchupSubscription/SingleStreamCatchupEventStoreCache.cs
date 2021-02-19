@@ -11,20 +11,23 @@ using System.Linq;
 
 namespace Anabasis.EventStore
 {
+
+  //todo : catchup
   //todo :inherit from catchup
   //todo :handle subscription drop
-  public class CatchupEventStoreCache<TKey, TCacheItem> : BaseEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  //todo : handle checkpoints
+  public class SingleStreamCatchupEventStoreCache<TKey, TCacheItem> : BaseEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
 
     private readonly SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
-    private readonly CatchupEventStoreCacheConfiguration<TKey, TCacheItem> _catchupEventStoreCacheConfiguration;
+    private readonly SingleStreamCatchupEventStoreCacheConfiguration<TKey, TCacheItem> _singleStreamCatchupEventStoreCacheConfiguration;
 
-    public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
-      CatchupEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
+    public SingleStreamCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
+      SingleStreamCatchupEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
       IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
       ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
     {
-      _catchupEventStoreCacheConfiguration = cacheConfiguration;
+      _singleStreamCatchupEventStoreCacheConfiguration = cacheConfiguration;
 
       Run();
     }
@@ -46,7 +49,7 @@ namespace Anabasis.EventStore
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
 
-      return Observable.Create<ResolvedEvent>(obs =>
+      return Observable.Create<ResolvedEvent>( obs =>
       {
 
         Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
@@ -77,10 +80,10 @@ namespace Anabasis.EventStore
 
         var filter = Filter.EventType.Prefix(eventTypeFilter);
 
-        var subscription = connection.FilteredSubscribeToAllFrom(
-          Position.Start,
-          filter,
-          _catchupEventStoreCacheConfiguration.CatchUpSubscriptionFilteredSettings,
+        var subscription =  connection.SubscribeToStreamFrom(
+          _singleStreamCatchupEventStoreCacheConfiguration.StreamId,
+          lastCheckpoint: null,
+          _singleStreamCatchupEventStoreCacheConfiguration.CatchUpSubscriptionSettings,
           onEvent,
           onCaughtUp,
           userCredentials: _eventStoreCacheConfiguration.UserCredentials);

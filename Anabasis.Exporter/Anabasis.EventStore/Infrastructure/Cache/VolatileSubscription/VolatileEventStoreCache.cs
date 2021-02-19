@@ -20,7 +20,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     {
       _volatileEventStoreCacheConfiguration = volatileEventStoreCacheConfiguration;
 
-      Run();
     }
 
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)

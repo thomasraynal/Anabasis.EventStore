@@ -9,8 +9,6 @@ using EventStore.Common.Options;
 using EventStore.Core;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests
@@ -83,8 +81,6 @@ namespace Anabasis.Tests
         cacheConfiguration,
        new DefaultEventTypeProvider<Guid, SomeDataAggregate>(() => new[] { typeof(SomeData) }),
         _debugLogger);
-
-      catchUpCache.Run();
 
       var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
