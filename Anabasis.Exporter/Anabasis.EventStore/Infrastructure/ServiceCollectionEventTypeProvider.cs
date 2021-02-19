@@ -19,6 +19,12 @@ namespace Anabasis.EventStore.Infrastructure
       _serviceProvider = serviceProvider;
     }
 
+    //refacto
+    public Type[] GetAll()
+    {
+      return _serviceProvider.GetServices<IEvent<TKey>>().Select(type => type.GetType()).ToArray();
+    }
+
     public Type GetEventTypeByName(string name)
     {
       return _eventTypeCache.GetOrAdd(name, (key) =>
@@ -44,13 +50,18 @@ namespace Anabasis.EventStore.Infrastructure
       _eventTypeCache = new Dictionary<string, Type>();
       _serviceProvider = serviceProvider;
     }
+    //refacto
+    public Type[] GetAll()
+    {
+      return _serviceProvider.GetServices<IMutable<TKey, TCacheItem>>().Select(type => type.GetType()).ToArray();
+    }
 
     public Type GetEventTypeByName(string name)
     {
       return _eventTypeCache.GetOrAdd(name, (key) =>
       {
         var type = _serviceProvider.GetServices<IMutable<TKey, TCacheItem>>()
-                               .FirstOrDefault(type => type.GetType().Name == name);
+                               .FirstOrDefault(type => type.GetType().FullName == name);
 
         if (null == type) throw new InvalidOperationException($"Event {name} is not registered");
 

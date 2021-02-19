@@ -187,7 +187,7 @@ namespace Anabasis.EventStore
             };
 
       var metadata = _configuration.Serializer.SerializeObject(eventHeaders);
-      var typeName = @event.Name;
+      var typeName = @event.GetType().FullName;
 
       return new EventData(eventId, typeName, true, data, metadata);
     }

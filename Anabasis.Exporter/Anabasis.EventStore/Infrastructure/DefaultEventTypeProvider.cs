@@ -1,6 +1,7 @@
 using Anabasis.Common;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Anabasis.EventStore.Infrastructure
@@ -8,50 +9,65 @@ namespace Anabasis.EventStore.Infrastructure
   public class DefaultEventTypeProvider<TKey> : IEventTypeProvider<TKey>
   {
     private readonly Dictionary<string, Type> _eventTypeCache;
-    private readonly Func<string, Type> _serviceProvider;
 
-    public DefaultEventTypeProvider(Func<string,Type> eventTypeProvider)
+    public DefaultEventTypeProvider(Func<Type[]> eventTypeProvider)
     {
       _eventTypeCache = new Dictionary<string, Type>();
-      _serviceProvider = eventTypeProvider;
+
+      foreach (var @event in eventTypeProvider())
+      {
+        _eventTypeCache.Add(@event.FullName, @event);
+      }
+
+    }
+
+    public Type[] GetAll()
+    {
+      return _eventTypeCache.Values.ToArray();
     }
 
     public Type GetEventTypeByName(string name)
     {
-      return _eventTypeCache.GetOrAdd(name, (key) =>
+
+      if (!_eventTypeCache.ContainsKey(name))
       {
-        var type = _serviceProvider(name);
+        throw new InvalidOperationException($"Event {name} is not registered");
+      }
 
-        if (null == type) throw new InvalidOperationException($"Event {name} is not registered");
+      return _eventTypeCache[name];
 
-        return type.GetType();
-
-      });
     }
   }
 
   public class DefaultEventTypeProvider<TKey, TCacheItem> : IEventTypeProvider<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>
   {
     private readonly Dictionary<string, Type> _eventTypeCache;
-    private readonly Func<string, Type> _serviceProvider;
 
-    public DefaultEventTypeProvider(Func<string, Type> eventTypeProvider)
+    public DefaultEventTypeProvider(Func<Type[]> eventTypeProvider)
     {
       _eventTypeCache = new Dictionary<string, Type>();
-      _serviceProvider = eventTypeProvider;
+
+      foreach (var @event in eventTypeProvider())
+      {
+        _eventTypeCache.Add(@event.FullName, @event);
+      }
+
+    }
+    public Type[] GetAll()
+    {
+      return _eventTypeCache.Values.ToArray();
     }
 
     public Type GetEventTypeByName(string name)
     {
-      return _eventTypeCache.GetOrAdd(name, (key) =>
+
+      if (!_eventTypeCache.ContainsKey(name))
       {
-        var type = _serviceProvider(name);
+        throw new InvalidOperationException($"Event {name} is not registered");
+      }
 
-        if (null == type) throw new InvalidOperationException($"Event {name} is not registered");
+      return _eventTypeCache[name];
 
-        return type;
-
-      });
     }
   }
 }

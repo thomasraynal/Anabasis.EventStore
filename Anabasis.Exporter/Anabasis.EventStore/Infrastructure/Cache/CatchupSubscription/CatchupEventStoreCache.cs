@@ -7,6 +7,8 @@ using DynamicData;
 using Anabasis.EventStore.Infrastructure;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Anabasis.EventStore.Infrastructure.Cache;
+using EventStore.Core.Messages;
+using System.Linq;
 
 namespace Anabasis.EventStore
 {
@@ -16,6 +18,7 @@ namespace Anabasis.EventStore
 
     private readonly SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
     private readonly CatchupEventStoreCacheConfiguration<TKey, TCacheItem> _catchupEventStoreCacheConfiguration;
+
 
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       CatchupEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
@@ -42,7 +45,7 @@ namespace Anabasis.EventStore
 
     }
 
-    protected override void OnRecordedEvent(RecordedEvent @event)
+    protected override void OnResolvedEvent(ResolvedEvent @event)
     {
 
       var cache = IsCaughtUp ? Cache : _caughtingUpCache;
@@ -51,24 +54,20 @@ namespace Anabasis.EventStore
 
     }
 
-    protected override IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
 
-      return Observable.Create<RecordedEvent>(obs =>
+      return Observable.Create<ResolvedEvent>(obs =>
       {
 
-        Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent e)
+        Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
         {
-
-          if (!e.Event.EventType.StartsWith("$"))
-          {
-            obs.OnNext(e.Event);
-          }
+          obs.OnNext(@event);
 
           return Task.CompletedTask;
         }
 
-        void onCaughtUp(EventStoreCatchUpSubscription evt)
+        void onCaughtUp(EventStoreCatchUpSubscription @event)
         {
 
           Cache.Edit(innerCache =>
@@ -87,7 +86,18 @@ namespace Anabasis.EventStore
 
         }
 
-        var subscription = connection.SubscribeToAllFrom(Position.Start, _catchupEventStoreCacheConfiguration.CatchUpSubscriptionSettings, onEvent, onCaughtUp, userCredentials: _eventStoreCacheConfiguration.UserCredentials);
+        var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+
+        var filter = Filter.EventType.Prefix(eventTypeFilter);
+
+        //todo: combine filters
+        var subscription = connection.FilteredSubscribeToAllFrom(
+          Position.Start,
+          filter,
+          CatchUpSubscriptionFilteredSettings.Default,
+          onEvent,
+          onCaughtUp,
+          userCredentials: _eventStoreCacheConfiguration.UserCredentials);
 
         return Disposable.Create(() =>
         {
@@ -96,7 +106,6 @@ namespace Anabasis.EventStore
 
       });
     }
-
 
   }
 }

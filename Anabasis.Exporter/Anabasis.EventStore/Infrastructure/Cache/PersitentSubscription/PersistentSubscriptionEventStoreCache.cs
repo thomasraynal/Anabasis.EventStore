@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Infrastructure
       Run();
     }
 
-    protected override IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
       throw new NotImplementedException();
     }
@@ -43,7 +43,7 @@ namespace Anabasis.EventStore.Infrastructure
       //                                });
     }
 
-    protected override void OnRecordedEvent(RecordedEvent @event)
+    protected override void OnResolvedEvent(ResolvedEvent @event)
     {
       throw new NotImplementedException();
     }

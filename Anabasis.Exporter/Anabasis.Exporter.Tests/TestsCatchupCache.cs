@@ -41,8 +41,12 @@ namespace Anabasis.Tests
 
       await _clusterVNode.StartAsync(true);
 
+    }
 
-
+    [OneTimeTearDown]
+    public async Task TearDown()
+    {
+      await _clusterVNode.StopAsync();
     }
 
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<Guid> eventStoreRepository) CreateEventRepository()
@@ -55,7 +59,7 @@ namespace Anabasis.Tests
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,
-        new DefaultEventTypeProvider<Guid>((_) => typeof(SomeData)),
+        new DefaultEventTypeProvider<Guid>(() => new[] { typeof(SomeData) }),
         _debugLogger);
 
       return (connectionMonitor, eventStoreRepository);
@@ -76,7 +80,7 @@ namespace Anabasis.Tests
       var catchUpCache = new CatchupEventStoreCache<Guid, SomeDataAggregate>(
         connectionMonitor,
         cacheConfiguration,
-        new DefaultEventTypeProvider<Guid, SomeDataAggregate>((_) => typeof(SomeData)),
+       new DefaultEventTypeProvider<Guid, SomeDataAggregate>(() => new[] { typeof(SomeData) }),
         _debugLogger);
 
       catchUpCache.Run();
@@ -125,7 +129,7 @@ namespace Anabasis.Tests
       Assert.AreEqual(2, aggregatesOnCacheOne[0].AppliedEvents.Length);
 
 
-      var (connectionMonitorTwo, catchupEventStoreCacheTwo, aggregatesOnCacheTwo) = CreateCatchupEventStoreCache();
+      var (_, _, aggregatesOnCacheTwo) = CreateCatchupEventStoreCache();
 
       await Task.Delay(500);
 
@@ -177,8 +181,7 @@ namespace Anabasis.Tests
 
       Assert.AreEqual(3, aggregatesOnCacheOne.Count);
 
-      //remove rx bounded reconnection
-      Assert.AreEqual(3, aggregatesOnCacheOne[0].AppliedEvents);
+      Assert.AreEqual(3, aggregatesOnCacheOne[0].AppliedEvents.Length);
 
 
     }

@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       Run();
     }
 
-    protected override IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
       throw new NotImplementedException();
     }
@@ -44,7 +44,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       //                                });
     }
 
-    protected override void OnRecordedEvent(RecordedEvent @event)
+    protected override void OnResolvedEvent(ResolvedEvent @event)
     {
       throw new NotImplementedException();
     }

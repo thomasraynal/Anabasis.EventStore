@@ -12,7 +12,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
   public abstract class BaseEventStoreCache<TKey, TCacheItem> : IDisposable, IEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
     protected readonly IEventStoreCacheConfiguration<TKey, TCacheItem> _eventStoreCacheConfiguration;
-    private readonly IEventTypeProvider<TKey, TCacheItem> _eventTypeProvider;
+    protected readonly IEventTypeProvider<TKey, TCacheItem> _eventTypeProvider;
     private readonly IConnectionStatusMonitor _connectionMonitor;
     private readonly ILogger _logger;
 
@@ -93,10 +93,10 @@ namespace Anabasis.EventStore.Infrastructure.Cache
           if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
 
           _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
-              .Where(@event => CanApply(@event.EventType))
+              //.Where(@event => CanApply(@event.Event.EventType))
               .Subscribe(@event =>
               {
-                OnRecordedEvent(@event);
+                OnResolvedEvent(@event);
 
               });
 
@@ -116,8 +116,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       });
     }
 
-    protected abstract IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection);
-    protected abstract void OnRecordedEvent(RecordedEvent @event);
+    protected abstract IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection);
+    protected abstract void OnResolvedEvent(ResolvedEvent @event);
 
     public IObservableCache<TCacheItem, TKey> AsObservableCache()
     {
@@ -139,15 +139,16 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     }
 
 
-    protected bool CanApply(string eventType)
-    {
-      return null != _eventTypeProvider.GetEventTypeByName(eventType);
-    }
+    //protected bool CanApply(string eventType)
+    //{
+    //  return null != _eventTypeProvider.GetEventTypeByName(eventType);
+    //}
 
     protected abstract void OnInitialize(bool isConnected);
 
-    protected void UpdateCacheState(RecordedEvent recordedEvent, SourceCache<TCacheItem, TKey> specificCache = null)
+    protected void UpdateCacheState(ResolvedEvent resolvedEvent, SourceCache<TCacheItem, TKey> specificCache = null)
     {
+      var recordedEvent = resolvedEvent.Event;
 
       var cache = specificCache ?? Cache;
 
