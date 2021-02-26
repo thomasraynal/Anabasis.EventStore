@@ -2,7 +2,6 @@ using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using EventStore.ClientAPI;
-using System.Linq;
 using System.Threading.Tasks;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Anabasis.EventStore.Infrastructure.Cache;
@@ -19,70 +18,75 @@ namespace Anabasis.EventStore.Infrastructure
       ILogger logger = null) : base(connectionMonitor, persistentSubscriptionCacheConfiguration, eventTypeProvider, logger)
     {
       _persistentSubscriptionCacheConfiguration = persistentSubscriptionCacheConfiguration;
-    }
 
-    protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
-    {
-      throw new NotImplementedException();
+      InitializeAndRun();
     }
 
     protected override void OnInitialize(bool isConnected)
     {
-
-      IsStaleSubject.OnNext(true);
-
       IsCaughtUpSubject.OnNext(true);
 
-      //_eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
-      //                                .Where(@event => CanApply(@event.EventType))
-      //                                .Subscribe(@event =>
-      //                                {
-      //                                  UpdateCacheState(@event);
-      //                                });
+      Cache.Edit((innerCache) =>
+      {
+        innerCache.Clear();
+      });
     }
 
+    protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
+    {
+      return Observable.Create<ResolvedEvent>(async observer =>
+      {
 
-    //private IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
-    //{
+        Task onEvent(EventStorePersistentSubscriptionBase _, ResolvedEvent resolvedEvent)
+        {
+          observer.OnNext(resolvedEvent);
 
-    //  return Observable.Create<RecordedEvent>(async obs =>
-    //  {
+          return Task.CompletedTask;
+        }
 
-    //    Task onEvent(EventStorePersistentSubscriptionBase _, ResolvedEvent e)
-    //    {
+        void onSubscriptionDropped(EventStorePersistentSubscriptionBase _, SubscriptionDropReason subscriptionDropReason, Exception exception)
+        {
+          switch (subscriptionDropReason)
+          {
+            case SubscriptionDropReason.UserInitiated:
+            case SubscriptionDropReason.ConnectionClosed:
+              break;
 
-    //      obs.OnNext(e.Event);
+            case SubscriptionDropReason.NotAuthenticated:
+            case SubscriptionDropReason.AccessDenied:
+            case SubscriptionDropReason.SubscribingError:
+            case SubscriptionDropReason.ServerError:
+            case SubscriptionDropReason.CatchUpError:
+            case SubscriptionDropReason.ProcessingQueueOverflow:
+            case SubscriptionDropReason.EventHandlerException:
+            case SubscriptionDropReason.MaxSubscribersReached:
+            case SubscriptionDropReason.PersistentSubscriptionDeleted:
+            case SubscriptionDropReason.Unknown:
+            case SubscriptionDropReason.NotFound:
 
-    //      return Task.FromResult<int?>(null);
+              throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state");
 
-    //    }
+            default:
 
-    //    void onSubscriptionDropped(EventStorePersistentSubscriptionBase _, SubscriptionDropReason subscriptionDropReason, Exception exception)
-    //    {
+              throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found");
+          }
+        }
 
-    //    }
+        var subscription =  await connection.ConnectToPersistentSubscriptionAsync(
+         _persistentSubscriptionCacheConfiguration.StreamId,
+         _persistentSubscriptionCacheConfiguration.GroupId,
+         eventAppeared: onEvent,
+         subscriptionDropped: onSubscriptionDropped,
+         userCredentials: _eventStoreCacheConfiguration.UserCredentials,
+         _persistentSubscriptionCacheConfiguration.BufferSize,
+         _persistentSubscriptionCacheConfiguration.AutoAck);
 
-    //    await connection.CreatePersistentSubscriptionAsync(
-    //      _persistentSubscriptionCacheConfiguration.StreamId,
-    //      _persistentSubscriptionCacheConfiguration.GroupId,
-    //      _persistentSubscriptionCacheConfiguration.PersistentSubscriptionSettings,
-    //      _persistentSubscriptionCacheConfiguration.UserCredentials
-    //  );
+        return Disposable.Create(() =>
+        {
+          subscription.Stop(TimeSpan.FromSeconds(5));
+        });
 
-    //    var subscription = await connection.ConnectToPersistentSubscriptionAsync(
-    //      _persistentSubscriptionCacheConfiguration.StreamId,
-    //      _persistentSubscriptionCacheConfiguration.GroupId,
-    //      onEvent,
-    //      onSubscriptionDropped,
-    //      _persistentSubscriptionCacheConfiguration.UserCredentials,
-    //      autoAck: true);
-
-    //    return Disposable.Create(() =>
-    //    {
-    //      subscription.Stop(TimeSpan.FromSeconds(10));
-    //    });
-
-    //  });
-    //}
+      });
+    }
   }
 }

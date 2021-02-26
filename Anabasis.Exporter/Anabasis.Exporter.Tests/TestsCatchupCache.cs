@@ -24,7 +24,6 @@ namespace Anabasis.Tests
 
     private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheTwo;
-
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<Guid> eventStoreRepository) _repositoryOne;
 
     private Guid _firstAggregateId;

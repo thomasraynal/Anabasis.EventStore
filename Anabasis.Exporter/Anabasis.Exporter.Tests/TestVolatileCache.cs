@@ -28,6 +28,7 @@ namespace Anabasis.Tests
     private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<string> eventStoreRepository) _repositoryOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheTwo;
+
     private readonly string _streamIdOne = "streamIdOne";
     private readonly string _streamIdTwo = "streamIdTwo";
 

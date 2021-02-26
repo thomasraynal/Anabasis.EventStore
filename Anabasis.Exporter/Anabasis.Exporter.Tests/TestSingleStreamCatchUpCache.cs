@@ -132,8 +132,6 @@ namespace Anabasis.Tests
     public async Task ShouldCreateASecondEventAndUpdateTheAggregate()
     {
 
-    
-
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
 
       await Task.Delay(500);
@@ -141,7 +139,6 @@ namespace Anabasis.Tests
       Assert.AreEqual(1, _cacheOne.someDataAggregates.Count);
       Assert.AreEqual(1, _cacheOne.someDataAggregates[0].Version);
       Assert.AreEqual(2, _cacheOne.someDataAggregates[0].AppliedEvents.Length);
-
 
     }
 
