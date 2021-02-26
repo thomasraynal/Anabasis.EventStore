@@ -92,9 +92,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
         return Disposable.Create(() =>
         {
-
           subscription.Stop();
-
         });
 
       });

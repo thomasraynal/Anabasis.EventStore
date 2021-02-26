@@ -91,7 +91,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     }
 
-    protected void Run()
+    protected void InitializeAndRun()
     {
       _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
       {
@@ -129,7 +129,10 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     }
 
     protected abstract IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection);
-    protected abstract void OnResolvedEvent(ResolvedEvent @event);
+    protected virtual void OnResolvedEvent(ResolvedEvent @event)
+    {
+      UpdateCacheState(@event, Cache);
+    }
 
     public IObservableCache<TCacheItem, TKey> AsObservableCache()
     {

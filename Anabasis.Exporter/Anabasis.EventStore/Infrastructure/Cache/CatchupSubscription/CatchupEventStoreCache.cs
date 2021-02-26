@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
     {
       _catchupEventStoreCacheConfiguration = cacheConfiguration;
 
-      Run();
+      InitializeAndRun();
     }
 
 
@@ -34,6 +34,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
     protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)
     {
+
       var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
 
       var filter = Filter.EventType.Prefix(eventTypeFilter);

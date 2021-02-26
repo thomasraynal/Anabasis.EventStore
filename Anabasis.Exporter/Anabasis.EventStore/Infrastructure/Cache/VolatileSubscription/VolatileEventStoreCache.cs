@@ -1,12 +1,12 @@
 using System;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using EventStore.ClientAPI;
-using System.Linq;
 using System.Threading.Tasks;
+using EventStore.ClientAPI;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Anabasis.EventStore.Infrastructure.Cache
+namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
 {
   public class VolatileEventStoreCache<TKey, TCacheItem> : BaseEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
@@ -20,57 +20,82 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     {
       _volatileEventStoreCacheConfiguration = volatileEventStoreCacheConfiguration;
 
+      InitializeAndRun();
     }
 
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
-      throw new NotImplementedException();
+
+      return Observable.Create<ResolvedEvent>( observer =>
+     {
+
+       Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent resolvedEvent)
+       {
+         observer.OnNext(resolvedEvent);
+
+         return Task.CompletedTask;
+       }
+
+       void onSubscriptionDropped(EventStoreCatchUpSubscription _, SubscriptionDropReason subscriptionDropReason, Exception exception)
+       {
+         switch (subscriptionDropReason)
+         {
+           case SubscriptionDropReason.UserInitiated:
+           case SubscriptionDropReason.ConnectionClosed:
+             break;
+
+           case SubscriptionDropReason.NotAuthenticated:
+           case SubscriptionDropReason.AccessDenied:
+           case SubscriptionDropReason.SubscribingError:
+           case SubscriptionDropReason.ServerError:
+           case SubscriptionDropReason.CatchUpError:
+           case SubscriptionDropReason.ProcessingQueueOverflow:
+           case SubscriptionDropReason.EventHandlerException:
+           case SubscriptionDropReason.MaxSubscribersReached:
+           case SubscriptionDropReason.PersistentSubscriptionDeleted:
+           case SubscriptionDropReason.Unknown:
+           case SubscriptionDropReason.NotFound:
+
+             throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state");
+
+           default:
+
+             throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found");
+         }
+       }
+
+       void onCaughtUp(EventStoreCatchUpSubscription _)
+       {
+         if (IsCaughtUp) return;
+
+         Cache.Edit((cache) =>
+         {
+           cache.Clear();
+         });
+
+         IsCaughtUpSubject.OnNext(true);
+
+       }
+
+       var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+
+       var filter = Filter.EventType.Prefix(eventTypeFilter);
+
+       var subscription = connection.FilteredSubscribeToAllFrom(
+         Position.End,
+         filter,
+         _volatileEventStoreCacheConfiguration.CatchUpSubscriptionFilteredSettings,
+         eventAppeared: onEvent,
+         liveProcessingStarted: onCaughtUp,
+         subscriptionDropped: onSubscriptionDropped,
+         userCredentials: _eventStoreCacheConfiguration.UserCredentials);
+
+       return Disposable.Create(() =>
+       {
+         subscription.Stop();
+       });
+
+     });
     }
-
-    protected override void OnInitialize(bool isConnected)
-    {
-
-      IsCaughtUpSubject.OnNext(true);
-
-      //_eventStreamConnectionDisposable.Disposable = ConnectToEventStream(connection)
-      //                                .Where(ev => CanApply(ev.EventType))
-      //                                .Subscribe(evt =>
-      //                                {
-      //                                  UpdateCacheState(evt);
-
-      //                                });
-    }
-
-    protected override void OnResolvedEvent(ResolvedEvent @event)
-    {
-      throw new NotImplementedException();
-    }
-
-    //protected override IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
-    //{
-
-    //  return Observable.Create<RecordedEvent> (async obs =>
-    //  {
-
-    //    Task onEvent(EventStoreSubscription _, ResolvedEvent e)
-    //    {
-
-    //      obs.OnNext(e.Event);
-
-    //      return Task.CompletedTask;
-    //    }
-
-    //    var subscription = await connection.SubscribeToStreamAsync(_volatileEventStoreCacheConfiguration.StreamId, true, onEvent);
-
-    //    return Disposable.Create(() =>
-    //    {
-
-    //      subscription.Unsubscribe();
-    //      subscription.Dispose();
-
-    //    });
-
-    //  });
-    //}
   }
 }

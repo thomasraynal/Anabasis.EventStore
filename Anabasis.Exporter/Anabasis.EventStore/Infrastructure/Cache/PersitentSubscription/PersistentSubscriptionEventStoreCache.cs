@@ -41,10 +41,6 @@ namespace Anabasis.EventStore.Infrastructure
       //                                });
     }
 
-    protected override void OnResolvedEvent(ResolvedEvent @event)
-    {
-      throw new NotImplementedException();
-    }
 
     //private IObservable<RecordedEvent> ConnectToEventStream(IEventStoreConnection connection)
     //{
