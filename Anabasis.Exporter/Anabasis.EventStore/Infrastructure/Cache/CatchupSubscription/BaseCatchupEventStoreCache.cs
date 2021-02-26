@@ -1,6 +1,5 @@
 using DynamicData;
 using EventStore.ClientAPI;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -11,30 +10,20 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
   public abstract class BaseCatchupEventStoreCache<TKey, TCacheItem> : BaseEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
-    private readonly SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
+    protected SourceCache<TCacheItem, TKey> CaughtingUpCache { get; } = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
 
     protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor, IEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration, IEventTypeProvider<TKey, TCacheItem> eventTypeProvider, ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
     {
-
-    }
-
-    protected override void OnDispose()
-    {
-      _caughtingUpCache.Dispose();
-    }
-
-    protected override void OnResolvedEvent(ResolvedEvent @event)
-    {
-
-      var cache = IsCaughtUp ? Cache : _caughtingUpCache;
-
-      UpdateCacheState(@event, cache);
-
     }
 
     protected abstract EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection,
-      Func<EventStoreCatchUpSubscription, ResolvedEvent,Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp,
+      Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp,
       Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped);
+
+    protected override void OnDispose()
+    {
+      CaughtingUpCache.Dispose();
+    }
 
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
@@ -44,6 +33,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
         Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
         {
+
           obs.OnNext(@event);
 
           return Task.CompletedTask;
@@ -52,12 +42,15 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
         void onCaughtUp(EventStoreCatchUpSubscription _)
         {
 
+          //this handle a caughting up NOT due to disconnection, i.e a caughting up due to a lag
+          if (IsCaughtUp) return;
+
           Cache.Edit(innerCache =>
           {
 
-            innerCache.Load(_caughtingUpCache.Items);
+            innerCache.Load(CaughtingUpCache.Items);
 
-            _caughtingUpCache.Clear();
+            CaughtingUpCache.Clear();
 
           });
 
