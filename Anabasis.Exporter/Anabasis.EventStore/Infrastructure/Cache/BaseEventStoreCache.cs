@@ -24,13 +24,10 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     protected SourceCache<TCacheItem, TKey> Cache { get; } = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
 
-    protected BehaviorSubject<bool> _connectionStatusSubject { get; }
+    protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
     protected BehaviorSubject<bool> IsStaleSubject { get; }
-
-
-
     protected BehaviorSubject<bool> IsCaughtUpSubject { get; }
-
+    protected long? LastProcessedEventSequenceNumber { get; private set; } = null;
     public IObservable<bool> OnStale => IsStaleSubject.AsObservable();
     public IObservable<bool> OnCaughtUp => IsCaughtUpSubject.AsObservable();
 
@@ -78,7 +75,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
       _lastProcessedEventTimestamp = DateTime.MinValue;
 
-      _connectionStatusSubject = new BehaviorSubject<bool>(false);
+      ConnectionStatusSubject = new BehaviorSubject<bool>(false);
 
       IsCaughtUpSubject = new BehaviorSubject<bool>(false);
       IsStaleSubject = new BehaviorSubject<bool>(true);
@@ -98,7 +95,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     {
       _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
       {
-        _connectionStatusSubject.OnNext(connectionChanged.IsConnected);
+        ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);
 
         if (connectionChanged.IsConnected)
         {
@@ -111,7 +108,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
                 OnResolvedEvent(@event);
 
                 if (IsStale) IsStaleSubject.OnNext(false);
-
+                
+                LastProcessedEventSequenceNumber = @event.Event.EventNumber;
                 _lastProcessedEventTimestamp = DateTime.UtcNow;
 
               });
@@ -145,7 +143,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
       _isStaleDisposable.Dispose();
       _eventStoreConnectionStatus.Dispose();
-      _connectionStatusSubject.Dispose();
+      ConnectionStatusSubject.Dispose();
 
       IsCaughtUpSubject.Dispose();
       IsStaleSubject.Dispose();

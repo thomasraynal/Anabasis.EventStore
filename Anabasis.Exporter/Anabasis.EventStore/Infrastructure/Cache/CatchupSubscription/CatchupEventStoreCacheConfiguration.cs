@@ -13,6 +13,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       UserCredentials = userCredentials;
     }
 
+    public Func<Position> GetSubscribeToAllSubscriptionCheckpoint { get; set; } = () => Position.Start;
+
     public ISerializer Serializer { get; set; } = new DefaultSerializer();
 
     public UserCredentials UserCredentials { get; set; }

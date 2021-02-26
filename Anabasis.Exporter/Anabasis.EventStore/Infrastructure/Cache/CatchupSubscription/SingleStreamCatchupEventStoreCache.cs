@@ -1,19 +1,11 @@
 using System;
-using System.Reactive.Disposables;
-using System.Reactive.Linq;
 using EventStore.ClientAPI;
 using System.Threading.Tasks;
-using DynamicData;
-using Anabasis.EventStore.Infrastructure;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
-using Anabasis.EventStore.Infrastructure.Cache;
-using System.Linq;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
 
-  //todo :handle subscription drop
-  //todo : handle checkpoints
   public class SingleStreamCatchupEventStoreCache<TKey, TCacheItem> : BaseCatchupEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
 
@@ -29,14 +21,25 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       Run();
     }
 
+    protected override void OnResolvedEvent(ResolvedEvent @event)
+    {
+      UpdateCacheState(@event, Cache);
+    }
+  
     protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)
     {
+
+      void onCaughtUpWithCheckpoint(EventStoreCatchUpSubscription _)
+      {
+        IsCaughtUpSubject.OnNext(true);
+      }
+
       var subscription = connection.SubscribeToStreamFrom(
         _singleStreamCatchupEventStoreCacheConfiguration.StreamId,
-       null,
+       LastProcessedEventSequenceNumber,
         _singleStreamCatchupEventStoreCacheConfiguration.CatchUpSubscriptionSettings,
         onEvent,
-        onCaughtUp,
+        onCaughtUpWithCheckpoint,
         onSubscriptionDropped,
         userCredentials: _eventStoreCacheConfiguration.UserCredentials);
 

@@ -1,16 +1,12 @@
 using System;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using EventStore.ClientAPI;
 using System.Threading.Tasks;
-using DynamicData;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using System.Linq;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
-  //todo :inherit from catchup
-  //todo :handle subscription drop
   public class CatchupEventStoreCache<TKey, TCacheItem> : BaseCatchupEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
 
@@ -26,6 +22,16 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       Run();
     }
 
+
+    protected override void OnResolvedEvent(ResolvedEvent @event)
+    {
+
+      var cache = IsCaughtUp ? Cache : CaughtingUpCache;
+
+      UpdateCacheState(@event, cache);
+
+    }
+
     protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)
     {
       var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
@@ -33,7 +39,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       var filter = Filter.EventType.Prefix(eventTypeFilter);
 
       var subscription = connection.FilteredSubscribeToAllFrom(
-        Position.Start,
+        _catchupEventStoreCacheConfiguration.GetSubscribeToAllSubscriptionCheckpoint(),
         filter,
         _catchupEventStoreCacheConfiguration.CatchUpSubscriptionFilteredSettings,
         onEvent,
