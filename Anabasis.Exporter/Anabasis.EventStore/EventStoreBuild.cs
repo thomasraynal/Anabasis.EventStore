@@ -1,4 +1,5 @@
 using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.Core;
@@ -110,7 +111,7 @@ namespace Anabasis.EventStore
     {
       var connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger);
 
-      var eventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>();
+      var eventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>(null);
 
       eventStoreCacheConfigurationBuilder?.Invoke(eventStoreCacheConfiguration);
 

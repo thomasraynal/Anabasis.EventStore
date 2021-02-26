@@ -105,8 +105,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
           OnInitialize(connectionChanged.IsConnected);
 
-          if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
-
           _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
               .Subscribe(@event =>
               {
@@ -121,6 +119,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
         }
         else
         {
+
+          if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
 
           if (IsCaughtUp)
           {

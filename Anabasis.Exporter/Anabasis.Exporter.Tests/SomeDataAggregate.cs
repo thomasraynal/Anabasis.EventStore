@@ -5,25 +5,25 @@ using System.Text;
 
 namespace Anabasis.Tests
 {
-  public class SomeData : EventBase<Guid, SomeDataAggregate>
+  public class SomeData<TKey> : EventBase<TKey, SomeDataAggregate<TKey>>
   {
     public SomeData()
     {
     }
-    public SomeData(Guid entityId)
+    public SomeData(TKey entityId)
     {
       EntityId = entityId;
     }
 
-    protected override void ApplyInternal(SomeDataAggregate entity)
+    protected override void ApplyInternal(SomeDataAggregate<TKey> entity)
     {
     }
   }
 
-  public class SomeDataAggregate : BaseAggregate<Guid>
+  public class SomeDataAggregate<TKey> : BaseAggregate<TKey>
   {
 
-    public SomeDataAggregate(Guid entityId)
+    public SomeDataAggregate(TKey entityId)
     {
       EntityId = entityId;
     }

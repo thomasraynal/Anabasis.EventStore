@@ -9,17 +9,14 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Anabasis.EventStore.Infrastructure.Cache;
 using System.Linq;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
 
-  //todo : catchup
-  //todo :inherit from catchup
   //todo :handle subscription drop
   //todo : handle checkpoints
-  public class SingleStreamCatchupEventStoreCache<TKey, TCacheItem> : BaseEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  public class SingleStreamCatchupEventStoreCache<TKey, TCacheItem> : BaseCatchupEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
   {
 
-    private readonly SourceCache<TCacheItem, TKey> _caughtingUpCache = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
     private readonly SingleStreamCatchupEventStoreCacheConfiguration<TKey, TCacheItem> _singleStreamCatchupEventStoreCacheConfiguration;
 
     public SingleStreamCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
@@ -32,69 +29,18 @@ namespace Anabasis.EventStore
       Run();
     }
 
-    protected override void OnDispose()
+    protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)
     {
-      _caughtingUpCache.Dispose();
+      var subscription = connection.SubscribeToStreamFrom(
+        _singleStreamCatchupEventStoreCacheConfiguration.StreamId,
+       null,
+        _singleStreamCatchupEventStoreCacheConfiguration.CatchUpSubscriptionSettings,
+        onEvent,
+        onCaughtUp,
+        onSubscriptionDropped,
+        userCredentials: _eventStoreCacheConfiguration.UserCredentials);
+
+      return subscription;
     }
-
-    protected override void OnResolvedEvent(ResolvedEvent @event)
-    {
-
-      var cache = IsCaughtUp ? Cache : _caughtingUpCache;
-
-      UpdateCacheState(@event, cache);
-
-    }
-
-    protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
-    {
-
-      return Observable.Create<ResolvedEvent>( obs =>
-      {
-
-        Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
-        {
-          obs.OnNext(@event);
-
-          return Task.CompletedTask;
-        }
-
-        void onCaughtUp(EventStoreCatchUpSubscription @event)
-        {
-
-          Cache.Edit(innerCache =>
-                        {
-
-                          innerCache.Load(_caughtingUpCache.Items);
-
-                          _caughtingUpCache.Clear();
-
-                        });
-
-
-          IsCaughtUpSubject.OnNext(true);
-
-        }
-
-        var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
-
-        var filter = Filter.EventType.Prefix(eventTypeFilter);
-
-        var subscription =  connection.SubscribeToStreamFrom(
-          _singleStreamCatchupEventStoreCacheConfiguration.StreamId,
-          lastCheckpoint: null,
-          _singleStreamCatchupEventStoreCacheConfiguration.CatchUpSubscriptionSettings,
-          onEvent,
-          onCaughtUp,
-          userCredentials: _eventStoreCacheConfiguration.UserCredentials);
-
-        return Disposable.Create(() =>
-        {
-          subscription.Stop();
-        });
-
-      });
-    }
-
   }
 }

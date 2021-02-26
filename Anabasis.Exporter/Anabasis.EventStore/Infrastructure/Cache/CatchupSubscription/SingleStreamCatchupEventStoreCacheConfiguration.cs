@@ -4,10 +4,16 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Infrastructure.Cache
+namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
   public class SingleStreamCatchupEventStoreCacheConfiguration<TKey, TCacheItem> : IEventStoreCacheConfiguration<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>
   {
+    public SingleStreamCatchupEventStoreCacheConfiguration(string streamId, UserCredentials userCredentials)
+    {
+      StreamId = streamId;
+      UserCredentials = userCredentials;
+    }
+
     public ISerializer Serializer { get; set; } = new DefaultSerializer();
 
     public string StreamId { get; set; }

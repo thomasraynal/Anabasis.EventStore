@@ -1,4 +1,5 @@
 using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.Core;
@@ -25,7 +26,7 @@ namespace Anabasis.EventStore
 
     private static void RegisterCacheConfiguration<TKey, TCacheItem>(IServiceCollection services, Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> cacheBuilder) where TCacheItem : IAggregate<TKey>
     {
-      var configuration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>();
+      var configuration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>(null);
       cacheBuilder?.Invoke(configuration);
       services.AddTransient<IEventTypeProvider<TKey, TCacheItem>, ServiceCollectionEventTypeProvider<TKey, TCacheItem>>();
       services.AddSingleton<IEventStoreCacheConfiguration<TKey, TCacheItem>>(configuration);
