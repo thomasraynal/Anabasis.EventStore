@@ -10,12 +10,22 @@ using EventStore.Common.Options;
 using EventStore.Core;
 using NUnit.Framework;
 using System;
+using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests
 {
-  [TestFixture]
-  public class TestsCatchupCache
+  public class CurrentState
+  {
+    public int EventCount { get; set; }
+    public int HitCount { get; set; }
+
+    public static CurrentState Default = new CurrentState();
+
+  }
+
+  public class TestCacheSubscription
   {
     private DebugLogger _debugLogger;
     private UserCredentials _userCredentials;
@@ -25,10 +35,7 @@ namespace Anabasis.Tests
     private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheTwo;
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<Guid> eventStoreRepository) _repositoryOne;
-
     private Guid _firstAggregateId;
-    private Guid _secondAggregateId;
-    private Guid _thirdAggregateId;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -110,8 +117,6 @@ namespace Anabasis.Tests
 
       await Task.Delay(500);
 
-      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
 
     }
@@ -121,8 +126,8 @@ namespace Anabasis.Tests
     {
       _repositoryOne = CreateEventRepository();
 
-     _firstAggregateId = Guid.NewGuid();
-
+      _firstAggregateId = Guid.NewGuid();
+      
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
 
       await Task.Delay(500);
@@ -132,97 +137,106 @@ namespace Anabasis.Tests
       Assert.AreEqual(1, _cacheOne.someDataAggregates[0].AppliedEvents.Length);
     }
 
+
     [Test, Order(2)]
-    public async Task ShouldCreateASecondEventAndUpdateTheAggregate()
+    public async Task ShouldSubscribeToCache()
     {
+
+      var eventCount = 0;
+
+      _cacheOne.catchupEventStoreCache.AsObservableCache()
+                                      .Connect()
+                                      .Subscribe(changeSet =>
+                                      {
+                                        eventCount++;
+                                      });
+
+      await Task.Delay(500);
+
+
+      Assert.AreEqual(1, eventCount);
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
 
       await Task.Delay(500);
 
-      Assert.AreEqual(1, _cacheOne.someDataAggregates.Count);
-      Assert.AreEqual(1, _cacheOne.someDataAggregates[0].Version);
-      Assert.AreEqual(2, _cacheOne.someDataAggregates[0].AppliedEvents.Length);
-
+      Assert.AreEqual(2, eventCount);
 
     }
 
-    [Test, Order(3)]
-    public async Task ShouldCreateASecondCatchupCache()
-    {
 
+    [Test, Order(3)]
+    public async Task ShouldCreateASecondcacheAndSubscribe()
+    {
       _cacheTwo = CreateCatchupEventStoreCache();
 
       await Task.Delay(500);
 
-      Assert.IsTrue(_cacheTwo.catchupEventStoreCache.IsCaughtUp);
-      Assert.IsFalse(_cacheTwo.catchupEventStoreCache.IsStale);
       Assert.IsTrue(_cacheTwo.catchupEventStoreCache.IsConnected);
 
-      Assert.AreEqual(1, _cacheTwo.someDataAggregates.Count);
-      Assert.AreEqual(1, _cacheTwo.someDataAggregates[0].Version);
-      Assert.AreEqual(2, _cacheTwo.someDataAggregates[0].AppliedEvents.Length);
+      var eventCount = 0;
+
+      _cacheTwo.catchupEventStoreCache.AsObservableCache()
+                                      .Connect()
+                                      .Subscribe(changeSet =>
+                                      {
+                                        eventCount++;
+                                      });
+
+      await Task.Delay(500);
+
+      Assert.AreEqual(1, eventCount);
+
 
     }
+
 
     [Test, Order(4)]
-    public async Task ShouldCreateASecondAggregate()
+    public async Task ShouldToSomeObservableProjections()
     {
-
-      _secondAggregateId = Guid.NewGuid();
-
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_secondAggregateId));
+      _cacheTwo = CreateCatchupEventStoreCache();
 
       await Task.Delay(500);
 
-      Assert.AreEqual(2, _cacheTwo.someDataAggregates.Count);
-      Assert.AreEqual(2, _cacheTwo.someDataAggregates.Count);
+      Assert.IsTrue(_cacheTwo.catchupEventStoreCache.IsConnected);
 
-    }
+      var eventCount = 0;
+      CurrentState currentState = null;
 
-    [Test, Order(5)]
-    public async Task ShouldStopAndRestartCache()
-    {
+      _cacheTwo.catchupEventStoreCache.AsObservableCache()
+                                      .Connect()
+                                      .Scan(CurrentState.Default, (previous, obs) =>
+                                      {
+                                        return new CurrentState()
+                                        {
+                                          HitCount = previous.HitCount + 1,
+                                          EventCount = obs.First().Current.AppliedEvents.Count()
+                                        };
 
-      _cacheOne.connectionStatusMonitor.ForceConnectionStatus(false);
+                                      })
+                                      .Subscribe(state =>
+                                      {
+                                        eventCount++;
+                                        currentState = state;
+                                      });
 
       await Task.Delay(500);
 
-      Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-      Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsStale);
-      Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
-
-      await Task.Delay(2000);
-
-      Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
-      Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
-
-      _thirdAggregateId = Guid.NewGuid();
+      Assert.NotNull(currentState);
+      Assert.AreEqual(1, eventCount);
+      Assert.AreEqual(1, currentState.HitCount);
+      Assert.AreEqual(2, currentState.EventCount);
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_thirdAggregateId));
 
       await Task.Delay(500);
 
-      Assert.AreEqual(2, _cacheOne.someDataAggregates.Count);
-      Assert.AreEqual(2, _cacheOne.someDataAggregates[0].AppliedEvents.Length);
-
-      Assert.AreEqual(3, _cacheTwo.someDataAggregates.Count);
-      Assert.AreEqual(3, _cacheTwo.someDataAggregates[0].AppliedEvents.Length);
-
-      _cacheOne.connectionStatusMonitor.ForceConnectionStatus(true);
-
-      await Task.Delay(500);
-
-      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-      Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsStale);
-      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
-
-      Assert.AreEqual(3, _cacheOne.someDataAggregates.Count);
-
-      Assert.AreEqual(3, _cacheOne.someDataAggregates[0].AppliedEvents.Length);
+      Assert.NotNull(currentState);
+      Assert.AreEqual(2, eventCount);
+      Assert.AreEqual(2, currentState.HitCount);
+      Assert.AreEqual(3, currentState.EventCount);
 
     }
+
   }
 }

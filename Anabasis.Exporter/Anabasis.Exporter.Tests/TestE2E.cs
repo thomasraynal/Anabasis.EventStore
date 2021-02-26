@@ -5,7 +5,6 @@
 //using System.Threading.Tasks;
 //using Microsoft.Extensions.Logging;
 //using System;
-//using System.Collections.Generic;
 //using Microsoft.Extensions.DependencyInjection;
 //using System.Linq;
 //using System.Reactive.Linq;
@@ -272,8 +271,8 @@
 
 //      var item = await _testBed.Producer.Get(itemId, true);
 
-//      Assert.AreEqual(1, item.GetAppliedEvents().Count(), "Only one event should have been applied");
-//      Assert.AreEqual(typeof(CreateItemEvent), item.GetAppliedEvents().First().GetType(), $"Event should of type {typeof(CreateItemEvent)}");
+//      Assert.AreEqual(1, item.AppliedEvents.Count(), "Only one event should have been applied");
+//      Assert.AreEqual(typeof(CreateItemEvent), item.AppliedEvents.First().GetType(), $"Event should of type {typeof(CreateItemEvent)}");
 
 //      _testBed.Producer.Mutate(item, "XXX");
 
@@ -282,13 +281,13 @@
 
 //      item = await _testBed.Producer.Get(itemId, true);
 
-//      Assert.AreEqual(2, item.GetAppliedEvents().Count(), "Two events should have been applied");
-//      Assert.AreEqual(typeof(CreateItemEvent), item.GetAppliedEvents().First().GetType(), $"Event should of type {typeof(CreateItemEvent)}");
-//      Assert.AreEqual(typeof(UpdateItemPayloadEvent), item.GetAppliedEvents().ElementAt(1).GetType(), $"Event should of type {typeof(UpdateItemPayloadEvent)}");
+//      Assert.AreEqual(2, item.AppliedEvents.Count(), "Two events should have been applied");
+//      Assert.AreEqual(typeof(CreateItemEvent), item.AppliedEvents.First().GetType(), $"Event should of type {typeof(CreateItemEvent)}");
+//      Assert.AreEqual(typeof(UpdateItemPayloadEvent), item.AppliedEvents.ElementAt(1).GetType(), $"Event should of type {typeof(UpdateItemPayloadEvent)}");
 
 
 //      item = await _testBed.Producer.Get(itemId, false);
-//      Assert.AreEqual(0, item.GetAppliedEvents().Count(), "No events should have been fetched");
+//      Assert.AreEqual(0, item.AppliedEvents.Count(), "No events should have been fetched");
 //    }
 
 
