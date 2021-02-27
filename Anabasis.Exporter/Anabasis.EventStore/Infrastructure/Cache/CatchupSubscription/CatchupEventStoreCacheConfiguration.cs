@@ -23,6 +23,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
     public CatchUpSubscriptionFilteredSettings CatchUpSubscriptionFilteredSettings { get; set; } = CatchUpSubscriptionFilteredSettings.Default;
 
-    public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.MaxValue;
+    public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.FromHours(1);
   }
 }

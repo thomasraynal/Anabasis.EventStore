@@ -50,6 +50,7 @@ namespace Anabasis.EventStore.Infrastructure
       _eventTypeCache = new Dictionary<string, Type>();
       _serviceProvider = serviceProvider;
     }
+
     //refacto
     public Type[] GetAll()
     {

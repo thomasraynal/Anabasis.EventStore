@@ -2,7 +2,7 @@ using System;
 using DynamicData;
 using Anabasis.Tests.Demo;
 
-namespace Anabasis.Tests.Tests
+namespace Anabasis.Tests
 {
     public interface IConsumer
     {

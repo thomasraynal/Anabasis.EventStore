@@ -1,126 +1,126 @@
-using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Embedded;
-using EventStore.Core;
-using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+//using Anabasis.EventStore.Infrastructure;
+//using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
+//using EventStore.ClientAPI;
+//using EventStore.ClientAPI.Embedded;
+//using EventStore.Core;
+//using Microsoft.Extensions.Logging;
+//using System;
+//using System.Collections.Generic;
+//using System.Text;
+//using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Anabasis.EventStore
-{
+//namespace Anabasis.EventStore
+//{
 
-  public static class EventStoreBuild
-  {
+//  public static class EventStoreBuild
+//  {
 
-    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
-      ClusterVNode clusterVNode,
-      ConnectionSettings settings,
-      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
-      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
-    {
-      var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, settings);
+//    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+//      ClusterVNode clusterVNode,
+//      ConnectionSettings settings,
+//      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
+//      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
+//      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
+//    {
+//      var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, settings);
 
-      return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
-    }
+//      return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
+//    }
 
-    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
-      IEventStoreConnection eventStoreConnection,
-      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
-      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
-    {
-      return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
-    }
+//    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+//      IEventStoreConnection eventStoreConnection,
+//      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
+//      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
+//      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
+//    {
+//      return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
+//    }
 
-    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
-      string eventStoreUrl,
-      ConnectionSettings settings,
-      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
-      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
-    {
-      var eventStoreConnection = EventStoreConnection.Create(settings, new Uri(eventStoreUrl));
+//    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+//      string eventStoreUrl,
+//      ConnectionSettings settings,
+//      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
+//      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
+//      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
+//    {
+//      var eventStoreConnection = EventStoreConnection.Create(settings, new Uri(eventStoreUrl));
 
-      return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
-    }
+//      return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
+//    }
 
-    public static EventStoreRepository<TKey> GetEventStoreRepository<TKey>(
-      ClusterVNode clusterVNode,
-      ConnectionSettings settings,
-      IEventTypeProvider<TKey> eventTypeProvider,
-      Action<IEventStoreRepositoryConfiguration<TKey>> eventStoreRepositoryConfigurationBuilder = null,
-      ILogger logger = null)
-    {
-      var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, settings);
+//    public static EventStoreRepository<TKey> GetEventStoreRepository<TKey>(
+//      ClusterVNode clusterVNode,
+//      ConnectionSettings settings,
+//      IEventTypeProvider<TKey> eventTypeProvider,
+//      Action<IEventStoreRepositoryConfiguration<TKey>> eventStoreRepositoryConfigurationBuilder = null,
+//      ILogger logger = null)
+//    {
+//      var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, settings);
 
-      return GetEventStoreRepositoryInternal(eventStoreConnection, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
-    }
+//      return GetEventStoreRepositoryInternal(eventStoreConnection, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
+//    }
 
 
-    public static EventStoreRepository<TKey> GetEventStoreRepository<TKey>(
-      IEventStoreConnection eventStoreConnection,
-      IEventTypeProvider<TKey> eventTypeProvider,
-      Action<IEventStoreRepositoryConfiguration<TKey>> eventStoreRepositoryConfigurationBuilder = null,
-      ILogger logger = null)
-    {
-      return GetEventStoreRepositoryInternal(eventStoreConnection, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
-    }
+//    public static EventStoreRepository<TKey> GetEventStoreRepository<TKey>(
+//      IEventStoreConnection eventStoreConnection,
+//      IEventTypeProvider<TKey> eventTypeProvider,
+//      Action<IEventStoreRepositoryConfiguration<TKey>> eventStoreRepositoryConfigurationBuilder = null,
+//      ILogger logger = null)
+//    {
+//      return GetEventStoreRepositoryInternal(eventStoreConnection, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
+//    }
 
-    public static EventStoreRepository<TKey> GetEventStoreRepository<TKey>(
-      string eventStoreUrl,
-      ConnectionSettings settings,
-      IEventTypeProvider<TKey> eventTypeProvider,
-      Action<IEventStoreRepositoryConfiguration<TKey>> eventStoreRepositoryConfigurationBuilder = null,
-      ILogger logger = null)
-    {
-      var eventStoreConnection = EventStoreConnection.Create(settings, new Uri(eventStoreUrl));
+//    public static EventStoreRepository<TKey> GetEventStoreRepository<TKey>(
+//      string eventStoreUrl,
+//      ConnectionSettings settings,
+//      IEventTypeProvider<TKey> eventTypeProvider,
+//      Action<IEventStoreRepositoryConfiguration<TKey>> eventStoreRepositoryConfigurationBuilder = null,
+//      ILogger logger = null)
+//    {
+//      var eventStoreConnection = EventStoreConnection.Create(settings, new Uri(eventStoreUrl));
 
-      return GetEventStoreRepositoryInternal(eventStoreConnection, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
-    }
+//      return GetEventStoreRepositoryInternal(eventStoreConnection, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
+//    }
 
-    private static EventStoreRepository<TKey> GetEventStoreRepositoryInternal<TKey>(
-      IEventStoreConnection eventStoreConnection,
-      IEventTypeProvider<TKey> eventTypeProvider,
-      Action<IEventStoreRepositoryConfiguration<TKey>> eventStoreRepositoryConfigurationBuilder = null,
-      ILogger logger = null)
-    {
-      var connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger);
+//    private static EventStoreRepository<TKey> GetEventStoreRepositoryInternal<TKey>(
+//      IEventStoreConnection eventStoreConnection,
+//      IEventTypeProvider<TKey> eventTypeProvider,
+//      Action<IEventStoreRepositoryConfiguration<TKey>> eventStoreRepositoryConfigurationBuilder = null,
+//      ILogger logger = null)
+//    {
+//      var connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger);
 
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration<TKey>();
+//      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration<TKey>();
 
-      eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
+//      eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
 
-      return new EventStoreRepository<TKey>(eventStoreRepositoryConfiguration,
-        eventStoreConnection,
-        connectionMonitor,
-        eventTypeProvider,
-        logger);
+//      return new EventStoreRepository<TKey>(eventStoreRepositoryConfiguration,
+//        eventStoreConnection,
+//        connectionMonitor,
+//        eventTypeProvider,
+//        logger);
 
-    }
+//    }
 
-    private static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCacheInternal<TKey, TCacheItem>(
-      IEventStoreConnection eventStoreConnection,
-      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder,
-      ILogger logger = null)
-      where TCacheItem : IAggregate<TKey>, new()
-    {
-      var connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger);
+//    private static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCacheInternal<TKey, TCacheItem>(
+//      IEventStoreConnection eventStoreConnection,
+//      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
+//      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder,
+//      ILogger logger = null)
+//      where TCacheItem : IAggregate<TKey>, new()
+//    {
+//      var connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger);
 
-      var eventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>(null);
+//      var eventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>(null);
 
-      eventStoreCacheConfigurationBuilder?.Invoke(eventStoreCacheConfiguration);
+//      eventStoreCacheConfigurationBuilder?.Invoke(eventStoreCacheConfiguration);
 
-      return new CatchupEventStoreCache<TKey, TCacheItem>(connectionMonitor,
-        eventStoreCacheConfiguration,
-        eventTypeProvider,
-        logger);
+//      return new CatchupEventStoreCache<TKey, TCacheItem>(connectionMonitor,
+//        eventStoreCacheConfiguration,
+//        eventTypeProvider,
+//        logger);
 
-    }
+//    }
 
-  }
-}
+//  }
+//}

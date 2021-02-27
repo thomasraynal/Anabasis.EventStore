@@ -22,6 +22,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     public ISerializer Serializer { get; set; } = new DefaultSerializer();
     public UserCredentials UserCredentials { get; set; }
     public bool KeepAppliedEventsOnAggregate { get; set; } = false;
-    public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.MaxValue;
+    public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.FromHours(1);
   }
 }

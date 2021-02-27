@@ -4,11 +4,11 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests.Tests
+namespace Anabasis.Tests
 {
     public class Producer : IProducer
     {
-        private IEventStoreRepository<Guid> _repository;
+        private readonly IEventStoreRepository<Guid> _repository;
 
         public Producer(IEventStoreRepository<Guid> repository)
         {

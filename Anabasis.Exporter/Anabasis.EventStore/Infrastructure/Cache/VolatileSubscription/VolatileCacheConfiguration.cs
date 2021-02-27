@@ -15,6 +15,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
     public UserCredentials UserCredentials { get; set; }
     public CatchUpSubscriptionFilteredSettings CatchUpSubscriptionFilteredSettings { get; set; } = CatchUpSubscriptionFilteredSettings.Default;
     public bool KeepAppliedEventsOnAggregate { get; set; } = false;
-    public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.MaxValue;
+    public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.FromHours(1);
   }
 }

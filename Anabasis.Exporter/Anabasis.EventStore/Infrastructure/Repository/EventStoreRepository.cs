@@ -16,11 +16,12 @@ namespace Anabasis.EventStore
     private readonly IEventTypeProvider<TKey> _eventTypeProvider;
     private readonly IDisposable _cleanup;
     private readonly Microsoft.Extensions.Logging.ILogger _logger;
-    private readonly IEventStoreRepositoryConfiguration<TKey> _configuration;
-    private bool _isConnected;
+    private readonly IEventStoreRepositoryConfiguration<TKey> _eventStoreRepositoryConfiguration;
+
+    public bool IsConnected { get; private set; }
 
     public EventStoreRepository(
-        IEventStoreRepositoryConfiguration<TKey> configuration,
+        IEventStoreRepositoryConfiguration<TKey> eventStoreRepositoryConfiguration,
         IEventStoreConnection eventStoreConnection,
         IConnectionStatusMonitor connectionMonitor,
         IEventTypeProvider<TKey> eventTypeProvider,
@@ -29,21 +30,21 @@ namespace Anabasis.EventStore
 
       _logger = logger ?? new DummyLogger();
 
-      _configuration = configuration;
+      _eventStoreRepositoryConfiguration = eventStoreRepositoryConfiguration;
       _eventStoreConnection = eventStoreConnection;
       _eventTypeProvider = eventTypeProvider;
 
       _cleanup = connectionMonitor.OnConnected
-            .Subscribe( isConnected =>
+            .Subscribe( (Action<bool>)(isConnected =>
             {
-              _isConnected = isConnected;
+              this.IsConnected = isConnected;
 
-            });
+            }));
     }
 
     public async Task<TAggregate> GetById<TAggregate>(TKey id, bool loadEvents = false) where TAggregate : IAggregate<TKey>, new()
     {
-      if (!_isConnected) throw new InvalidOperationException("Client is not connected to EventStore");
+      if (!IsConnected) throw new InvalidOperationException("Client is not connected to EventStore");
 
       var aggregate = new TAggregate();
 
@@ -55,7 +56,7 @@ namespace Anabasis.EventStore
 
       do
       {
-        currentSlice = await _eventStoreConnection.ReadStreamEventsForwardAsync(streamName, eventNumber, _configuration.ReadPageSize, false);
+        currentSlice = await _eventStoreConnection.ReadStreamEventsForwardAsync(streamName, eventNumber, _eventStoreRepositoryConfiguration.ReadPageSize, false, _eventStoreRepositoryConfiguration.UserCredentials);
 
         if (currentSlice.Status == SliceReadStatus.StreamNotFound)
         {
@@ -137,12 +138,12 @@ namespace Anabasis.EventStore
 
       if (null == targetType) throw new InvalidOperationException($"{evt.EventType} cannot be handled");
 
-      return _configuration.Serializer.DeserializeObject(evt.Data, targetType) as IEvent<TKey>;
+      return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(evt.Data, targetType) as IEvent<TKey>;
     }
 
     private IList<IList<EventData>> GetEventBatches(IEnumerable<EventData> events)
     {
-      return events.Batch(_configuration.WritePageSize).Select(x => (IList<EventData>)x.ToList()).ToList();
+      return events.Batch(_eventStoreRepositoryConfiguration.WritePageSize).Select(x => (IList<EventData>)x.ToList()).ToList();
     }
 
     protected virtual IDictionary<string, string> GetCommitHeaders(object aggregate)
@@ -175,14 +176,14 @@ namespace Anabasis.EventStore
         where TEvent : IEvent<TKey>
     {
 
-      var data = _configuration.Serializer.SerializeObject(@event);
+      var data = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(@event);
 
       var eventHeaders = new Dictionary<string, string>(headers)
             {
                 {MetadataKeys.EventClrTypeHeader, @event.GetType().AssemblyQualifiedName}
             };
 
-      var metadata = _configuration.Serializer.SerializeObject(eventHeaders);
+      var metadata = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(eventHeaders);
       var typeName = @event.GetType().FullName;
 
       return new EventData(eventId, typeName, true, data, metadata);
