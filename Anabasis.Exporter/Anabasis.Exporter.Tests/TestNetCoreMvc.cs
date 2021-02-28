@@ -126,7 +126,7 @@ namespace Anabasis.Tests
     {
       var newItemId = _testBed.Producer.Create();
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       var cleanup = _testBed.Consumer.OnChange.Connect().Subscribe(observer =>
       {
@@ -138,7 +138,7 @@ namespace Anabasis.Tests
 
       });
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       cleanup.Dispose();
     }
@@ -149,7 +149,7 @@ namespace Anabasis.Tests
 
       var itemId = _testBed.Producer.Create();
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       var cleanup = _testBed.Consumer.OnChange.Connect().Subscribe(observer =>
       {
@@ -161,7 +161,7 @@ namespace Anabasis.Tests
 
       });
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       cleanup.Dispose();
 
@@ -176,7 +176,7 @@ namespace Anabasis.Tests
       _testBed.Producer.Mutate(newItem, itemPayload);
 
       //give CI some rope...
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       cleanup = _testBed.Consumer.OnChange.Connect().Subscribe(observer =>
      {
@@ -211,7 +211,7 @@ namespace Anabasis.Tests
 
       });
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       cleanup.Dispose();
 
@@ -240,14 +240,14 @@ namespace Anabasis.Tests
 
           });
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       cleanup.Dispose();
 
       monitor.ForceConnectionStatus(true);
 
       //give CI some rope...
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       cleanup = _testBed.Consumer.OnChange
           .Connect()
@@ -260,7 +260,7 @@ namespace Anabasis.Tests
 
           });
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       cleanup.Dispose();
     }
@@ -271,7 +271,7 @@ namespace Anabasis.Tests
       var itemId = _testBed.Producer.Create();
 
       //give CI some rope...
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       var item = await _testBed.Producer.Get(itemId, true);
 
@@ -281,7 +281,7 @@ namespace Anabasis.Tests
       _testBed.Producer.Mutate(item, "XXX");
 
       //give CI some rope...
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       item = await _testBed.Producer.Get(itemId, true);
 

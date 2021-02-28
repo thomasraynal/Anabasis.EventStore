@@ -25,7 +25,7 @@ namespace Anabasis.Tests.Demo
         [ProtoMember(2, IsRequired = true)]
         public TKey EntityId { get; set; }
 
-        protected abstract void ApplyInternal(TEntity entity);
+    protected abstract void ApplyInternal(TEntity entity);
 
         public void Apply(TEntity entity)
         {

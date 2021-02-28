@@ -108,7 +108,7 @@ namespace Anabasis.Tests
     {
       _cacheOne = CreateCatchupEventStoreCache();
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
@@ -125,7 +125,7 @@ namespace Anabasis.Tests
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(1, _cacheOne.someDataAggregates.Count);
       Assert.AreEqual(0, _cacheOne.someDataAggregates[0].Version);
@@ -138,7 +138,7 @@ namespace Anabasis.Tests
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(1, _cacheOne.someDataAggregates.Count);
       Assert.AreEqual(1, _cacheOne.someDataAggregates[0].Version);
@@ -153,7 +153,7 @@ namespace Anabasis.Tests
 
       _cacheTwo = CreateCatchupEventStoreCache();
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheTwo.catchupEventStoreCache.IsCaughtUp);
       Assert.IsFalse(_cacheTwo.catchupEventStoreCache.IsStale);
@@ -173,7 +173,7 @@ namespace Anabasis.Tests
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_secondAggregateId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(2, _cacheTwo.someDataAggregates.Count);
       Assert.AreEqual(2, _cacheTwo.someDataAggregates.Count);
@@ -186,13 +186,13 @@ namespace Anabasis.Tests
 
       _cacheOne.connectionStatusMonitor.ForceConnectionStatus(false);
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
       Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsStale);
       Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
 
-      await Task.Delay(1000);
+      await Task.Delay(1500);
 
       Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
@@ -203,7 +203,7 @@ namespace Anabasis.Tests
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_thirdAggregateId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(2, _cacheOne.someDataAggregates.Count);
       Assert.AreEqual(2, _cacheOne.someDataAggregates[0].AppliedEvents.Length);
@@ -213,7 +213,7 @@ namespace Anabasis.Tests
 
       _cacheOne.connectionStatusMonitor.ForceConnectionStatus(true);
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
       Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsStale);

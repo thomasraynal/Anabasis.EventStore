@@ -1,19 +1,16 @@
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Reactive.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.EventStore;
 
 namespace Anabasis.Tests.Demo
 {
-    public class ItemCreatedEventProducer : IHostedService
+  public class ItemCreatedEventProducer : IHostedService
     {
         private IDisposable _cleanup;
-        private IEventStoreRepository<Guid> _repository;
+        private readonly IEventStoreRepository<Guid> _repository;
 
         public ItemCreatedEventProducer(IEventStoreRepository<Guid> repository)
         {

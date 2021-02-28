@@ -7,6 +7,8 @@ using EventStore.Core;
 using Microsoft.Extensions.DependencyInjection;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using System;
+using Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription;
+using Anabasis.EventStore.Infrastructure.Cache;
 
 namespace Anabasis.EventStore
 {
@@ -35,6 +37,77 @@ namespace Anabasis.EventStore
 
     }
 
+    public static IServiceCollection AddEventStoreSingleStreamCatchupCache<TKey, TCacheItem>(this IServiceCollection services,
+      ClusterVNode clusterVNode,
+      UserCredentials userCredentials,
+      ConnectionSettings connectionSettings,
+      string streamId,
+      Action<SingleStreamCatchupEventStoreCacheConfiguration<TKey, TCacheItem>> cacheBuilder = null)
+    where TCacheItem : IAggregate<TKey>, new()
+    {
+
+      var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
+
+      var singleStreamCatchupEventStoreCacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<TKey, TCacheItem>(streamId, userCredentials);
+      cacheBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
+
+      services.AddTransient<IEventTypeProvider<TKey, TCacheItem>, ServiceCollectionEventTypeProvider<TKey, TCacheItem>>();
+      services.AddSingleton(singleStreamCatchupEventStoreCacheConfiguration);
+      services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
+      services.AddTransient<SingleStreamCatchupEventStoreCache<TKey, TCacheItem>>();
+
+      return services;
+
+    }
+
+    public static IServiceCollection AddEventStoreVolatileCache<TKey, TCacheItem>(this IServiceCollection services,
+      ClusterVNode clusterVNode,
+      UserCredentials userCredentials,
+      ConnectionSettings connectionSettings,
+      Action<VolatileCacheConfiguration<TKey, TCacheItem>> cacheBuilder = null)
+    where TCacheItem : IAggregate<TKey>, new()
+    {
+
+      var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
+
+      var volatileCacheConfiguration = new VolatileCacheConfiguration<TKey, TCacheItem>(userCredentials);
+      cacheBuilder?.Invoke(volatileCacheConfiguration);
+
+      services.AddTransient<IEventTypeProvider<TKey, TCacheItem>, ServiceCollectionEventTypeProvider<TKey, TCacheItem>>();
+      services.AddSingleton(volatileCacheConfiguration);
+      services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
+      services.AddTransient<VolatileEventStoreCache<TKey, TCacheItem>>();
+
+      return services;
+
+    }
+
+    public static IServiceCollection AddEventStorePersistentSubscriptionCache<TKey, TCacheItem>(this IServiceCollection services,
+    ClusterVNode clusterVNode,
+    UserCredentials userCredentials,
+    ConnectionSettings connectionSettings,
+    string streamId,
+    string groupId,
+    Action<PersistentSubscriptionCacheConfiguration<TKey, TCacheItem>> cacheBuilder = null)
+  where TCacheItem : IAggregate<TKey>, new()
+    {
+
+      var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
+
+      var persistentSubscriptionCacheConfiguration = new PersistentSubscriptionCacheConfiguration<TKey, TCacheItem>(streamId, groupId, userCredentials);
+      cacheBuilder?.Invoke(persistentSubscriptionCacheConfiguration);
+
+      services.AddTransient<IEventTypeProvider<TKey, TCacheItem>, ServiceCollectionEventTypeProvider<TKey, TCacheItem>>();
+      services.AddSingleton(persistentSubscriptionCacheConfiguration);
+      services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
+      services.AddTransient<PersistentSubscriptionEventStoreCache<TKey, TCacheItem>>();
+
+      return services;
+
+    }
 
     #region Repository
 

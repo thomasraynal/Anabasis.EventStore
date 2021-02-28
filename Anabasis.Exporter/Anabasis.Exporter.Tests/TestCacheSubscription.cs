@@ -115,7 +115,7 @@ namespace Anabasis.Tests
     {
       _cacheOne = CreateCatchupEventStoreCache();
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
 
@@ -130,7 +130,7 @@ namespace Anabasis.Tests
       
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(1, _cacheOne.someDataAggregates.Count);
       Assert.AreEqual(0, _cacheOne.someDataAggregates[0].Version);
@@ -151,14 +151,14 @@ namespace Anabasis.Tests
                                         eventCount++;
                                       });
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
 
       Assert.AreEqual(1, eventCount);
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(2, eventCount);
 
@@ -170,7 +170,7 @@ namespace Anabasis.Tests
     {
       _cacheTwo = CreateCatchupEventStoreCache();
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheTwo.catchupEventStoreCache.IsConnected);
 
@@ -183,7 +183,7 @@ namespace Anabasis.Tests
                                         eventCount++;
                                       });
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(1, eventCount);
 
@@ -196,7 +196,7 @@ namespace Anabasis.Tests
     {
       _cacheTwo = CreateCatchupEventStoreCache();
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheTwo.catchupEventStoreCache.IsConnected);
 
@@ -220,7 +220,7 @@ namespace Anabasis.Tests
                                         currentState = state;
                                       });
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.NotNull(currentState);
       Assert.AreEqual(1, eventCount);
@@ -229,7 +229,7 @@ namespace Anabasis.Tests
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.NotNull(currentState);
       Assert.AreEqual(2, eventCount);

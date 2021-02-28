@@ -1,6 +1,5 @@
 using DynamicData;
 using System;
-using System.Reactive.Concurrency;
 
 namespace Anabasis.EventStore
 {

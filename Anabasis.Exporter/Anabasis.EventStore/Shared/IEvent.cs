@@ -4,9 +4,8 @@ using System.Text;
 
 namespace Anabasis.EventStore
 {
-    public interface IEvent<TKey>: IEventStoreEntity<TKey>
-    {
-    //Guid EventId { get; set; }
-    String Name { get; set; }
-    }
+  public interface IEvent<TKey> : IEventStoreEntity<TKey>
+  {
+    string Name { get; set; }
+  }
 }

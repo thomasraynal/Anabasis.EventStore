@@ -122,7 +122,7 @@ namespace Anabasis.Tests
     {
       _cacheOne = CreatePersistentEventStoreCache(_groupIdOne);
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
@@ -137,7 +137,7 @@ namespace Anabasis.Tests
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(1, _cacheOne.someDataAggregates.Count);
       Assert.AreEqual(0, _cacheOne.someDataAggregates[0].Version);
@@ -151,7 +151,7 @@ namespace Anabasis.Tests
 
       _cacheTwo = CreatePersistentEventStoreCache(_groupIdOne);
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheTwo.catchupEventStoreCache.IsCaughtUp);
       Assert.IsTrue(_cacheTwo.catchupEventStoreCache.IsStale);
@@ -168,7 +168,7 @@ namespace Anabasis.Tests
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       int getConsumedEventCount() => _cacheOne.someDataAggregates.Sum(aggregate => aggregate.AppliedEvents.Count()) +
         _cacheTwo.someDataAggregates.Sum(aggregate => aggregate.AppliedEvents.Count());
@@ -184,7 +184,7 @@ namespace Anabasis.Tests
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.AreEqual(10, getConsumedEventCount());
 
@@ -210,7 +210,7 @@ namespace Anabasis.Tests
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       int getConsumedEventCount() => _cacheOne.someDataAggregates.Sum(aggregate => aggregate.AppliedEvents.Count()) +
       _cacheTwo.someDataAggregates.Sum(aggregate => aggregate.AppliedEvents.Count());
@@ -220,7 +220,7 @@ namespace Anabasis.Tests
 
       _cacheOne.connectionStatusMonitor.ForceConnectionStatus(true);
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
@@ -233,7 +233,7 @@ namespace Anabasis.Tests
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
       await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
 
-      await Task.Delay(200);
+      await Task.Delay(100);
 
       var eventOnCacheOne = 20 - (eventsCountOnCacheOneBeforeDisconnect + _cacheTwo.someDataAggregates.Sum(aggregate => aggregate.AppliedEvents.Count()));
 
