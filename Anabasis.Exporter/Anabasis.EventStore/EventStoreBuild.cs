@@ -15,33 +15,33 @@
 //  public static class EventStoreBuild
 //  {
 
-//    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+//    public static CatchupEventStoreCache<TKey, TAggregate> GetEventStoreCache<TKey, TAggregate>(
 //      ClusterVNode clusterVNode,
 //      ConnectionSettings settings,
-//      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-//      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
-//      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
+//      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+//      Action<IEventStoreCacheConfiguration<TKey, TAggregate>> eventStoreCacheConfigurationBuilder = null,
+//      ILogger logger = null) where TAggregate : IAggregate<TKey>, new()
 //    {
 //      var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, settings);
 
 //      return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
 //    }
 
-//    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+//    public static CatchupEventStoreCache<TKey, TAggregate> GetEventStoreCache<TKey, TAggregate>(
 //      IEventStoreConnection eventStoreConnection,
-//      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-//      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
-//      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
+//      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+//      Action<IEventStoreCacheConfiguration<TKey, TAggregate>> eventStoreCacheConfigurationBuilder = null,
+//      ILogger logger = null) where TAggregate : IAggregate<TKey>, new()
 //    {
 //      return GetEventStoreCacheInternal(eventStoreConnection, eventTypeProvider, eventStoreCacheConfigurationBuilder, logger);
 //    }
 
-//    public static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCache<TKey, TCacheItem>(
+//    public static CatchupEventStoreCache<TKey, TAggregate> GetEventStoreCache<TKey, TAggregate>(
 //      string eventStoreUrl,
 //      ConnectionSettings settings,
-//      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-//      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder = null,
-//      ILogger logger = null) where TCacheItem : IAggregate<TKey>, new()
+//      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+//      Action<IEventStoreCacheConfiguration<TKey, TAggregate>> eventStoreCacheConfigurationBuilder = null,
+//      ILogger logger = null) where TAggregate : IAggregate<TKey>, new()
 //    {
 //      var eventStoreConnection = EventStoreConnection.Create(settings, new Uri(eventStoreUrl));
 
@@ -102,20 +102,20 @@
 
 //    }
 
-//    private static CatchupEventStoreCache<TKey, TCacheItem> GetEventStoreCacheInternal<TKey, TCacheItem>(
+//    private static CatchupEventStoreCache<TKey, TAggregate> GetEventStoreCacheInternal<TKey, TAggregate>(
 //      IEventStoreConnection eventStoreConnection,
-//      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
-//      Action<IEventStoreCacheConfiguration<TKey, TCacheItem>> eventStoreCacheConfigurationBuilder,
+//      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+//      Action<IEventStoreCacheConfiguration<TKey, TAggregate>> eventStoreCacheConfigurationBuilder,
 //      ILogger logger = null)
-//      where TCacheItem : IAggregate<TKey>, new()
+//      where TAggregate : IAggregate<TKey>, new()
 //    {
 //      var connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger);
 
-//      var eventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TCacheItem>(null);
+//      var eventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TAggregate>(null);
 
 //      eventStoreCacheConfigurationBuilder?.Invoke(eventStoreCacheConfiguration);
 
-//      return new CatchupEventStoreCache<TKey, TCacheItem>(connectionMonitor,
+//      return new CatchupEventStoreCache<TKey, TAggregate>(connectionMonitor,
 //        eventStoreCacheConfiguration,
 //        eventTypeProvider,
 //        logger);

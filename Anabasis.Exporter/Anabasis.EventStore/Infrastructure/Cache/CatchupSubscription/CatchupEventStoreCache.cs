@@ -7,14 +7,14 @@ using System.Linq;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
-  public class CatchupEventStoreCache<TKey, TCacheItem> : BaseCatchupEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  public class CatchupEventStoreCache<TKey, TAggregate> : BaseCatchupEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
 
-    private readonly CatchupEventStoreCacheConfiguration<TKey, TCacheItem> _catchupEventStoreCacheConfiguration;
+    private readonly CatchupEventStoreCacheConfiguration<TKey, TAggregate> _catchupEventStoreCacheConfiguration;
 
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
-      CatchupEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
-      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
+      CatchupEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
     {
       _catchupEventStoreCacheConfiguration = cacheConfiguration;

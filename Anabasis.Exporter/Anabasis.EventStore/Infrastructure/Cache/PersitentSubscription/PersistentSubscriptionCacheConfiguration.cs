@@ -4,7 +4,7 @@ using System;
 
 namespace Anabasis.EventStore.Infrastructure.Cache
 {
-  public class PersistentSubscriptionCacheConfiguration<TKey, TCacheItem> : IEventStoreCacheConfiguration<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  public class PersistentSubscriptionCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
     public PersistentSubscriptionCacheConfiguration(string streamId, string groupId, UserCredentials userCredentials)
     {

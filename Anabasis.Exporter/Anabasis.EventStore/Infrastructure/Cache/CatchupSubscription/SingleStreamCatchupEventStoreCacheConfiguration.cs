@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
-  public class SingleStreamCatchupEventStoreCacheConfiguration<TKey, TCacheItem> : IEventStoreCacheConfiguration<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>
+  public class SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
   {
     public SingleStreamCatchupEventStoreCacheConfiguration(string streamId, UserCredentials userCredentials)
     {

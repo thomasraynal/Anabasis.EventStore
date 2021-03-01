@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Anabasis.Tests
 {
-  public class SomeData<TKey> : EventBase<TKey, SomeDataAggregate<TKey>>
+  public class SomeData<TKey> : BaseEvent<TKey, SomeDataAggregate<TKey>>
   {
     public SomeData()
     {

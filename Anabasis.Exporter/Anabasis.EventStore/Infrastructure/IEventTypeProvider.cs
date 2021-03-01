@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Infrastructure
 {
-  public interface IEventTypeProvider<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>
+  public interface IEventTypeProvider<TKey, TAggregate> where TAggregate : IAggregate<TKey>
   {
     Type[] GetAll();
     Type GetEventTypeByName(string name);

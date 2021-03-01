@@ -9,10 +9,10 @@ using System.Linq;
 
 namespace Anabasis.EventStore.Infrastructure.Cache
 {
-  public abstract class BaseEventStoreCache<TKey, TCacheItem> : IDisposable, IEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  public abstract class BaseEventStoreCache<TKey, TAggregate> : IDisposable, IEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
-    protected readonly IEventStoreCacheConfiguration<TKey, TCacheItem> _eventStoreCacheConfiguration;
-    protected readonly IEventTypeProvider<TKey, TCacheItem> _eventTypeProvider;
+    protected readonly IEventStoreCacheConfiguration<TKey, TAggregate> _eventStoreCacheConfiguration;
+    protected readonly IEventTypeProvider<TKey, TAggregate> _eventTypeProvider;
     private readonly IConnectionStatusMonitor _connectionMonitor;
     private readonly ILogger _logger;
 
@@ -22,7 +22,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     private DateTime _lastProcessedEventTimestamp;
 
-    protected SourceCache<TCacheItem, TKey> Cache { get; } = new SourceCache<TCacheItem, TKey>(item => item.EntityId);
+    protected SourceCache<TAggregate, TKey> Cache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
 
     protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
     protected BehaviorSubject<bool> IsStaleSubject { get; }
@@ -51,19 +51,19 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
-    public TCacheItem GetCurrent(TKey key)
+    public TAggregate GetCurrent(TKey key)
     {
       return Cache.Items.FirstOrDefault(item => item.EntityId.Equals(key));
     }
 
-    public TCacheItem[] GetCurrents()
+    public TAggregate[] GetCurrents()
     {
       return Cache.Items.ToArray();
     }
 
     public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
-      IEventStoreCacheConfiguration<TKey, TCacheItem> cacheConfiguration,
-      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
+      IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ILogger logger = null)
     {
 
@@ -134,7 +134,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       UpdateCacheState(@event, Cache);
     }
 
-    public IObservableCache<TCacheItem, TKey> AsObservableCache()
+    public IObservableCache<TAggregate, TKey> AsObservableCache()
     {
       return Cache.AsObservableCache();
     }
@@ -156,7 +156,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     protected virtual void OnInitialize(bool isConnected) { }
 
-    protected void UpdateCacheState(ResolvedEvent resolvedEvent, SourceCache<TCacheItem, TKey> specificCache = null)
+    protected void UpdateCacheState(ResolvedEvent resolvedEvent, SourceCache<TAggregate, TKey> specificCache = null)
     {
       var recordedEvent = resolvedEvent.Event;
 
@@ -164,7 +164,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
       var @eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
-      var @event = recordedEvent.GetMutator<TKey, TCacheItem>(@eventType, _eventStoreCacheConfiguration.Serializer);
+      var @event = recordedEvent.GetMutator<TKey, TAggregate>(@eventType, _eventStoreCacheConfiguration.Serializer);
 
       if (null == @event)
       {
@@ -173,7 +173,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
       var entry = cache.Lookup(@event.EntityId);
 
-      TCacheItem entity;
+      TAggregate entity;
 
       if (entry.HasValue)
       {
@@ -186,7 +186,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       }
       else
       {
-        entity = new TCacheItem();
+        entity = new TAggregate();
       }
 
       entity.ApplyEvent(@event, false, _eventStoreCacheConfiguration.KeepAppliedEventsOnAggregate);

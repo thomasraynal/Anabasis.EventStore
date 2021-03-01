@@ -1,61 +1,39 @@
-using DynamicData;
+using Anabasis.EventStore.Infrastructure.Queue.VolatileQueue;
 using EventStore.ClientAPI;
 using System;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
+namespace Anabasis.EventStore.Infrastructure.Queue
 {
-  public abstract class BaseCatchupEventStoreCache<TKey, TAggregate> : BaseEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+  public class VolatileEventStoreQueue<TKey> : BaseEventStoreQueue<TKey>
   {
-    protected SourceCache<TAggregate, TKey> CaughtingUpCache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
+    private readonly VolatileEventStoreQueueConfiguration<TKey> _volatileEventStoreQueueConfiguration;
 
-    protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor, IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration, IEventTypeProvider<TKey, TAggregate> eventTypeProvider, ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
+    public VolatileEventStoreQueue(
+      VolatileEventStoreQueueConfiguration<TKey> volatileEventStoreQueueConfiguration,
+      IConnectionStatusMonitor connectionMonitor,
+      IEventTypeProvider<TKey> eventTypeProvider,
+      ILogger logger = null)
+      : base(connectionMonitor, volatileEventStoreQueueConfiguration, eventTypeProvider, logger)
     {
-    }
-
-    protected abstract EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection,
-      Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp,
-      Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped);
-
-    protected override void OnDispose()
-    {
-      CaughtingUpCache.Dispose();
+      _volatileEventStoreQueueConfiguration = volatileEventStoreQueueConfiguration;
     }
 
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
 
-      return Observable.Create<ResolvedEvent>(obs =>
+      return Observable.Create<ResolvedEvent>(observer =>
       {
 
-        Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
+        Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent resolvedEvent)
         {
-
-          obs.OnNext(@event);
+          observer.OnNext(resolvedEvent);
 
           return Task.CompletedTask;
-        }
-
-        void onCaughtUp(EventStoreCatchUpSubscription _)
-        {
-
-          //this handle a caughting up NOT due to disconnection, i.e a caughting up due to a lag
-          if (IsCaughtUp) return;
-
-          Cache.Edit(innerCache =>
-          {
-
-            innerCache.Load(CaughtingUpCache.Items);
-
-            CaughtingUpCache.Clear();
-
-          });
-
-          IsCaughtUpSubject.OnNext(true);
-
         }
 
         void onSubscriptionDropped(EventStoreCatchUpSubscription _, SubscriptionDropReason subscriptionDropReason, Exception exception)
@@ -84,11 +62,24 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
               throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found");
           }
-
-
         }
 
-        var subscription = GetEventStoreCatchUpSubscription(connection, onEvent, onCaughtUp, onSubscriptionDropped);
+        void onCaughtUp(EventStoreCatchUpSubscription _)
+        {
+        }
+
+        var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+
+        var filter = Filter.EventType.Prefix(eventTypeFilter);
+
+        var subscription = connection.FilteredSubscribeToAllFrom(
+          Position.End,
+          filter,
+          _volatileEventStoreQueueConfiguration.CatchUpSubscriptionFilteredSettings,
+          eventAppeared: onEvent,
+          liveProcessingStarted: onCaughtUp,
+          subscriptionDropped: onSubscriptionDropped,
+          userCredentials: _volatileEventStoreQueueConfiguration.UserCredentials);
 
         return Disposable.Create(() =>
         {
@@ -98,5 +89,9 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       });
     }
 
+    protected override void OnResolvedEvent(ResolvedEvent @event)
+    {
+      throw new NotImplementedException();
+    }
   }
 }

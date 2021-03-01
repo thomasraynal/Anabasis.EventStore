@@ -4,7 +4,7 @@ using System;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
 {
-  public class VolatileCacheConfiguration<TKey, TCacheItem> : IEventStoreCacheConfiguration<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  public class VolatileCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
     public VolatileCacheConfiguration(UserCredentials userCredentials)
     {

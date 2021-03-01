@@ -1,9 +1,8 @@
 namespace Anabasis.Actor
 {
-  public interface IActor: IDispatchQueue<IActorEvent>
+  public interface IActor
   {
     string ActorId { get; }
-    string StreamId { get; }
     bool CanConsume(IActorEvent message);
   }
 }

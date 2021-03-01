@@ -1,3 +1,4 @@
+using Anabasis.EventStore;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -5,25 +6,34 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Actor
 {
-  public abstract class BaseActor : DispatchQueue<IActorEvent>, IActor
+  public abstract class BaseActor<TKey,TEventStoreCache, TAggregate> : IDisposable
+    where TEventStoreCache : IEventStoreCache<TKey, TAggregate>
+    where TAggregate : IAggregate<TKey>, new()
   {
     private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
+    private readonly TEventStoreCache _eventStoreCache;
+    private readonly IEventStoreRepository<TKey> _eventStoreRepository;
 
-    protected BaseActor(IMediator simpleMediator)
+    protected BaseActor(IEventStoreRepository<TKey> eventStoreRepository, TEventStoreCache eventStoreCache)
     {
-
-      Mediator = simpleMediator;
 
       ActorId = $"{GetType()}-{Guid.NewGuid()}";
 
+      _eventStoreCache = eventStoreCache;
+      _eventStoreRepository = eventStoreRepository;
       _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
       _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
 
+     _stateSubscriptionDisposable = _eventStoreCache.AsObservableCache().Connect().Subscribe(@event =>
+      {
+
+      });
+
     }
 
-    public IMediator Mediator { get; }
 
     private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
+    private readonly IDisposable _stateSubscriptionDisposable;
 
     public abstract string StreamId { get; }
 
@@ -87,13 +97,18 @@ namespace Anabasis.Actor
 
     public override bool Equals(object obj)
     {
-      return obj is BaseActor actor &&
+      return obj is BaseActor<TEventStoreCache> actor &&
              ActorId == actor.ActorId;
     }
 
     public override int GetHashCode()
     {
       return HashCode.Combine(ActorId);
+    }
+
+    public void Dispose()
+    {
+      _stateSubscriptionDisposable.Dispose();
     }
   }
 }

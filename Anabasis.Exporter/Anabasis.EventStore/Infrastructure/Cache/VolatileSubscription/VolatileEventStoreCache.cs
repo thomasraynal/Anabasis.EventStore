@@ -8,14 +8,14 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
 {
-  public class VolatileEventStoreCache<TKey, TCacheItem> : BaseEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  public class VolatileEventStoreCache<TKey, TAggregate> : BaseEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
 
-    private VolatileCacheConfiguration<TKey, TCacheItem> _volatileEventStoreCacheConfiguration;
+    private VolatileCacheConfiguration<TKey, TAggregate> _volatileEventStoreCacheConfiguration;
 
     public VolatileEventStoreCache(IConnectionStatusMonitor connectionMonitor,
-      VolatileCacheConfiguration<TKey, TCacheItem> volatileEventStoreCacheConfiguration,
-      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
+      VolatileCacheConfiguration<TKey, TAggregate> volatileEventStoreCacheConfiguration,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ILogger logger = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, logger)
     {
       _volatileEventStoreCacheConfiguration = volatileEventStoreCacheConfiguration;

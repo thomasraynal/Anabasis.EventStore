@@ -3,7 +3,7 @@ using System;
 
 namespace Anabasis.EventStore
 {
-  public interface IEventStoreCacheConfiguration<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>
+  public interface IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
   {
     TimeSpan IsStaleTimeSpan { get; }
     bool KeepAppliedEventsOnAggregate { get;  } 

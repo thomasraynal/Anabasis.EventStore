@@ -37,7 +37,7 @@ namespace Anabasis.EventStore.Infrastructure
     }
   }
 
-  public class DefaultEventTypeProvider<TKey, TCacheItem> : IEventTypeProvider<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>
+  public class DefaultEventTypeProvider<TKey, TAggregate> : IEventTypeProvider<TKey, TAggregate> where TAggregate : IAggregate<TKey>
   {
     private readonly Dictionary<string, Type> _eventTypeCache;
 

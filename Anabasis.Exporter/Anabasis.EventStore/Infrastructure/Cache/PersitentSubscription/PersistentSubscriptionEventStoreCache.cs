@@ -8,13 +8,13 @@ using Anabasis.EventStore.Infrastructure.Cache;
 
 namespace Anabasis.EventStore.Infrastructure
 {
-  public class PersistentSubscriptionEventStoreCache<TKey, TCacheItem> : BaseEventStoreCache<TKey, TCacheItem> where TCacheItem : IAggregate<TKey>, new()
+  public class PersistentSubscriptionEventStoreCache<TKey, TAggregate> : BaseEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
-    private readonly PersistentSubscriptionCacheConfiguration<TKey, TCacheItem> _persistentSubscriptionCacheConfiguration;
+    private readonly PersistentSubscriptionCacheConfiguration<TKey, TAggregate> _persistentSubscriptionCacheConfiguration;
 
     public PersistentSubscriptionEventStoreCache(IConnectionStatusMonitor connectionMonitor,
-      PersistentSubscriptionCacheConfiguration<TKey, TCacheItem> persistentSubscriptionCacheConfiguration,
-      IEventTypeProvider<TKey, TCacheItem> eventTypeProvider,
+      PersistentSubscriptionCacheConfiguration<TKey, TAggregate> persistentSubscriptionCacheConfiguration,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ILogger logger = null) : base(connectionMonitor, persistentSubscriptionCacheConfiguration, eventTypeProvider, logger)
     {
       _persistentSubscriptionCacheConfiguration = persistentSubscriptionCacheConfiguration;
