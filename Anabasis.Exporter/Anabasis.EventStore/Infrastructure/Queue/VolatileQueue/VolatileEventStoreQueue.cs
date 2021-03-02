@@ -14,8 +14,8 @@ namespace Anabasis.EventStore.Infrastructure.Queue
     private readonly VolatileEventStoreQueueConfiguration<TKey> _volatileEventStoreQueueConfiguration;
 
     public VolatileEventStoreQueue(
-      VolatileEventStoreQueueConfiguration<TKey> volatileEventStoreQueueConfiguration,
       IConnectionStatusMonitor connectionMonitor,
+      VolatileEventStoreQueueConfiguration<TKey> volatileEventStoreQueueConfiguration,
       IEventTypeProvider<TKey> eventTypeProvider,
       ILogger logger = null)
       : base(connectionMonitor, volatileEventStoreQueueConfiguration, eventTypeProvider, logger)
@@ -43,7 +43,6 @@ namespace Anabasis.EventStore.Infrastructure.Queue
             case SubscriptionDropReason.UserInitiated:
             case SubscriptionDropReason.ConnectionClosed:
               break;
-
             case SubscriptionDropReason.NotAuthenticated:
             case SubscriptionDropReason.AccessDenied:
             case SubscriptionDropReason.SubscribingError:
@@ -84,14 +83,10 @@ namespace Anabasis.EventStore.Infrastructure.Queue
         return Disposable.Create(() =>
         {
           subscription.Stop();
+
         });
 
       });
-    }
-
-    protected override void OnResolvedEvent(ResolvedEvent @event)
-    {
-      throw new NotImplementedException();
     }
   }
 }

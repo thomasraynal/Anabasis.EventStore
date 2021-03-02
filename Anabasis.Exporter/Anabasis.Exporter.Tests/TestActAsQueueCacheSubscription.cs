@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Tests
 {
-  public class SomeDataQueueLikeEvent : BaseEvent<Guid, SomeDataAggregateQueueLikeState>
+  public class SomeDataQueueLikeEvent : BaseAggregateEvent<Guid, SomeDataAggregateQueueLikeState>
   {
     public SomeDataQueueLikeEvent(Guid entityId)
     {

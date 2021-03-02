@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Infrastructure.Queue
 {
-  public class PersistentSubscriptionEventStoreQueue : I
+  public class PersistentSubscriptionEventStoreQueue
   {
   }
 }

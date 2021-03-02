@@ -6,8 +6,8 @@ namespace Anabasis.EventStore
 
   public abstract class BaseAggregate<TKey> : IAggregate<TKey>
   {
-    private readonly List<IEvent<TKey>> _pendingEvents = new List<IEvent<TKey>>();
-    private readonly List<IEvent<TKey>> _appliedEvents = new List<IEvent<TKey>>();
+    private readonly List<IEntityEvent<TKey>> _pendingEvents = new List<IEntityEvent<TKey>>();
+    private readonly List<IEntityEvent<TKey>> _appliedEvents = new List<IEntityEvent<TKey>>();
 
     public TKey EntityId { get; set; }
 
@@ -19,7 +19,7 @@ namespace Anabasis.EventStore
       Version++;
     }
 
-    public void ApplyEvent(IEvent<TKey> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true)
+    public void ApplyEvent(IEntityEvent<TKey> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true)
     {
       //we only save applied events
       if (keepAppliedEventsOnAggregate && !saveAsPendingEvent)
@@ -38,7 +38,7 @@ namespace Anabasis.EventStore
 
     }
 
-    public ICollection<IEvent<TKey>> GetPendingEvents()
+    public ICollection<IEntityEvent<TKey>> GetPendingEvents()
     {
       return _pendingEvents;
     }
@@ -53,7 +53,7 @@ namespace Anabasis.EventStore
       return EntityId.ToString();
     }
 
-    public IEvent<TKey>[] PendingEvents
+    public IEntityEvent<TKey>[] PendingEvents
     {
       get
       {
@@ -61,7 +61,7 @@ namespace Anabasis.EventStore
       }
 
     }
-    public IEvent<TKey>[] AppliedEvents
+    public IEntityEvent<TKey>[] AppliedEvents
     {
       get
       {

@@ -146,8 +146,12 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
       _isStaleDisposable.Dispose();
       _eventStoreConnectionStatus.Dispose();
-      ConnectionStatusSubject.Dispose();
 
+      ConnectionStatusSubject.OnCompleted();
+      IsCaughtUpSubject.OnCompleted();
+      IsStaleSubject.OnCompleted();
+
+      ConnectionStatusSubject.Dispose();
       IsCaughtUpSubject.Dispose();
       IsStaleSubject.Dispose();
 

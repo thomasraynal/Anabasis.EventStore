@@ -82,8 +82,8 @@ namespace Anabasis.EventStore
       return aggregate;
     }
 
-    private async Task Save<TEvent>(IEvent<TKey> @event, params KeyValuePair<string, string>[] extraHeaders)
-        where TEvent : IEvent<TKey>
+    private async Task Save<TEvent>(IEntityEvent<TKey> @event, params KeyValuePair<string, string>[] extraHeaders)
+        where TEvent : IEntityEvent<TKey>
     {
 
       var commitHeaders = CreateCommitHeaders(@event, extraHeaders);
@@ -132,13 +132,13 @@ namespace Anabasis.EventStore
 
     }
 
-    private IEvent<TKey> DeserializeEvent(RecordedEvent evt)
+    private IEntityEvent<TKey> DeserializeEvent(RecordedEvent evt)
     {
       var targetType = _eventTypeProvider.GetEventTypeByName(evt.EventType);
 
       if (null == targetType) throw new InvalidOperationException($"{evt.EventType} cannot be handled");
 
-      return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(evt.Data, targetType) as IEvent<TKey>;
+      return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(evt.Data, targetType) as IEntityEvent<TKey>;
     }
 
     private IList<IList<EventData>> GetEventBatches(IEnumerable<EventData> events)
@@ -173,7 +173,7 @@ namespace Anabasis.EventStore
     }
 
     private EventData ToEventData<TEvent>(Guid eventId, TEvent @event, IDictionary<string, string> headers)
-        where TEvent : IEvent<TKey>
+        where TEvent : IEntityEvent<TKey>
     {
 
       var data = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(@event);
@@ -190,14 +190,14 @@ namespace Anabasis.EventStore
     }
 
     public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-        where TEvent : IEvent<TKey>
+        where TEvent : IEntityEvent<TKey>
     {
       await Save<TEvent>(@event, extraHeaders);
     }
 
     public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
         where TEntity : IAggregate<TKey>
-        where TEvent : IEvent<TKey>, IMutable<TKey, TEntity>
+        where TEvent : IEntityEvent<TKey>, IMutable<TKey, TEntity>
     {
 
       aggregate.ApplyEvent(ev);

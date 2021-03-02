@@ -4,9 +4,10 @@ using System.Text;
 
 namespace Anabasis.EventStore.Infrastructure
 {
-  public interface IEventTypeProvider
+  public interface IEvent
   {
-    Type[] GetAll();
-    Type GetEventTypeByName(string name);
+    Guid EventID { get; }
+    Guid CorrelationID { get; }
+    string Log();
   }
 }

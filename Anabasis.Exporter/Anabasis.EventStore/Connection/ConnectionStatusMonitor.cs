@@ -80,9 +80,11 @@ namespace Anabasis.EventStore
                                          .StartWith(ConnectionInfo.Initial)
                                          .Do(connectionInfo =>
                                          {
+
                                            ConnectionInfo = connectionInfo;
                                            _logger.LogInformation($"{connectionInfo}");
                                            _isConnected.OnNext(connectionInfo.Status == ConnectionStatus.Connected);
+
                                          })
                                          .Replay(1);
 
@@ -94,6 +96,8 @@ namespace Anabasis.EventStore
 
     public void Dispose()
     {
+      _isConnected.OnCompleted();
+      _isConnected.Dispose();
       _cleanUp.Dispose();
     }
 

@@ -25,11 +25,9 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
     protected override void OnResolvedEvent(ResolvedEvent @event)
     {
-
       var cache = IsCaughtUp ? Cache : CaughtingUpCache;
 
       UpdateCacheState(@event, cache);
-
     }
 
     protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)

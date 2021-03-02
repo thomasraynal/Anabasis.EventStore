@@ -4,14 +4,14 @@ using System.Text;
 
 namespace Anabasis.EventStore
 {
-  public abstract class BaseEvent<TKey, TEntity> : IMutable<TKey, TEntity> where TEntity : IAggregate<TKey>
+  public abstract class BaseAggregateEvent<TKey, TEntity> : IMutable<TKey, TEntity> where TEntity : IAggregate<TKey>
   {
     public string Name { get; set; }
     public TKey EntityId { get; set; }
     public Guid EventId { get; set; }
     protected abstract void ApplyInternal(TEntity entity);
 
-    protected BaseEvent()
+    protected BaseAggregateEvent()
     {
       Name = GetType().FullName;
       EventId = Guid.NewGuid();

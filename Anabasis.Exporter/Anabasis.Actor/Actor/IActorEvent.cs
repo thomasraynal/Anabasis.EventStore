@@ -3,7 +3,7 @@ using System;
 
 namespace Anabasis.Actor
 {
-  public interface IActorEvent : IEvent<string>
+  public interface IActorEvent : IEntityEvent<string>
   {
     Guid EventID { get; }
     Guid CorrelationID { get; }

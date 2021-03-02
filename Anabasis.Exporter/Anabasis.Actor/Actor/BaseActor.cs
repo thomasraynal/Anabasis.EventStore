@@ -1,6 +1,7 @@
 using Anabasis.EventStore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -24,10 +25,14 @@ namespace Anabasis.Actor
       _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
       _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
 
-     _stateSubscriptionDisposable = _eventStoreCache.AsObservableCache().Connect().Subscribe(@event =>
-      {
+      _stateSubscriptionDisposable = _eventStoreCache.AsObservableCache().Connect().Subscribe(events =>
+       {
+         foreach (var @event in events)
+         {
+           @event.fir
 
-      });
+         }
+       });
 
     }
 

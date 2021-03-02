@@ -4,8 +4,10 @@ using System.Text;
 
 namespace Anabasis.EventStore
 {
-  public interface IEvent<TKey> : IEventStoreEntity<TKey>
+  public interface IEntityEvent<TKey> 
   {
     string Name { get; set; }
+    TKey EntityId { get; set; }
+    string GetStreamName();
   }
 }

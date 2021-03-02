@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Anabasis.EventStore.Infrastructure.Queue
 {
-  public interface IEventStoreQueue<TKey>
+  public interface IEventStoreQueue
   {
-    void BindTo<TConsumer>();
+    IObservable<IEvent> OnEvent();
   }
 }

@@ -5,7 +5,6 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
-
   public class SingleStreamCatchupEventStoreCache<TKey, TAggregate> : BaseCatchupEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
 
