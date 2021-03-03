@@ -107,7 +107,7 @@ namespace Anabasis.Tests
 
       var events = _host.Services.GetServices<IEntityEvent<Guid>>();
 
-      Assert.AreEqual(5, events.Count(), "Should have registered 5 events");
+      Assert.AreEqual(7, events.Count(), "Should have registered 5 events");
 
       Assert.IsNotNull(itemsCache, "An IEventStoreCache<Guid, Item, Item> should have been registered");
       Assert.IsNotNull(blobCache, "An IEventStoreCache<Guid, Blob, BlobOutput> should have been registered");

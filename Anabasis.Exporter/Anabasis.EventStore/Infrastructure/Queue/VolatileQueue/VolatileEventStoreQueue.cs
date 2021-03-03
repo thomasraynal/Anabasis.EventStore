@@ -9,18 +9,20 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Anabasis.EventStore.Infrastructure.Queue
 {
-  public class VolatileEventStoreQueue<TKey> : BaseEventStoreQueue<TKey>
+  public class VolatileEventStoreQueue : BaseEventStoreQueue
   {
-    private readonly VolatileEventStoreQueueConfiguration<TKey> _volatileEventStoreQueueConfiguration;
+    private readonly VolatileEventStoreQueueConfiguration _volatileEventStoreQueueConfiguration;
 
     public VolatileEventStoreQueue(
       IConnectionStatusMonitor connectionMonitor,
-      VolatileEventStoreQueueConfiguration<TKey> volatileEventStoreQueueConfiguration,
-      IEventTypeProvider<TKey> eventTypeProvider,
+      VolatileEventStoreQueueConfiguration volatileEventStoreQueueConfiguration,
+      IEventTypeProvider eventTypeProvider,
       ILogger logger = null)
       : base(connectionMonitor, volatileEventStoreQueueConfiguration, eventTypeProvider, logger)
     {
       _volatileEventStoreQueueConfiguration = volatileEventStoreQueueConfiguration;
+
+      InitializeAndRun();
     }
 
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)

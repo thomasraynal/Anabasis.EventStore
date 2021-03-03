@@ -28,7 +28,7 @@ namespace Anabasis.EventStore
       var catchupEventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TAggregate>(userCredentials);
       cacheBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-      services.AddTransient<IEventTypeProvider<TKey, TAggregate>, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
+      services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
       services.AddSingleton(catchupEventStoreCacheConfiguration);
       services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
       services.AddTransient<CatchupEventStoreCache<TKey, TAggregate>>();
@@ -52,7 +52,7 @@ namespace Anabasis.EventStore
       var singleStreamCatchupEventStoreCacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>(streamId, userCredentials);
       cacheBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
 
-      services.AddTransient<IEventTypeProvider<TKey, TAggregate>, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
+      services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
       services.AddSingleton(singleStreamCatchupEventStoreCacheConfiguration);
       services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
       services.AddTransient<SingleStreamCatchupEventStoreCache<TKey, TAggregate>>();
@@ -75,7 +75,7 @@ namespace Anabasis.EventStore
       var volatileCacheConfiguration = new VolatileCacheConfiguration<TKey, TAggregate>(userCredentials);
       cacheBuilder?.Invoke(volatileCacheConfiguration);
 
-      services.AddTransient<IEventTypeProvider<TKey, TAggregate>, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
+      services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
       services.AddSingleton(volatileCacheConfiguration);
       services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
       services.AddTransient<VolatileEventStoreCache<TKey, TAggregate>>();
@@ -100,7 +100,7 @@ namespace Anabasis.EventStore
       var persistentSubscriptionCacheConfiguration = new PersistentSubscriptionCacheConfiguration<TKey, TAggregate>(streamId, groupId, userCredentials);
       cacheBuilder?.Invoke(persistentSubscriptionCacheConfiguration);
 
-      services.AddTransient<IEventTypeProvider<TKey, TAggregate>, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
+      services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
       services.AddSingleton(persistentSubscriptionCacheConfiguration);
       services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
       services.AddTransient<PersistentSubscriptionEventStoreCache<TKey, TAggregate>>();
@@ -123,7 +123,7 @@ namespace Anabasis.EventStore
 
       services.AddSingleton<IConnectionStatusMonitor, ConnectionStatusMonitor>();
       services.AddSingleton<IEventStoreRepository<TKey>, EventStoreRepository<TKey>>();
-      services.AddTransient<IEventTypeProvider<TKey>, ServiceCollectionEventTypeProvider<TKey>>();
+      services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey>>();
 
       var configuration = new EventStoreRepositoryConfiguration<TKey>(userCredentials, connectionSettings);
 

@@ -1,21 +1,27 @@
 using Anabasis.EventStore;
+using Anabasis.EventStore.Infrastructure;
 using System;
 
 namespace Anabasis.Tests.Components
 {
-  public class SomeRandomEvent : IEntityEvent<string>
+  public class SomeRandomEvent : IEvent
   {
     public SomeRandomEvent()
     {
-      Name = nameof(SomeRandomEvent);
     }
 
-    public string Name { get; set; }
-    public string EntityId { get => throw new NotImplementedException(); set => throw new NotImplementedException(); }
+    public Guid EventID { get; set; }
+
+    public Guid CorrelationID { get; set; }
 
     public string GetStreamName()
     {
-      return EntityId;
+      return nameof(SomeRandomEvent);
+    }
+
+    public string Log()
+    {
+      return nameof(SomeRandomEvent);
     }
   }
 }

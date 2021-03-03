@@ -29,7 +29,7 @@ namespace Anabasis.Actor
        {
          foreach (var @event in events)
          {
-           @event.fir
+           //@event.fir
 
          }
        });

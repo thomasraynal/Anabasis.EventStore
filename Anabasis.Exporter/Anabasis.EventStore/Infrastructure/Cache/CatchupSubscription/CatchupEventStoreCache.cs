@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       CatchupEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+      IEventTypeProvider eventTypeProvider,
       ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
     {
       _catchupEventStoreCacheConfiguration = cacheConfiguration;

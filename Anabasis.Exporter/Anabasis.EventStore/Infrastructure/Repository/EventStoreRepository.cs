@@ -13,7 +13,7 @@ namespace Anabasis.EventStore
   public class EventStoreRepository<TKey> : IEventStoreRepository<TKey>, IDisposable
   {
     private readonly IEventStoreConnection _eventStoreConnection;
-    private readonly IEventTypeProvider<TKey> _eventTypeProvider;
+    private readonly IEventTypeProvider _eventTypeProvider;
     private readonly IDisposable _cleanup;
     private readonly Microsoft.Extensions.Logging.ILogger _logger;
     private readonly IEventStoreRepositoryConfiguration<TKey> _eventStoreRepositoryConfiguration;
@@ -24,7 +24,7 @@ namespace Anabasis.EventStore
         IEventStoreRepositoryConfiguration<TKey> eventStoreRepositoryConfiguration,
         IEventStoreConnection eventStoreConnection,
         IConnectionStatusMonitor connectionMonitor,
-        IEventTypeProvider<TKey> eventTypeProvider,
+        IEventTypeProvider eventTypeProvider,
         Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
@@ -35,11 +35,11 @@ namespace Anabasis.EventStore
       _eventTypeProvider = eventTypeProvider;
 
       _cleanup = connectionMonitor.OnConnected
-            .Subscribe( (Action<bool>)(isConnected =>
-            {
-              this.IsConnected = isConnected;
+            .Subscribe((Action<bool>)(isConnected =>
+           {
+             IsConnected = isConnected;
 
-            }));
+           }));
     }
 
     public async Task<TAggregate> GetById<TAggregate>(TKey id, bool loadEvents = false) where TAggregate : IAggregate<TKey>, new()
@@ -110,6 +110,30 @@ namespace Anabasis.EventStore
       aggregate.ClearPendingEvents();
     }
 
+    private async Task Save(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
+    {
+
+      foreach (var eventBatch in events.GroupBy(ev => ev.GetStreamName()))
+      {
+
+        var eventsToSave = eventBatch.Select(ev =>
+        {
+          var commitHeaders = CreateCommitHeaders(ev, extraHeaders);
+
+          return ToEventData(Guid.NewGuid(), ev, commitHeaders);
+
+        });
+
+        await SaveEventBatch(eventBatch.Key, ExpectedVersion.Any, eventsToSave.ToArray());
+      }
+
+    }
+
+    private async Task Save(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+    {
+      await Save(new[] { @event }, extraHeaders);
+    }
+
     private async Task SaveEventBatch(string streamName, int expectedVersion, EventData[] eventsToSave)
     {
       var eventBatches = GetEventBatches(eventsToSave);
@@ -172,8 +196,7 @@ namespace Anabasis.EventStore
       return commitHeaders;
     }
 
-    private EventData ToEventData<TEvent>(Guid eventId, TEvent @event, IDictionary<string, string> headers)
-        where TEvent : IEntityEvent<TKey>
+    private EventData ToEventData(Guid eventId, object @event, IDictionary<string, string> headers)
     {
 
       var data = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(@event);
@@ -193,6 +216,16 @@ namespace Anabasis.EventStore
         where TEvent : IEntityEvent<TKey>
     {
       await Save<TEvent>(@event, extraHeaders);
+    }
+
+    public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+    {
+      await Save(@event, extraHeaders);
+    }
+
+    public async Task Emit(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
+    {
+      await Save(events, extraHeaders);
     }
 
     public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)

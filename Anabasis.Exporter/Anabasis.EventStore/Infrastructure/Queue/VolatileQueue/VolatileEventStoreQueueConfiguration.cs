@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Infrastructure.Queue.VolatileQueue
 {
-  public class VolatileEventStoreQueueConfiguration<TKey> : IEventStoreQueueConfiguration<TKey>
+  public class VolatileEventStoreQueueConfiguration: IEventStoreQueueConfiguration
   {
     public VolatileEventStoreQueueConfiguration(UserCredentials userCredentials)
     {

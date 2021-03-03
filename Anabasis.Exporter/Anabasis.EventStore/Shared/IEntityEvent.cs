@@ -1,13 +1,12 @@
+using Anabasis.EventStore.Shared;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
 namespace Anabasis.EventStore
 {
-  public interface IEntityEvent<TKey> 
+  public interface IEntityEvent<TKey> : IHaveAStreamId
   {
-    string Name { get; set; }
-    TKey EntityId { get; set; }
-    string GetStreamName();
+    TKey EntityId { get; set; } 
   }
 }

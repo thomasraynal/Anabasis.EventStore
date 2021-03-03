@@ -12,7 +12,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
   {
     protected SourceCache<TAggregate, TKey> CaughtingUpCache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
 
-    protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor, IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration, IEventTypeProvider<TKey, TAggregate> eventTypeProvider, ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
+    protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor, IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration, IEventTypeProvider eventTypeProvider, ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
     {
     }
 

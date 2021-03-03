@@ -6,24 +6,24 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Anabasis.EventStore.Infrastructure.Queue
 {
-  public abstract class BaseEventStoreQueue<TKey> : IEventStoreQueue<TKey>
+  public abstract class BaseEventStoreQueue : IEventStoreQueue
   {
-    protected readonly IEventStoreQueueConfiguration<TKey> _eventStoreQueueConfiguration;
-    protected readonly IEventTypeProvider<TKey> _eventTypeProvider;
+    protected readonly IEventStoreQueueConfiguration _eventStoreQueueConfiguration;
+    protected readonly IEventTypeProvider _eventTypeProvider;
     private readonly IConnectionStatusMonitor _connectionMonitor;
     private readonly ILogger _logger;
 
     private IDisposable _eventStoreConnectionStatus;
     private IDisposable _eventStreamConnectionDisposable;
 
-    protected Subject<IEntityEvent<TKey>> _onEventSubject;
+    protected Subject<IEvent> _onEventSubject;
     protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
     public bool IsConnected => _connectionMonitor.IsConnected;
     public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
     public BaseEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
-      IEventStoreQueueConfiguration<TKey> cacheConfiguration,
-      IEventTypeProvider<TKey> eventTypeProvider,
+      IEventStoreQueueConfiguration cacheConfiguration,
+      IEventTypeProvider eventTypeProvider,
       ILogger logger = null)
     {
 
@@ -33,7 +33,7 @@ namespace Anabasis.EventStore.Infrastructure.Queue
       _eventTypeProvider = eventTypeProvider;
       _connectionMonitor = connectionMonitor;
 
-      _onEventSubject = new Subject<IEntityEvent<TKey>>();
+      _onEventSubject = new Subject<IEvent>();
 
       ConnectionStatusSubject = new BehaviorSubject<bool>(false);
 
@@ -57,7 +57,7 @@ namespace Anabasis.EventStore.Infrastructure.Queue
 
                 var @eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
-                var @event = (IEntityEvent<TKey>)Activator.CreateInstance(@eventType);
+                var @event = (IEvent)Activator.CreateInstance(@eventType);
 
                 _onEventSubject.OnNext(@event);
 
@@ -72,7 +72,7 @@ namespace Anabasis.EventStore.Infrastructure.Queue
       });
     }
 
-    public IObservable<IEntityEvent<TKey>> OnEvent()
+    public IObservable<IEvent> OnEvent()
     {
       return _onEventSubject.AsObservable();
     }

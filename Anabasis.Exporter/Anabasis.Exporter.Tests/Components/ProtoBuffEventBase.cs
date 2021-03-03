@@ -16,7 +16,6 @@ namespace Anabasis.Tests.Demo
     {
         protected ProtoBuffEventBase()
         {
-            Name = GetType().FullName;
         }
 
         [ProtoMember(1, IsRequired = true)]

@@ -12,7 +12,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
   public abstract class BaseEventStoreCache<TKey, TAggregate> : IDisposable, IEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
     protected readonly IEventStoreCacheConfiguration<TKey, TAggregate> _eventStoreCacheConfiguration;
-    protected readonly IEventTypeProvider<TKey, TAggregate> _eventTypeProvider;
+    protected readonly IEventTypeProvider _eventTypeProvider;
     private readonly IConnectionStatusMonitor _connectionMonitor;
     private readonly ILogger _logger;
 
@@ -63,7 +63,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+      IEventTypeProvider eventTypeProvider,
       ILogger logger = null)
     {
 

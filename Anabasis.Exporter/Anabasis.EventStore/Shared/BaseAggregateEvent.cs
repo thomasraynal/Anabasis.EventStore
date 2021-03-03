@@ -6,14 +6,12 @@ namespace Anabasis.EventStore
 {
   public abstract class BaseAggregateEvent<TKey, TEntity> : IMutable<TKey, TEntity> where TEntity : IAggregate<TKey>
   {
-    public string Name { get; set; }
     public TKey EntityId { get; set; }
     public Guid EventId { get; set; }
     protected abstract void ApplyInternal(TEntity entity);
 
     protected BaseAggregateEvent()
     {
-      Name = GetType().FullName;
       EventId = Guid.NewGuid();
     }
 

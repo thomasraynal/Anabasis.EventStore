@@ -81,7 +81,7 @@ namespace Anabasis.Tests
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,
-        new DefaultEventTypeProvider<string>(() => new[] { typeof(SomeData<string>) }),
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }),
         _debugLogger);
 
       return (connectionMonitor, eventStoreRepository);
@@ -102,7 +102,7 @@ namespace Anabasis.Tests
       var catchUpCache = new PersistentSubscriptionEventStoreCache<string, SomeDataAggregate<string>>(
         connectionMonitor,
         persistentSubscriptionCacheConfiguration,
-        new DefaultEventTypeProvider<string, SomeDataAggregate<string>>(() => new[] { typeof(SomeData<string>) }),
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }),
         _debugLogger);
 
       var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<string>>();

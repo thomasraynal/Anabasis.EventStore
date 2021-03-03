@@ -9,6 +9,7 @@ using EventStore.ClientAPI.SystemData;
 using EventStore.Common.Options;
 using EventStore.Core;
 using NUnit.Framework;
+using System;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests
@@ -20,8 +21,9 @@ namespace Anabasis.Tests
     private UserCredentials _userCredentials;
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
-    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue<string> volatileEventStoreQueue) _queueOne;
+    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) _queueOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<string> eventStoreRepository) _repositoryOne;
+    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) _queueTwo;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -59,24 +61,24 @@ namespace Anabasis.Tests
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,
-        new DefaultEventTypeProvider<string>(() => new[] { typeof(SomeData<string>) }),
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }),
         _debugLogger);
 
       return (connectionMonitor, eventStoreRepository);
     }
 
-    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue<string> volatileEventStoreQueue) CreateVolatileEventStoreQueue()
+    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) CreateVolatileEventStoreQueue()
     {
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
       var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
 
-      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration<string>(_userCredentials);
+      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
 
-      var volatileEventStoreQueue = new VolatileEventStoreQueue<string>(
+      var volatileEventStoreQueue = new VolatileEventStoreQueue(
         connectionMonitor,
         volatileEventStoreQueueConfiguration,
-        new DefaultEventTypeProvider<string>(() => new[] { typeof(SomeData<string>) }),
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }),
         _debugLogger);
 
       return (connectionMonitor, volatileEventStoreQueue);
@@ -88,15 +90,6 @@ namespace Anabasis.Tests
     {
       _queueOne = CreateVolatileEventStoreQueue();
 
-      _queueOne.volatileEventStoreQueue.OnEvent()
-        .Subscribe<IEntityEvent<string>>(dd =>
-          {
-
-
-          });
-
-
-
       await Task.Delay(100);
 
       Assert.IsTrue(_queueOne.volatileEventStoreQueue.IsConnected);
@@ -106,16 +99,84 @@ namespace Anabasis.Tests
     [Test, Order(1)]
     public async Task ShouldCreateAndRunAnEventStoreRepositoryAndEmitOneEvent()
     {
+
+      var eventCount = 0;
+
+      _queueOne.volatileEventStoreQueue.OnEvent().Subscribe((@event) =>
+      {
+        eventCount++;
+      });
+
       _repositoryOne = CreateEventRepository();
 
       await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
 
       await Task.Delay(100);
 
-      Assert.AreEqual(1, _queueOne.someDataAggregates.Count);
-      Assert.AreEqual(0, _cacheOne.someDataAggregates[0].Version);
-      Assert.AreEqual(1, _cacheOne.someDataAggregates[0].AppliedEvents.Length);
+      Assert.AreEqual(1, eventCount);
+
     }
 
+    [Test, Order(2)]
+    public async Task ShouldDropConnectionAndReinitializeIt()
+    {
+
+      var eventCount = 0;
+
+      _queueOne.connectionStatusMonitor.ForceConnectionStatus(false);
+
+      _queueOne.volatileEventStoreQueue.OnEvent().Subscribe((@event) =>
+       {
+         eventCount++;
+       });
+
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+
+      await Task.Delay(100);
+
+      Assert.AreEqual(0, eventCount);
+
+      _queueOne.connectionStatusMonitor.ForceConnectionStatus(true);
+
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+
+      await Task.Delay(100);
+
+      Assert.AreEqual(1, eventCount);
+
+    }
+
+    [Test, Order(3)]
+    public async Task ShouldCreateASecondCacheAndCatchEvents()
+    {
+      var eventCountOne = 0;
+      var eventCountTwo = 0;
+
+      _queueOne.volatileEventStoreQueue.OnEvent().Subscribe((@event) =>
+      {
+        eventCountOne++;
+      });
+
+      _queueTwo = CreateVolatileEventStoreQueue();
+
+      _queueTwo.volatileEventStoreQueue.OnEvent().Subscribe((@event) =>
+      {
+        eventCountTwo++;
+      });
+
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+
+      await Task.Delay(100);
+
+      Assert.AreEqual(1, eventCountOne);
+      Assert.AreEqual(1, eventCountTwo);
+
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+
+      await Task.Delay(100);
+
+      Assert.AreEqual(2, eventCountOne);
+      Assert.AreEqual(2, eventCountTwo);
+    }
   }
 }

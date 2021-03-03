@@ -6,7 +6,7 @@ using System.Linq;
 namespace Anabasis.EventStore.Infrastructure
 {
 
-  public class ServiceCollectionEventTypeProvider<TKey> : IEventTypeProvider<TKey>
+  public class ServiceCollectionEventTypeProvider<TKey> : IEventTypeProvider
   {
     private readonly Dictionary<string, Type> _eventTypeCache;
     private readonly IServiceProvider _serviceProvider;
@@ -38,7 +38,7 @@ namespace Anabasis.EventStore.Infrastructure
     }
   }
 
-  public class ServiceCollectionEventTypeProvider<TKey, TAggregate> : IEventTypeProvider<TKey, TAggregate> where TAggregate : IAggregate<TKey>
+  public class ServiceCollectionEventTypeProvider<TKey, TAggregate> : IEventTypeProvider where TAggregate : IAggregate<TKey>
   {
     private readonly Dictionary<string, Type> _eventTypeCache;
     private readonly IServiceProvider _serviceProvider;
@@ -52,14 +52,14 @@ namespace Anabasis.EventStore.Infrastructure
     //refacto
     public Type[] GetAll()
     {
-      return _serviceProvider.GetServices<IMutable<TKey, TAggregate>>().Select(type => type.GetType()).ToArray();
+      return _serviceProvider.GetServices<IEntityEvent<TKey>>().Select(type => type.GetType()).ToArray();
     }
 
     public Type GetEventTypeByName(string name)
     {
       return _eventTypeCache.GetOrAdd(name, (key) =>
       {
-        var type = _serviceProvider.GetServices<IMutable<TKey, TAggregate>>()
+        var type = _serviceProvider.GetServices<IEntityEvent<TKey>>()
                                .FirstOrDefault(type => type.GetType().FullName == name);
 
         if (null == type) throw new InvalidOperationException($"Event {name} is not registered");
