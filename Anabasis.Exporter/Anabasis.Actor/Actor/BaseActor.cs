@@ -1,50 +1,66 @@
 using Anabasis.EventStore;
+using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Infrastructure.Queue;
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Reactive.Disposables;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.Actor
 {
-  public abstract class BaseActor<TKey,TEventStoreCache, TAggregate> : IDisposable
-    where TEventStoreCache : IEventStoreCache<TKey, TAggregate>
-    where TAggregate : IAggregate<TKey>, new()
+  public abstract class BaseActor : IDisposable
   {
     private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
-    private readonly TEventStoreCache _eventStoreCache;
-    private readonly IEventStoreRepository<TKey> _eventStoreRepository;
+    private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
+    private readonly CompositeDisposable _cleanUp;
+    private readonly IEventStoreRepository _eventStoreRepository;
 
-    protected BaseActor(IEventStoreRepository<TKey> eventStoreRepository, TEventStoreCache eventStoreCache)
+    protected BaseActor(IEventStoreRepository eventStoreRepository)
     {
+      Id = $"{GetType()}-{Guid.NewGuid()}";
 
-      ActorId = $"{GetType()}-{Guid.NewGuid()}";
-
-      _eventStoreCache = eventStoreCache;
+      _cleanUp = new CompositeDisposable();
       _eventStoreRepository = eventStoreRepository;
       _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
       _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
+    }
 
-      _stateSubscriptionDisposable = _eventStoreCache.AsObservableCache().Connect().Subscribe(events =>
-       {
-         foreach (var @event in events)
-         {
-           //@event.fir
+    public string Id { get; }
 
-         }
-       });
+    public void SubscribeTo(IEventStoreQueue eventStoreQueue)
+    {
+      var disposable = eventStoreQueue.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
+
+      _cleanUp.Add(disposable);
+    }
+
+    public Task Send<TCommandResult>(ICommand command, TimeSpan? timeout) where TCommandResult : ICommandResponse
+    {
+
+      var taskSource = new TaskCompletionSource<ICommandResponse>();
+
+      var cancellationTokenSource = null != timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
+
+      cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
+
+      _pendingCommands[command.EventID] = taskSource;
+
+      //Mediator.Emit(command);
+
+      return taskSource.Task.ContinueWith(task =>
+      {
+        if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
+        if (task.IsCanceled) throw new Exception("timeout");
+
+        throw task.Exception;
+
+      }, cancellationTokenSource.Token);
 
     }
 
-
-    private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
-    private readonly IDisposable _stateSubscriptionDisposable;
-
-    public abstract string StreamId { get; }
-
-    public string ActorId { get; }
-
-    protected async override Task OnMessageReceived(IActorEvent @event)
+    private async Task OnEventReceived(IEvent @event)
     {
       var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
 
@@ -71,49 +87,26 @@ namespace Anabasis.Actor
       }
     }
 
-    public Task Send<TCommandResult>(ICommand command, TimeSpan? timeout) where TCommandResult : ICommandResponse
-    {
-
-      var taskSource = new TaskCompletionSource<ICommandResponse>();
-
-      var cancellationTokenSource = null != timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
-
-      cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
-
-      _pendingCommands[command.EventID] = taskSource;
-
-      Mediator.Emit(command);
-
-      return taskSource.Task.ContinueWith(task =>
-      {
-        if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
-        if (task.IsCanceled) throw new Exception("timeout");
-
-        throw task.Exception;
-
-      }, cancellationTokenSource.Token);
-
-    }
-
-    public bool CanConsume(IActorEvent @event)
-    {
-      return null != _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
-    }
-
     public override bool Equals(object obj)
     {
-      return obj is BaseActor<TEventStoreCache> actor &&
-             ActorId == actor.ActorId;
+      return obj is BaseActor actor &&
+             Id == actor.Id;
     }
 
     public override int GetHashCode()
     {
-      return HashCode.Combine(ActorId);
+      return HashCode.Combine(Id);
+    }
+
+    protected virtual void DisposeInternal()
+    {
     }
 
     public void Dispose()
     {
-      _stateSubscriptionDisposable.Dispose();
+      DisposeInternal();
+
+      _cleanUp.Dispose();
     }
   }
 }

@@ -115,7 +115,7 @@ namespace Anabasis.EventStore
       ClusterVNode clusterVNode,
       ConnectionSettings connectionSettings,
       UserCredentials userCredentials,
-      Action<IEventStoreRepositoryConfiguration<TKey>> repositoryBuilder = null) where TRepository : class, IEventStoreRepository<TKey>
+      Action<IEventStoreRepositoryConfiguration> repositoryBuilder = null) where TRepository : class, IEventStoreRepository<TKey>
     {
       var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 

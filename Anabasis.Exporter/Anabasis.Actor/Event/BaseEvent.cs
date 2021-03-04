@@ -1,24 +1,30 @@
+using Anabasis.EventStore.Infrastructure;
 using System;
-using System.Collections.Generic;
-using System.Text;
 namespace Anabasis.Actor
 {
-  public abstract class BaseEvent : IActorEvent
+  public abstract class BaseEvent : IEvent
   {
+
+    private readonly string _streamId;
 
     public BaseEvent(Guid correlationId, string streamId, string topicId)
     {
       EventID = Guid.NewGuid();
       TopicId = topicId;
-      StreamId = streamId;
       CorrelationID = correlationId;
+
+      _streamId = streamId;
+
     }
 
-    public Guid ExportId => CorrelationID;
     public Guid EventID { get; set; }
-    public string StreamId { get; set; }
     public string TopicId { get; set; }
     public Guid CorrelationID { get; set; }
+
+    public string GetStreamName()
+    {
+      return _streamId;
+    }
 
     public abstract string Log();
   }
