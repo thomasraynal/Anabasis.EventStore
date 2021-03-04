@@ -6,8 +6,15 @@ namespace Anabasis.Tests.Components
 {
   public class SomeRandomEvent : IEvent
   {
+    private string _streamName;
+
     public SomeRandomEvent()
     {
+    }
+
+    public SomeRandomEvent(string streamName)
+    {
+      _streamName = streamName;
     }
 
     public Guid EventID { get; set; }
@@ -16,7 +23,7 @@ namespace Anabasis.Tests.Components
 
     public string GetStreamName()
     {
-      return nameof(SomeRandomEvent);
+      return _streamName ?? nameof(SomeRandomEvent);
     }
 
     public string Log()
