@@ -78,18 +78,12 @@ namespace Anabasis.EventStore.Infrastructure.Queue
     }
 
     protected abstract IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection);
-    public void Dispose()
+    public virtual void Dispose()
     {
-
-      OnDispose();
-
       _eventStoreConnectionStatus.Dispose();
       ConnectionStatusSubject.Dispose();
     }
 
     protected virtual void OnInitialize(bool isConnected) { }
-
-    protected virtual void OnDispose() { }
-
   }
 }

@@ -62,11 +62,6 @@ namespace Anabasis.EventStore
 
     }
 
-    private async Task Save(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-    {
-      await Save(new[] { @event }, extraHeaders);
-    }
-
     protected async Task SaveEventBatch(string streamName, int expectedVersion, EventData[] eventsToSave)
     {
       var eventBatches = GetEventBatches(eventsToSave);
@@ -138,7 +133,7 @@ namespace Anabasis.EventStore
 
     public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
     {
-      await Save(@event, extraHeaders);
+      await Save(new[] { @event }, extraHeaders);
     }
 
     public async Task Emit(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)

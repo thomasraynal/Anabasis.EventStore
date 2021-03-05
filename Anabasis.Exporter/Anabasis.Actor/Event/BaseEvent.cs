@@ -16,6 +16,9 @@ namespace Anabasis.Actor
       _streamId = streamId;
 
     }
+    public BaseEvent()
+    {
+    }
 
     public Guid EventID { get; set; }
     public string TopicId { get; set; }

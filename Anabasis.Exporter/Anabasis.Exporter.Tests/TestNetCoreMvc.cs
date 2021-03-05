@@ -16,6 +16,7 @@ using EventStore.Core.Data;
 using EventStore.ClientAPI.SystemData;
 using EventStore.Core;
 using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
+using Anabasis.EventStore.Infrastructure.Repository;
 
 namespace Anabasis.Tests
 {
@@ -49,7 +50,7 @@ namespace Anabasis.Tests
       var userCredentials = new UserCredentials("admin", "changeit");
       var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
 
-      services.AddEventStoreRepository<Guid, EventStoreRepository<Guid>>(TestContext.ClusterVNode, connectionSettings, userCredentials, options =>  options.Serializer = new TestSerializer())
+      services.AddEventStoreAggregateRepository<Guid, EventStoreAggregateRepository<Guid>>(TestContext.ClusterVNode, connectionSettings, userCredentials, options =>  options.Serializer = new TestSerializer())
               .AddEventStoreCatchupCache<Guid, Item>(TestContext.ClusterVNode, userCredentials, connectionSettings)
               .AddEventStoreCatchupCache<Guid, Blob>(TestContext.ClusterVNode, userCredentials, connectionSettings);
 
@@ -102,8 +103,8 @@ namespace Anabasis.Tests
     {
       var itemsCache = _host.Services.GetService<CatchupEventStoreCache<Guid, Item>>();
       var blobCache = _host.Services.GetService<CatchupEventStoreCache<Guid, Blob>>();
-      var repository = _host.Services.GetService<IEventStoreRepository<Guid>>();
-      var configuration = _host.Services.GetService<IEventStoreRepositoryConfiguration<Guid>>();
+      var repository = _host.Services.GetService<IEventStoreAggregateRepository<Guid>>();
+      var configuration = _host.Services.GetService<IEventStoreRepositoryConfiguration>();
 
       var events = _host.Services.GetServices<IEntityEvent<Guid>>();
 
@@ -224,7 +225,7 @@ namespace Anabasis.Tests
 
       monitor.ForceConnectionStatus(false);
 
-      var repository = _host.Services.GetService<IEventStoreRepository<Guid>>();
+      var repository = _host.Services.GetService<IEventStoreAggregateRepository<Guid>>();
 
       var items = Enumerable.Range(0, 10).Select(_ => _testBed.Producer.Create()).ToList();
 

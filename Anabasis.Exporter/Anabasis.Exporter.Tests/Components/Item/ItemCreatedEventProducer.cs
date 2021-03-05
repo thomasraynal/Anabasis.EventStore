@@ -4,15 +4,16 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Infrastructure.Repository;
 
 namespace Anabasis.Tests.Demo
 {
   public class ItemCreatedEventProducer : IHostedService
     {
         private IDisposable _cleanup;
-        private readonly IEventStoreRepository<Guid> _repository;
+        private readonly IEventStoreAggregateRepository<Guid> _repository;
 
-        public ItemCreatedEventProducer(IEventStoreRepository<Guid> repository)
+        public ItemCreatedEventProducer(IEventStoreAggregateRepository<Guid> repository)
         {
             _repository = repository;
         }

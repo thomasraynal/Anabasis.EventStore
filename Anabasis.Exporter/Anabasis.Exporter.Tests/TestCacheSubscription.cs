@@ -1,6 +1,7 @@
 using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
 using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
+using Anabasis.EventStore.Infrastructure.Repository;
 using DynamicData;
 using DynamicData.Binding;
 using EventStore.ClientAPI;
@@ -25,6 +26,7 @@ namespace Anabasis.Tests
 
   }
 
+  [TestFixture]
   public class TestCacheSubscription
   {
     private DebugLogger _debugLogger;
@@ -34,7 +36,8 @@ namespace Anabasis.Tests
 
     private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheTwo;
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<Guid> eventStoreRepository) _repositoryOne;
+    private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository<Guid> eventStoreRepository) _repositoryOne;
+
     private Guid _firstAggregateId;
 
     [OneTimeSetUp]
@@ -63,13 +66,13 @@ namespace Anabasis.Tests
       await _clusterVNode.StopAsync();
     }
 
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<Guid> eventStoreRepository) CreateEventRepository()
+    private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository<Guid> eventStoreRepository) CreateEventRepository()
     {
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration<Guid>(_userCredentials, _connectionSettings);
+      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials, _connectionSettings);
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
       var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
 
-      var eventStoreRepository = new EventStoreRepository<Guid>(
+      var eventStoreRepository = new EventStoreAggregateRepository<Guid>(
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,

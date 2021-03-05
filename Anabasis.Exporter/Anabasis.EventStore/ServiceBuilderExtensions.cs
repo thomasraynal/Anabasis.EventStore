@@ -9,6 +9,7 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 using System;
 using Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription;
 using Anabasis.EventStore.Infrastructure.Cache;
+using Anabasis.EventStore.Infrastructure.Repository;
 
 namespace Anabasis.EventStore
 {
@@ -111,25 +112,25 @@ namespace Anabasis.EventStore
 
     #region Repository
 
-    public static IServiceCollection AddEventStoreRepository<TKey, TRepository>(this IServiceCollection services,
+    public static IServiceCollection AddEventStoreAggregateRepository<TKey, TRepository>(this IServiceCollection services,
       ClusterVNode clusterVNode,
       ConnectionSettings connectionSettings,
       UserCredentials userCredentials,
-      Action<IEventStoreRepositoryConfiguration> repositoryBuilder = null) where TRepository : class, IEventStoreRepository<TKey>
+      Action<IEventStoreRepositoryConfiguration> repositoryBuilder = null) where TRepository : class, IEventStoreAggregateRepository<TKey>
     {
       var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
       services.AddSingleton(eventStoreConnection);
 
       services.AddSingleton<IConnectionStatusMonitor, ConnectionStatusMonitor>();
-      services.AddSingleton<IEventStoreRepository<TKey>, EventStoreRepository<TKey>>();
+      services.AddSingleton<IEventStoreAggregateRepository<TKey>, EventStoreAggregateRepository<TKey>>();
       services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey>>();
 
-      var configuration = new EventStoreRepositoryConfiguration<TKey>(userCredentials, connectionSettings);
+      var configuration = new EventStoreRepositoryConfiguration(userCredentials, connectionSettings);
 
       repositoryBuilder?.Invoke(configuration);
 
-      services.AddSingleton<IEventStoreRepositoryConfiguration<TKey>>(configuration);
+      services.AddSingleton<IEventStoreRepositoryConfiguration>(configuration);
 
       return services;
     }

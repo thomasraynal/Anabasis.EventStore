@@ -22,7 +22,7 @@ namespace Anabasis.Tests
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
     private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) _queueOne;
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<string> eventStoreRepository) _repositoryOne;
+    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) _repositoryOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) _queueTwo;
 
     [OneTimeSetUp]
@@ -51,13 +51,13 @@ namespace Anabasis.Tests
       await _clusterVNode.StopAsync();
     }
 
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<string> eventStoreRepository) CreateEventRepository()
+    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) CreateEventRepository()
     {
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration<string>(_userCredentials, _connectionSettings);
+      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials, _connectionSettings);
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
       var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
 
-      var eventStoreRepository = new EventStoreRepository<string>(
+      var eventStoreRepository = new EventStoreRepository(
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,

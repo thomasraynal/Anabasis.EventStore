@@ -8,6 +8,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Infrastructure.Repository;
 
 namespace Anabasis.Tests.Demo
 {
@@ -15,12 +16,12 @@ namespace Anabasis.Tests.Demo
     {
         private Random _rand;
         private CompositeDisposable _cleanUp;
-        private IEventStoreRepository<Guid> _repository;
+        private IEventStoreAggregateRepository<Guid> _repository;
         private IEventStoreCache<Guid, Item> _cache;
         private ILogger<ItemUpdatedEventProducer> _logger;
         private bool _isConnected;
 
-        public ItemUpdatedEventProducer(IConnectionStatusMonitor monitor, IEventStoreRepository<Guid> repository, IEventStoreCache<Guid, Item> cache, ILogger<ItemUpdatedEventProducer> logger)
+        public ItemUpdatedEventProducer(IConnectionStatusMonitor monitor, IEventStoreAggregateRepository<Guid> repository, IEventStoreCache<Guid, Item> cache, ILogger<ItemUpdatedEventProducer> logger)
         {
             _repository = repository;
             _cache = cache;

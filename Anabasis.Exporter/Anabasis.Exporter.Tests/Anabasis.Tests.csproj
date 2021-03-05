@@ -19,10 +19,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
-    <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
-    <ProjectReference Include="..\Anabasis.Exporter\Anabasis.Exporter.csproj" />
-    <ProjectReference Include="..\Anabasis.Importer\Anabasis.Importer.csproj" />
+    <ProjectReference Include="..\Anabasis.Actor\Anabasis.Actor.csproj" />
   </ItemGroup>
 
   <ItemGroup>

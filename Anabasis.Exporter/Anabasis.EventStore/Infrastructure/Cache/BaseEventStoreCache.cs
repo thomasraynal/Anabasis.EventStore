@@ -1,5 +1,4 @@
 using System;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using EventStore.ClientAPI;
@@ -139,10 +138,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       return Cache.AsObservableCache();
     }
 
-    public void Dispose()
+    public virtual void Dispose()
     {
-
-      OnDispose();
 
       _isStaleDisposable.Dispose();
       _eventStoreConnectionStatus.Dispose();
@@ -198,8 +195,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       cache.AddOrUpdate(entity);
 
     }
-
-    protected virtual void OnDispose() { }
 
   }
 }

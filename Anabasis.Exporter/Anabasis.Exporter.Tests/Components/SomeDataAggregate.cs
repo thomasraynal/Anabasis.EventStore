@@ -1,3 +1,4 @@
+using Anabasis.Actor;
 using Anabasis.EventStore;
 using System;
 using System.Collections.Generic;
@@ -5,6 +6,20 @@ using System.Text;
 
 namespace Anabasis.Tests
 {
+  public class SomeMoreData : BaseEvent
+  {
+    public SomeMoreData(Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
+    {
+    }
+
+    public SomeMoreData() { }
+
+    public override string Log()
+    {
+      return nameof(SomeMoreData);
+    }
+  }
+
   public class SomeData<TKey> : BaseAggregateEvent<TKey, SomeDataAggregate<TKey>>
   {
     public SomeData()

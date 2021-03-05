@@ -3,7 +3,7 @@ using EventStore.ClientAPI.SystemData;
 
 namespace Anabasis.EventStore
 {
-  public class EventStoreRepositoryConfiguration<TKey> : IEventStoreRepositoryConfiguration<TKey>
+  public class EventStoreRepositoryConfiguration : IEventStoreRepositoryConfiguration
   {
     public EventStoreRepositoryConfiguration(UserCredentials userCredentials, ConnectionSettings connectionSettings)
     {

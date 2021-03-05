@@ -36,8 +36,15 @@ namespace Anabasis.Actor
       _cleanUp.Add(disposable);
     }
 
+    public void Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+    {
+      _eventStoreRepository.Emit(@event, extraHeaders);
+    }
+
     public Task Send<TCommandResult>(ICommand command, TimeSpan? timeout) where TCommandResult : ICommandResponse
     {
+
+      throw new NotImplementedException();
 
       var taskSource = new TaskCompletionSource<ICommandResponse>();
 
@@ -52,7 +59,7 @@ namespace Anabasis.Actor
       return taskSource.Task.ContinueWith(task =>
       {
         if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
-        if (task.IsCanceled) throw new Exception("timeout");
+        if (task.IsCanceled) throw new Exception("Command went in timeout");
 
         throw task.Exception;
 
@@ -98,14 +105,8 @@ namespace Anabasis.Actor
       return HashCode.Combine(Id);
     }
 
-    protected virtual void DisposeInternal()
+    public virtual void Dispose()
     {
-    }
-
-    public void Dispose()
-    {
-      DisposeInternal();
-
       _cleanUp.Dispose();
     }
   }

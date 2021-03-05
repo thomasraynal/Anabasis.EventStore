@@ -1,38 +1,21 @@
 using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Infrastructure.Repository;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Anabasis.Actor
 {
-  public abstract class BaseAggregateActor<TKey,TEventStoreCache, TAggregate> : BaseActor, IDisposable
+  public abstract class BaseAggregateActor<TKey,TAggregate> : BaseActor, IDisposable
+    where TAggregate : IAggregate<TKey>, new()
   {
-
-    private readonly TEventStoreCache _eventStoreCache;
-    private readonly IEventStoreRepository<TKey> _eventStoreRepository;
-    private readonly IDisposable _stateSubscriptionDisposable;
-
-    protected BaseAggregateActor(IEventStoreRepository<TKey> eventStoreRepository, TEventStoreCache eventStoreCache)
+ 
+    public BaseAggregateActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey,TAggregate> eventStoreCache) : base(eventStoreRepository)
     {
-      _eventStoreCache = eventStoreCache;
-      _eventStoreRepository = eventStoreRepository;
+
+      State = eventStoreCache;
+
     }
 
-  
+    public IEventStoreCache<TKey, TAggregate> State { get; }
 
-    public bool CanConsume(IActorEvent @event)
-    {
-      return null != _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
-    }
-
-
-
-    public void Dispose()
-    {
-      _stateSubscriptionDisposable.Dispose();
-    }
   }
 }

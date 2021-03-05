@@ -55,9 +55,12 @@ namespace Anabasis.EventStore.Infrastructure.Repository
 
       return aggregate;
     }
-
-    private async Task Save(IAggregate<TKey> aggregate, params KeyValuePair<string, string>[] extraHeaders)
+    public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
+    where TEntity : IAggregate<TKey>
+    where TEvent : IEntityEvent<TKey>, IMutable<TKey, TEntity>
     {
+
+      aggregate.ApplyEvent(ev);
 
       var streamName = aggregate.GetStreamName();
 
@@ -70,18 +73,19 @@ namespace Anabasis.EventStore.Infrastructure.Repository
       await SaveEventBatch(streamName, afterApplyAggregateVersion, eventsToSave);
 
       aggregate.ClearPendingEvents();
+
     }
 
-    public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
-    where TEntity : IAggregate<TKey>
-    where TEvent : IEntityEvent<TKey>, IMutable<TKey, TEntity>
+    public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+    where TEvent : IEntityEvent<TKey>
     {
+      var commitHeaders = CreateCommitHeaders(@event, extraHeaders);
 
-      aggregate.ApplyEvent(ev);
+      var eventsToSave = new[] { ToEventData(Guid.NewGuid(), @event, commitHeaders) };
 
-      await Save(aggregate, extraHeaders);
-
+      await SaveEventBatch(@event.GetStreamName(), ExpectedVersion.Any, eventsToSave);
     }
+
 
     private IEntityEvent<TKey> DeserializeEvent(RecordedEvent recordedEvent)
     {

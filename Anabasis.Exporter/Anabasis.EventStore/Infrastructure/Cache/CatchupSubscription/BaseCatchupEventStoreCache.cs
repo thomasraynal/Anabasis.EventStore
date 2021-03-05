@@ -20,11 +20,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp,
       Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped);
 
-    protected override void OnDispose()
-    {
-      CaughtingUpCache.Dispose();
-    }
-
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
 
@@ -96,6 +91,14 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
         });
 
       });
+    }
+
+    public override void Dispose()
+    {
+
+      CaughtingUpCache.Dispose();
+
+      base.Dispose();
     }
 
   }

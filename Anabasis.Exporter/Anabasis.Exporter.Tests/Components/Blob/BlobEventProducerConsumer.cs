@@ -8,7 +8,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.EventStore;
-
+using Anabasis.EventStore.Infrastructure.Repository;
 
 namespace Anabasis.Tests.Demo
 {
@@ -17,7 +17,7 @@ namespace Anabasis.Tests.Demo
         private Random _rand;
         private CompositeDisposable _cleanup;
         private ILogger<BlobEventProducerConsumer> _logger;
-        private IEventStoreRepository<Guid> _repository;
+        private IEventStoreAggregateRepository<Guid> _repository;
         private IEventStoreCache<Guid, Blob> _cache;
 
         private string RandomString(int length)
@@ -27,7 +27,7 @@ namespace Anabasis.Tests.Demo
               .Select(s => s[_rand.Next(s.Length)]).ToArray());
         }
 
-        public BlobEventProducerConsumer(IEventStoreRepository<Guid> repository, IEventStoreCache<Guid, Blob> cache, ILogger<BlobEventProducerConsumer> logger)
+        public BlobEventProducerConsumer(IEventStoreAggregateRepository<Guid> repository, IEventStoreCache<Guid, Blob> cache, ILogger<BlobEventProducerConsumer> logger)
         {
             _repository = repository;
             _cache = cache;

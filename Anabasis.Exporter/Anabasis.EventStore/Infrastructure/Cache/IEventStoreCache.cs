@@ -3,7 +3,7 @@ using System;
 
 namespace Anabasis.EventStore
 {
-  public interface IEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+  public interface IEventStoreCache<TKey, TAggregate> : IDisposable where TAggregate : IAggregate<TKey>, new()
   {
     bool IsStale { get; }
     bool IsCaughtUp { get; }

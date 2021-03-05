@@ -1,6 +1,7 @@
 using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
 using Anabasis.EventStore.Infrastructure.Cache;
+using Anabasis.EventStore.Infrastructure.Repository;
 using DynamicData;
 using DynamicData.Binding;
 using EventStore.ClientAPI;
@@ -24,7 +25,7 @@ namespace Anabasis.Tests
     private ConnectionSettings _connectionSettings;
 
     private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheOne;
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<string> eventStoreRepository) _repositoryOne;
+    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<string> eventStoreRepository) _repositoryOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheTwo;
 
     private readonly string _streamId = "streamId";
@@ -71,13 +72,13 @@ namespace Anabasis.Tests
            _userCredentials);
     }
 
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository<string> eventStoreRepository) CreateEventRepository()
+    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<string> eventStoreRepository) CreateEventRepository()
     {
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration<string>(_userCredentials, _connectionSettings);
+      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials, _connectionSettings);
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
       var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
 
-      var eventStoreRepository = new EventStoreRepository<string>(
+      var eventStoreRepository = new EventStoreAggregateRepository<string>(
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,

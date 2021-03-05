@@ -1,6 +1,8 @@
+using Anabasis.EventStore.Infrastructure;
+
 namespace Anabasis.Actor
 {
-  public interface ICommand: IActorEvent
+  public interface ICommand: IEvent
   {
   }
 }
