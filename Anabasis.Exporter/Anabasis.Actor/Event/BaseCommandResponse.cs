@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -15,6 +16,7 @@ namespace Anabasis.Actor
     {
     }
 
-    public Guid CommandId { get; set; }
+    [JsonProperty]
+    public Guid CommandId { get; internal set; }
   }
 }

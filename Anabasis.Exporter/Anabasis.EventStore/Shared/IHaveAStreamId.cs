@@ -6,6 +6,6 @@ namespace Anabasis.EventStore.Shared
 {
   public interface IHaveAStreamId
   {
-    string StreamId { get; set; }
+    string StreamId { get;  }
   }
 }

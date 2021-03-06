@@ -1,4 +1,5 @@
 using Anabasis.EventStore.Infrastructure;
+using Newtonsoft.Json;
 using System;
 namespace Anabasis.Actor
 {
@@ -17,9 +18,12 @@ namespace Anabasis.Actor
     {
     }
 
-    public Guid EventID { get; set; }
-    public Guid CorrelationID { get; set; }
-    public string StreamId { get; set; }
+    [JsonProperty]
+    public Guid EventID { get; internal set; }
+    [JsonProperty]
+    public Guid CorrelationID { get; internal set; }
+    [JsonProperty]
+    public string StreamId { get; internal set; }
 
     public abstract string Log();
   }
