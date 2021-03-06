@@ -36,15 +36,13 @@ namespace Anabasis.Actor
       _cleanUp.Add(disposable);
     }
 
-    public void Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+    public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
     {
-      _eventStoreRepository.Emit(@event, extraHeaders);
+      await _eventStoreRepository.Emit(@event, extraHeaders);
     }
 
-    public Task Send<TCommandResult>(ICommand command, TimeSpan? timeout) where TCommandResult : ICommandResponse
+    public Task<TCommandResult> Send<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
     {
-
-      throw new NotImplementedException();
 
       var taskSource = new TaskCompletionSource<ICommandResponse>();
 
@@ -54,7 +52,7 @@ namespace Anabasis.Actor
 
       _pendingCommands[command.EventID] = taskSource;
 
-      //Mediator.Emit(command);
+      _eventStoreRepository.Emit(command);
 
       return taskSource.Task.ContinueWith(task =>
       {

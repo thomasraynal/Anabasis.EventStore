@@ -1,7 +1,9 @@
 using Anabasis.Actor;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Infrastructure.Queue;
 using Anabasis.EventStore.Infrastructure.Queue.PersistentQueue;
+using Anabasis.EventStore.Infrastructure.Queue.VolatileQueue;
 using Anabasis.Tests.Components;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -15,6 +17,52 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Tests
 {
+  public class SomeCommandResponse : BaseCommandResponse
+  {
+    public SomeCommandResponse() { }
+
+    public SomeCommandResponse(Guid commandId, Guid correlationId, string streamId) : base(commandId, correlationId, streamId)
+    {
+    }
+
+    public override string Log()
+    {
+      throw new NotImplementedException();
+    }
+  }
+
+  public class SomeCommand : BaseCommand
+  {
+    public SomeCommand() { }
+
+    public SomeCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
+    {
+    }
+
+    public override string Log()
+    {
+      throw new NotImplementedException();
+    }
+  }
+
+  public class TestActorReceiver : BaseActor
+  {
+    public TestActorReceiver(IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
+    {
+
+    }
+
+    public async Task Handle(SomeCommand someCommand)
+    {
+      await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.GetStreamName()));
+    }
+
+    public override void Dispose()
+    {
+      base.Dispose();
+    }
+
+  }
 
   public class TestActor : BaseActor
   {
@@ -101,6 +149,23 @@ namespace Anabasis.Tests
            _userCredentials);
     }
 
+    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) CreateVolatileEventStoreQueue()
+    {
+      var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
+
+      var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
+
+      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
+
+      var volatileEventStoreQueue = new VolatileEventStoreQueue(
+        connectionMonitor,
+        volatileEventStoreQueueConfiguration,
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent), typeof(SomeCommandResponse), typeof(SomeCommand) }),
+        _debugLogger);
+
+      return (connectionMonitor, volatileEventStoreQueue);
+
+    }
 
     private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreRepository eventStoreRepository) CreateEventRepository()
     {
@@ -164,7 +229,7 @@ namespace Anabasis.Tests
 
       _testActorOne.SubscribeTo(_queueOne.persistentEventStoreQueue);
 
-      _testActorOne.Emit(new SomeRandomEvent(_streamId));
+      await _testActorOne.Emit(new SomeRandomEvent(_streamId));
 
       await Task.Delay(100);
 
@@ -175,7 +240,7 @@ namespace Anabasis.Tests
     [Test, Order(2)]
     public async Task ShouldCreateASecondAndLoadBalanceEvents()
     {
-  
+
       _testActorTwo = new TestActor(_eventRepository.eventStoreRepository);
 
       Assert.NotNull(_testActorOne);
@@ -198,6 +263,22 @@ namespace Anabasis.Tests
       Assert.True(_testActorOne.Events.Count > 1);
       Assert.True(_testActorTwo.Events.Count > 1);
 
+    }
+
+    [Test, Order(3)]
+    public async Task ShouldSendACommand()
+    {
+      var (_, volatileEventStoreQueue) = CreateVolatileEventStoreQueue();
+
+      var sender = new TestActor(_eventRepository.eventStoreRepository);
+      sender.SubscribeTo(volatileEventStoreQueue);
+
+      var receiver = new TestActorReceiver(_eventRepository.eventStoreRepository);
+      receiver.SubscribeTo(volatileEventStoreQueue);
+
+      var someCommandResponse = await sender.Send<SomeCommandResponse>(new SomeCommand(Guid.NewGuid(), "some-stream"), TimeSpan.FromSeconds(3));
+
+      Assert.NotNull(someCommandResponse);
     }
 
   }

@@ -66,7 +66,7 @@ namespace Anabasis.Common.Actor
       }
     }
 
-    public Task Send<TCommandResult>(ICommand command, TimeSpan? timeout) where TCommandResult : ICommandResponse
+    public Task Send<TCommandResult>(ICommand command, TimeSpan? timeout= null) where TCommandResult : ICommandResponse
     {
 
       var taskSource = new TaskCompletionSource<ICommandResponse>();

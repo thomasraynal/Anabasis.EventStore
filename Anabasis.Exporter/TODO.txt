@@ -1,0 +1,5 @@
+parameterless for Activator Event/Command
+snapshot storage
+actor building and registration
+event registration based on actor implementation
+tidy up EventId/CommandID StreamID

@@ -7,10 +7,9 @@ namespace Anabasis.Actor
 
     private readonly string _streamId;
 
-    public BaseEvent(Guid correlationId, string streamId, string topicId)
+    public BaseEvent(Guid correlationId, string streamId)
     {
       EventID = Guid.NewGuid();
-      TopicId = topicId;
       CorrelationID = correlationId;
 
       _streamId = streamId;
@@ -19,12 +18,10 @@ namespace Anabasis.Actor
     public BaseEvent()
     {
     }
-
     public Guid EventID { get; set; }
-    public string TopicId { get; set; }
     public Guid CorrelationID { get; set; }
 
-    public string GetStreamName()
+    public virtual string GetStreamName()
     {
       return _streamId;
     }

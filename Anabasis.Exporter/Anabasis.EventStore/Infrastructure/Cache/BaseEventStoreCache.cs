@@ -157,15 +157,22 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     protected virtual void OnInitialize(bool isConnected) { }
 
+    private IMutable<TKey, TAggregate> DeserializeEvent(RecordedEvent recordedEvent)
+    {
+      var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+
+      if (null == targetType) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
+
+      return _eventStoreCacheConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IMutable<TKey, TAggregate>;
+    }
+
     protected void UpdateCacheState(ResolvedEvent resolvedEvent, SourceCache<TAggregate, TKey> specificCache = null)
     {
       var recordedEvent = resolvedEvent.Event;
-
+      
       var cache = specificCache ?? Cache;
 
-      var @eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
-
-      var @event = recordedEvent.GetMutator<TKey, TAggregate>(@eventType, _eventStoreCacheConfiguration.Serializer);
+      var @event = DeserializeEvent(recordedEvent);
 
       if (null == @event)
       {

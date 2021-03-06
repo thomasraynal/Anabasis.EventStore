@@ -8,7 +8,7 @@ namespace Anabasis.Tests
 {
   public class SomeMoreData : BaseEvent
   {
-    public SomeMoreData(Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
+    public SomeMoreData(Guid correlationId, string streamId) : base(correlationId, streamId)
     {
     }
 
