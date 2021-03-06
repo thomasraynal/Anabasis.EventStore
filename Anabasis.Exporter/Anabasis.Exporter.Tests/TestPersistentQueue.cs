@@ -24,6 +24,7 @@ namespace Anabasis.Tests
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) _repositoryOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreQueue persistentEventStoreQueue) _queueTwo;
 
+    private Guid _correlationId = Guid.NewGuid();
     private readonly string _streamId = "streamId";
     private readonly string _groupIdOne = "groupIdOne";
     private readonly string _groupIdTwo = "groupIdTwo";
@@ -133,7 +134,7 @@ namespace Anabasis.Tests
 
       _repositoryOne = CreateEventRepository();
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
       await Task.Delay(100);
 
@@ -154,7 +155,7 @@ namespace Anabasis.Tests
         eventCount++;
       });
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
       await Task.Delay(100);
 
@@ -162,7 +163,7 @@ namespace Anabasis.Tests
 
       _queueOne.connectionStatusMonitor.ForceConnectionStatus(true);
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
       await Task.Delay(100);
 
@@ -188,10 +189,10 @@ namespace Anabasis.Tests
         eventCountTwo++;
       });
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_streamId));
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_streamId));
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_streamId));
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
       await Task.Delay(100);
 

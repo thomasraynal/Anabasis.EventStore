@@ -9,13 +9,6 @@ namespace Anabasis.Actor
       StreamId = streamId;
     }
 
-    public string StreamId { get; set; }
-
-    public override string GetStreamName()
-    {
-      return StreamId;
-    }
-
     public BaseCommand()
     {
     }

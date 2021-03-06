@@ -7,8 +7,8 @@ namespace Anabasis.EventStore.Infrastructure
 {
   public interface IEvent : IHaveAStreamId
   {
-    Guid EventID { get; }
-    Guid CorrelationID { get; }
+    Guid EventID { get; set; }
+    Guid CorrelationID { get; set; }
     string Log();
   }
 }

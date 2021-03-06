@@ -62,15 +62,13 @@ namespace Anabasis.EventStore.Infrastructure.Repository
 
       aggregate.ApplyEvent(ev);
 
-      var streamName = aggregate.GetStreamName();
-
       var afterApplyAggregateVersion = aggregate.Version;
 
       var commitHeaders = CreateCommitHeaders(aggregate, extraHeaders);
 
       var eventsToSave = aggregate.PendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders)).ToArray();
 
-      await SaveEventBatch(streamName, afterApplyAggregateVersion, eventsToSave);
+      await SaveEventBatch(aggregate.StreamId, afterApplyAggregateVersion, eventsToSave);
 
       aggregate.ClearPendingEvents();
 
@@ -83,7 +81,7 @@ namespace Anabasis.EventStore.Infrastructure.Repository
 
       var eventsToSave = new[] { ToEventData(Guid.NewGuid(), @event, commitHeaders) };
 
-      await SaveEventBatch(@event.GetStreamName(), ExpectedVersion.Any, eventsToSave);
+      await SaveEventBatch(@event.StreamId, ExpectedVersion.Any, eventsToSave);
     }
 
 

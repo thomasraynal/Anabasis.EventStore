@@ -46,7 +46,7 @@ namespace Anabasis.EventStore
     private async Task Save(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
     {
 
-      foreach (var eventBatch in events.GroupBy(ev => ev.GetStreamName()))
+      foreach (var eventBatch in events.GroupBy(ev => ev.StreamId))
       {
 
         var eventsToSave = eventBatch.Select(ev =>
@@ -62,17 +62,17 @@ namespace Anabasis.EventStore
 
     }
 
-    protected async Task SaveEventBatch(string streamName, int expectedVersion, EventData[] eventsToSave)
+    protected async Task SaveEventBatch(string streamId, int expectedVersion, EventData[] eventsToSave)
     {
       var eventBatches = GetEventBatches(eventsToSave);
 
       if (eventBatches.Count == 1)
       {
-        await _eventStoreConnection.AppendToStreamAsync(streamName, expectedVersion, eventBatches.Single());
+        await _eventStoreConnection.AppendToStreamAsync(streamId, expectedVersion, eventBatches.Single());
       }
       else
       {
-        using var transaction = await _eventStoreConnection.StartTransactionAsync(streamName, expectedVersion);
+        using var transaction = await _eventStoreConnection.StartTransactionAsync(streamId, expectedVersion);
 
         foreach (var batch in eventBatches)
         {

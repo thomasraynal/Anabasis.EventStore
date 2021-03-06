@@ -1,34 +1,24 @@
+using Anabasis.Actor;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
 using System;
 
 namespace Anabasis.Tests.Components
 {
-  public class SomeRandomEvent : IEvent
+  public class SomeRandomEvent : BaseEvent
   {
-    private string _streamName;
 
     public SomeRandomEvent()
     {
     }
 
-    public SomeRandomEvent(string streamName)
+    public SomeRandomEvent(Guid correlationId, string streamId = "SomeRandomEvent") : base(correlationId, streamId)
     {
-      _streamName = streamName;
     }
 
-    public Guid EventID { get; set; }
-
-    public Guid CorrelationID { get; set; }
-
-    public string GetStreamName()
+    public override string Log()
     {
-      return _streamName ?? nameof(SomeRandomEvent);
-    }
-
-    public string Log()
-    {
-      return nameof(SomeRandomEvent);
+      throw new NotImplementedException();
     }
   }
 }

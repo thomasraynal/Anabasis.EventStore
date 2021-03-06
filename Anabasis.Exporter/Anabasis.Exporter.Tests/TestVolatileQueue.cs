@@ -25,6 +25,8 @@ namespace Anabasis.Tests
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) _repositoryOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) _queueTwo;
 
+    private Guid _correlationId = Guid.NewGuid();
+
     [OneTimeSetUp]
     public async Task Setup()
     {
@@ -109,7 +111,7 @@ namespace Anabasis.Tests
 
       _repositoryOne = CreateEventRepository();
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
       await Task.Delay(100);
 
@@ -130,7 +132,7 @@ namespace Anabasis.Tests
          eventCount++;
        });
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
       await Task.Delay(100);
 
@@ -138,7 +140,7 @@ namespace Anabasis.Tests
 
       _queueOne.connectionStatusMonitor.ForceConnectionStatus(true);
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
       await Task.Delay(100);
 
@@ -164,14 +166,14 @@ namespace Anabasis.Tests
         eventCountTwo++;
       });
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
       await Task.Delay(100);
 
       Assert.AreEqual(1, eventCountOne);
       Assert.AreEqual(1, eventCountTwo);
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent());
+      await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
       await Task.Delay(100);
 

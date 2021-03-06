@@ -48,9 +48,13 @@ namespace Anabasis.EventStore
       _pendingEvents.Clear();
     }
 
-    public virtual string GetStreamName()
+    public string StreamId
     {
-      return EntityId.ToString();
+      get
+      {
+        return EntityId.ToString();
+      }
+      set { }
     }
 
     public IEntityEvent<TKey>[] PendingEvents
