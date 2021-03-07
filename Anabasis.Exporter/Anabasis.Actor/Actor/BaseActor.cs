@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Actor
 {
-  public abstract class BaseActor : IDisposable
+  public abstract class BaseActor : IDisposable, IActor
   {
     private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
     private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
@@ -29,9 +29,14 @@ namespace Anabasis.Actor
 
     public string Id { get; }
 
-    public void SubscribeTo(IEventStoreQueue eventStoreQueue)
+    public void SubscribeTo(IEventStoreQueue eventStoreQueue, bool closeSubscriptionOnDispose = false)
     {
       var disposable = eventStoreQueue.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
+
+      if (closeSubscriptionOnDispose)
+      {
+        _cleanUp.Add(eventStoreQueue);
+      }
 
       _cleanUp.Add(disposable);
     }

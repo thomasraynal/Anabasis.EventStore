@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     private IDisposable _eventStreamConnectionDisposable;
     private readonly IDisposable _isStaleDisposable;
 
-    private DateTime _lastProcessedEventTimestamp;
+    private DateTime _lastProcessedEventUtcTimestamp;
 
     protected SourceCache<TAggregate, TKey> Cache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
 
@@ -72,7 +72,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       _eventTypeProvider = eventTypeProvider;
       _connectionMonitor = connectionMonitor;
 
-      _lastProcessedEventTimestamp = DateTime.MinValue;
+      _lastProcessedEventUtcTimestamp = DateTime.MinValue;
 
       ConnectionStatusSubject = new BehaviorSubject<bool>(false);
 
@@ -81,7 +81,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
        _isStaleDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ =>
       {
-        if (DateTime.UtcNow > _lastProcessedEventTimestamp.Add(_eventStoreCacheConfiguration.IsStaleTimeSpan))
+        if (DateTime.UtcNow > _lastProcessedEventUtcTimestamp.Add(_eventStoreCacheConfiguration.IsStaleTimeSpan))
         {
           IsStaleSubject.OnNext(true);
         }
@@ -109,7 +109,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
                 if (IsStale) IsStaleSubject.OnNext(false);
                 
                 LastProcessedEventSequenceNumber = @event.Event.EventNumber;
-                _lastProcessedEventTimestamp = DateTime.UtcNow;
+                _lastProcessedEventUtcTimestamp = DateTime.UtcNow;
 
               });
 
@@ -123,6 +123,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
           {
             IsCaughtUpSubject.OnNext(false);
           }
+
         }
       });
     }

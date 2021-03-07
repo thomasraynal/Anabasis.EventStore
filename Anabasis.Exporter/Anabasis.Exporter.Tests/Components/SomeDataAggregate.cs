@@ -6,6 +6,19 @@ using System.Text;
 
 namespace Anabasis.Tests
 {
+  public class AgainSomeMoreData : BaseEvent
+  {
+    public AgainSomeMoreData(Guid correlationId, string streamId) : base(correlationId, streamId)
+    {
+    }
+
+    public override string Log()
+    {
+      return nameof(SomeMoreData);
+    }
+  }
+
+
   public class SomeMoreData : BaseEvent
   {
     public SomeMoreData(Guid correlationId, string streamId) : base(correlationId, streamId)

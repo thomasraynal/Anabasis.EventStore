@@ -17,7 +17,7 @@ namespace Anabasis.Actor
 
     }
 
-    private IEventStoreAggregateRepository<TKey> _eventStoreAggregateRepository;
+    private readonly IEventStoreAggregateRepository<TKey> _eventStoreAggregateRepository;
 
     public IEventStoreCache<TKey, TAggregate> State { get; }
 

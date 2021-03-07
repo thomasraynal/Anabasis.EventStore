@@ -36,11 +36,11 @@ namespace Anabasis.EventStore
       _eventTypeProvider = eventTypeProvider;
 
       _cleanup = connectionMonitor.OnConnected
-            .Subscribe((Action<bool>)(isConnected =>
+            .Subscribe(isConnected =>
            {
              IsConnected = isConnected;
 
-           }));
+           });
     }
 
     private async Task Save(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
