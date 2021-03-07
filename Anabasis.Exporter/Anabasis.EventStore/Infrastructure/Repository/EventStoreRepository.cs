@@ -53,7 +53,7 @@ namespace Anabasis.EventStore
         {
           var commitHeaders = CreateCommitHeaders(ev, extraHeaders);
 
-          return ToEventData(Guid.NewGuid(), ev, commitHeaders);
+          return ToEventData(ev.EventID, ev, commitHeaders);
 
         });
 

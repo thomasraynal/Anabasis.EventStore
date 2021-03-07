@@ -12,8 +12,6 @@ namespace Anabasis.Tests
     {
     }
 
-    public SomeMoreData() { }
-
     public override string Log()
     {
       return nameof(SomeMoreData);

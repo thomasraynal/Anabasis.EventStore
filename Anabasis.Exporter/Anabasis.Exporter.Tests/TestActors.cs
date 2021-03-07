@@ -13,13 +13,13 @@ using EventStore.Core;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests
 {
   public class SomeCommandResponse : BaseCommandResponse
   {
-    public SomeCommandResponse() { }
 
     public SomeCommandResponse(Guid commandId, Guid correlationId, string streamId) : base(commandId, correlationId, streamId)
     {
@@ -33,8 +33,7 @@ namespace Anabasis.Tests
 
   public class SomeCommand : BaseCommand
   {
-    public SomeCommand() { }
-
+ 
     public SomeCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
     {
     }
@@ -247,23 +246,25 @@ namespace Anabasis.Tests
 
       Assert.NotNull(_testActorOne);
 
-      _queueTwo = CreatePersistentEventStoreQueue(_streamId, _groupIdTwo);
+      _queueTwo = CreatePersistentEventStoreQueue(_streamId, _groupIdOne);
 
       _testActorTwo.SubscribeTo(_queueTwo.persistentEventStoreQueue);
 
-      await _eventRepository.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-      await _eventRepository.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-      await _eventRepository.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-      await _eventRepository.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-      await _eventRepository.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-      await _eventRepository.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-      await _eventRepository.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-      await _eventRepository.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+      var events = Enumerable.Range(0, 10).Select(_=>new SomeRandomEvent(_correlationId, _streamId)).ToArray();
+
+      foreach(var ev in events)
+      {
+        await _eventRepository.eventStoreRepository.Emit(ev);
+      }
 
       await Task.Delay(100);
 
       Assert.True(_testActorOne.Events.Count > 1);
       Assert.True(_testActorTwo.Events.Count > 1);
+
+      var consumedEvents = _testActorOne.Events.Concat(_testActorTwo.Events).ToArray();
+
+      Assert.True(events.All(ev => consumedEvents.Any(e => e.EventID == ev.EventID)));
 
     }
 

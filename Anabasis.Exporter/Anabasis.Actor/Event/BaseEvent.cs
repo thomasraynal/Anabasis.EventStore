@@ -14,10 +14,6 @@ namespace Anabasis.Actor
       StreamId = streamId;
     }
 
-    public BaseEvent()
-    {
-    }
-
     [JsonProperty]
     public Guid EventID { get; internal set; }
     [JsonProperty]

@@ -12,9 +12,7 @@ namespace Anabasis.Actor
       CommandId = commandId;
     }
 
-    public BaseCommandResponse()
-    {
-    }
+
 
     [JsonProperty]
     public Guid CommandId { get; internal set; }

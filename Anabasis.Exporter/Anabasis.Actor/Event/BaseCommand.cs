@@ -9,8 +9,5 @@ namespace Anabasis.Actor
       StreamId = streamId;
     }
 
-    public BaseCommand()
-    {
-    }
   }
 }
