@@ -6,11 +6,10 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Actor
 {
-  public abstract class BaseAggregateActor<TKey,TAggregate> : BaseActor, IDisposable
-    where TAggregate : IAggregate<TKey>, new()
+  public abstract class BaseAggregateActor<TKey, TAggregate> : BaseActor, IDisposable, IAggregateActor<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
- 
-    public BaseAggregateActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey,TAggregate> eventStoreCache) : base(eventStoreRepository)
+
+    public BaseAggregateActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache) : base(eventStoreRepository)
     {
       _eventStoreAggregateRepository = eventStoreRepository;
       State = eventStoreCache;
@@ -21,7 +20,7 @@ namespace Anabasis.Actor
 
     public IEventStoreCache<TKey, TAggregate> State { get; }
 
-    public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntityEvent<TKey>
+    public async Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntityEvent<TKey>
     {
       await _eventStoreAggregateRepository.Emit(@event, extraHeaders);
     }

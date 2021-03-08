@@ -11,7 +11,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
   public class VolatileEventStoreCache<TKey, TAggregate> : BaseEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
 
-    private VolatileCacheConfiguration<TKey, TAggregate> _volatileEventStoreCacheConfiguration;
+    private readonly VolatileCacheConfiguration<TKey, TAggregate> _volatileEventStoreCacheConfiguration;
 
     public VolatileEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       VolatileCacheConfiguration<TKey, TAggregate> volatileEventStoreCacheConfiguration,

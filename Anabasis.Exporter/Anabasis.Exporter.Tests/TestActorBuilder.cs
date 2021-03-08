@@ -213,12 +213,12 @@ namespace Anabasis.Tests
     public async Task ShouldBuildFromActorBuilderAndRunActors()
     {
 
-      var testActorAutoBuildOne = ActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings, eventTypeProvider: new DefaultEventTypeProvider(() => new[] { typeof(SomeMoreData), typeof(AgainSomeMoreData) }))
+      var testActorAutoBuildOne = ActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
                                                                                    .WithSubscribeToAllQueue()
                                                                                    .WithPersistentSubscriptionQueue(_streamId2, _groupIdOne)
                                                                                    .Build();
 
-      var testActorAutoBuildTwo = ActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings, eventTypeProvider: new DefaultEventTypeProvider(() => new[] { typeof(SomeMoreData), typeof(AgainSomeMoreData) }))
+      var testActorAutoBuildTwo = ActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
                                                                                    .Build();
 
       await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));

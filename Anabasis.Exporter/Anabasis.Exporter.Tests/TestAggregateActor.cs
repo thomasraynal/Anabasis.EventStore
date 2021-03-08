@@ -147,7 +147,7 @@ namespace Anabasis.Tests
     public async Task ShouldEmitEventsAndUpdateCache()
     {
 
-      await _testActorOne.Emit(new SomeData<Guid>(_firstAggregateId));
+      await _testActorOne.EmitEntityEvent(new SomeData<Guid>(_firstAggregateId));
 
       await Task.Delay(100);
 
