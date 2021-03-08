@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Infrastructure
         var type = _serviceProvider.GetServices<IEntityEvent<TKey>>()
                                .FirstOrDefault(type => type.GetType().FullName == name);
 
-        if (null == type) throw new InvalidOperationException($"Event {name} is not registered");
+        if (null == type) return null;
 
         return type.GetType();
 
@@ -62,7 +62,7 @@ namespace Anabasis.EventStore.Infrastructure
         var type = _serviceProvider.GetServices<IEntityEvent<TKey>>()
                                .FirstOrDefault(type => type.GetType().FullName == name);
 
-        if (null == type) throw new InvalidOperationException($"Event {name} is not registered");
+        if (null == type) return null;
 
         return type.GetType();
 

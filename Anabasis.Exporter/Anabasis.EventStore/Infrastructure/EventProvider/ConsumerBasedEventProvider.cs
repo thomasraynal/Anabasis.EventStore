@@ -39,10 +39,7 @@ namespace Anabasis.EventStore.Infrastructure
     public Type GetEventTypeByName(string name)
     {
 
-      if (!_eventTypeCache.ContainsKey(name))
-      {
-        throw new InvalidOperationException($"Event {name} is not registered");
-      }
+      if (!_eventTypeCache.ContainsKey(name)) return null;
 
       return _eventTypeCache[name];
 

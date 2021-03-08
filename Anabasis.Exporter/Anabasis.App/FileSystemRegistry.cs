@@ -1,5 +1,4 @@
 using Anabasis.Common;
-using Anabasis.Common.Actor;
 using Anabasis.Importer;
 using Lamar;
 using Newtonsoft.Json;
@@ -11,11 +10,11 @@ namespace Anabasis.App
   {
     public FileSystemRegistry()
     {
-      Scan(scanner =>
-      {
-        scanner.AssembliesAndExecutablesFromApplicationBaseDirectory();
-        scanner.AddAllTypesOf<IActor>();
-      });
+      //Scan(scanner =>
+      //{
+      //  scanner.AssembliesAndExecutablesFromApplicationBaseDirectory();
+      //  scanner.AddAllTypesOf<IEvent>();
+      //});
 
       var configuration = JsonConvert.DeserializeObject<FileSystemDocumentRepositoryConfiguration>(File.ReadAllText("ProdConfig.json"));
 

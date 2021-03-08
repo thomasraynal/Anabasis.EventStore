@@ -1,5 +1,4 @@
 snapshot storage
-actor building and registration
 logging
 review cache/queue names => use actual eventstore naming
 

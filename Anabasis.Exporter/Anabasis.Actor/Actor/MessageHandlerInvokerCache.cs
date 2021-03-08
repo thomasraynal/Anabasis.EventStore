@@ -1,5 +1,7 @@
+using Anabasis.Actor.Exporter;
 using System;
 using System.Collections.Concurrent;
+using System.Linq;
 using System.Reflection;
 
 namespace Anabasis.Actor
@@ -39,7 +41,20 @@ namespace Anabasis.Actor
     {
       var key = new MessageHandlerInvokerCacheKey(handlerType, messageHandlerType);
 
-      return _methodInfoCache.GetOrAdd(key, handlerType.GetMethod("Handle", new[] { messageHandlerType }));
+      return _methodInfoCache.GetOrAdd(key, (cacheKey) =>
+      {
+
+        var methodInfo = handlerType.GetMethod("Handle", new[] { cacheKey.MessageHandlerType });
+
+        if (null == methodInfo)
+        {
+          methodInfo = messageHandlerType.GetMethods().Where(method => null != method.GetCustomAttribute<EventSink>()).FirstOrDefault();
+        }
+
+        return methodInfo;
+
+      });
+
     }
   }
 }

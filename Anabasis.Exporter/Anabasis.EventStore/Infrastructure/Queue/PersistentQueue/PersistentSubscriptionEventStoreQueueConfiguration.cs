@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Infrastructure.Queue.PersistentQueue
     public UserCredentials UserCredentials { get; set; }
     public int BufferSize { get; set; } = EventStorePersistentSubscriptionBase.DefaultBufferSize;
     public bool AutoAck { get; set; } = true;
-
+    public bool IgnoreUnknownEvent => true;
   }
 }
 

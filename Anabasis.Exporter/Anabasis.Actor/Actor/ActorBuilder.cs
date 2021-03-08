@@ -84,11 +84,11 @@ namespace Anabasis.Actor.Actor
 
     }
 
-    public ActorBuilder<TActor, TRegistry> WithSubscribeToAllQueue()
+    public ActorBuilder<TActor, TRegistry> WithSubscribeToAllQueue(IEventTypeProvider eventTypeProvider = null)
     {
       var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
 
-      var eventProvider = new ConsumerBasedEventProvider<TActor>();
+      var eventProvider = eventTypeProvider?? new ConsumerBasedEventProvider<TActor>();
 
       var volatileEventStoreQueue = new VolatileEventStoreQueue(
         _connectionMonitor,
@@ -101,6 +101,22 @@ namespace Anabasis.Actor.Actor
       return this;
     }
 
+    public ActorBuilder<TActor, TRegistry> WithSubscribeToQueue(IEventTypeProvider eventTypeProvider = null)
+    {
+      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
+
+      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+
+      var volatileEventStoreQueue = new VolatileEventStoreQueue(
+        _connectionMonitor,
+        volatileEventStoreQueueConfiguration,
+        eventProvider,
+        _logger);
+
+      _queuesToRegisterTo.Add(volatileEventStoreQueue);
+
+      return this;
+    }
 
     public ActorBuilder<TActor, TRegistry> WithPersistentSubscriptionQueue(string streamId, string groupId)
     {

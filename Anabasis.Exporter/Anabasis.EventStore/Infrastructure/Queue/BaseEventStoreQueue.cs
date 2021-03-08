@@ -55,7 +55,14 @@ namespace Anabasis.EventStore.Infrastructure.Queue
               {
                 var recordedEvent = resolvedEvent.Event;
 
-                var @eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+                var eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+
+                if (null == eventType)
+                {
+                  if (_eventStoreQueueConfiguration.IgnoreUnknownEvent) return;
+
+                  throw new InvalidOperationException($"Event {recordedEvent.EventType} is not registered");
+                }
 
                 var @event = DeserializeEvent(recordedEvent);
 
@@ -80,8 +87,6 @@ namespace Anabasis.EventStore.Infrastructure.Queue
     private IEvent DeserializeEvent(RecordedEvent recordedEvent)
     {
       var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
-
-      if (null == targetType) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
 
       return _eventStoreQueueConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
     }
