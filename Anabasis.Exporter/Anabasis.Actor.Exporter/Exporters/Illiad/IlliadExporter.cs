@@ -6,7 +6,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace Anabasis.Exporter.Illiade
+namespace Anabasis.Exporter.Illiad
 {
 
   public class IlliadExporter : BaseActor

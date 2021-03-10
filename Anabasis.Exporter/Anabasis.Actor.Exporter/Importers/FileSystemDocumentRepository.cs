@@ -148,15 +148,22 @@ namespace Anabasis.Importer
       return Task.CompletedTask;
     }
 
-    private void TryCompleteExport(IAnabasisExporterEvent exportEnded)
+    private void TryCompleteExport(IAnabasisExporterEvent exportEnded, bool isIndex)
     {
-      var export = _exports[exportEnded.CorrelationID];
+      lock (_syncLock)
+      {
+
+        var export = _exports[exportEnded.CorrelationID];
+
+        if (isIndex) export.ImportedIndicesCount++;
+        else
+        {
+          export.ImportedDocumentCount++; 
+        }
 
       if (export.ImportedDocumentCount == export.ExpectedDocumentIds.Length &&
         export.ImportedIndicesCount == export.ExpectedDocumentIds.Length)
       {
-        lock (_syncLock)
-        {
 
           if (export.IsDone) return;
 
@@ -189,11 +196,10 @@ namespace Anabasis.Importer
       //work out double deserialization
       export.Documents.Append(anabasisDocument);
 
-      export.ImportedDocumentCount++;
 
       await Emit(new DocumentImported(anabasisDocument.Id, documentCreated.CorrelationID, documentCreated.StreamId, documentCreated.TopicId));
 
-      TryCompleteExport(documentCreated);
+      TryCompleteExport(documentCreated, false);
 
     }
 
@@ -210,11 +216,11 @@ namespace Anabasis.Importer
       //work out double deserialization
       export.Indices.Append(anabasisDocumentIndex);
 
-      export.ImportedIndicesCount++;
+
 
       await Emit(new IndexImported(indexCreated.DocumentId, indexCreated.CorrelationID, indexCreated.StreamId, indexCreated.TopicId));
 
-      TryCompleteExport(indexCreated);
+      TryCompleteExport(indexCreated, true);
 
     }
   }

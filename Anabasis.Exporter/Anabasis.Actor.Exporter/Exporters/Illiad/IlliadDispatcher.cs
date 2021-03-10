@@ -1,13 +1,13 @@
 using Anabasis.Actor;
+using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.EventStore;
-using Anabasis.Exporter.Illiade;
 using HtmlAgilityPack;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Anabasis.Common
+namespace Anabasis.Exporter.Illiad
 {
   public class IlliadDispatcher : BaseActor
   {
@@ -32,7 +32,7 @@ namespace Anabasis.Common
 
                                     return (title, id: title.GetReadableId(), url: node.Attributes["href"].Value);
 
-                                  }).Take(5).ToArray();
+                                  }).ToArray();
 
       await Emit(new ExportStarted(startExport.CorrelationID, nodes.Select(node => node.id).ToArray(), startExport.StreamId, startExport.TopicId));
 

@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.Exporter.Illiade
+namespace Anabasis.Exporter.Illiad
 {
   public class IlliadQuote: AnabasisDocumentItem
   {

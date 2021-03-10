@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Web;
 
-namespace Anabasis.Exporter.Illiade
+namespace Anabasis.Exporter.Illiad
 {
   public class IlliadDocumentBuilder
   {

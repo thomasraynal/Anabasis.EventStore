@@ -101,7 +101,7 @@ namespace Anabasis.Actor.Actor
       return this;
     }
 
-    public ActorBuilder<TActor, TRegistry> WithSubscribeToQueue(IEventTypeProvider eventTypeProvider = null)
+    public ActorBuilder<TActor, TRegistry> WithSubscribeToOneStreamQueue(string streamId, IEventTypeProvider eventTypeProvider = null)
     {
       var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
 
