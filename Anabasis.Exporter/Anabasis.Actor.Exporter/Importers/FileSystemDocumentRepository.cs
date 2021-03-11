@@ -155,22 +155,30 @@ namespace Anabasis.Importer
 
         var export = _exports[exportEnded.CorrelationID];
 
+        if (export.IsDone) return;
+
         if (isIndex) export.ImportedIndicesCount++;
         else
         {
-          export.ImportedDocumentCount++; 
+          export.ImportedDocumentCount++;
         }
 
-      if (export.ImportedDocumentCount == export.ExpectedDocumentIds.Length &&
-        export.ImportedIndicesCount == export.ExpectedDocumentIds.Length)
-      {
-
-          if (export.IsDone) return;
+        if (export.ImportedDocumentCount == export.ExpectedDocumentIds.Length &&
+          export.ImportedIndicesCount == export.ExpectedDocumentIds.Length)
+        {
 
           export.IsDone = true;
 
-          export.Documents.EndWriting();
-          export.Indices.EndWriting();
+          try
+          {
+
+            export.Documents.EndWriting();
+            export.Indices.EndWriting();
+          }
+          catch (Exception ex)
+          {
+
+          }
 
           export.Dispose();
 

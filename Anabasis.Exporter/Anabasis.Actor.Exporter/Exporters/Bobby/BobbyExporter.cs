@@ -3,11 +3,8 @@ using Anabasis.Actor.Exporter.Exporters.Bobby;
 using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.EventStore;
-using HtmlAgilityPack;
 using Newtonsoft.Json;
-using Polly;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,48 +23,44 @@ namespace Anabasis.Exporter.Bobby
 
       var documentBuilders = exportDocumentBuilder.DocumentBuilderBatch.Select(builder => new BobbyDocumentBuilder(builder.documentUrl, builder.documentHeading));
 
-      foreach (var parserBatch in documentBuilders.OrderBy(builder => builder.MainTitle).GroupBy(builder => builder.DocumentId))
+      var aggregatedDocument = new AnabasisDocument()
+      {
+        Id = exportDocumentBuilder.DocumentId,
+        Title = exportDocumentBuilder.DocumentId,
+        DocumentItems = new AnabasisDocumentItem[0]
+      };
+
+      //todo : parallelize
+      foreach (var documentBuilder in documentBuilders.OrderBy(builder => builder.MainTitle))
       {
 
-        var aggregatedDocumentId = parserBatch.Key;
+        Emit(new TitleDefined(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.TopicId, aggregatedDocument.Id, aggregatedDocument.Title)).Wait();
 
-        var aggregatedDocument = new AnabasisDocument()
-        {
-          Id = aggregatedDocumentId,
-          Title = parserBatch.Key
-        };
-
-        var anabasisDocumentItems = parserBatch.SelectMany(parser =>
+        try
         {
 
-          try
-          {
-            var anabasisDocumentItems = parser.BuildItems(aggregatedDocument);
+          var items = documentBuilder.BuildItems(aggregatedDocument);
 
-            Emit(new DocumentDefined(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.TopicId, $"{parser.Url}")).Wait();
+          aggregatedDocument.DocumentItems = aggregatedDocument.DocumentItems.Concat(items).ToArray();
 
-            return anabasisDocumentItems;
+        }
+        catch (Exception)
+        {
 
-          }
-          catch (Exception)
-          {
-            Emit(new DocumentCreationFailed(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.TopicId, $"{parser.Url}")).Wait();
+          Emit(new DocumentCreationFailed(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.TopicId, aggregatedDocument.Title)).Wait();
 
-            return null;
-          }
+          break;
 
-        }).ToArray();
-
-
-        aggregatedDocument.DocumentItems = anabasisDocumentItems;
-
-        var path = Path.GetFullPath($"{aggregatedDocument.Id}");
-
-        File.WriteAllText(path, JsonConvert.SerializeObject(aggregatedDocument));
-
-        await Emit(new DocumentCreated(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.TopicId, aggregatedDocument.Id, new Uri(path)));
-
+        }
       }
+
+      var path = Path.GetFullPath($"{aggregatedDocument.Id}");
+
+      File.WriteAllText(path, JsonConvert.SerializeObject(aggregatedDocument));
+
+      await Emit(new DocumentCreated(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.TopicId, aggregatedDocument.Title, new Uri(path)));
+
+
     }
   }
 }

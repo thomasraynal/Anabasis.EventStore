@@ -14,7 +14,7 @@ namespace Anabasis.Exporter
 
   public class GoogleDocExporter : BaseActor
   {
-    
+
     private GoogleDocClient _googleDocClient;
 
     public GoogleDocExporter(IAnabasisConfiguration exporterConfiguration, IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
@@ -84,7 +84,7 @@ namespace Anabasis.Exporter
 
       File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument));
 
-      Emit(new DocumentCreated(exportDocument.CorrelationID, exportDocument.StreamId, exportDocument.TopicId, anabasisDocument.Id, new Uri(path)));
+      await Emit(new DocumentCreated(exportDocument.CorrelationID, exportDocument.StreamId, exportDocument.TopicId, anabasisDocument.Id, new Uri(path)));
 
     }
   }

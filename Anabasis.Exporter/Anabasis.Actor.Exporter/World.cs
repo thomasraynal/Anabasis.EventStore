@@ -67,19 +67,15 @@ namespace Anabasis.Actor.Exporter
                                          .WithSubscribeToOneStreamQueue(streamId, eventTypeProvider: allEventsProvider)
                                          .Build();
 
-
       actors.Add(dispatcher);
       actors.Add(importer);
       actors.Add(logger);
-
 
       for (var i = 0; i < exporterCount; i++)
       {
         var exporter = ActorBuilder<TExporter, TRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
                                                                       .WithPersistentSubscriptionQueue(streamId, $"{streamId}_{typeof(TExporter)}")
                                                                       .Build();
-
-
         actors.Add(exporter);
 
       }
@@ -102,7 +98,7 @@ namespace Anabasis.Actor.Exporter
 
     private static async Task CreateSubscriptionGroups(string streamId, string actorKind, UserCredentials userCredentials, ClusterVNode clusterVNode)
     {
-      var connectionSettings = PersistentSubscriptionSettings.Create().DontTimeoutMessages().StartFromCurrent().Build();
+      var connectionSettings = PersistentSubscriptionSettings.Create().WithMaxRetriesOf(0).ResolveLinkTos().MaximumCheckPointCountOf(1).MinimumCheckPointCountOf(1).DontTimeoutMessages().StartFromCurrent().Build();
 
       var connection = EmbeddedEventStoreConnection.Create(clusterVNode);
 

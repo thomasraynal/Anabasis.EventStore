@@ -73,7 +73,7 @@ namespace Anabasis.Actor.Exporter.Exporters.Bobby
         }
       }
 
-      var documentBuilderGroups = documentBuilders.GroupBy(builder => builder.DocumentId).Take(5).ToArray();
+      var documentBuilderGroups = documentBuilders.GroupBy(builder => builder.DocumentId).ToArray();
 
       var expectedDocuments = documentBuilderGroups.Select(group => group.Key).ToArray();
 
