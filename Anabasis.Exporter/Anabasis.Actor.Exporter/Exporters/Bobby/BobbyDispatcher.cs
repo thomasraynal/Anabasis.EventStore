@@ -24,7 +24,7 @@ namespace Anabasis.Actor.Exporter.Exporters.Bobby
       _policyBuilder = Policy.Handle<Exception>();
     }
 
-    public async Task Handle(StartExportCommand startExport)
+    public async Task Handle(RunExportCommand startExport)
     {
 
       var htmlWeb = new HtmlWeb();

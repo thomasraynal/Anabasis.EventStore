@@ -11,7 +11,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return "Export has finished";
+      return $"{nameof(ExportFinished)}";
     }
   }
 }

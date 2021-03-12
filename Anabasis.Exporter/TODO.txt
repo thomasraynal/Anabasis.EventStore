@@ -1,4 +1,4 @@
 snapshot storage
 logging
+central error handling on actor event event stream (try/catch)
 review cache/queue names => use actual eventstore naming
-

@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Anabasis.Common.Events
 {
-  public class ExportDocument : BaseAnabasisExporterEvent
+  public class ExportDocumentCommand : BaseAnabasisExporterCommand
   {
-    public ExportDocument(Guid correlationId,
+    public ExportDocumentCommand(Guid correlationId,
       string streamId,
       string topicId,
       string documentId,
@@ -25,7 +25,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return $"Document Export Requested - {DocumentId}";
+      return $"{nameof(ExportDocumentCommand)} - {DocumentId} ";
     }
   }
 }

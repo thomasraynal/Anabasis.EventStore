@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Anabasis.Common.Events.Commands
 {
-  public class StartExportCommandResponse : BaseAnabasisExporterCommandResponse
+  public class RunExportCommandResponse : BaseAnabasisExporterCommandResponse
   {
-    public StartExportCommandResponse(Guid commandId, Guid correlationId, string streamId, string topicId) : base(commandId, correlationId, streamId, topicId)
+    public RunExportCommandResponse(Guid commandId, Guid correlationId, string streamId, string topicId) : base(commandId, correlationId, streamId, topicId)
     {
     }
     public override string Log()

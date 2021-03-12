@@ -9,6 +9,6 @@ namespace Anabasis.Importer
     Task Handle(DocumentCreated documentExported);
     Task Handle(IndexCreated indexExported);
     Task Handle(ExportStarted exportStarted);
-    Task Handle(StartExportCommand startExportRequest);
+    Task Handle(RunExportCommand startExportRequest);
   }
 }

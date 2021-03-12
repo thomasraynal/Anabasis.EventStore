@@ -58,7 +58,7 @@ namespace Anabasis.Actor.Exporter
                                                                            .WithSubscribeToOneStreamQueue(streamId)
                                                                            .Build();
 
-      var allEvents = typeof(StartExportCommand).Assembly.GetTypes()
+      var allEvents = typeof(RunExportCommand).Assembly.GetTypes()
                                     .Where(type => type.GetInterfaces().Any(@interface => @interface == typeof(IEvent))).ToArray();
 
       var allEventsProvider = new DefaultEventTypeProvider(() => allEvents);

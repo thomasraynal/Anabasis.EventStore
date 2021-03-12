@@ -16,7 +16,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return $"Export started ({DocumentsIds.Length} document(s))";
+      return $"{nameof(ExportStarted)} ({DocumentsIds.Length} document(s))";
     }
   }
 }

@@ -18,7 +18,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return $"Title defined - {Title} - [ Document: {DocumentId} ]";
+      return $"{nameof(TitleDefined)} {Title}";
     }
   }
 }

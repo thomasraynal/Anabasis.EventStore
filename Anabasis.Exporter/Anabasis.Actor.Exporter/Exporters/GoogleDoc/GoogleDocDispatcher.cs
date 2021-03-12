@@ -18,7 +18,7 @@ namespace Anabasis.Exporter.GoogleDoc
       _googleDocClient = new GoogleDocClient(exporterConfiguration);
     }
 
-    private async Task SendExportRequest(StartExportCommand startExport, string folderId)
+    private async Task SendExportRequest(RunExportCommand startExport, string folderId)
     {
       var nextUrl = $"https://www.googleapis.com/drive/v2/files/{folderId}/children";
 
@@ -37,7 +37,7 @@ namespace Anabasis.Exporter.GoogleDoc
         foreach (var child in childList.ChildReferences)
         {
 
-          await Emit(new ExportDocument(
+          await Emit(new ExportDocumentCommand(
             startExport.CorrelationID,
             startExport.StreamId,
             startExport.TopicId,
@@ -52,7 +52,7 @@ namespace Anabasis.Exporter.GoogleDoc
 
     }
 
-    public async Task Handle(StartExportCommand startExportCommand)
+    public async Task Handle(RunExportCommand startExportCommand)
     {
       await SendExportRequest(startExportCommand, _exporterConfiguration.DriveRootFolder);
     }

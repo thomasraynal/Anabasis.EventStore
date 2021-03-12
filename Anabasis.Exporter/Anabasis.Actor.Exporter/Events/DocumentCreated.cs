@@ -15,7 +15,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return $"Document created @ {DocumentId}";
+      return $"{nameof(DocumentCreated)} - {DocumentId}";
     }
   }
 }

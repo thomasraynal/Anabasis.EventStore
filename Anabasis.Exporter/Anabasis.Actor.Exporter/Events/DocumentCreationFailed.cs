@@ -13,7 +13,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return $"Failed to create - {DocumentId}";
+      return $"{nameof(DocumentCreationFailed)} - {DocumentId}";
     }
   }
 }

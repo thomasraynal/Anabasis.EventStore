@@ -18,7 +18,7 @@ namespace Anabasis.Exporter.Illiad
     {
     }
 
-    public async Task Handle(StartExportCommand startExport)
+    public async Task Handle(RunExportCommand startExport)
     {
       var htmlWeb = new HtmlWeb();
       var documentBuilders = new List<IlliadDocumentBuilder>();
@@ -39,7 +39,7 @@ namespace Anabasis.Exporter.Illiad
       foreach (var (documentTitle, documentId, documentUrl) in nodes)
       {
 
-        await Emit(new ExportDocument(
+        await Emit(new ExportDocumentCommand(
           startExport.CorrelationID,
           startExport.StreamId,
           startExport.TopicId,

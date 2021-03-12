@@ -35,7 +35,7 @@ namespace Anabasis.App
 
        var mediator = actors.First();
 
-       var result = await mediator.Send<StartExportCommandResponse>(new StartExportCommand(Guid.NewGuid(), StreamIds.GoogleDoc));
+       var result = await mediator.Send<RunExportCommandResponse>(new RunExportCommand(Guid.NewGuid(), StreamIds.GoogleDoc));
 
 
      });

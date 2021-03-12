@@ -128,7 +128,7 @@ namespace Anabasis.Importer
       _exportCallers = new Dictionary<Guid, ICommand>();
     }
 
-    public override Task Handle(StartExportCommand startExportRequest)
+    public override Task Handle(RunExportCommand startExportRequest)
     {
       _exportCallers.Add(startExportRequest.ExportId, startExportRequest);
 
@@ -184,7 +184,7 @@ namespace Anabasis.Importer
 
           var exportCommand = _exportCallers[exportEnded.CorrelationID];
 
-          Emit(new StartExportCommandResponse(exportCommand.EventID, exportEnded.CorrelationID, exportEnded.StreamId, exportEnded.TopicId)).Wait();
+          Emit(new RunExportCommandResponse(exportCommand.EventID, exportEnded.CorrelationID, exportEnded.StreamId, exportEnded.TopicId)).Wait();
         }
 
       }
