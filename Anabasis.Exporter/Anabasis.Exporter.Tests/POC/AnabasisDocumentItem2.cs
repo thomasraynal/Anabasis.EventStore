@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Web;
 
-namespace Anabasis.Common
+namespace Anabasis.Tests.POC
 {
-  public class AnabasisDocumentItem : IAnabasisDocumentItem
+  public class AnabasisDocument : IAnabasisDocument
   {
-    public AnabasisDocumentItem()
+    public AnabasisDocument()
     {
       Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
     }
@@ -30,7 +30,7 @@ namespace Anabasis.Common
 
     public override bool Equals(object obj)
     {
-      return obj is AnabasisDocumentItem item &&
+      return obj is AnabasisDocument item &&
              Id == item.Id &&
              IsUrl == item.IsUrl &&
              IsMainTitle == item.IsMainTitle &&

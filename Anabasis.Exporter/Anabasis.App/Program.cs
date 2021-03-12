@@ -29,9 +29,9 @@ namespace Anabasis.App
        var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
 
      // var actors = await World.Create<FileSystemRegistry, BobbyDispatcher, BobbyExporter, Indexer, FileSystemDocumentRepository>(StreamIds.Bobby, userCredentials, connectionSettings, 5, 5);
-       //  var actors = await World.Create<FileSystemRegistry, IlliadDispatcher, IlliadExporter, Indexer, FileSystemDocumentRepository>(StreamIds.Illiad, userCredentials, connectionSettings, 5,5);
+      //   var actors = await World.Create<FileSystemRegistry, IlliadDispatcher, IlliadExporter, Indexer, FileSystemDocumentRepository>(StreamIds.Illiad, userCredentials, connectionSettings, 5,5);
 
-       var actors = await World.Create<FileSystemRegistry, GoogleDocDispatcher, GoogleDocExporter, Indexer, FileSystemDocumentRepository>(StreamIds.GoogleDoc, userCredentials, connectionSettings, 5, 5);
+     var actors = await World.Create<FileSystemRegistry, GoogleDocDispatcher, GoogleDocExporter, Indexer, FileSystemDocumentRepository>(StreamIds.GoogleDoc, userCredentials, connectionSettings, 5, 5);
 
        var mediator = actors.First();
 

@@ -18,7 +18,7 @@ namespace Anabasis.Common.Events
 
     public override string Log()
     {
-      return $"Index exported - {DocumentId}";
+      return $"{nameof(IndexCreated)} - {DocumentId} ";
     }
   }
 }

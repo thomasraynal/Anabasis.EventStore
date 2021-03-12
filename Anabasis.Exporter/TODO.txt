@@ -2,3 +2,8 @@ snapshot storage
 logging
 central error handling on actor event event stream (try/catch)
 review cache/queue names => use actual eventstore naming
+tag and author field on document
+error handling on all exporters
+handle tags on iliad
+create properties on document and document items
+create a dependency architecture of doc and doc items

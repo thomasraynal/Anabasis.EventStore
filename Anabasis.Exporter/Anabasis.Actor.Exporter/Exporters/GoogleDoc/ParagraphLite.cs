@@ -30,6 +30,7 @@ namespace Anabasis.Exporter
     {
       var documentItem = new AnabasisDocumentItem()
       {
+
         Id = (Bold || Italic) ? Content.GetReadableId() : $"{Guid.NewGuid()}",
         IsMainTitle = Bold,
         IsSecondaryTitle = Italic,
@@ -37,6 +38,8 @@ namespace Anabasis.Exporter
         Content = Content?.Trim('\n'),
         IsUrl = !string.IsNullOrEmpty(Url),
         DocumentId = rootDocumentid,
+        Author = rootDocumentid,
+        Tag = rootDocumentid
       };
 
       return documentItem;

@@ -27,7 +27,8 @@ namespace Anabasis.Exporter.Bobby
       {
         Id = exportDocumentBuilder.DocumentId,
         Title = exportDocumentBuilder.DocumentId,
-        DocumentItems = new AnabasisDocumentItem[0]
+        Tag = exportDocumentBuilder.DocumentId,
+        DocumentItems = new AnabasisDocumentItem[0],
       };
 
       //todo : parallelize
@@ -59,7 +60,6 @@ namespace Anabasis.Exporter.Bobby
       File.WriteAllText(path, JsonConvert.SerializeObject(aggregatedDocument));
 
       await Emit(new DocumentCreated(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.TopicId, aggregatedDocument.Title, new Uri(path)));
-
 
     }
   }

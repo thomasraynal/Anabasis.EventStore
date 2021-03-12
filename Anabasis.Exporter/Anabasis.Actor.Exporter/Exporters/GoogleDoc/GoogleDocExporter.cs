@@ -70,12 +70,14 @@ namespace Anabasis.Exporter
       {
         Id = rootDocumentid,
         Title = documentLite.Title,
+        Author = documentLite.Title,
+        Tag = documentLite.Title,
         DocumentItems = documentItems
       };
 
     }
 
-    public async Task Handle(ExportDocument exportDocument)
+    public async Task Handle(ExportDocumentCommand exportDocument)
     {
 
       var anabasisDocument = await GetAnabasisDocument(exportDocument.DocumentId);

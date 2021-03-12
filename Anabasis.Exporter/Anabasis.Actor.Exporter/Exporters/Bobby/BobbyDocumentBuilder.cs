@@ -106,11 +106,12 @@ namespace Anabasis.Exporter.Bobby
       var mainTitle = new AnabasisDocumentItem()
       {
         Id = mainTitleId,
+        Tag = mainTitleId,
         IsMainTitle = true,
         Content = MainTitle,
         DocumentId = anabasisDocument.Id,
         ParentId = anabasisDocument.Id,
-        Position = documentPosition
+        Position = documentPosition,
 
       };
 
@@ -121,6 +122,8 @@ namespace Anabasis.Exporter.Bobby
         DocumentId = anabasisDocument.Id,
         ParentId = mainTitleId,
         MainTitleId = mainTitleId,
+        Author = quote.Author,
+        Tag = quote.Tag,
         Position = ++documentPosition
 
       }).ToArray();

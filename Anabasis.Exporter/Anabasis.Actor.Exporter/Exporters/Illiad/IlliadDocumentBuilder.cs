@@ -71,6 +71,9 @@ namespace Anabasis.Exporter.Illiad
 
           var author = authorNode == null ? null : HttpUtility.HtmlDecode(authorNodeIndex.Element("strong").InnerText.Clean());
 
+          anabasisDocument.Author = author;
+          anabasisDocument.Tag = author;
+
           string source = null;
 
           if (null != authorNode)
@@ -92,7 +95,7 @@ namespace Anabasis.Exporter.Illiad
           illiadQuotes.Add(new IlliadQuote()
           {
             Author = author,
-            Content = quote,
+            Content = quote.Replace("« ", "").Replace(" »", ""),
             Source = source,
             Id = $"{Guid.NewGuid()}",
             DocumentId = anabasisDocument.Id,
@@ -109,6 +112,7 @@ namespace Anabasis.Exporter.Illiad
 
       }
 
+    
       anabasisDocument.DocumentItems = illiadQuotes.ToArray();
 
       return anabasisDocument;
