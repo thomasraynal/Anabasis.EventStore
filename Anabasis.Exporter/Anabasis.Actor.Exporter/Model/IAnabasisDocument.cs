@@ -5,8 +5,6 @@ namespace Anabasis.Common
     string Author { get; set; }
     string Content { get; set; }
     string Id { get; set; }
-    bool IsRootDocument { get; }
-    string ParentId { get; set; }
     string Tag { get; set; }
     string Type { get; set; }
   }

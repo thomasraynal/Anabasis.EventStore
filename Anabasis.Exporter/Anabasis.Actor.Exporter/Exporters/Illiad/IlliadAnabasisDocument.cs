@@ -12,8 +12,6 @@ namespace Anabasis.Common
 
     public string Source { get; set; }
 
-    public IlliadAnabasisDocument[] Children { get; set; }
-
     public override bool Equals(object obj)
     {
       return obj is IlliadAnabasisDocument document &&
@@ -21,8 +19,6 @@ namespace Anabasis.Common
              Author == document.Author &&
              Content == document.Content &&
              Id == document.Id &&
-             IsRootDocument == document.IsRootDocument &&
-             ParentId == document.ParentId &&
              Tag == document.Tag &&
              Type == document.Type &&
              Source == document.Source;
@@ -35,8 +31,6 @@ namespace Anabasis.Common
       hash.Add(Author);
       hash.Add(Content);
       hash.Add(Id);
-      hash.Add(IsRootDocument);
-      hash.Add(ParentId);
       hash.Add(Tag);
       hash.Add(Type);
       hash.Add(Source);

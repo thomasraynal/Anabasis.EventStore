@@ -8,14 +8,14 @@ namespace Anabasis.Common
     protected BaseAnabasisDocument()
     {
       Type = GetType().Name;
+      Id = $"{Guid.NewGuid()}";
     }
 
-    protected BaseAnabasisDocument(string author, string content, string id, string parentId, string tag)
+    protected BaseAnabasisDocument(string author, string content, string id, string tag)
     {
       Author = author;
       Content = content;
       Id = id;
-      ParentId = parentId;
       Tag = tag;
       Type = GetType().Name;
     }
@@ -23,8 +23,6 @@ namespace Anabasis.Common
     public string Author { get; set; }
     public string Content { get; set; }
     public string Id { get; set; }
-    public bool IsRootDocument => ParentId == null;
-    public string ParentId { get; set; }
     public string Tag { get; set; }
     public string Type { get; set; }
     public override bool Equals(object obj)
@@ -33,8 +31,6 @@ namespace Anabasis.Common
              Author == document.Author &&
              Content == document.Content &&
              Id == document.Id &&
-             IsRootDocument == document.IsRootDocument &&
-             ParentId == document.ParentId &&
              Tag == document.Tag &&
              Type == document.Type;
     }
@@ -43,7 +39,7 @@ namespace Anabasis.Common
 
     public override int GetHashCode()
     {
-      return HashCode.Combine(Author, Content, Id, IsRootDocument, ParentId, Tag, Type);
+      return HashCode.Combine(Author, Content, Id, Tag, Type);
     }
   }
 }

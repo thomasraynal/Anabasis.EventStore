@@ -81,7 +81,6 @@ namespace Anabasis.Actor.Exporter.Exporters.Bobby
         await Emit(new DocumentBuildRequested(
           startExport.CorrelationID,
           startExport.StreamId,
-          startExport.TopicId,
           documentBuilderGroup.Key,
           documentBuilderGroup.Select(documentBuider => (documentBuider.Url, documentBuider.HeadingUrl)).ToArray()
          ));

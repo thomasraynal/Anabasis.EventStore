@@ -12,7 +12,7 @@ namespace Anabasis.Common.Events
       string topicId,
       string documentId,
       string documentTitle,
-      string url= null) : base(correlationId, streamId, topicId)
+      string url= null) : base(correlationId, streamId)
     {
       DocumentId = documentId;
       DocumentTitle = documentTitle;

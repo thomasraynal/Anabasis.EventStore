@@ -29,7 +29,6 @@ namespace Anabasis.Exporter.Bobby
     }
 
     public string HeadingUrl { get; }
-
     public string DocumentId { get; }
     public string MainTitle { get; }
     public string Url { get; }
@@ -58,7 +57,7 @@ namespace Anabasis.Exporter.Bobby
 
     }
 
-    public BobbyAnabasisDocument[] BuildItems(BobbyAnabasisDocument rootAnabasisDocument)
+    public BobbyAnabasisDocument[] BuildItems()
     {
 
       var parser = new HtmlWeb();
@@ -99,36 +98,16 @@ namespace Anabasis.Exporter.Bobby
 
       }
 
-      var mainTitleId = MainTitle.GetReadableId();
-
-      var documentPosition = 0;
-
-      var mainTitle = new BobbyAnabasisDocument()
-      {
-        Id = mainTitleId,
-        Tag = mainTitleId,
-        IsMainTitle = true,
-        Content = MainTitle,
-        DocumentId = rootAnabasisDocument.Id,
-        ParentId = rootAnabasisDocument.Id,
-        Position = documentPosition,
-
-      };
-
       var anabasisDocumentItem = quotes.Select(quote => new BobbyAnabasisDocument()
       {
-        Content = $"{quote.Text} ({quote.Author})",
-        Id = quote.Id,
-        DocumentId = rootAnabasisDocument.Id,
-        ParentId = mainTitleId,
-        MainTitleId = mainTitleId,
+        Content = quote.Text,
+        Id = $"{Guid.NewGuid()}",
         Author = quote.Author,
         Tag = quote.Tag,
-        Position = ++documentPosition
 
-      }).ToArray();
+      });
 
-      return new[] { mainTitle }.Concat(anabasisDocumentItem).ToArray();
+      return anabasisDocumentItem.ToArray();
 
     }
 

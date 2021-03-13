@@ -74,14 +74,9 @@ namespace Anabasis.Exporter.Illiad
 
     }
 
-    public IlliadAnabasisDocument Build()
+    public IlliadAnabasisDocument[] Build()
     {
       var illiadAnabasisDocuments = new List<IlliadAnabasisDocument>();
-
-      var anabasisDocument = new IlliadAnabasisDocument()
-      {
-        Id = DocumentId
-      };
 
       foreach (var htmlDocument in GetPages())
       {
@@ -90,9 +85,7 @@ namespace Anabasis.Exporter.Illiad
         illiadAnabasisDocuments.AddRange(buildDocuments);
       }
 
-      anabasisDocument.Children = illiadAnabasisDocuments.ToArray();
-
-      return anabasisDocument;
+      return illiadAnabasisDocuments.ToArray();
 
     }
 
@@ -143,7 +136,6 @@ namespace Anabasis.Exporter.Illiad
             Content = quote.Replace("« ", "").Replace(" »", ""),
             Source = source,
             Id = $"{Guid.NewGuid()}",
-            ParentId = DocumentId,
           });
 
         }

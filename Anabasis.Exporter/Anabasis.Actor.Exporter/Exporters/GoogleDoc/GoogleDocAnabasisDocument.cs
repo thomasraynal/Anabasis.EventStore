@@ -1,6 +1,5 @@
 using Anabasis.Common;
 using System;
-using System.Collections.Generic;
 using System.Text;
 
 namespace Anabasis.Exporter
@@ -21,6 +20,9 @@ namespace Anabasis.Exporter
     public string SecondaryTitleId { get; set; }
     public string DocumentId { get; set; }
     public int Position { get; set; }
+    public bool IsRootDocument => ParentId == null;
+    public string ParentId { get; set; }
+
     public GoogleDocAnabasisDocument[] Children { get; set; }
 
     public override bool Equals(object obj)

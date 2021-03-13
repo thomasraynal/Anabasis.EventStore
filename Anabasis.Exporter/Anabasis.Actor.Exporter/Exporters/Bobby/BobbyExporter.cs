@@ -5,6 +5,7 @@ using Anabasis.Common.Events;
 using Anabasis.EventStore;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -23,41 +24,35 @@ namespace Anabasis.Exporter.Bobby
 
       var documentBuilders = exportDocumentBuilder.DocumentBuilderBatch.Select(builder => new BobbyDocumentBuilder(builder.documentUrl, builder.documentHeading));
 
-      var aggregatedDocument = new BobbyAnabasisDocument()
-      {
-        Id = exportDocumentBuilder.DocumentId,
-        Title = exportDocumentBuilder.DocumentId,
-        Tag = exportDocumentBuilder.DocumentId,
-      };
+      var bobbyAnabasisDocuments = new List<BobbyAnabasisDocument>();
 
       foreach (var documentBuilder in documentBuilders.OrderBy(builder => builder.MainTitle))
       {
 
-        Emit(new TitleDefined(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, aggregatedDocument.Id, aggregatedDocument.Title)).Wait();
-
         try
         {
 
-          var items = documentBuilder.BuildItems(aggregatedDocument);
+          var items = documentBuilder.BuildItems();
 
-          aggregatedDocument.Children = aggregatedDocument.Children.Concat(items).ToArray();
+          bobbyAnabasisDocuments.AddRange(items);
 
         }
         catch (Exception)
         {
 
-          Emit(new DocumentCreationFailed(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, aggregatedDocument.Title)).Wait();
+          Emit(new DocumentCreationFailed(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.DocumentId)).Wait();
 
           break;
 
         }
+
       }
 
-      var path = Path.GetFullPath($"{aggregatedDocument.Id}");
+      var path = Path.GetFullPath($"{exportDocumentBuilder.DocumentId}");
 
-      File.WriteAllText(path, JsonConvert.SerializeObject(aggregatedDocument));
+      File.WriteAllText(path, JsonConvert.SerializeObject(bobbyAnabasisDocuments));
 
-      await Emit(new DocumentCreated(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId,  aggregatedDocument.Title, new Uri(path)));
+      await Emit(new DocumentCreated(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.DocumentId, new Uri(path)));
 
     }
   }

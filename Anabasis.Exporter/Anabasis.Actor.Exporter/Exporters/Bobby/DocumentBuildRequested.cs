@@ -1,7 +1,5 @@
 using Anabasis.Common.Events;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.Actor.Exporter.Exporters.Bobby
 {
@@ -9,7 +7,6 @@ namespace Anabasis.Actor.Exporter.Exporters.Bobby
   {
     public DocumentBuildRequested(Guid correlationId,
    string streamId,
-   string topicId,
    string documentId,
    (string documentUrl, string documentHeading)[] documentsBatch) : base(correlationId, streamId)
     {

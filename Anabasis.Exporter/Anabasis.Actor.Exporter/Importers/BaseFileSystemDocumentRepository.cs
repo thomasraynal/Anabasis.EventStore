@@ -1,5 +1,4 @@
 using Anabasis.Actor;
-using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.Common.Events.Commands;
 using Anabasis.EventStore;
@@ -11,22 +10,22 @@ using System.Threading.Tasks;
 namespace Anabasis.Importer
 {
 
-  public abstract class BaseFileSystemDocumentRepository : BaseDocumentRepository<FileSystemDocumentRepositoryConfiguration>
+  public abstract class BaseFileSystemDocumentRepository<TExportFile> : BaseDocumentRepository<FileSystemDocumentRepositoryConfiguration>
+     where TExportFile : IExportFile, new()
   {
 
-    private readonly Dictionary<Guid, Export> _exports;
+    private readonly Dictionary<Guid, Export<TExportFile>> _exports;
     private readonly Dictionary<Guid, ICommand> _exportCallers;
 
     private readonly object _syncLock = new object();
 
     public BaseFileSystemDocumentRepository(FileSystemDocumentRepositoryConfiguration configuration, IEventStoreRepository eventStoreRepository) : base(configuration, eventStoreRepository)
     {
-      _exports = new Dictionary<Guid, Export>();
+      _exports = new Dictionary<Guid, Export<TExportFile>>();
       _exportCallers = new Dictionary<Guid, ICommand>();
     }
 
     public abstract bool UseIndex { get; }
-
     public override Task Handle(RunExportCommand startExportRequest)
     {
       _exportCallers.Add(startExportRequest.ExportId, startExportRequest);
@@ -36,15 +35,14 @@ namespace Anabasis.Importer
 
     public override Task Handle(ExportStarted exportStarted)
     {
-      var export = _exports[exportStarted.CorrelationID] = new Export(
-        Path.Combine(Configuration.LocalDocumentFolder, exportStarted.StreamId, "export.json"),
-        Path.Combine(Configuration.LocalDocumentFolder, exportStarted.StreamId, "index.json"),
-        exportStarted.DocumentsIds);
 
-      export.Documents.StartWriting();
-      export.Indices.StartWriting();
+      var export = _exports[exportStarted.CorrelationID] = new Export<TExportFile>(exportStarted.DocumentsIds);
+
+      export.Documents.StartWriting(Path.Combine(Configuration.LocalDocumentFolder, exportStarted.StreamId, "export.json"));
+      export.Indices.StartWriting(Path.Combine(Configuration.LocalDocumentFolder, exportStarted.StreamId, "index.json"));
 
       return Task.CompletedTask;
+
     }
 
     private void TryCompleteExport(IAnabasisExporterEvent exportEnded, bool isIndex)
