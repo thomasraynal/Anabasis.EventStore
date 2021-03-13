@@ -14,7 +14,7 @@ namespace Anabasis.Exporter.Illiad
 
     public IlliadDocumentBuilder(string title, string id, string url)
     {
-      
+
       _policyBuilder = Policy.Handle<Exception>();
 
       Title = title;
@@ -70,7 +70,7 @@ namespace Anabasis.Exporter.Illiad
       }
 
 
-      return results.ToArray(); 
+      return results.ToArray();
 
     }
 
@@ -97,55 +97,46 @@ namespace Anabasis.Exporter.Illiad
       foreach (var node in htmlDocument.DocumentNode.SelectNodes("//div[@class='post-content-inner et_pb_blog_show_content']"))
       {
 
-        try
+        var quoteNodes = node.Elements("p").Where(node => !string.IsNullOrEmpty(node.InnerText)).ToArray();
+
+        var authorNodeIndex = quoteNodes.FirstOrDefault(node => null != node.Element("strong"));
+
+        var quote = HttpUtility.HtmlDecode(quoteNodes.TakeWhile(node => node != authorNodeIndex).Select(node => node.InnerText.Clean()).Aggregate((str1, str2) => $"{str1} {str2}"));
+
+        var authorNode = quoteNodes.ElementAt(1).Element("strong");
+
+        var author = authorNode == null ? null : HttpUtility.HtmlDecode(authorNodeIndex.Element("strong").InnerText.Clean());
+
+
+        string source = null;
+
+        if (null != authorNode)
         {
 
-          var quoteNodes = node.Elements("p").Where(node => !string.IsNullOrEmpty(node.InnerText)).ToArray();
+          source = HttpUtility.HtmlDecode(authorNodeIndex.InnerText.Clean());
 
-          var authorNodeIndex = quoteNodes.FirstOrDefault(node => null != node.Element("strong"));
-
-          var quote = HttpUtility.HtmlDecode(quoteNodes.TakeWhile(node => node != authorNodeIndex).Select(node => node.InnerText.Clean()).Aggregate((str1, str2) => $"{str1} {str2}"));
-
-          var authorNode = quoteNodes.ElementAt(1).Element("strong");
-
-          var author = authorNode == null ? null : HttpUtility.HtmlDecode(authorNodeIndex.Element("strong").InnerText.Clean());
-
-
-          string source = null;
-
-          if (null != authorNode)
+          if (null != author)
           {
-
-            source = HttpUtility.HtmlDecode(authorNodeIndex.InnerText.Clean());
-
-            if (null != author)
-            {
-              source = source.Replace(author, "").Trim();
-            }
-
+            source = source.Replace(author, "").Trim();
           }
-          else
-          {
-            source = quoteNodes.Last().InnerText.Clean();
-          }
-
-          illiadAnabasisDocuments.Add(new IlliadAnabasisDocument()
-          {
-            Author = author,
-            Tag = author,
-            Content = quote.Replace("« ", "").Replace(" »", ""),
-            Source = source,
-            Id = $"{Guid.NewGuid()}",
-          });
 
         }
-
-        catch (Exception)
+        else
         {
+          source = quoteNodes.Last().InnerText.Clean();
         }
+
+        illiadAnabasisDocuments.Add(new IlliadAnabasisDocument()
+        {
+          Author = author,
+          Tag = author,
+          Content = quote.Replace("« ", "").Replace(" »", ""),
+          Source = source,
+          Id = $"{Guid.NewGuid()}",
+        });
 
       }
-    
+
 
       return illiadAnabasisDocuments.ToArray(); ;
 

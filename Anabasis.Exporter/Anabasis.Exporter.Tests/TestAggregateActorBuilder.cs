@@ -174,7 +174,7 @@ namespace Anabasis.Tests
       await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateOne));
       await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateTwo));
 
-      await Task.Delay(100);
+      await Task.Delay(500);
 
       Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrents().Length);
       Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrents().Length);

@@ -66,20 +66,20 @@ namespace Anabasis.EventStore
       ClusterVNode clusterVNode,
       UserCredentials userCredentials,
       ConnectionSettings connectionSettings,
-      Action<VolatileCacheConfiguration<TKey, TAggregate>> cacheBuilder = null)
+      Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> cacheBuilder = null)
     where TAggregate : IAggregate<TKey>, new()
     {
 
       var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
       var connectionMonitor = new ConnectionStatusMonitor(connection);
 
-      var volatileCacheConfiguration = new VolatileCacheConfiguration<TKey, TAggregate>(userCredentials);
+      var volatileCacheConfiguration = new SubscribeFromEndCacheConfiguration<TKey, TAggregate>(userCredentials);
       cacheBuilder?.Invoke(volatileCacheConfiguration);
 
       services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
       services.AddSingleton(volatileCacheConfiguration);
       services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
-      services.AddTransient<VolatileEventStoreCache<TKey, TAggregate>>();
+      services.AddTransient<SubscribeFromEndEventStoreCache<TKey, TAggregate>>();
 
       return services;
 

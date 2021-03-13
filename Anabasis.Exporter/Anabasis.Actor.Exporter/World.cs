@@ -1,5 +1,4 @@
 using Anabasis.Actor.Actor;
-using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.Common.Infrastructure;
 using Anabasis.EventStore.Infrastructure;
@@ -9,10 +8,8 @@ using EventStore.ClientAPI.SystemData;
 using EventStore.Common.Options;
 using EventStore.Core;
 using Lamar;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Actor.Exporter
@@ -22,7 +19,7 @@ namespace Anabasis.Actor.Exporter
     public static async Task<IActor[]> Create<TRegistry, TDispatcher, TExporter, TIndexer, TImporter>(string streamId,
       UserCredentials userCredentials,
       ConnectionSettings connectionSettings,
-      int exporterCount= 1,
+      int exporterCount = 1,
       int indexerCount = 1)
       where TRegistry : ServiceRegistry, new()
       where TDispatcher : IActor
@@ -71,26 +68,17 @@ namespace Anabasis.Actor.Exporter
       actors.Add(importer);
       actors.Add(logger);
 
-      for (var i = 0; i < exporterCount; i++)
-      {
-        var exporter = ActorBuilder<TExporter, TRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
-                                                                      .WithPersistentSubscriptionQueue(streamId, $"{streamId}_{typeof(TExporter)}")
-                                                                      .Build();
-        actors.Add(exporter);
 
-      }
+      var exporters = Enumerable.Range(0, exporterCount).Select(_ => ActorBuilder<TExporter, TRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
+                                                                     .WithPersistentSubscriptionQueue(streamId, $"{streamId}_{typeof(TExporter)}")
+                                                                     .Build());
 
+      var indexers = Enumerable.Range(0, indexerCount).Select(_ => ActorBuilder<TIndexer, TRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
+                                                                      .WithPersistentSubscriptionQueue(streamId, $"{streamId}_{typeof(TIndexer)}")
+                                                                      .Build());
 
-      for (var i = 0; i < indexerCount; i++)
-      {
-
-        var indexer = ActorBuilder<TIndexer, TRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
-                                                                        .WithPersistentSubscriptionQueue(streamId, $"{streamId}_{typeof(TIndexer)}")
-                                                                        .Build();
-
-        actors.Add(indexer);
-
-      }
+      actors.AddRange(exporters.Cast<IActor>());
+      actors.AddRange(indexers.Cast<IActor>());
 
       return actors.ToArray();
 

@@ -28,23 +28,9 @@ namespace Anabasis.Exporter.Bobby
 
       foreach (var documentBuilder in documentBuilders.OrderBy(builder => builder.MainTitle))
       {
+        var items = documentBuilder.BuildItems();
 
-        try
-        {
-
-          var items = documentBuilder.BuildItems();
-
-          bobbyAnabasisDocuments.AddRange(items);
-
-        }
-        catch (Exception)
-        {
-
-          Emit(new DocumentCreationFailed(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.DocumentId)).Wait();
-
-          break;
-
-        }
+        bobbyAnabasisDocuments.AddRange(items);
 
       }
 

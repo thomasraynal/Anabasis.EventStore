@@ -4,7 +4,7 @@ using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
 using Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription;
 using Anabasis.EventStore.Infrastructure.Queue;
 using Anabasis.EventStore.Infrastructure.Queue.PersistentQueue;
-using Anabasis.EventStore.Infrastructure.Queue.VolatileQueue;
+using Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue;
 using Anabasis.EventStore.Infrastructure.Repository;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -126,18 +126,18 @@ namespace Anabasis.Actor.Actor
     }
 
     public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
-      Action<VolatileCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null,
+      Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null,
       IEventTypeProvider eventTypeProvider = null)
     {
 
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
 
-      var volatileCacheConfiguration = new VolatileCacheConfiguration<TKey, TAggregate>(_userCredentials);
+      var volatileCacheConfiguration = new SubscribeFromEndCacheConfiguration<TKey, TAggregate>(_userCredentials);
       var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 
       volatileCacheConfigurationBuilder?.Invoke(volatileCacheConfiguration);
 
-      _eventStoreCache = new VolatileEventStoreCache<TKey, TAggregate>(_connectionMonitor, volatileCacheConfiguration, eventProvider, _logger);
+      _eventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(_connectionMonitor, volatileCacheConfiguration, eventProvider, _logger);
 
       return this;
 
@@ -145,11 +145,11 @@ namespace Anabasis.Actor.Actor
 
     public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithSubscribeToAllQueue()
     {
-      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
+      var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
       var eventProvider = new ConsumerBasedEventProvider<TActor>();
 
-      var volatileEventStoreQueue = new VolatileEventStoreQueue(
+      var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         _connectionMonitor,
         volatileEventStoreQueueConfiguration,
         eventProvider,

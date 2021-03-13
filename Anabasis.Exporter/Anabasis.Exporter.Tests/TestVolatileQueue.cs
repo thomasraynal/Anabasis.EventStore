@@ -1,7 +1,7 @@
 using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
 using Anabasis.EventStore.Infrastructure.Queue;
-using Anabasis.EventStore.Infrastructure.Queue.VolatileQueue;
+using Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue;
 using Anabasis.Tests.Components;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -21,9 +21,9 @@ namespace Anabasis.Tests
     private UserCredentials _userCredentials;
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
-    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) _queueOne;
+    private (ConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreQueue volatileEventStoreQueue) _queueOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) _repositoryOne;
-    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) _queueTwo;
+    private (ConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreQueue volatileEventStoreQueue) _queueTwo;
 
     private Guid _correlationId = Guid.NewGuid();
 
@@ -69,15 +69,15 @@ namespace Anabasis.Tests
       return (connectionMonitor, eventStoreRepository);
     }
 
-    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreQueue volatileEventStoreQueue) CreateVolatileEventStoreQueue()
+    private (ConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreQueue volatileEventStoreQueue) CreateVolatileEventStoreQueue()
     {
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
       var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
 
-      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
+      var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
-      var volatileEventStoreQueue = new VolatileEventStoreQueue(
+      var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         connectionMonitor,
         volatileEventStoreQueueConfiguration,
         new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }),

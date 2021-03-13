@@ -2,7 +2,7 @@ using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
 using Anabasis.EventStore.Infrastructure.Queue;
 using Anabasis.EventStore.Infrastructure.Queue.PersistentQueue;
-using Anabasis.EventStore.Infrastructure.Queue.VolatileQueue;
+using Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -86,11 +86,11 @@ namespace Anabasis.Actor.Actor
 
     public ActorBuilder<TActor, TRegistry> WithSubscribeToAllQueue(IEventTypeProvider eventTypeProvider = null)
     {
-      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
+      var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
       var eventProvider = eventTypeProvider?? new ConsumerBasedEventProvider<TActor>();
 
-      var volatileEventStoreQueue = new VolatileEventStoreQueue(
+      var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         _connectionMonitor,
         volatileEventStoreQueueConfiguration,
         eventProvider,
@@ -103,11 +103,11 @@ namespace Anabasis.Actor.Actor
 
     public ActorBuilder<TActor, TRegistry> WithSubscribeToOneStreamQueue(string streamId, IEventTypeProvider eventTypeProvider = null)
     {
-      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
+      var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
       var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 
-      var volatileEventStoreQueue = new VolatileEventStoreQueue(
+      var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         _connectionMonitor,
         volatileEventStoreQueueConfiguration,
         eventProvider,

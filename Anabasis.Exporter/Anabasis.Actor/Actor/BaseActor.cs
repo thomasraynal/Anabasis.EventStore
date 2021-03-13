@@ -41,6 +41,11 @@ namespace Anabasis.Actor
       _cleanUp.Add(disposable);
     }
 
+    public virtual Task OnError(IEvent source, Exception exception)
+    {
+      return Task.CompletedTask;
+    }
+
     public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
     {
       await _eventStoreRepository.Emit(@event, extraHeaders);
@@ -72,28 +77,37 @@ namespace Anabasis.Actor
 
     private async Task OnEventReceived(IEvent @event)
     {
-      var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
-
-      if (@event is ICommandResponse)
+      try
       {
 
-        var commandResponse = @event as ICommandResponse;
+        var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
 
-        if (_pendingCommands.ContainsKey(commandResponse.CommandId))
+        if (@event is ICommandResponse)
         {
 
-          var task = _pendingCommands[commandResponse.CommandId];
+          var commandResponse = @event as ICommandResponse;
 
-          task.SetResult(commandResponse);
+          if (_pendingCommands.ContainsKey(commandResponse.CommandId))
+          {
 
-          _pendingCommands.Remove(commandResponse.EventID, out _);
+            var task = _pendingCommands[commandResponse.CommandId];
+
+            task.SetResult(commandResponse);
+
+            _pendingCommands.Remove(commandResponse.EventID, out _);
+          }
+
+        }
+
+        if (null != candidateHandler)
+        {
+          await (Task)candidateHandler.Invoke(this, new object[] { @event });
         }
 
       }
-
-      if (null != candidateHandler)
+      catch (Exception exception)
       {
-        await (Task)candidateHandler.Invoke(this, new object[] { @event });
+        await OnError(@event, exception);
       }
     }
 

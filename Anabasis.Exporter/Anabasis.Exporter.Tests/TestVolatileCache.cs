@@ -1,6 +1,5 @@
 using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
 using Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription;
 using Anabasis.EventStore.Infrastructure.Repository;
 using DynamicData;
@@ -12,8 +11,6 @@ using EventStore.Common.Options;
 using EventStore.Core;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests
@@ -26,9 +23,9 @@ namespace Anabasis.Tests
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
 
-    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheOne;
+    private (ConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<string> eventStoreRepository) _repositoryOne;
-    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheTwo;
+    private (ConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheTwo;
 
     private readonly string _streamIdOne = "streamIdOne";
     private readonly string _streamIdTwo = "streamIdTwo";
@@ -75,19 +72,19 @@ namespace Anabasis.Tests
       return (connectionMonitor, eventStoreRepository);
     }
 
-    private (ConnectionStatusMonitor connectionStatusMonitor, VolatileEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) CreateVolatileEventStoreCache()
+    private (ConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) CreateVolatileEventStoreCache()
     {
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
       var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
 
-      var cacheConfiguration = new VolatileCacheConfiguration<string, SomeDataAggregate<string>>(_userCredentials)
+      var cacheConfiguration = new SubscribeFromEndCacheConfiguration<string, SomeDataAggregate<string>>(_userCredentials)
       {
         KeepAppliedEventsOnAggregate = true,
         IsStaleTimeSpan = TimeSpan.FromSeconds(1)
       };
 
-      var catchUpCache = new VolatileEventStoreCache<string, SomeDataAggregate<string>>(
+      var catchUpCache = new SubscribeFromEndEventStoreCache<string, SomeDataAggregate<string>>(
         connectionMonitor,
         cacheConfiguration,
         new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }),

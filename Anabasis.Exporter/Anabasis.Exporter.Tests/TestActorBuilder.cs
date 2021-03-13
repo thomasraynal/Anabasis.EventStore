@@ -4,7 +4,7 @@ using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
 using Anabasis.EventStore.Infrastructure.Queue;
 using Anabasis.EventStore.Infrastructure.Queue.PersistentQueue;
-using Anabasis.EventStore.Infrastructure.Queue.VolatileQueue;
+using Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -182,9 +182,9 @@ namespace Anabasis.Tests
         eventProvider,
         _debugLogger);
 
-      var volatileEventStoreQueueConfiguration = new VolatileEventStoreQueueConfiguration(_userCredentials);
+      var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
-      var volatileEventStoreQueue = new VolatileEventStoreQueue(
+      var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         connectionMonitor,
         volatileEventStoreQueueConfiguration,
         eventProvider,

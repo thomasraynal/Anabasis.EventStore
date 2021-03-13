@@ -4,17 +4,15 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Infrastructure.Queue.VolatileQueue
+namespace Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue
 {
-  public class VolatileSubscribeToOneStreamEventStoreQueueConfiguration : IEventStoreQueueConfiguration
+  public class SubscribeFromEndEventStoreQueueConfiguration : IEventStoreQueueConfiguration
   {
-    public VolatileSubscribeToOneStreamEventStoreQueueConfiguration(string streamId, UserCredentials userCredentials)
+    public SubscribeFromEndEventStoreQueueConfiguration (UserCredentials userCredentials)
     {
       UserCredentials = userCredentials;
-      StreamId = streamId;
     }
 
-    public string StreamId { get; set; }
     public bool IgnoreUnknownEvent { get; set; } = false;
     public ISerializer Serializer { get; set; } = new DefaultSerializer();
     public UserCredentials UserCredentials { get; set; }

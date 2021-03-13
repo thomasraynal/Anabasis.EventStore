@@ -6,7 +6,6 @@ namespace Anabasis.EventStore.Infrastructure.Queue
   {
     UserCredentials UserCredentials { get; }
     ISerializer Serializer { get; }
-
     bool IgnoreUnknownEvent { get; }
   }
 }
