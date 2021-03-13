@@ -4,7 +4,7 @@ namespace Anabasis.Common.Events
 {
   public class DocumentCreationFailed : BaseAnabasisExporterEvent
   {
-    public DocumentCreationFailed(Guid correlationId, string streamId, string topicId, string documentId) : base(correlationId, streamId, topicId)
+    public DocumentCreationFailed(Guid correlationId, string streamId,  string documentId) : base(correlationId, streamId)
     {
       DocumentId = documentId;
     }

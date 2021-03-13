@@ -7,7 +7,7 @@ namespace Anabasis.Common.Events
 {
   public class IndexImported : BaseAnabasisExporterEvent
   {
-    public IndexImported(string documentId, Guid correlationId, string streamId, string topicId) : base(correlationId, streamId, topicId)
+    public IndexImported(string documentId, Guid correlationId, string streamId) : base(correlationId, streamId)
     {
       DocumentId = documentId;
     }

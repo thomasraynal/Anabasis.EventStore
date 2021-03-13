@@ -47,6 +47,21 @@ namespace Anabasis.Common
 
     }
 
+    public static string Md5(this string str)
+    {
+      var crypt = new SHA256Managed();
+      var hash = string.Empty;
+      var crypto = crypt.ComputeHash(Encoding.ASCII.GetBytes(str));
+
+      foreach (var b in crypto)
+      {
+        hash += b.ToString("x2");
+      }
+
+      return hash;
+
+    }
+
     public static string GetReadableId(this string title, bool throwIfDuplicate = false)
     {
       byte[] temp;

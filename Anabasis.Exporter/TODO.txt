@@ -5,5 +5,7 @@ review cache/queue names => use actual eventstore naming
 tag and author field on document
 error handling on all exporters
 handle tags on iliad
-create properties on document and document items
 create a dependency architecture of doc and doc items
+handle page on illiad
+allow flatten + enforce the hash on each document
+

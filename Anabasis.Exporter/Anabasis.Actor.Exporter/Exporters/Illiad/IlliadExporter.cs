@@ -22,13 +22,13 @@ namespace Anabasis.Exporter.Illiad
         exportDocumentRequest.DocumentId,
         exportDocumentRequest.DocumentUrl);
 
-      var anabasisDocument = documentBuilder.BuildDocument();
+      var anabasisDocument = documentBuilder.Build();
 
       var path = Path.GetFullPath($"{anabasisDocument.Id}");
 
       File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument));
 
-      await Emit(new DocumentCreated(exportDocumentRequest.CorrelationID, exportDocumentRequest.StreamId, exportDocumentRequest.TopicId, anabasisDocument.Id, new Uri(path)));
+      await Emit(new DocumentCreated(exportDocumentRequest.CorrelationID, exportDocumentRequest.StreamId, anabasisDocument.Id, new Uri(path)));
 
 
     }

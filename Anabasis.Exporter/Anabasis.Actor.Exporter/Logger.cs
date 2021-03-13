@@ -23,7 +23,7 @@ namespace Anabasis.Common.Infrastructure
 
       if (null != exportedEvent)
       {
-        Console.WriteLine($"{@event.CorrelationID} - {exportedEvent.StreamId} - {exportedEvent.TopicId} - {exportedEvent.Log()}");
+        Console.WriteLine($"{@event.CorrelationID} - {exportedEvent.StreamId} - {exportedEvent.Log()}");
       }
 
       return Task.CompletedTask;

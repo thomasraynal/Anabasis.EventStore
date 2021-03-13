@@ -8,6 +8,5 @@ namespace Anabasis.Common.Events
   public interface IAnabasisExporterEvent: IEvent
   {
     Guid ExportId { get; }
-    string TopicId { get; set; }
   }
 }

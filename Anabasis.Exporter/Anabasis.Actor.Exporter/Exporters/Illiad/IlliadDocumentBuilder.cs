@@ -4,7 +4,6 @@ using Polly;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Web;
 
 namespace Anabasis.Exporter.Illiad
@@ -29,14 +28,16 @@ namespace Anabasis.Exporter.Illiad
     public string Url { get; }
     public string Text { get; private set; }
 
-    public AnabasisDocument BuildDocument()
+    public HtmlDocument[] GetPages()
     {
+
+      var results = new List<HtmlDocument>();
 
       var parser = new HtmlWeb();
 
       var retryPolicy = _policyBuilder.WaitAndRetry(5, (_) => TimeSpan.FromSeconds(1));
 
-      var htmlDocument = retryPolicy.Execute(() =>
+      var htmlDocumentRoot = retryPolicy.Execute(() =>
       {
         var document = parser.Load(Url);
 
@@ -45,15 +46,60 @@ namespace Anabasis.Exporter.Illiad
         return document;
       });
 
+      results.Add(htmlDocumentRoot);
 
-      var illiadQuotes = new List<IlliadQuote>();
-      var documentPosition = 0;
+      var htmlDocumentNextPageNodes = htmlDocumentRoot.DocumentNode.SelectNodes("//div[@class='wp-pagenavi']/a");
 
-      var anabasisDocument = new AnabasisDocument()
+      if (null != htmlDocumentNextPageNodes)
       {
-        Id = DocumentId,
-        Title = Title
+        var htmlDocumentNextPages = htmlDocumentNextPageNodes.Select(node => node.GetAttributeValue("href", "href")).Distinct().ToArray();
+
+        foreach (var nextPage in htmlDocumentNextPages)
+        {
+          var htmlDocument = retryPolicy.Execute(() =>
+          {
+            var document = parser.Load(new Uri(nextPage));
+
+            if (!document.DocumentNode.InnerHtml.Contains("ILIADE")) throw new Exception("failure");
+
+            return document;
+          });
+
+          results.Add(htmlDocument);
+        }
+      }
+
+
+      return results.ToArray(); 
+
+    }
+
+    public IlliadAnabasisDocument Build()
+    {
+      var illiadAnabasisDocuments = new List<IlliadAnabasisDocument>();
+
+      var anabasisDocument = new IlliadAnabasisDocument()
+      {
+        Id = DocumentId
       };
+
+      foreach (var htmlDocument in GetPages())
+      {
+        var buildDocuments = BuildDocument(htmlDocument);
+
+        illiadAnabasisDocuments.AddRange(buildDocuments);
+      }
+
+      anabasisDocument.Children = illiadAnabasisDocuments.ToArray();
+
+      return anabasisDocument;
+
+    }
+
+    private IlliadAnabasisDocument[] BuildDocument(HtmlDocument htmlDocument)
+    {
+
+      var illiadAnabasisDocuments = new List<IlliadAnabasisDocument>();
 
       foreach (var node in htmlDocument.DocumentNode.SelectNodes("//div[@class='post-content-inner et_pb_blog_show_content']"))
       {
@@ -71,8 +117,6 @@ namespace Anabasis.Exporter.Illiad
 
           var author = authorNode == null ? null : HttpUtility.HtmlDecode(authorNodeIndex.Element("strong").InnerText.Clean());
 
-          anabasisDocument.Author = author;
-          anabasisDocument.Tag = author;
 
           string source = null;
 
@@ -92,16 +136,14 @@ namespace Anabasis.Exporter.Illiad
             source = quoteNodes.Last().InnerText.Clean();
           }
 
-          illiadQuotes.Add(new IlliadQuote()
+          illiadAnabasisDocuments.Add(new IlliadAnabasisDocument()
           {
             Author = author,
+            Tag = author,
             Content = quote.Replace("« ", "").Replace(" »", ""),
             Source = source,
             Id = $"{Guid.NewGuid()}",
-            DocumentId = anabasisDocument.Id,
             ParentId = DocumentId,
-            Position = ++documentPosition
-
           });
 
         }
@@ -111,11 +153,9 @@ namespace Anabasis.Exporter.Illiad
         }
 
       }
-
     
-      anabasisDocument.DocumentItems = illiadQuotes.ToArray();
 
-      return anabasisDocument;
+      return illiadAnabasisDocuments.ToArray(); ;
 
     }
 

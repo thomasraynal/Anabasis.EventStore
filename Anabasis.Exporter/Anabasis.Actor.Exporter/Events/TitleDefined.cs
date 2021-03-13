@@ -7,7 +7,7 @@ namespace Anabasis.Common.Events
 {
   public class TitleDefined : BaseAnabasisExporterEvent
   {
-    public TitleDefined(Guid correlationId, string streamId, string topicId, string documentId, string titleId) : base(correlationId, streamId, topicId)
+    public TitleDefined(Guid correlationId, string streamId,  string documentId, string titleId) : base(correlationId, streamId)
     {
       DocumentId = documentId;
       Title = titleId;

@@ -7,9 +7,8 @@ namespace Anabasis.Actor.Exporter.Events
   {
     public ErrorOccured(Guid correlationId,
       string streamId,
-      string topicId,
       string caller,
-      string message) : base(correlationId, streamId, topicId)
+      string message) : base(correlationId, streamId)
     {
       Caller = caller;
       Message = message;

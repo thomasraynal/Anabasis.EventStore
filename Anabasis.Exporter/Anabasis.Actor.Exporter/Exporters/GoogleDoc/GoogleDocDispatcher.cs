@@ -31,8 +31,7 @@ namespace Anabasis.Exporter.GoogleDoc
         //only have one folder - but we should handle many and keep track of the original gdoc id
        await Emit(new ExportStarted(startExport.CorrelationID,
           childReferences,
-          startExport.StreamId,
-          startExport.TopicId));
+          startExport.StreamId));
 
         foreach (var child in childList.ChildReferences)
         {

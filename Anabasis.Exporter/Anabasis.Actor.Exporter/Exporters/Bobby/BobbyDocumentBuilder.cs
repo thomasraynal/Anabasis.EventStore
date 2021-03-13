@@ -58,7 +58,7 @@ namespace Anabasis.Exporter.Bobby
 
     }
 
-    public AnabasisDocumentItem[] BuildItems(AnabasisDocument anabasisDocument)
+    public BobbyAnabasisDocument[] BuildItems(BobbyAnabasisDocument rootAnabasisDocument)
     {
 
       var parser = new HtmlWeb();
@@ -103,23 +103,23 @@ namespace Anabasis.Exporter.Bobby
 
       var documentPosition = 0;
 
-      var mainTitle = new AnabasisDocumentItem()
+      var mainTitle = new BobbyAnabasisDocument()
       {
         Id = mainTitleId,
         Tag = mainTitleId,
         IsMainTitle = true,
         Content = MainTitle,
-        DocumentId = anabasisDocument.Id,
-        ParentId = anabasisDocument.Id,
+        DocumentId = rootAnabasisDocument.Id,
+        ParentId = rootAnabasisDocument.Id,
         Position = documentPosition,
 
       };
 
-      var anabasisDocumentItem = quotes.Select(quote => new AnabasisDocumentItem()
+      var anabasisDocumentItem = quotes.Select(quote => new BobbyAnabasisDocument()
       {
         Content = $"{quote.Text} ({quote.Author})",
         Id = quote.Id,
-        DocumentId = anabasisDocument.Id,
+        DocumentId = rootAnabasisDocument.Id,
         ParentId = mainTitleId,
         MainTitleId = mainTitleId,
         Author = quote.Author,

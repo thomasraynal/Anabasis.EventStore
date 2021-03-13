@@ -4,7 +4,7 @@ namespace Anabasis.Common.Events
 {
   public class DocumentCreated : BaseAnabasisExporterEvent
   {
-    public DocumentCreated(Guid correlationId, string streamId, string topicId, string documentId, Uri documentUrl) : base(correlationId, streamId, topicId)
+    public DocumentCreated(Guid correlationId, string streamId, string documentId, Uri documentUrl) : base(correlationId, streamId)
     {
       DocumentUri = documentUrl;
       DocumentId = documentId;

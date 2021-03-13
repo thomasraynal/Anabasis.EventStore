@@ -28,14 +28,15 @@ namespace Anabasis.App
        var userCredentials = new UserCredentials("admin", "changeit");
        var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
 
-     // var actors = await World.Create<FileSystemRegistry, BobbyDispatcher, BobbyExporter, Indexer, FileSystemDocumentRepository>(StreamIds.Bobby, userCredentials, connectionSettings, 5, 5);
-      //   var actors = await World.Create<FileSystemRegistry, IlliadDispatcher, IlliadExporter, Indexer, FileSystemDocumentRepository>(StreamIds.Illiad, userCredentials, connectionSettings, 5,5);
+       //var actors = await World.Create<FileSystemRegistry, BobbyDispatcher, BobbyExporter, DummyIndexer, BobbyFileSystemDocumentRepository>(StreamIds.Bobby, userCredentials, connectionSettings, 5, 5);
 
-     var actors = await World.Create<FileSystemRegistry, GoogleDocDispatcher, GoogleDocExporter, Indexer, FileSystemDocumentRepository>(StreamIds.GoogleDoc, userCredentials, connectionSettings, 5, 5);
+       var actors = await World.Create<FileSystemRegistry, IlliadDispatcher, IlliadExporter, DummyIndexer, IlliadFileSystemDocumentRepository>(StreamIds.Illiad, userCredentials, connectionSettings, 5,5);
+
+      // var actors = await World.Create<FileSystemRegistry, GoogleDocDispatcher, GoogleDocExporter, GoogleDocIndexer, GoogleDocFileSystemDocumentRepository>(StreamIds.GoogleDoc, userCredentials, connectionSettings, 5, 5);
 
        var mediator = actors.First();
 
-       var result = await mediator.Send<RunExportCommandResponse>(new RunExportCommand(Guid.NewGuid(), StreamIds.GoogleDoc));
+       var result = await mediator.Send<RunExportCommandResponse>(new RunExportCommand(Guid.NewGuid(), StreamIds.Illiad));
 
 
      });

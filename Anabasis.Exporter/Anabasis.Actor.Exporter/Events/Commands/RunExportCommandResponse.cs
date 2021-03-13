@@ -7,7 +7,7 @@ namespace Anabasis.Common.Events.Commands
 {
   public class RunExportCommandResponse : BaseAnabasisExporterCommandResponse
   {
-    public RunExportCommandResponse(Guid commandId, Guid correlationId, string streamId, string topicId) : base(commandId, correlationId, streamId, topicId)
+    public RunExportCommandResponse(Guid commandId, Guid correlationId, string streamId) : base(commandId, correlationId, streamId)
     {
     }
     public override string Log()

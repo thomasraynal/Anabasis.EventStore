@@ -22,7 +22,7 @@ namespace Anabasis.Exporter
       _googleDocClient = new GoogleDocClient(exporterConfiguration);
     }
 
-    private async Task<AnabasisDocument> GetAnabasisDocument(string childReferenceId)
+    private async Task<GoogleDocAnabasisDocument> GetAnabasisDocument(string childReferenceId)
     {
 
       var documentLite = await _googleDocClient.Get<DocumentLite>($"https://docs.googleapis.com/v1/documents/{childReferenceId}");
@@ -30,6 +30,7 @@ namespace Anabasis.Exporter
       var rootDocumentid = documentLite.Title.GetReadableId();
 
       var documentItems = documentLite.Paragraphs.Select(paragraph => paragraph.ToDocumentItem(rootDocumentid))
+                                           .Cast<GoogleDocAnabasisDocument>()
                                            .Where(documentItem => !string.IsNullOrEmpty(documentItem.Content))
                                            .ToArray();
 
@@ -66,13 +67,13 @@ namespace Anabasis.Exporter
 
       }
 
-      return new AnabasisDocument()
+      return new GoogleDocAnabasisDocument()
       {
         Id = rootDocumentid,
         Title = documentLite.Title,
         Author = documentLite.Title,
         Tag = documentLite.Title,
-        DocumentItems = documentItems
+        Children = documentItems
       };
 
     }
@@ -86,7 +87,7 @@ namespace Anabasis.Exporter
 
       File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument));
 
-      await Emit(new DocumentCreated(exportDocument.CorrelationID, exportDocument.StreamId, exportDocument.TopicId, anabasisDocument.Id, new Uri(path)));
+      await Emit(new DocumentCreated(exportDocument.CorrelationID, exportDocument.StreamId, anabasisDocument.Id, new Uri(path)));
 
     }
   }

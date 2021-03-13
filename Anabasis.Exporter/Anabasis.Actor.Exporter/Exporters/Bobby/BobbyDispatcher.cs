@@ -1,14 +1,10 @@
-using Anabasis.Actor;
-using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.EventStore;
 using Anabasis.Exporter.Bobby;
 using HtmlAgilityPack;
-using Newtonsoft.Json;
 using Polly;
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -77,12 +73,12 @@ namespace Anabasis.Actor.Exporter.Exporters.Bobby
 
       var expectedDocuments = documentBuilderGroups.Select(group => group.Key).ToArray();
 
-      await Emit(new ExportStarted(startExport.CorrelationID, expectedDocuments, startExport.StreamId, startExport.TopicId));
+      await Emit(new ExportStarted(startExport.CorrelationID, expectedDocuments, startExport.StreamId));
 
       foreach (var documentBuilderGroup in documentBuilderGroups)
       {
 
-        await Emit(new ExportDocumentBuilder(
+        await Emit(new DocumentBuildRequested(
           startExport.CorrelationID,
           startExport.StreamId,
           startExport.TopicId,

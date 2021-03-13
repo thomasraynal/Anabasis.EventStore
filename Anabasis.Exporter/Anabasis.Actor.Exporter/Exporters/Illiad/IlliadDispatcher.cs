@@ -1,4 +1,5 @@
 using Anabasis.Actor;
+using Anabasis.Actor.Exporter;
 using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.EventStore;
@@ -34,22 +35,23 @@ namespace Anabasis.Exporter.Illiad
 
                                   }).ToArray();
 
-      await Emit(new ExportStarted(startExport.CorrelationID, nodes.Select(node => node.id).ToArray(), startExport.StreamId, startExport.TopicId));
+      await Emit(new ExportStarted(startExport.CorrelationID, nodes.Select(node => node.id).ToArray(), startExport.StreamId));
 
-      foreach (var (documentTitle, documentId, documentUrl) in nodes)
-      {
-
-        await Emit(new ExportDocumentCommand(
+        foreach (var (title, id, url) in nodes)
+        {
+          await Emit(new ExportDocumentCommand(
           startExport.CorrelationID,
           startExport.StreamId,
           startExport.TopicId,
-          documentId,
-          documentTitle,
-          documentUrl));
+          id,
+          title,
+          url));
+
+        }
+
 
       }
-
-    }
+    
 
   }
 
