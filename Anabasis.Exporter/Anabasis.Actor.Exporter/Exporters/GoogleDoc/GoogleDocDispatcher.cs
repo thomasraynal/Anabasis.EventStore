@@ -39,8 +39,6 @@ namespace Anabasis.Exporter.GoogleDoc
           await Emit(new ExportDocumentCommand(
             startExport.CorrelationID,
             startExport.StreamId,
-            startExport.TopicId,
-            child.Id,
             child.Id));
 
         }

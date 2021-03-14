@@ -18,7 +18,7 @@ namespace Anabasis.Exporter.Illiad
     public async Task Handle(ExportDocumentCommand exportDocumentRequest)
     {
 
-      var documentBuilder = new IlliadDocumentBuilder(exportDocumentRequest.DocumentTitle,
+      var documentBuilder = new IlliadDocumentBuilder(
         exportDocumentRequest.DocumentId,
         exportDocumentRequest.DocumentUrl);
 

@@ -32,7 +32,11 @@ namespace Anabasis.App
 
        //var actors = await World.Create<FileSystemRegistry, IlliadDispatcher, IlliadExporter, DummyIndexer, IlliadFileSystemDocumentRepository>(StreamIds.Illiad, userCredentials, connectionSettings, 5,5);
 
-       var actors = await World.Create<FileSystemRegistry, GoogleDocDispatcher, GoogleDocExporter, GoogleDocIndexer, GoogleDocFileSystemDocumentRepository>(StreamIds.GoogleDoc, userCredentials, connectionSettings, 5, 5);
+       var actors = await World.Create<FileSystemRegistry,
+         GoogleDocDispatcher,
+         GoogleDocExporter,
+         GoogleDocIndexer,
+         GoogleDocFileSystemDocumentRepository>(StreamIds.GoogleDoc, userCredentials, connectionSettings, 5, 5);
 
        var mediator = actors.First();
 

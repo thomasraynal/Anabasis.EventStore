@@ -7,7 +7,7 @@
 
   <ItemGroup>
     <PackageReference Include="DynamicData" Version="7.1.1" />
-    <PackageReference Include="EventStore.Client" Version="20.10.0" />
+    <PackageReference Include="EventStore.Client" Version="21.2.0" />
     <PackageReference Include="EventStore.Client.Embedded" Version="20.6.0" />
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.12" />
     <PackageReference Include="morelinq" Version="3.3.2" />
@@ -16,6 +16,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
+    <PackageReference Include="Docker.DotNet" Version="3.125.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -39,8 +40,15 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="Integration\Assets\Model\" />
     <Folder Include="POC\Ex1\" />
     <Folder Include="POC\Ex2\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Integration\docker-compose.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 

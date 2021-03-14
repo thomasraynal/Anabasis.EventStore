@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Infrastructure
       _eventTypeCache = new Dictionary<string, Type>();
 
 
-      var eventTypes = typeof(TConsumer).GetMethods().Where(method => method.GetParameters().Length == 1)
+      var eventTypes = typeof(TConsumer).GetMethods().Where(method => method.Name == "Handle" && method.GetParameters().Length == 1)
         .Select(method =>
         {
           var parameterType = method.GetParameters().First().ParameterType;

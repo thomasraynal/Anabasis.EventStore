@@ -126,7 +126,7 @@ namespace Anabasis.EventStore
       services.AddSingleton<IEventStoreAggregateRepository<TKey>, EventStoreAggregateRepository<TKey>>();
       services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey>>();
 
-      var configuration = new EventStoreRepositoryConfiguration(userCredentials, connectionSettings);
+      var configuration = new EventStoreRepositoryConfiguration(userCredentials);
 
       repositoryBuilder?.Invoke(configuration);
 

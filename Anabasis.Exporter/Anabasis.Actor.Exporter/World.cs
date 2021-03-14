@@ -27,6 +27,8 @@ namespace Anabasis.Actor.Exporter
       where TIndexer : IActor
       where TImporter : IActor
     {
+
+
       var clusterVNode = EmbeddedVNodeBuilder
         .AsSingleNode()
         .RunInMemory()
@@ -42,21 +44,17 @@ namespace Anabasis.Actor.Exporter
 
       await CreateSubscriptionGroups(streamId, $"{typeof(TIndexer)}", userCredentials, clusterVNode);
 
-
       var actors = new List<IActor>();
-
 
       var dispatcher = ActorBuilder<TDispatcher, TRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
                                                                             .WithSubscribeToOneStreamQueue(streamId)
                                                                             .Build();
 
-
       var importer = ActorBuilder<TImporter, TRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
                                                                            .WithSubscribeToOneStreamQueue(streamId)
                                                                            .Build();
 
-      var allEvents = typeof(RunExportCommand).Assembly.GetTypes()
-                                    .Where(type => type.GetInterfaces().Any(@interface => @interface == typeof(IEvent))).ToArray();
+      var allEvents = typeof(RunExportCommand).Assembly.GetTypes().Where(type => type.GetInterfaces().Any(@interface => @interface == typeof(IEvent))).ToArray();
 
       var allEventsProvider = new DefaultEventTypeProvider(() => allEvents);
 
@@ -67,7 +65,6 @@ namespace Anabasis.Actor.Exporter
       actors.Add(dispatcher);
       actors.Add(importer);
       actors.Add(logger);
-
 
       var exporters = Enumerable.Range(0, exporterCount).Select(_ => ActorBuilder<TExporter, TRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
                                                                      .WithPersistentSubscriptionQueue(streamId, $"{streamId}_{typeof(TExporter)}")

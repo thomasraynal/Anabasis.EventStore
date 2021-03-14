@@ -65,6 +65,7 @@ namespace Anabasis.EventStore
       }
 
     }
+
     public IEntityEvent<TKey>[] AppliedEvents
     {
       get

@@ -42,9 +42,7 @@ namespace Anabasis.Exporter.Illiad
           await Emit(new ExportDocumentCommand(
           startExport.CorrelationID,
           startExport.StreamId,
-          startExport.TopicId,
           id,
-          title,
           url));
 
         }

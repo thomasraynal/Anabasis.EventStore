@@ -61,11 +61,14 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
             case SubscriptionDropReason.ConnectionClosed:
               break;
 
+            case SubscriptionDropReason.CatchUpError:
+              //log something
+              break;
+
             case SubscriptionDropReason.NotAuthenticated:
             case SubscriptionDropReason.AccessDenied:
             case SubscriptionDropReason.SubscribingError:
             case SubscriptionDropReason.ServerError:
-            case SubscriptionDropReason.CatchUpError:
             case SubscriptionDropReason.ProcessingQueueOverflow:
             case SubscriptionDropReason.EventHandlerException:
             case SubscriptionDropReason.MaxSubscribersReached:

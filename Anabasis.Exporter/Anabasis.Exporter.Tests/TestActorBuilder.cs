@@ -165,7 +165,7 @@ namespace Anabasis.Tests
 
       var eventProvider = new ConsumerBasedEventProvider<TestActorAutoBuildOne>();
 
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials, _connectionSettings);
+      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials);
 
       var eventStoreRepository = new EventStoreRepository(
         eventStoreRepositoryConfiguration,

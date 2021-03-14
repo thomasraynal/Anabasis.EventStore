@@ -12,19 +12,17 @@ namespace Anabasis.Exporter.Illiad
   {
     private readonly PolicyBuilder _policyBuilder;
 
-    public IlliadDocumentBuilder(string title, string id, string url)
+    public IlliadDocumentBuilder( string id, string url)
     {
 
       _policyBuilder = Policy.Handle<Exception>();
 
-      Title = title;
       DocumentId = id;
       Url = url;
 
     }
 
     public string DocumentId { get; }
-    public string Title { get; }
     public string Url { get; }
     public string Text { get; private set; }
 

@@ -59,6 +59,22 @@ namespace Anabasis.Actor.Actor
 
     }
 
+    public static AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(
+    string eventStoreUrl,
+    UserCredentials userCredentials,
+    ConnectionSettings connectionSettings,
+    Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
+    IEventTypeProvider eventTypeProvider = null,
+    Microsoft.Extensions.Logging.ILogger logger = null)
+    {
+
+      var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
+
+      return CreateInternal(connection, userCredentials, eventStoreRepositoryConfigurationBuilder, eventTypeProvider, logger);
+
+    }
+
+
     public static AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
       UserCredentials userCredentials,
       ConnectionSettings connectionSettings,
@@ -67,23 +83,36 @@ namespace Anabasis.Actor.Actor
       Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
-      var builder = new AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry>();
-
       var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
-      builder._logger = logger;
-      builder._userCredentials = userCredentials;
-      builder._connectionMonitor = new ConnectionStatusMonitor(connection, logger);
+      return CreateInternal(connection, userCredentials, eventStoreRepositoryConfigurationBuilder, eventTypeProvider, logger);
+
+    }
+
+    private static AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> CreateInternal(
+      IEventStoreConnection eventStoreConnection,
+      UserCredentials userCredentials,
+      Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
+      IEventTypeProvider eventTypeProvider = null,
+      Microsoft.Extensions.Logging.ILogger logger = null)
+    {
+
+      var builder = new AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry>
+      {
+        _logger = logger,
+        _userCredentials = userCredentials,
+        _connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger)
+      };
 
       var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials, connectionSettings);
+      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
 
       eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
 
       builder._eventStoreRepository = new EventStoreAggregateRepository<TKey>(
         eventStoreRepositoryConfiguration,
-        connection,
+        eventStoreConnection,
         builder._connectionMonitor,
         eventProvider,
         logger);

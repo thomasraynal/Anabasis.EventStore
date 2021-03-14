@@ -69,7 +69,7 @@ namespace Anabasis.Actor.Actor
 
       var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials, connectionSettings);
+      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
 
       getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
 

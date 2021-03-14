@@ -86,7 +86,7 @@ namespace Anabasis.Tests
 
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) CreateEventRepository()
     {
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials, _connectionSettings);
+      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials);
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
       var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
 
