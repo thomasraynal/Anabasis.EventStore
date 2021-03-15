@@ -25,7 +25,6 @@ export class AppDocument {
 
                 this.activatedRoute.queryParams.subscribe(
                     queryParams => {
-
                         var document = params['document'];
                         var title = params['title'];
                         var subtitle = params['subtitle'];

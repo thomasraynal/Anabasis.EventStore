@@ -1,4 +1,5 @@
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System.IO;
 
 namespace Anabasis.Importer
@@ -8,7 +9,6 @@ namespace Anabasis.Importer
     private StreamWriter _streamWriter;
 
     private bool _isDisposed;
-
     private readonly object _syncLock = new object();
 
     protected JsonTextWriter JsonTextWriter { get; private set; }

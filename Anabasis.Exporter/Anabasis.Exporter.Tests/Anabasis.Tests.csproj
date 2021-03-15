@@ -6,6 +6,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Integration\Assets\Model\**" />
+    <EmbeddedResource Remove="Integration\Assets\Model\**" />
+    <None Remove="Integration\Assets\Model\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="DynamicData" Version="7.1.1" />
     <PackageReference Include="EventStore.Client" Version="21.2.0" />
     <PackageReference Include="EventStore.Client.Embedded" Version="20.6.0" />
@@ -40,7 +46,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Integration\Assets\Model\" />
     <Folder Include="POC\Ex1\" />
     <Folder Include="POC\Ex2\" />
   </ItemGroup>

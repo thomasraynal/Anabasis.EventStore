@@ -19,9 +19,9 @@ namespace Anabasis.Tests.Integration
     [OneTimeSetUp]
     public async Task SetUp()
     {
-      _dockerEventStoreFixture = new DockerEventStoreFixture();
+      //_dockerEventStoreFixture = new DockerEventStoreFixture();
 
-      await _dockerEventStoreFixture.Initialize();
+      //await _dockerEventStoreFixture.Initialize();
     }
 
     [Test]
@@ -69,7 +69,7 @@ namespace Anabasis.Tests.Integration
     [OneTimeTearDown]
     public async Task TearDown()
     {
-      await _dockerEventStoreFixture.Dispose();
+      //await _dockerEventStoreFixture.Dispose();
     }
 
   }

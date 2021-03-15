@@ -4,6 +4,7 @@ using Anabasis.Common.Events;
 using Anabasis.EventStore;
 using Anabasis.Exporter.GoogleDoc;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.IO;
 using System.Linq;
@@ -15,11 +16,24 @@ namespace Anabasis.Exporter
   public class GoogleDocExporter : BaseActor
   {
 
-    private GoogleDocClient _googleDocClient;
+    private readonly GoogleDocClient _googleDocClient;
+    private readonly JsonSerializerSettings _jsonSerializerSettings;
 
     public GoogleDocExporter(IAnabasisConfiguration exporterConfiguration, IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
     {
       _googleDocClient = new GoogleDocClient(exporterConfiguration);
+
+      _jsonSerializerSettings = new JsonSerializerSettings()
+      {
+        ContractResolver = new DefaultContractResolver
+        {
+          NamingStrategy = new CamelCaseNamingStrategy()
+        },
+
+        Formatting = Formatting.Indented
+
+      };
+
     }
 
     private async Task<GoogleDocAnabasisDocument> GetAnabasisDocument(string childReferenceId)
@@ -85,7 +99,7 @@ namespace Anabasis.Exporter
 
       var path = Path.GetFullPath($"{anabasisDocument.Id}");
 
-      File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument));
+      File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument, _jsonSerializerSettings)) ;
 
       await Emit(new DocumentCreated(exportDocument.CorrelationID, exportDocument.StreamId, anabasisDocument.Id, new Uri(path)));
 

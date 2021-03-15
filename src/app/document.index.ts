@@ -1,5 +1,5 @@
 export interface DocumentIndex {
     id: string;
     title: string;
-    documentIndices: DocumentIndex[];
+    children: DocumentIndex[];
 }

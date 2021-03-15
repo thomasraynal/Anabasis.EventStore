@@ -37,7 +37,6 @@ namespace Anabasis.Exporter
         IsEmphasis = Underline,
         Content = Content?.Trim('\n'),
         IsUrl = !string.IsNullOrEmpty(Url),
-        DocumentId = rootDocumentid,
         Author = rootDocumentid,
         Tag = rootDocumentid
       };

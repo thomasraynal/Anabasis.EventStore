@@ -4,6 +4,7 @@ using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.EventStore;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -14,9 +15,20 @@ namespace Anabasis.Exporter.Bobby
 {
   public class BobbyExporter : BaseActor
   {
+    private JsonSerializerSettings _jsonSerializerSettings;
 
     public BobbyExporter(IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
     {
+      _jsonSerializerSettings = new JsonSerializerSettings()
+      {
+        ContractResolver = new DefaultContractResolver
+        {
+          NamingStrategy = new CamelCaseNamingStrategy()
+        },
+
+        Formatting = Formatting.Indented
+
+      };
     }
 
     public async Task Handle(DocumentBuildRequested exportDocumentBuilder)
@@ -36,7 +48,7 @@ namespace Anabasis.Exporter.Bobby
 
       var path = Path.GetFullPath($"{exportDocumentBuilder.DocumentId}");
 
-      File.WriteAllText(path, JsonConvert.SerializeObject(bobbyAnabasisDocuments));
+      File.WriteAllText(path, JsonConvert.SerializeObject(bobbyAnabasisDocuments, _jsonSerializerSettings));
 
       await Emit(new DocumentCreated(exportDocumentBuilder.CorrelationID, exportDocumentBuilder.StreamId, exportDocumentBuilder.DocumentId, new Uri(path)));
 

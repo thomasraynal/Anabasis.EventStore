@@ -34,25 +34,25 @@
       </ul>
 
       <ng-container *ngFor="let documentIndex of documentIndices">
-        <ul [hidden]="(currentState.document != documentIndex.id) || (currentState.title && currentTitle.documentIndices.length > 0)"  [attr.data-menu]="documentIndex.id" class="menu__level" tabindex="-1" role="menu"
+        <ul [hidden]="(currentState.document != documentIndex.id) || (currentState.title && currentTitle.children.length > 0)"  [attr.data-menu]="documentIndex.id" class="menu__level" tabindex="-1" role="menu"
           [attr.ressource]="documentIndex.id" aria-label="{{documentIndex.title}}">
-          <li [attr.id]="documentSubIndex.id" *ngFor="let documentSubIndex of documentIndex.documentIndices"
+          <li [attr.id]="documentSubIndex.id" *ngFor="let documentSubIndex of documentIndex.children"
             class="menu__item" role="menuitem">
             <a class="menu__link" routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}"
               [attr.data-parent-menu]="documentIndex.id"
-              [attr.data-submenu]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null"
-              [attr.aria-owns]="documentSubIndex.documentIndices.length > 0  ? documentSubIndex.id : null">
+              [attr.data-submenu]="documentSubIndex.children.length > 0  ? documentSubIndex.id : null"
+              [attr.aria-owns]="documentSubIndex.children.length > 0  ? documentSubIndex.id : null">
               {{documentSubIndex.title}}</a>
           </li>
         </ul>
       </ng-container>
 
       <ng-container *ngFor="let documentIndex of documentIndices">
-        <ng-container *ngFor="let documentSubIndex of documentIndex.documentIndices">
-          <ul  [hidden]="(currentState.title != documentSubIndex.id) || currentTitle.documentIndices.length == 0" *ngIf="documentIndex.documentIndices.length > 0" [attr.data-menu]="documentSubIndex.id"
+        <ng-container *ngFor="let documentSubIndex of documentIndex.children">
+          <ul  [hidden]="(currentState.title != documentSubIndex.id) || currentTitle.children.length == 0" *ngIf="documentIndex.children.length > 0" [attr.data-menu]="documentSubIndex.id"
             [attr.ressource]="documentSubIndex.id" class="menu__level" tabindex="-1" role="menu"
             aria-label="{{documentSubIndex.title}}">
-            <li *ngFor="let documentLastIndex of documentSubIndex.documentIndices" class="menu__item" role="menuitem">
+            <li *ngFor="let documentLastIndex of documentSubIndex.children" class="menu__item" role="menuitem">
               <a routerLink="{{documentIndex.id}}/{{documentSubIndex.id}}/{{documentLastIndex.id}}"
                 [attr.data-parent-menu]="documentSubIndex.id" class="menu__link">{{documentLastIndex.title}}</a>
             </li>

@@ -33,7 +33,7 @@ export class DocumentService {
   getMainTitlesByDocumentId(documentId: string): Observable<List<[id: string, title: string]>> {
 
     var idAndTitles = this.documents.Where(document => document.id == documentId)
-      .SelectMany(document => new List<DocumentItem>(document.documentItems))
+      .SelectMany(document => new List<DocumentItem>(document.children))
       .Where(documentItem => documentItem.isMainTitle)
       .Select<[id: string, title: string]>(documentItem => [documentItem.id, documentItem.content]);
 
@@ -44,7 +44,7 @@ export class DocumentService {
   getSecondaryTitlesByMainTitleId(documentId: string, mainTitleId: string): Observable<List<[id: string, title: string]>> {
 
     var idAndTitles = this.documents.Where(document => document.id == documentId)
-      .SelectMany(document => new List<DocumentItem>(document.documentItems))
+      .SelectMany(document => new List<DocumentItem>(document.children))
       .Where(documentItem => documentItem.isSecondaryTitle && documentItem.id == mainTitleId)
       .Select<[id: string, title: string]>(documentItem => [documentItem.id, documentItem.content]);
 
@@ -55,7 +55,7 @@ export class DocumentService {
   getDocumentItemsByMainTitleIdWithDocumentTitle(documentId: string, mainTitleId: string): Observable<List<DocumentItem>> {
 
     var documentItems = this.documents.Where(document => document.id == documentId)
-      .SelectMany(document => new List<DocumentItem>(document.documentItems))
+      .SelectMany(document => new List<DocumentItem>(document.children))
       .Where(documentItem => documentItem.mainTitleId == mainTitleId || documentItem.id == mainTitleId);
 
     return of(documentItems);
@@ -64,7 +64,7 @@ export class DocumentService {
   getDocumentItemsBySecondaryTitleId(documentId: string, secondaryTitleId: string): Observable<List<DocumentItem>> {
 
     var documentItems = this.documents.Where(document => document.id == documentId)
-      .SelectMany(document => new List<DocumentItem>(document.documentItems))
+      .SelectMany(document => new List<DocumentItem>(document.children))
       .Where(documentItem => documentItem.secondaryTitleId == secondaryTitleId);
 
     return of(documentItems);
@@ -91,9 +91,9 @@ export class DocumentService {
     var doFindContentById = function (id: string, documentIndice: DocumentIndex) {
 
       if (documentIndice.id == id) return title = documentIndice;
-      if (null == documentIndice.documentIndices) return null;
+      if (null == documentIndice.children) return null;
 
-      documentIndice.documentIndices.forEach(indice => {
+      documentIndice.children.forEach(indice => {
         var result = doFindContentById(id, indice);
         if (null != result) return result;
       });
@@ -102,11 +102,12 @@ export class DocumentService {
 
     };
 
+     
     this.documentIndices.ForEach(documentIndice => {
 
       if (documentIndice.id == id) return title = documentIndice;
 
-      documentIndice.documentIndices.forEach(indice => {
+      documentIndice.children.forEach(indice => {
         var result = doFindContentById(id, indice);
         if (null != result) return result;
       });
@@ -119,7 +120,7 @@ export class DocumentService {
 
   search(predicate: string): Observable<List<DocumentSearchResult>> {
 
-    var searchResults = this.documents.SelectMany(document => new List<DocumentItem>(document.documentItems))
+    var searchResults = this.documents.SelectMany(document => new List<DocumentItem>(document.children))
       .Where(documentItem =>
         !documentItem.isSecondaryTitle && !documentItem.isMainTitle && documentItem.parentId &&
         documentItem.content.toLowerCase().search(predicate.toLowerCase()) > 0)
