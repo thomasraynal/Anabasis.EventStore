@@ -116,8 +116,7 @@ namespace Anabasis.Tests
       var catchUpCache = new CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>(
         connectionMonitor,
         cacheConfiguration,
-       new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }),
-        _debugLogger);
+       new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }));
 
       var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<Guid>>();
 

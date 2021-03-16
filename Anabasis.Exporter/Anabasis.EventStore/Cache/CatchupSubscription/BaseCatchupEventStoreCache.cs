@@ -1,6 +1,8 @@
+using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using EventStore.ClientAPI;
 using System;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -12,7 +14,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
   {
     protected SourceCache<TAggregate, TKey> CaughtingUpCache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
 
-    protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor, IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration, IEventTypeProvider eventTypeProvider, ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
+    protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor, IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration, IEventTypeProvider eventTypeProvider, ISnapshotStore<TKey, TAggregate> snapshotStore = null, ISnapshotStrategy<TKey> snapshotStrategy = null, ILogger logger = null) :
+      base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
     {
     }
 
@@ -20,18 +23,32 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp,
       Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped);
 
+
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
     {
 
       return Observable.Create<ResolvedEvent>(obs =>
       {
 
-        Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
+      async  Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
         {
 
           obs.OnNext(@event);
 
-          return Task.CompletedTask;
+          if (_eventStoreCacheConfiguration.UseSnapshot)
+          {
+            foreach (var aggregate in Cache.Items)
+            {
+              if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+              {
+
+                var eventFilter = GetEventsFilters();
+
+                await _snapshotStore.Save(eventFilter, aggregate);
+
+              }
+            }
+          }
         }
 
         void onCaughtUp(EventStoreCatchUpSubscription _)
@@ -94,6 +111,12 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
         });
 
       });
+    }
+    public string[] GetEventsFilters()
+    {
+      var eventTypeFilters = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+
+      return eventTypeFilters;
     }
 
     public override void Dispose()

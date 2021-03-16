@@ -4,6 +4,8 @@ using EventStore.ClientAPI;
 using System.Threading.Tasks;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using System.Linq;
+using Anabasis.EventStore.Snapshot;
+using DynamicData;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
@@ -15,13 +17,14 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       CatchupEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
       IEventTypeProvider eventTypeProvider,
-      ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, logger)
+      ISnapshotStore<TKey, TAggregate> snapshotStore = null,
+      ISnapshotStrategy<TKey> snapshotStrategy = null,
+      ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
     {
       _catchupEventStoreCacheConfiguration = cacheConfiguration;
 
       InitializeAndRun();
     }
-
 
     protected override void OnResolvedEvent(ResolvedEvent @event)
     {
@@ -30,10 +33,31 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       UpdateCacheState(@event, cache);
     }
 
+    protected override async Task OnLoadSnapshot()
+    {
+      if (_catchupEventStoreCacheConfiguration.UseSnapshot)
+      {
+        var eventTypeFilter = GetEventsFilters();
+
+        var snapshots = await _snapshotStore.Get(eventTypeFilter);
+
+        if (null != snapshots)
+        {
+
+          foreach (var snapshot in snapshots)
+          {
+            Cache.AddOrUpdate(snapshot);
+          }
+
+        }
+
+      }
+    }
+
     protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)
     {
 
-      var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+      var eventTypeFilter = GetEventsFilters();
 
       var filter = Filter.EventType.Prefix(eventTypeFilter);
 

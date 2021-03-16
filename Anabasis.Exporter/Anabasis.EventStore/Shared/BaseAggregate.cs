@@ -12,6 +12,7 @@ namespace Anabasis.EventStore
     public TKey EntityId { get; set; }
 
     public int Version { get; private set; } = -1;
+    public int VersionSnapShot { get; private set; } = -1;
 
     public void Mutate<TEntity>(IMutable<TKey, TEntity> @event) where TEntity : class, IAggregate<TKey>
     {

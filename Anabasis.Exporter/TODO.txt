@@ -1,3 +1,5 @@
 snapshot storage
 logging
 BaseAggregateEvent pass entityId as ctor parameter
+fix public interface IAggregate<TKey> : IEntityEvent<TKey>
+centralize json settings

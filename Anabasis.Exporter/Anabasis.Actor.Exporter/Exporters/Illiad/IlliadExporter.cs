@@ -22,7 +22,7 @@ namespace Anabasis.Exporter.Illiad
         {
           NamingStrategy = new CamelCaseNamingStrategy()
         },
-
+        NullValueHandling = NullValueHandling.Ignore,
         Formatting = Formatting.Indented
 
       };

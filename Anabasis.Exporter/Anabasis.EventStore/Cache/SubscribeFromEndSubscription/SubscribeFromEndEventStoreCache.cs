@@ -16,7 +16,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
     public SubscribeFromEndEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       SubscribeFromEndCacheConfiguration<TKey, TAggregate> volatileEventStoreCacheConfiguration,
       IEventTypeProvider eventTypeProvider,
-      ILogger logger = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, logger)
+      ILogger logger = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, null, null, logger)
     {
       _volatileEventStoreCacheConfiguration = volatileEventStoreCacheConfiguration;
 

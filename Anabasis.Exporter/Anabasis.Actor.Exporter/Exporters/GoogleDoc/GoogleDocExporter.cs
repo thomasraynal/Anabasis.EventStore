@@ -29,7 +29,7 @@ namespace Anabasis.Exporter
         {
           NamingStrategy = new CamelCaseNamingStrategy()
         },
-
+        NullValueHandling = NullValueHandling.Ignore,
         Formatting = Formatting.Indented
 
       };

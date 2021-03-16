@@ -25,7 +25,7 @@ namespace Anabasis.Exporter.Bobby
         {
           NamingStrategy = new CamelCaseNamingStrategy()
         },
-
+        NullValueHandling = NullValueHandling.Ignore,
         Formatting = Formatting.Indented
 
       };

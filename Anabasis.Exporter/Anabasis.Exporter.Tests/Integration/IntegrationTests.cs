@@ -1,16 +1,22 @@
 using Anabasis.Actor.Actor;
 using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
+using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests.Integration
 {
+
+
+
   [TestFixture]
   public class IntegrationTests
   {
@@ -27,11 +33,13 @@ namespace Anabasis.Tests.Integration
     [Test]
     public async Task ShouldRunAnIntegrationScenario()
     {
+
       var url = "tcp://admin:changeit@localhost:1113";
 
       var debugLogger = new DebugLogger();
       var userCredentials = new UserCredentials("admin", "changeit");
       var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().DisableTls().Build();
+
 
       var defaultEventTypeProvider = new DefaultEventTypeProvider(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged)});
 

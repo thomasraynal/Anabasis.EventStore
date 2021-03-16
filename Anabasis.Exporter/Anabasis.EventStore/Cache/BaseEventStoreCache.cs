@@ -5,6 +5,8 @@ using EventStore.ClientAPI;
 using DynamicData;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using System.Linq;
+using Anabasis.EventStore.Snapshot;
+using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Infrastructure.Cache
 {
@@ -12,7 +14,11 @@ namespace Anabasis.EventStore.Infrastructure.Cache
   {
     protected readonly IEventStoreCacheConfiguration<TKey, TAggregate> _eventStoreCacheConfiguration;
     protected readonly IEventTypeProvider _eventTypeProvider;
+    protected readonly ISnapshotStrategy<TKey> _snapshotStrategy;
+    protected readonly ISnapshotStore<TKey, TAggregate> _snapshotStore;
+
     private readonly IConnectionStatusMonitor _connectionMonitor;
+
     private readonly ILogger _logger;
 
     private IDisposable _eventStoreConnectionStatus;
@@ -63,6 +69,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
       IEventTypeProvider eventTypeProvider,
+      ISnapshotStore<TKey, TAggregate> snapshotStore = null,
+      ISnapshotStrategy<TKey> snapshotStrategy = null,
       ILogger logger = null)
     {
 
@@ -71,6 +79,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       _eventStoreCacheConfiguration = cacheConfiguration;
       _eventTypeProvider = eventTypeProvider;
       _connectionMonitor = connectionMonitor;
+      _snapshotStrategy = snapshotStrategy;
+      _snapshotStore = snapshotStore;
 
       _lastProcessedEventUtcTimestamp = DateTime.MinValue;
 
@@ -92,12 +102,15 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     protected void InitializeAndRun()
     {
-      _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
+
+      _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe( connectionChanged =>
       {
         ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);
 
         if (connectionChanged.IsConnected)
         {
+
+          OnLoadSnapshot();
 
           OnInitialize(connectionChanged.IsConnected);
 
@@ -107,7 +120,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
                 OnResolvedEvent(@event);
 
                 if (IsStale) IsStaleSubject.OnNext(false);
-                
+
                 LastProcessedEventSequenceNumber = @event.Event.EventNumber;
                 _lastProcessedEventUtcTimestamp = DateTime.UtcNow;
 
@@ -154,6 +167,11 @@ namespace Anabasis.EventStore.Infrastructure.Cache
       IsStaleSubject.Dispose();
 
       Cache.Dispose();
+    }
+
+    protected virtual Task OnLoadSnapshot()
+    {
+      return Task.CompletedTask;
     }
 
     protected virtual void OnInitialize(bool isConnected) { }

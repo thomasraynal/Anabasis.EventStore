@@ -6,6 +6,7 @@ using Anabasis.EventStore.Infrastructure.Queue;
 using Anabasis.EventStore.Infrastructure.Queue.PersistentQueue;
 using Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue;
 using Anabasis.EventStore.Infrastructure.Repository;
+using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -123,6 +124,8 @@ namespace Anabasis.Actor.Actor
 
     public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
       Action<CatchupEventStoreCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
+      ISnapshotStore<TKey, TAggregate> snapshotStore = null,
+      ISnapshotStrategy<TKey> snapshotStrategy = null,
       IEventTypeProvider eventTypeProvider = null)
     {
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
@@ -132,7 +135,7 @@ namespace Anabasis.Actor.Actor
 
       catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-      _eventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, catchupEventStoreCacheConfiguration, eventProvider, _logger);
+      _eventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, catchupEventStoreCacheConfiguration, eventProvider, snapshotStore, snapshotStrategy, _logger);
 
       return this;
     }
@@ -140,6 +143,8 @@ namespace Anabasis.Actor.Actor
     public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
       string streamId,
       Action<SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>> singleStreamCatchupEventStoreCacheConfigurationBuilder = null,
+      ISnapshotStore<TKey, TAggregate> snapshotStore = null,
+      ISnapshotStrategy<TKey> snapshotStrategy = null,
       IEventTypeProvider eventTypeProvider = null)
     {
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
@@ -149,7 +154,7 @@ namespace Anabasis.Actor.Actor
 
       singleStreamCatchupEventStoreCacheConfigurationBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
 
-      _eventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventProvider, _logger);
+      _eventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventProvider, snapshotStore, snapshotStrategy, _logger);
 
       return this;
     }

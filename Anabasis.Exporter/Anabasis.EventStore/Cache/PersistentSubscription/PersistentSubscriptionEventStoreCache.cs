@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Infrastructure
     public PersistentSubscriptionEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       PersistentSubscriptionCacheConfiguration<TKey, TAggregate> persistentSubscriptionCacheConfiguration,
       IEventTypeProvider eventTypeProvider,
-      ILogger logger = null) : base(connectionMonitor, persistentSubscriptionCacheConfiguration, eventTypeProvider, logger)
+      ILogger logger = null) : base(connectionMonitor, persistentSubscriptionCacheConfiguration, eventTypeProvider, null, null, logger)
     {
       _persistentSubscriptionCacheConfiguration = persistentSubscriptionCacheConfiguration;
 

@@ -9,5 +9,6 @@ namespace Anabasis.EventStore
     bool KeepAppliedEventsOnAggregate { get;  } 
     UserCredentials UserCredentials { get; }
     ISerializer Serializer { get; }
+    public bool UseSnapshot { get;  }
   }
 }

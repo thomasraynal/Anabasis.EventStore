@@ -6,22 +6,25 @@ using System.Text;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
-  public class CatchupEventStoreCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
+  public class SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
   {
-    public CatchupEventStoreCacheConfiguration(UserCredentials userCredentials)
+    public SingleStreamCatchupEventStoreCacheConfiguration(string streamId, UserCredentials userCredentials)
     {
+      StreamId = streamId;
       UserCredentials = userCredentials;
     }
 
-    public Func<Position> GetSubscribeToAllSubscriptionCheckpoint { get; set; } = () => Position.Start;
-
     public ISerializer Serializer { get; set; } = new DefaultSerializer();
+
+    public string StreamId { get; set; }
+
+    public bool UseSnapshot { get; set; }
 
     public UserCredentials UserCredentials { get; set; }
 
     public bool KeepAppliedEventsOnAggregate { get; set; } = false;
 
-    public CatchUpSubscriptionFilteredSettings CatchUpSubscriptionFilteredSettings { get; set; } = CatchUpSubscriptionFilteredSettings.Default;
+    public CatchUpSubscriptionSettings CatchUpSubscriptionSettings { get; set; } = CatchUpSubscriptionSettings.Default;
 
     public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.FromHours(1);
   }
