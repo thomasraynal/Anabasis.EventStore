@@ -1,8 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
-using System.Collections.Generic;
-using System.IO;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -19,6 +18,37 @@ namespace Anabasis.EventStore.Snapshot
           : base(options)
       { }
       public DbSet<AggregateSnapshot> AggregateSnapshots { get; set; }
+
+      protected override void OnModelCreating(ModelBuilder modelBuilder)
+      {
+        modelBuilder.Entity<AggregateSnapshot>().HasKey(aggregateSnapshot => new
+        {
+          aggregateSnapshot.StreamId,
+          aggregateSnapshot.EventFilter,
+          aggregateSnapshot.Version
+        });
+      }
+
+      public override int SaveChanges()
+      {
+
+        var now = DateTime.UtcNow;
+
+        var entries = ChangeTracker
+            .Entries()
+            .Where(e => e.State == EntityState.Added || e.State == EntityState.Modified);
+
+        foreach (var entry in entries)
+        {
+          if (entry.Entity is AggregateSnapshot aggregateSnapshot)
+          {
+            aggregateSnapshot.LastModified = now;
+          }
+        }
+
+        return base.SaveChanges();
+      }
+
     }
 
 
@@ -26,23 +56,9 @@ namespace Anabasis.EventStore.Snapshot
     {
 
       _entityFrameworkOptions = new DbContextOptionsBuilder<AggregateSnapshotContext>()
-                      .UseInMemoryDatabase(databaseName: "MockDB")
+                      .UseInMemoryDatabase(databaseName: "AggregateSnapshots")
                       .Options;
 
-      using (var context = new AggregateSnapshotContext(_entityFrameworkOptions))
-      {
-        var customer = new AggregateSnapshot
-        {
-          StreamId = "streamId",
-          Version = 1,
-          EventFilter = "filter-filter",
-          SerializedAggregate = "sdfsdfsdsdfsdf"
-        };
-
-        context.AggregateSnapshots.Add(customer);
-        context.SaveChanges();
-
-      }
 
       _jsonSerializerSettings = new JsonSerializerSettings()
       {
@@ -56,43 +72,62 @@ namespace Anabasis.EventStore.Snapshot
       };
     }
 
-    public async Task<TAggregate> Get(string streamId, string eventFilter)
+    public async Task<TAggregate> Get(string streamId, string[] eventFilters, int? version = null)
     {
+
       using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
 
-      var aggregateSnapshot = await context.AggregateSnapshots.AsQueryable().FirstOrDefaultAsync(snapshot => snapshot.StreamId == "streamId");
+      var eventFilter = string.Concat(eventFilters);
+
+      var aggregateSnapshotQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(p => p.LastModified);
+
+      AggregateSnapshot aggregateSnapshot = null;
+
+      if (null == version)
+      {
+        aggregateSnapshot = await aggregateSnapshotQueryable.FirstOrDefaultAsync(snapshot => snapshot.StreamId == streamId && snapshot.EventFilter == eventFilter);
+      }
+      else
+      {
+        aggregateSnapshot = await aggregateSnapshotQueryable.FirstOrDefaultAsync(snapshot => snapshot.Version == version && snapshot.StreamId == streamId && snapshot.EventFilter == eventFilter);
+      }
+
+      if (null == aggregateSnapshot) return default;
 
       var aggregate = JsonConvert.DeserializeObject<TAggregate>(aggregateSnapshot.SerializedAggregate, _jsonSerializerSettings);
 
       return aggregate;
+
     }
 
-    public async Task Save(string streamId, string[] eventFilters, TAggregate aggregate)
+    public async Task<TAggregate[]> Get(string[] eventFilters, int? version = null)
     {
       using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
 
-      var aggregateSnapshot = new AggregateSnapshot
+      var eventFilter = string.Concat(eventFilters);
+
+      var isLatest = version == null;
+
+      AggregateSnapshot[] aggregateSnapshots = null;
+
+      if (isLatest)
       {
-        StreamId = streamId,
-        Version = aggregate.Version,
-        EventFilter = string.Concat(eventFilters),
-        SerializedAggregate = JsonConvert.SerializeObject(aggregate, _jsonSerializerSettings),
-        Id = Guid.ne
-      };
+       
+        var orderByDescendingQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(snapshot => snapshot.LastModified);
 
-      context.AggregateSnapshots.Add(aggregateSnapshot);
-
-      await context.SaveChangesAsync();
-
-    }
-
-    public async Task<TAggregate[]> Get(string[] eventFilters)
-    {
-      using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
-
-      var filter = string.Concat(eventFilters);
-
-      var aggregateSnapshots = await context.AggregateSnapshots.AsQueryable().Where(snapshot => snapshot.EventFilter == filter).ToArrayAsync();
+        //https://github.com/dotnet/efcore/issues/13805
+        aggregateSnapshots = await context.AggregateSnapshots.AsQueryable()
+                                                            .Where(snapshot => snapshot.EventFilter == eventFilter)
+                                                            .OrderByDescending(snapshot => snapshot.LastModified)
+                                                            .Select(snapshot => snapshot.StreamId)
+                                                            .Distinct()
+                                                            .SelectMany(snapshot => orderByDescendingQueryable.Where(b => b.StreamId == snapshot).Take(1), (streamId, aggregateSnapshot) => aggregateSnapshot)
+                                                            .ToArrayAsync();
+      }
+      else
+      {
+        aggregateSnapshots = await context.AggregateSnapshots.AsQueryable().Where(snapshot => snapshot.EventFilter == eventFilter && snapshot.Version == version).ToArrayAsync();
+      }
 
       if (aggregateSnapshots.Length == 0) return new TAggregate[0];
 
@@ -100,20 +135,26 @@ namespace Anabasis.EventStore.Snapshot
 
     }
 
-    public Task Save(string[] eventFilters, TAggregate aggregate)
+    public async Task Save(string[] eventFilters, TAggregate aggregate)
     {
+      using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
 
-      Directory.CreateDirectory(_fileSystemSnapshotStoreConfiguration.RepositoryDirectory);
+      var aggregateSnapshot = new AggregateSnapshot
+      {
+        StreamId = aggregate.StreamId,
+        Version = aggregate.Version,
+        EventFilter = string.Concat(eventFilters),
+        SerializedAggregate = JsonConvert.SerializeObject(aggregate, _jsonSerializerSettings),
+      };
+      
+      context.AggregateSnapshots.Add(aggregateSnapshot);
 
-      var filters = string.Concat(eventFilters);
-
-      var path = Path.Combine(_fileSystemSnapshotStoreConfiguration.RepositoryDirectory, filters, aggregate.StreamId);
-
-      File.WriteAllText(path, JsonConvert.SerializeObject(aggregate, _jsonSerializerSettings));
-
-      return Task.CompletedTask;
+      await context.SaveChangesAsync();
 
     }
+
+
+
 
   }
 }

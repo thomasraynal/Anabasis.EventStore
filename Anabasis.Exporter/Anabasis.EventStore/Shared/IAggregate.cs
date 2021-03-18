@@ -5,7 +5,7 @@ namespace Anabasis.EventStore
   public interface IAggregate<TKey> : IEntityEvent<TKey>
   {
     int Version { get; }
-    int VersionSnapShot { get; }
+    int VersionSnapshot { get; }
     void ApplyEvent(IEntityEvent<TKey> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = false);
     [JsonIgnore]
     IEntityEvent<TKey>[] PendingEvents { get; }

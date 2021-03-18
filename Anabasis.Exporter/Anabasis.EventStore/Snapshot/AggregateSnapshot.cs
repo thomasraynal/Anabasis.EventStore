@@ -1,6 +1,6 @@
 using System;
-using System.Collections.Generic;
-using System.Text;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Anabasis.EventStore.Snapshot
 {
@@ -16,12 +16,12 @@ namespace Anabasis.EventStore.Snapshot
       EventFilter = eventFilter;
       Version = version;
       SerializedAggregate = serializedAggregate;
-      Id = Guid.NewGuid();
     }
-    public Guid Id { get; set; }
+
     public string StreamId { get; set; }
     public string EventFilter { get; set; }
     public int Version { get; set; }
+    public DateTime LastModified { get; set; }
     public string SerializedAggregate { get; set; }
 
     public override bool Equals(object obj)

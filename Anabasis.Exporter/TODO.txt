@@ -1,4 +1,5 @@
 snapshot storage
+use snapshot for subscribe to all
 logging
 BaseAggregateEvent pass entityId as ctor parameter
 fix public interface IAggregate<TKey> : IEntityEvent<TKey>

@@ -8,6 +8,7 @@
     <PackageReference Include="DynamicData" Version="7.1.1" />
     <PackageReference Include="EventStore.Client" Version="21.2.0" />
     <PackageReference Include="EventStore.Client.Embedded" Version="20.6.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.4" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.4" />
     <PackageReference Include="morelinq" Version="3.3.2" />
     <PackageReference Include="Scrutor" Version="3.3.0" />

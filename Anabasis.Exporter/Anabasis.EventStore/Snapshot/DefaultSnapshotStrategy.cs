@@ -10,7 +10,7 @@ namespace Anabasis.EventStore.Snapshot
 
     public bool IsSnapShotRequired(IAggregate<TKey> aggregate)
     {
-      return aggregate.Version - aggregate.VersionSnapShot >= SnapshotIntervalInEvents;
+      return aggregate.Version - aggregate.VersionSnapshot >= SnapshotIntervalInEvents;
     }
   }
 }

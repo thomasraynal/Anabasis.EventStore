@@ -3,6 +3,7 @@ using EventStore.ClientAPI;
 using System.Threading.Tasks;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Anabasis.EventStore.Snapshot;
+using DynamicData;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
@@ -23,7 +24,23 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       InitializeAndRun();
     }
 
-  
+    protected override async Task OnLoadSnapshot()
+    {
+      if (_singleStreamCatchupEventStoreCacheConfiguration.UseSnapshot)
+      {
+        var eventTypeFilter = GetEventsFilters();
+
+        var snapshot = await _snapshotStore.Get(_singleStreamCatchupEventStoreCacheConfiguration.StreamId, eventTypeFilter);
+
+        if (null != snapshot)
+        {
+          Cache.AddOrUpdate(snapshot);
+          LastProcessedEventSequenceNumber = snapshot.Version;
+        }
+
+      }
+    }
+
     protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)
     {
 

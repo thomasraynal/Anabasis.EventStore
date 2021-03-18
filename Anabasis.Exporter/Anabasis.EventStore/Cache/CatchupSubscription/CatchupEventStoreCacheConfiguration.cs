@@ -17,7 +17,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
     public ISerializer Serializer { get; set; } = new DefaultSerializer();
 
-    public bool UseSnapshot { get; set; }
+    public bool UseSnapshot => false;
 
     public UserCredentials UserCredentials { get; set; }
 

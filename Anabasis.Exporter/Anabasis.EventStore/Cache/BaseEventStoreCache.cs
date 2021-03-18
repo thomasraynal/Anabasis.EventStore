@@ -32,7 +32,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
     protected BehaviorSubject<bool> IsStaleSubject { get; }
     protected BehaviorSubject<bool> IsCaughtUpSubject { get; }
-    protected long? LastProcessedEventSequenceNumber { get; private set; } = null;
+    protected long? LastProcessedEventSequenceNumber { get; set; } = null;
     public IObservable<bool> OnStale => IsStaleSubject.AsObservable();
     public IObservable<bool> OnCaughtUp => IsCaughtUpSubject.AsObservable();
 
