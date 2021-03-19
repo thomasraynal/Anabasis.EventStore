@@ -64,8 +64,8 @@ namespace Anabasis.Tests
     {
       var snaphotRepository = new InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>>();
 
-      var eventFilterOne = new[] { "a", "b", "c" };
-      var eventFilterTwo = new[] { "d", "e", "f" };
+      var eventFilterOne = new[] { "d", "e", "f" };
+      var eventFilterTwo = new[] { "g", "h", "i" };
 
       var entityA = Guid.NewGuid();
       var entityB = Guid.NewGuid();

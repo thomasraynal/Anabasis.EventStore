@@ -2,7 +2,9 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Snapshot
@@ -29,7 +31,7 @@ namespace Anabasis.EventStore.Snapshot
         });
       }
 
-      public override int SaveChanges()
+      public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
       {
 
         var now = DateTime.UtcNow;
@@ -42,11 +44,11 @@ namespace Anabasis.EventStore.Snapshot
         {
           if (entry.Entity is AggregateSnapshot aggregateSnapshot)
           {
-            aggregateSnapshot.LastModified = now;
+            aggregateSnapshot.LastModifiedUtc = now;
           }
         }
 
-        return base.SaveChanges();
+        return base.SaveChangesAsync();
       }
 
     }
@@ -79,17 +81,17 @@ namespace Anabasis.EventStore.Snapshot
 
       var eventFilter = string.Concat(eventFilters);
 
-      var aggregateSnapshotQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(p => p.LastModified);
+      var aggregateSnapshotQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(p => p.LastModifiedUtc);
 
       AggregateSnapshot aggregateSnapshot = null;
 
       if (null == version)
       {
-        aggregateSnapshot = await aggregateSnapshotQueryable.FirstOrDefaultAsync(snapshot => snapshot.StreamId == streamId && snapshot.EventFilter == eventFilter);
+        aggregateSnapshot = await aggregateSnapshotQueryable.OrderByDescending(snapshot => snapshot.LastModifiedUtc).FirstOrDefaultAsync(snapshot => snapshot.StreamId == streamId && snapshot.EventFilter == eventFilter);
       }
       else
       {
-        aggregateSnapshot = await aggregateSnapshotQueryable.FirstOrDefaultAsync(snapshot => snapshot.Version == version && snapshot.StreamId == streamId && snapshot.EventFilter == eventFilter);
+        aggregateSnapshot = await aggregateSnapshotQueryable.OrderByDescending(snapshot => snapshot.LastModifiedUtc).FirstOrDefaultAsync(snapshot => snapshot.Version == version && snapshot.StreamId == streamId && snapshot.EventFilter == eventFilter);
       }
 
       if (null == aggregateSnapshot) return default;
@@ -113,12 +115,12 @@ namespace Anabasis.EventStore.Snapshot
       if (isLatest)
       {
        
-        var orderByDescendingQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(snapshot => snapshot.LastModified);
+        var orderByDescendingQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(snapshot => snapshot.LastModifiedUtc);
 
         //https://github.com/dotnet/efcore/issues/13805
         aggregateSnapshots = await context.AggregateSnapshots.AsQueryable()
                                                             .Where(snapshot => snapshot.EventFilter == eventFilter)
-                                                            .OrderByDescending(snapshot => snapshot.LastModified)
+                                                            .OrderByDescending(snapshot => snapshot.LastModifiedUtc)
                                                             .Select(snapshot => snapshot.StreamId)
                                                             .Distinct()
                                                             .SelectMany(snapshot => orderByDescendingQueryable.Where(b => b.StreamId == snapshot).Take(1), (streamId, aggregateSnapshot) => aggregateSnapshot)
@@ -153,8 +155,21 @@ namespace Anabasis.EventStore.Snapshot
 
     }
 
+    public async Task<TAggregate[]> GetAll()
+    {
+      var results = new List<TAggregate>();
 
+      using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
 
+      foreach (var aggregateSnapshot in await context.AggregateSnapshots.AsQueryable().ToListAsync())
+      {
+        var aggregate = JsonConvert.DeserializeObject<TAggregate>(aggregateSnapshot.SerializedAggregate, _jsonSerializerSettings);
 
+        results.Add(aggregate);
+      }
+
+      return results.ToArray();
+
+    }
   }
 }

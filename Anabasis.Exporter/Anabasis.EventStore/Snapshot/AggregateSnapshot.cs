@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Snapshot
     public string StreamId { get; set; }
     public string EventFilter { get; set; }
     public int Version { get; set; }
-    public DateTime LastModified { get; set; }
+    public DateTime LastModifiedUtc { get; set; }
     public string SerializedAggregate { get; set; }
 
     public override bool Equals(object obj)

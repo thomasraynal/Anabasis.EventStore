@@ -6,6 +6,5 @@ namespace Anabasis.Actor.Exporter
 {
   public class EventSink : Attribute
   {
-
   }
 }

@@ -2,7 +2,6 @@ using Anabasis.Actor;
 using Anabasis.Actor.Actor;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Infrastructure.Queue;
 using Anabasis.EventStore.Infrastructure.Queue.PersistentQueue;
 using Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue;
 using EventStore.ClientAPI;
