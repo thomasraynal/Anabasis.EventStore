@@ -20,7 +20,7 @@ namespace Anabasis.Actor
 
     public IEventStoreCache<TKey, TAggregate> State { get; }
 
-    public async Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntityEvent<TKey>
+    public async Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>
     {
       await _eventStoreAggregateRepository.Emit(@event, extraHeaders);
     }

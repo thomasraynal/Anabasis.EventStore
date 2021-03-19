@@ -33,10 +33,8 @@ namespace Anabasis.Tests
 
   public class SomeData<TKey> : BaseAggregateEvent<TKey, SomeDataAggregate<TKey>>
   {
-    public SomeData()
-    {
-    }
-    public SomeData(TKey entityId)
+
+    public SomeData(TKey entityId):base(entityId)
     {
       EntityId = entityId;
     }

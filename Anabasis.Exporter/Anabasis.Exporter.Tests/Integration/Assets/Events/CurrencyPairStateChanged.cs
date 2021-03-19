@@ -5,11 +5,10 @@ namespace Anabasis.Tests.Integration
 {
   public class CurrencyPairStateChanged : BaseAggregateEvent<string, CurrencyPair>
   {
-    public CurrencyPairStateChanged(string ccyPairId, string traderId, CcyPairState state)
+    public CurrencyPairStateChanged(string ccyPairId, string traderId, CcyPairState state): base(ccyPairId)
     {
       State = state;
       TraderId = traderId;
-      EntityId = ccyPairId;
     }
 
     public CcyPairState State { get; set; }

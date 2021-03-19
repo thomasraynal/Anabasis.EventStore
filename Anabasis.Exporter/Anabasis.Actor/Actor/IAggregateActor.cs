@@ -8,6 +8,6 @@ namespace Anabasis.Actor
   {
     IEventStoreCache<TKey, TAggregate> State { get; }
 
-    Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntityEvent<TKey>;
+    Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>;
   }
 }

@@ -20,14 +20,14 @@ namespace Anabasis.EventStore.Infrastructure
     //refacto
     public Type[] GetAll()
     {
-      return _serviceProvider.GetServices<IEntityEvent<TKey>>().Select(type => type.GetType()).ToArray();
+      return _serviceProvider.GetServices<IEntity<TKey>>().Select(type => type.GetType()).ToArray();
     }
 
     public Type GetEventTypeByName(string name)
     {
       return _eventTypeCache.GetOrAdd(name, (key) =>
       {
-        var type = _serviceProvider.GetServices<IEntityEvent<TKey>>()
+        var type = _serviceProvider.GetServices<IEntity<TKey>>()
                                .FirstOrDefault(type => type.GetType().FullName == name);
 
         if (null == type) return null;
@@ -52,14 +52,14 @@ namespace Anabasis.EventStore.Infrastructure
     //refacto
     public Type[] GetAll()
     {
-      return _serviceProvider.GetServices<IEntityEvent<TKey>>().Select(type => type.GetType()).ToArray();
+      return _serviceProvider.GetServices<IMutable<TKey, TAggregate>>().Select(type => type.GetType()).ToArray();
     }
 
     public Type GetEventTypeByName(string name)
     {
       return _eventTypeCache.GetOrAdd(name, (key) =>
       {
-        var type = _serviceProvider.GetServices<IEntityEvent<TKey>>()
+        var type = _serviceProvider.GetServices<IMutable<TKey, TAggregate>>()
                                .FirstOrDefault(type => type.GetType().FullName == name);
 
         if (null == type) return null;

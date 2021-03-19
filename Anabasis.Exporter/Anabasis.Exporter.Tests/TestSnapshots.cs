@@ -24,7 +24,7 @@ namespace Anabasis.Tests
       Assert.NotNull(snapshots);
       Assert.True(snapshots.Length == 0);
 
-      someDataAggregate.ApplyEvent(new SomeData<Guid>() { EntityId = entityA }, saveAsPendingEvent: false);
+      someDataAggregate.ApplyEvent(new SomeData<Guid>(entityA), saveAsPendingEvent: false);
 
       await snaphotRepository.Save(eventFilterOne, someDataAggregate);
 
@@ -45,7 +45,7 @@ namespace Anabasis.Tests
       Assert.NotNull(snapshots);
       Assert.True(snapshots.Length == 0);
 
-      someDataAggregate.ApplyEvent(new SomeData<Guid>() { EntityId = entityA }, saveAsPendingEvent: false);
+      someDataAggregate.ApplyEvent(new SomeData<Guid>(entityA) , saveAsPendingEvent: false);
 
       Assert.True(someDataAggregate.Version == 1);
 
@@ -75,9 +75,9 @@ namespace Anabasis.Tests
       var someDataAggregateB = new SomeDataAggregate<Guid>(entityA);
       var someDataAggregateC = new SomeDataAggregate<Guid>(entityA);
 
-      someDataAggregateA.ApplyEvent(new SomeData<Guid>() { EntityId = entityA }, saveAsPendingEvent: false);
-      someDataAggregateB.ApplyEvent(new SomeData<Guid>() { EntityId = entityB }, saveAsPendingEvent: false);
-      someDataAggregateC.ApplyEvent(new SomeData<Guid>() { EntityId = entityC }, saveAsPendingEvent: false);
+      someDataAggregateA.ApplyEvent(new SomeData<Guid>(entityA), saveAsPendingEvent: false);
+      someDataAggregateB.ApplyEvent(new SomeData<Guid>(entityB), saveAsPendingEvent: false);
+      someDataAggregateC.ApplyEvent(new SomeData<Guid>(entityC), saveAsPendingEvent: false);
 
       await snaphotRepository.Save(eventFilterOne, someDataAggregateA);
       await snaphotRepository.Save(eventFilterOne, someDataAggregateB);

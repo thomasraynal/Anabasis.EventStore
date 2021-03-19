@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System.Collections.Generic;
 
 
@@ -6,12 +7,14 @@ namespace Anabasis.EventStore
 
   public abstract class BaseAggregate<TKey> : IAggregate<TKey>
   {
-    private readonly List<IEntityEvent<TKey>> _pendingEvents = new List<IEntityEvent<TKey>>();
-    private readonly List<IEntityEvent<TKey>> _appliedEvents = new List<IEntityEvent<TKey>>();
+    private readonly List<IEntity<TKey>> _pendingEvents = new List<IEntity<TKey>>();
+    private readonly List<IEntity<TKey>> _appliedEvents = new List<IEntity<TKey>>();
 
     public TKey EntityId { get; set; }
 
     public int Version { get; set; } = -1;
+
+    [JsonProperty]
     public int VersionSnapshot { get; set; } = -1;
 
     public void Mutate<TEntity>(IMutable<TKey, TEntity> @event) where TEntity : class, IAggregate<TKey>
@@ -20,7 +23,7 @@ namespace Anabasis.EventStore
       Version++;
     }
 
-    public void ApplyEvent(IEntityEvent<TKey> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true)
+    public void ApplyEvent(IEntity<TKey> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true)
     {
       //we only save applied events
       if (keepAppliedEventsOnAggregate && !saveAsPendingEvent)
@@ -39,7 +42,7 @@ namespace Anabasis.EventStore
 
     }
 
-    public ICollection<IEntityEvent<TKey>> GetPendingEvents()
+    public ICollection<IEntity<TKey>> GetPendingEvents()
     {
       return _pendingEvents;
     }
@@ -53,12 +56,12 @@ namespace Anabasis.EventStore
     {
       get
       {
-        return EntityId.ToString();
+        return $"{EntityId}";
       }
       set { }
     }
 
-    public IEntityEvent<TKey>[] PendingEvents
+    public IEntity<TKey>[] PendingEvents
     {
       get
       {
@@ -67,7 +70,7 @@ namespace Anabasis.EventStore
 
     }
 
-    public IEntityEvent<TKey>[] AppliedEvents
+    public IEntity<TKey>[] AppliedEvents
     {
       get
       {

@@ -13,20 +13,9 @@ namespace Anabasis.Exporter
 {
   public class GoogleDocIndexer : BaseActor
   {
-    private JsonSerializerSettings _jsonSerializerSettings;
 
     public GoogleDocIndexer(IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
     {
-      _jsonSerializerSettings = new JsonSerializerSettings()
-      {
-        ContractResolver = new DefaultContractResolver
-        {
-          NamingStrategy = new CamelCaseNamingStrategy()
-        },
-        NullValueHandling = NullValueHandling.Ignore,
-        Formatting = Formatting.Indented
-
-      };
     }
 
     public async Task Handle(DocumentCreated documentExported)
@@ -83,7 +72,7 @@ namespace Anabasis.Exporter
 
       var indexPath = Path.GetFullPath($"{anabasisDocument.Id}-index");
 
-      File.WriteAllText(indexPath, JsonConvert.SerializeObject(documentIndex, _jsonSerializerSettings));
+      File.WriteAllText(indexPath, anabasisDocument.ToJson());
 
       await Emit(new IndexCreated(documentIndex.Id, new Uri(indexPath), documentExported.CorrelationID, documentExported.StreamId));
 

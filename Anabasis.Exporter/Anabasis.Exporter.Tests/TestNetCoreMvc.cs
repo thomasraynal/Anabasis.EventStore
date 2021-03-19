@@ -59,7 +59,7 @@ namespace Anabasis.Tests
       services.AddSingleton<TestBed>();
 
       services.Scan(scan => scan.FromApplicationDependencies()
-                                .AddClasses(classes => classes.AssignableTo<IEntityEvent<Guid>>()).AsImplementedInterfaces());
+                                .AddClasses(classes => classes.AssignableTo<IEntity<Guid>>()).AsImplementedInterfaces());
     }
 
     public void Configure(IApplicationBuilder app)
@@ -106,7 +106,7 @@ namespace Anabasis.Tests
       var repository = _host.Services.GetService<IEventStoreAggregateRepository<Guid>>();
       var configuration = _host.Services.GetService<IEventStoreRepositoryConfiguration>();
 
-      var events = _host.Services.GetServices<IEntityEvent<Guid>>();
+      var events = _host.Services.GetServices<IEntity<Guid>>();
 
       Assert.AreEqual(7, events.Count(), "Should have registered 5 events");
 

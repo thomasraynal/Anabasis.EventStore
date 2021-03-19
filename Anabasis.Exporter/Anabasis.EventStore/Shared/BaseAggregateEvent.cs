@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -10,9 +11,15 @@ namespace Anabasis.EventStore
     public Guid EventId { get; set; }
     protected abstract void ApplyInternal(TEntity entity);
 
-    protected BaseAggregateEvent()
+    [JsonConstructor]
+    private protected BaseAggregateEvent()
+    {
+    }
+
+    protected BaseAggregateEvent(TKey entityId)
     {
       EventId = Guid.NewGuid();
+      EntityId = entityId;
     }
 
     public void Apply(TEntity entity)

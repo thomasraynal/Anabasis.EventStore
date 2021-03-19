@@ -1,3 +1,4 @@
+using Anabasis.EventStore.Cache.CatchupSubscription;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using EventStore.ClientAPI;
@@ -32,24 +33,35 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
       async  Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
         {
-
-          obs.OnNext(@event);
-
-          if (_eventStoreCacheConfiguration.UseSnapshot)
+          try
           {
-            foreach (var aggregate in Cache.Items)
+
+            obs.OnNext(@event);
+
+            if (_eventStoreCacheConfiguration.UseSnapshot)
             {
-              if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+              foreach (var aggregate in Cache.Items)
               {
+                if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+                {
 
-                var eventFilter = GetEventsFilters();
+                  var eventFilter = GetEventsFilters();
 
-                aggregate.VersionSnapshot = aggregate.Version;
+                  aggregate.VersionSnapshot = aggregate.Version;
 
-                await _snapshotStore.Save(eventFilter, aggregate);
+                  await _snapshotStore.Save(eventFilter, aggregate);
 
+                }
               }
             }
+
+          }
+
+          catch (Exception ex)
+          {
+            var eventProcessingException = new EventProcessingException($"An error occured while processing the event {@event.OriginalEvent.EventType}", ex);
+            eventProcessingException.Data["event"] = @event;
+            throw eventProcessingException;
           }
         }
 

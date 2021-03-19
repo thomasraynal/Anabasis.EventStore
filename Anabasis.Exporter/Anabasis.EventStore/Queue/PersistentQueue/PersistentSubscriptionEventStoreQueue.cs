@@ -60,8 +60,6 @@ namespace Anabasis.EventStore.Infrastructure.Queue.PersistentQueue
           }
         }
 
-        
-
         var subscription = await connection.ConnectToPersistentSubscriptionAsync(
          _persistentEventStoreQueueConfiguration.StreamId,
          _persistentEventStoreQueueConfiguration.GroupId,
@@ -73,9 +71,7 @@ namespace Anabasis.EventStore.Infrastructure.Queue.PersistentQueue
 
         return Disposable.Create(() =>
         {
-
           subscription.Stop(TimeSpan.FromSeconds(5));
-
         });
 
       });

@@ -17,23 +17,10 @@ namespace Anabasis.Exporter
   {
 
     private readonly GoogleDocClient _googleDocClient;
-    private readonly JsonSerializerSettings _jsonSerializerSettings;
 
     public GoogleDocExporter(IAnabasisConfiguration exporterConfiguration, IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
     {
       _googleDocClient = new GoogleDocClient(exporterConfiguration);
-
-      _jsonSerializerSettings = new JsonSerializerSettings()
-      {
-        ContractResolver = new DefaultContractResolver
-        {
-          NamingStrategy = new CamelCaseNamingStrategy()
-        },
-        NullValueHandling = NullValueHandling.Ignore,
-        Formatting = Formatting.Indented
-
-      };
-
     }
 
     private async Task<GoogleDocAnabasisDocument> GetAnabasisDocument(string childReferenceId)
@@ -99,7 +86,7 @@ namespace Anabasis.Exporter
 
       var path = Path.GetFullPath($"{anabasisDocument.Id}");
 
-      File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument, _jsonSerializerSettings)) ;
+      File.WriteAllText(path, anabasisDocument.ToJson()) ;
 
       await Emit(new DocumentCreated(exportDocument.CorrelationID, exportDocument.StreamId, anabasisDocument.Id, new Uri(path)));
 

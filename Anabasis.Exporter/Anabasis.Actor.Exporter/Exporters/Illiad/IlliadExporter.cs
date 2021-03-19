@@ -12,20 +12,9 @@ namespace Anabasis.Exporter.Illiad
 
   public class IlliadExporter : BaseActor
   {
-    private JsonSerializerSettings _jsonSerializerSettings;
 
     public IlliadExporter(IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
     {
-      _jsonSerializerSettings = new JsonSerializerSettings()
-      {
-        ContractResolver = new DefaultContractResolver
-        {
-          NamingStrategy = new CamelCaseNamingStrategy()
-        },
-        NullValueHandling = NullValueHandling.Ignore,
-        Formatting = Formatting.Indented
-
-      };
     }
 
     public async Task Handle(ExportDocumentCommand exportDocumentRequest)
@@ -39,7 +28,7 @@ namespace Anabasis.Exporter.Illiad
 
       var path = Path.GetFullPath($"{documentBuilder.DocumentId}");
 
-      File.WriteAllText(path, JsonConvert.SerializeObject(anabasisDocument, _jsonSerializerSettings));
+      File.WriteAllText(path, anabasisDocument.ToJson());
 
       await Emit(new DocumentCreated(exportDocumentRequest.CorrelationID, exportDocumentRequest.StreamId, documentBuilder.DocumentId, new Uri(path)));
 

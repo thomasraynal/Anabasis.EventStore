@@ -46,7 +46,9 @@ namespace Anabasis.EventStore.Infrastructure.Repository
 
         foreach (var resolvedEvent in currentSlice.Events)
         {
-          var @event = DeserializeEvent(resolvedEvent.Event);
+          var @event = DeserializeEvent(resolvedEvent.Event, false);
+
+          if (null == @event) continue;
 
           aggregate.ApplyEvent(@event, false, loadEvents);
         }
@@ -57,7 +59,7 @@ namespace Anabasis.EventStore.Infrastructure.Repository
     }
     public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
     where TEntity : IAggregate<TKey>
-    where TEvent : IEntityEvent<TKey>, IMutable<TKey, TEntity>
+    where TEvent : IEntity<TKey>, IMutable<TKey, TEntity>
     {
 
       aggregate.ApplyEvent(ev);
@@ -75,7 +77,7 @@ namespace Anabasis.EventStore.Infrastructure.Repository
     }
 
     public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-    where TEvent : IEntityEvent<TKey>
+    where TEvent : IEntity<TKey>
     {
       var commitHeaders = CreateCommitHeaders(@event, extraHeaders);
 
@@ -84,14 +86,14 @@ namespace Anabasis.EventStore.Infrastructure.Repository
       await SaveEventBatch(@event.StreamId, ExpectedVersion.Any, eventsToSave);
     }
 
-
-    private IEntityEvent<TKey> DeserializeEvent(RecordedEvent recordedEvent)
+    private IEntity<TKey> DeserializeEvent(RecordedEvent recordedEvent, bool throwIfNotHandled = true)
     {
       var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
-      if (null == targetType) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
+      if (null == targetType && throwIfNotHandled) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
+      if (null == targetType) return null;
 
-      return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEntityEvent<TKey>;
+      return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEntity<TKey>;
     }
   }
 }

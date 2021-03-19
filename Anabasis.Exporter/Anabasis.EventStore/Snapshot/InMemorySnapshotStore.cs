@@ -11,7 +11,6 @@ namespace Anabasis.EventStore.Snapshot
 {
   public class InMemorySnapshotStore<TKey, TAggregate> : ISnapshotStore<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
-    private readonly JsonSerializerSettings _jsonSerializerSettings;
     private readonly DbContextOptions<AggregateSnapshotContext> _entityFrameworkOptions;
 
     class AggregateSnapshotContext : DbContext
@@ -61,17 +60,6 @@ namespace Anabasis.EventStore.Snapshot
                       .UseInMemoryDatabase(databaseName: "AggregateSnapshots")
                       .Options;
 
-
-      _jsonSerializerSettings = new JsonSerializerSettings()
-      {
-        ContractResolver = new DefaultContractResolver
-        {
-          NamingStrategy = new CamelCaseNamingStrategy()
-        },
-        NullValueHandling = NullValueHandling.Ignore,
-        Formatting = Formatting.Indented
-
-      };
     }
 
     public async Task<TAggregate> Get(string streamId, string[] eventFilters, int? version = null)
@@ -96,7 +84,7 @@ namespace Anabasis.EventStore.Snapshot
 
       if (null == aggregateSnapshot) return default;
 
-      var aggregate = JsonConvert.DeserializeObject<TAggregate>(aggregateSnapshot.SerializedAggregate, _jsonSerializerSettings);
+      var aggregate = aggregateSnapshot.SerializedAggregate.JsonTo<TAggregate>();
 
       return aggregate;
 
@@ -133,7 +121,7 @@ namespace Anabasis.EventStore.Snapshot
 
       if (aggregateSnapshots.Length == 0) return new TAggregate[0];
 
-      return aggregateSnapshots.Select(aggregateSnapshot => JsonConvert.DeserializeObject<TAggregate>(aggregateSnapshot.SerializedAggregate, _jsonSerializerSettings)).ToArray();
+      return aggregateSnapshots.Select(aggregateSnapshot => aggregateSnapshot.SerializedAggregate.JsonTo<TAggregate>()).ToArray();
 
     }
 
@@ -146,7 +134,7 @@ namespace Anabasis.EventStore.Snapshot
         StreamId = aggregate.StreamId,
         Version = aggregate.Version,
         EventFilter = string.Concat(eventFilters),
-        SerializedAggregate = JsonConvert.SerializeObject(aggregate, _jsonSerializerSettings),
+        SerializedAggregate = aggregate.ToJson(),
       };
       
       context.AggregateSnapshots.Add(aggregateSnapshot);
@@ -163,7 +151,7 @@ namespace Anabasis.EventStore.Snapshot
 
       foreach (var aggregateSnapshot in await context.AggregateSnapshots.AsQueryable().ToListAsync())
       {
-        var aggregate = JsonConvert.DeserializeObject<TAggregate>(aggregateSnapshot.SerializedAggregate, _jsonSerializerSettings);
+        var aggregate = aggregateSnapshot.SerializedAggregate.JsonTo<TAggregate>();
 
         results.Add(aggregate);
       }

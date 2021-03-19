@@ -50,7 +50,6 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
           }
 
         }
-
       }
     }
 

@@ -1,6 +1,12 @@
-snapshot storage
 use snapshot for subscribe to all
 logging
-BaseAggregateEvent pass entityId as ctor parameter
-fix public interface IAggregate<TKey> : IEntityEvent<TKey>
-centralize json settings
+proper private setter for dto
+
+//todo: managed shared typeeventprovider between different aggregate cache
+services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
+
+do we need a T for streamId =>
+  public interface IEntity<TKey> : IHaveAStreamId
+  {
+    TKey EntityId { get; set; } 
+  }
