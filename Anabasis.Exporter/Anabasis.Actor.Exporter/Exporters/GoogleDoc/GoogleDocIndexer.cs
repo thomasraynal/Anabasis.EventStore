@@ -72,7 +72,7 @@ namespace Anabasis.Exporter
 
       var indexPath = Path.GetFullPath($"{anabasisDocument.Id}-index");
 
-      File.WriteAllText(indexPath, anabasisDocument.ToJson());
+      File.WriteAllText(indexPath, documentIndex.ToJson());
 
       await Emit(new IndexCreated(documentIndex.Id, new Uri(indexPath), documentExported.CorrelationID, documentExported.StreamId));
 

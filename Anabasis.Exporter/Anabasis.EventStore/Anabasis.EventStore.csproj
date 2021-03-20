@@ -14,8 +14,4 @@
     <PackageReference Include="Scrutor" Version="3.3.0" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Projection\" />
-  </ItemGroup>
-
 </Project>

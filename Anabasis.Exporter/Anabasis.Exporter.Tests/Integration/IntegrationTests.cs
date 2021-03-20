@@ -2,11 +2,14 @@ using Anabasis.Actor.Actor;
 using Anabasis.EventStore.Infrastructure;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
+using EventStore.ClientAPI.Common.Log;
+using EventStore.ClientAPI.Projections;
 using EventStore.ClientAPI.SystemData;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Text;
@@ -21,6 +24,22 @@ namespace Anabasis.Tests.Integration
   public class IntegrationTests
   {
     private DockerEventStoreFixture _dockerEventStoreFixture;
+    private readonly IPEndPoint _httpEndpoint = new IPEndPoint(IPAddress.Loopback, 2113);
+
+
+    class DummyLogger : ILogger
+    {
+      public void Error(string format, params object[] args)
+      { }
+      public void Error(Exception ex, string format, params object[] args)
+      { }
+      public void Debug(string format, params object[] args) { }
+      public void Debug(Exception ex, string format, params object[] args) { }
+      public void Info(string format, params object[] args)
+      { }
+      public void Info(Exception ex, string format, params object[] args)
+      { }
+    }
 
     [OneTimeSetUp]
     public async Task SetUp()
@@ -38,6 +57,24 @@ namespace Anabasis.Tests.Integration
 
       var userCredentials = new UserCredentials("admin", "changeit");
       var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().DisableTls().Build();
+
+
+
+      //var projectionsManager = new ProjectionsManager(
+      //    log: new ConsoleLogger(),
+      //    httpEndPoint: new IPEndPoint(IPAddress.Loopback, 2113),
+      //    operationTimeout: TimeSpan.FromMilliseconds(5000),
+      //    httpSchema: "http"
+      //);
+
+      //await Task.Delay(5000);
+
+      //var testProjection = File.ReadAllText("./Projections/testProjection.js");
+
+      //var all = await projectionsManager.ListAllAsync();
+
+      //await projectionsManager.CreateTransientAsync("countOf", testProjection, userCredentials);
+
 
 
       var defaultEventTypeProvider = new DefaultEventTypeProvider<string, CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged)});
