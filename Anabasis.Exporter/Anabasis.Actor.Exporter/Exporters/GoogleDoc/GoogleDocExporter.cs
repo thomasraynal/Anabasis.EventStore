@@ -45,6 +45,7 @@ namespace Anabasis.Exporter
       {
 
         documentItem.Position = position++;
+        documentItem.DocumentId = rootDocumentid;
 
         if (documentItem.IsMainTitle)
         {

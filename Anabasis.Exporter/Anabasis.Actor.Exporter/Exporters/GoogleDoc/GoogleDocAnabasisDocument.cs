@@ -18,6 +18,7 @@ namespace Anabasis.Exporter
     public bool IsEmphasis { get; set; }
     public string MainTitleId { get; set; }
     public string SecondaryTitleId { get; set; }
+    public string DocumentId { get; set; }
     public int Position { get; set; }
     public bool IsRootDocument => ParentId == null;
     public string ParentId { get; set; }
@@ -41,6 +42,7 @@ namespace Anabasis.Exporter
              IsEmphasis == document.IsEmphasis &&
              MainTitleId == document.MainTitleId &&
              SecondaryTitleId == document.SecondaryTitleId &&
+             DocumentId == document.DocumentId &&
              Position == document.Position;
     }
 
@@ -56,6 +58,7 @@ namespace Anabasis.Exporter
       hash.Add(Tag);
       hash.Add(Type);
       hash.Add(IsUrl);
+      hash.Add(DocumentId);
       hash.Add(IsMainTitle);
       hash.Add(IsSecondaryTitle);
       hash.Add(IsEmphasis);
