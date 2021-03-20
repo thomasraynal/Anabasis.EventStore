@@ -1,9 +1,6 @@
 use snapshot for subscribe to all
-logging
 proper private setter for dto
-
-//todo: managed shared typeeventprovider between different aggregate cache
-services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
+handle projections
 
 do we need a T for streamId =>
   public interface IEntity<TKey> : IHaveAStreamId

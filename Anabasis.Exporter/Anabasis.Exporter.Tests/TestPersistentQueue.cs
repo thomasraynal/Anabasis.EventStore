@@ -16,7 +16,6 @@ namespace Anabasis.Tests
   [TestFixture]
   public class TestPersistentQueue
   {
-    private DebugLogger _debugLogger;
     private UserCredentials _userCredentials;
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
@@ -33,7 +32,6 @@ namespace Anabasis.Tests
     public async Task Setup()
     {
 
-      _debugLogger = new DebugLogger();
       _userCredentials = new UserCredentials("admin", "changeit");
       _connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepReconnecting().KeepRetrying().Build();
 
@@ -61,14 +59,13 @@ namespace Anabasis.Tests
     {
       var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials);
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
 
       var eventStoreRepository = new EventStoreRepository(
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }),
-        _debugLogger);
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }));
 
       return (connectionMonitor, eventStoreRepository);
     }
@@ -77,15 +74,14 @@ namespace Anabasis.Tests
     {
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
 
       var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId, _userCredentials);
 
       var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
         connectionMonitor,
         persistentEventStoreQueueConfiguration,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }),
-        _debugLogger);
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }) );
 
       return (connectionMonitor, persistentSubscriptionEventStoreQueue);
 

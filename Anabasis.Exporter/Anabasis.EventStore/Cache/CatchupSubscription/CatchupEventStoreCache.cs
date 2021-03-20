@@ -1,11 +1,9 @@
 using System;
-using System.Reactive.Linq;
 using EventStore.ClientAPI;
 using System.Threading.Tasks;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
-using System.Linq;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
@@ -13,15 +11,17 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
   {
 
     private readonly CatchupEventStoreCacheConfiguration<TKey, TAggregate> _catchupEventStoreCacheConfiguration;
+    private readonly ILogger<CatchupEventStoreCache<TKey, TAggregate>> _logger;
 
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       CatchupEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
-      IEventTypeProvider eventTypeProvider,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
       ISnapshotStrategy<TKey> snapshotStrategy = null,
-      ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
+      ILogger<CatchupEventStoreCache<TKey, TAggregate>> logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
     {
       _catchupEventStoreCacheConfiguration = cacheConfiguration;
+      _logger = logger;
 
       InitializeAndRun();
     }
@@ -29,6 +29,8 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
     protected override void OnResolvedEvent(ResolvedEvent @event)
     {
       var cache = IsCaughtUp ? Cache : CaughtingUpCache;
+
+      _logger?.LogInformation($"OnResolvedEvent => {@event.Event.EventType} - v.{@event.Event.EventNumber} - IsCaughtUp => {IsCaughtUp}");
 
       UpdateCacheState(@event, cache);
     }

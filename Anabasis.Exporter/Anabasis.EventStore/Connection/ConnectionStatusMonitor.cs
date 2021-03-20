@@ -32,9 +32,9 @@ namespace Anabasis.EventStore
     public ConnectionStatusMonitor(IEventStoreConnection connection, Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
-      _logger = logger ?? new DummyLogger();
-
       _eventStoreConnection = connection;
+
+      _logger = logger;
 
       _forceConnectionStatus = new Subject<ConnectionStatus>();
 
@@ -82,7 +82,7 @@ namespace Anabasis.EventStore
                                          {
 
                                            ConnectionInfo = connectionInfo;
-                                           _logger.LogInformation($"{connectionInfo}");
+                                           _logger?.LogInformation($"{connectionInfo}");
                                            _isConnected.OnNext(connectionInfo.Status == ConnectionStatus.Connected);
 
                                          })

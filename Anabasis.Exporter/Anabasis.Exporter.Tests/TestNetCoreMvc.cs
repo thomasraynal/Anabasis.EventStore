@@ -248,7 +248,7 @@ namespace Anabasis.Tests
       monitor.ForceConnectionStatus(true);
 
       //give CI some rope...
-      await Task.Delay(100);
+      await Task.Delay(1000);
 
       cleanup = _testBed.Consumer.OnChange
           .Connect()

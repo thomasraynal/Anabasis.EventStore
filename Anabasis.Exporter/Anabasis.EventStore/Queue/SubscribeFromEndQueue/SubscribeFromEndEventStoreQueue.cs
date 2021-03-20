@@ -1,4 +1,5 @@
 using EventStore.ClientAPI;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -16,7 +17,7 @@ namespace Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue
       IConnectionStatusMonitor connectionMonitor,
       SubscribeFromEndEventStoreQueueConfiguration  volatileEventStoreQueueConfiguration,
       IEventTypeProvider eventTypeProvider,
-      ILogger logger = null)
+      ILogger<SubscribeFromEndEventStoreQueue> logger = null)
       : base(connectionMonitor, volatileEventStoreQueueConfiguration, eventTypeProvider, logger)
     {
       _volatileEventStoreQueueConfiguration = volatileEventStoreQueueConfiguration;

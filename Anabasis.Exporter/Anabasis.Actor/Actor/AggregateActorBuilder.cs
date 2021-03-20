@@ -65,7 +65,7 @@ namespace Anabasis.Actor.Actor
     UserCredentials userCredentials,
     ConnectionSettings connectionSettings,
     Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-    IEventTypeProvider eventTypeProvider = null,
+    IEventTypeProvider<TKey,TAggregate> eventTypeProvider = null,
     Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
@@ -80,7 +80,7 @@ namespace Anabasis.Actor.Actor
       UserCredentials userCredentials,
       ConnectionSettings connectionSettings,
       Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-      IEventTypeProvider eventTypeProvider = null,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null,
       Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
@@ -94,7 +94,7 @@ namespace Anabasis.Actor.Actor
       IEventStoreConnection eventStoreConnection,
       UserCredentials userCredentials,
       Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-      IEventTypeProvider eventTypeProvider = null,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null,
       Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
@@ -105,7 +105,7 @@ namespace Anabasis.Actor.Actor
         _connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger)
       };
 
-      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey,TAggregate,TActor>();
 
       var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
 
@@ -126,16 +126,16 @@ namespace Anabasis.Actor.Actor
       Action<CatchupEventStoreCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
       ISnapshotStrategy<TKey> snapshotStrategy = null,
-      IEventTypeProvider eventTypeProvider = null)
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null)
     {
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
 
       var catchupEventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TAggregate>(_userCredentials);
-      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey,TAggregate,TActor >();
 
       catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-      _eventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, catchupEventStoreCacheConfiguration, eventProvider, snapshotStore, snapshotStrategy, _logger);
+      _eventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, catchupEventStoreCacheConfiguration, eventProvider, snapshotStore, snapshotStrategy);
 
       return this;
     }
@@ -145,33 +145,33 @@ namespace Anabasis.Actor.Actor
       Action<SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>> singleStreamCatchupEventStoreCacheConfigurationBuilder = null,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
       ISnapshotStrategy<TKey> snapshotStrategy = null,
-      IEventTypeProvider eventTypeProvider = null)
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null)
     {
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
 
-      var singleStreamCatchupEventStoreCacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>(streamId,_userCredentials);
-      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+      var singleStreamCatchupEventStoreCacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>(streamId, _userCredentials);
+      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey, TAggregate, TActor>();
 
       singleStreamCatchupEventStoreCacheConfigurationBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
 
-      _eventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventProvider, snapshotStore, snapshotStrategy, _logger);
+      _eventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventProvider, snapshotStore, snapshotStrategy);
 
       return this;
     }
 
     public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
       Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null,
-      IEventTypeProvider eventTypeProvider = null)
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null)
     {
 
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
 
       var volatileCacheConfiguration = new SubscribeFromEndCacheConfiguration<TKey, TAggregate>(_userCredentials);
-      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey, TAggregate, TActor>();
 
       volatileCacheConfigurationBuilder?.Invoke(volatileCacheConfiguration);
 
-      _eventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(_connectionMonitor, volatileCacheConfiguration, eventProvider, _logger);
+      _eventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(_connectionMonitor, volatileCacheConfiguration, eventProvider);
 
       return this;
 
@@ -186,8 +186,7 @@ namespace Anabasis.Actor.Actor
       var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         _connectionMonitor,
         volatileEventStoreQueueConfiguration,
-        eventProvider,
-        _logger);
+        eventProvider);
 
       _queuesToRegisterTo.Add(volatileEventStoreQueue);
 
@@ -203,8 +202,7 @@ namespace Anabasis.Actor.Actor
       var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
         _connectionMonitor,
         persistentEventStoreQueueConfiguration,
-        eventProvider,
-        _logger);
+        eventProvider);
 
       _queuesToRegisterTo.Add(persistentSubscriptionEventStoreQueue);
 

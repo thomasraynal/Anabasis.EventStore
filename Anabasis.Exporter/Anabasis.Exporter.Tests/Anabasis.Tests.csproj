@@ -22,6 +22,9 @@
     <PackageReference Include="NUnit" Version="3.13.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.17.0" />
     <PackageReference Include="Scrutor" Version="3.3.0" />
+    <PackageReference Include="Serilog.Extensions.Logging" Version="3.0.1" />
+    <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
+    <PackageReference Include="Serilog.Sinks.InMemory" Version="0.6.0" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
     <PackageReference Include="Docker.DotNet" Version="3.125.2" />
   </ItemGroup>

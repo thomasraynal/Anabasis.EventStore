@@ -1,4 +1,5 @@
 using EventStore.ClientAPI;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -13,7 +14,7 @@ namespace Anabasis.EventStore.Infrastructure.Queue.PersistentQueue
     public PersistentSubscriptionEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
       PersistentSubscriptionEventStoreQueueConfiguration persistentEventStoreQueueConfiguration,
       IEventTypeProvider eventTypeProvider,
-      Microsoft.Extensions.Logging.ILogger logger = null) : base(connectionMonitor, persistentEventStoreQueueConfiguration, eventTypeProvider, logger)
+      ILogger<PersistentSubscriptionEventStoreQueue> logger = null) : base(connectionMonitor, persistentEventStoreQueueConfiguration, eventTypeProvider, logger)
     {
       _persistentEventStoreQueueConfiguration = persistentEventStoreQueueConfiguration;
 

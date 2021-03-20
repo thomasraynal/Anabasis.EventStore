@@ -9,4 +9,8 @@ namespace Anabasis.EventStore.Infrastructure
     Type[] GetAll();
     Type GetEventTypeByName(string name);
   }
+
+  public interface IEventTypeProvider<TKey, TAggregate> : IEventTypeProvider
+  {
+  }
 }

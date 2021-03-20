@@ -1,9 +1,7 @@
-using Anabasis.Actor;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Infrastructure;
 using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
 using Anabasis.EventStore.Infrastructure.Repository;
-using Anabasis.Tests.Components;
 using DynamicData;
 using DynamicData.Binding;
 using EventStore.ClientAPI;
@@ -11,52 +9,54 @@ using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
 using EventStore.Common.Options;
 using EventStore.Core;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
+using Serilog;
+using Serilog.Configuration;
+using Serilog.Core;
+using Serilog.Events;
+using Serilog.Sinks.InMemory;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests
 {
-  public class TestAggregateActor : BaseAggregateActor<Guid, SomeDataAggregate<Guid>>
+  public class TestSink : ILogEventSink
   {
-    public TestAggregateActor(CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
-      IEventStoreAggregateRepository<Guid> eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
+
+    public List<LogEvent> Logs = new List<LogEvent>();
+
+    public void Emit(LogEvent logEvent)
     {
-      Events = new List<SomeRandomEvent>();
+      Logs.Add(logEvent);
     }
+  }
 
-    public List<SomeRandomEvent> Events { get; }
+  public static class SinkExtensions
+  {
+    public static TestSink TestSink = new TestSink();
 
-    public Task Handle(SomeRandomEvent someMoreData)
+    public static LoggerConfiguration UseTestSink(
+              this LoggerSinkConfiguration loggerConfiguration)
     {
-      Events.Add(someMoreData);
-
-      return Task.CompletedTask;
+      return loggerConfiguration.Sink(TestSink);
     }
-
-    public override void Dispose()
-    {
-      base.Dispose();
-    }
-
   }
 
   [TestFixture]
-  public class TestAggregateActors
+  public class TestLogging
   {
-
     private UserCredentials _userCredentials;
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
 
     private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
-    private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheTwo;
+    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) _repositoryOne;
 
-    private Guid _firstAggregateId = Guid.NewGuid();
-
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) _eventRepository;
-    private TestAggregateActor _testActorOne;
+    private Guid _firstAggregateId;
+    private ILoggerFactory _loggerFactory;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -74,6 +74,16 @@ namespace Anabasis.Tests
         .Build();
 
       await _clusterVNode.StartAsync(true);
+
+      Log.Logger = new LoggerConfiguration()
+        .MinimumLevel.Debug()
+        .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
+        .WriteTo.Debug()
+        .WriteTo.UseTestSink()
+        .CreateLogger();
+
+      _loggerFactory = new LoggerFactory();
+      _loggerFactory.AddSerilog(Log.Logger);
 
     }
 
@@ -93,7 +103,8 @@ namespace Anabasis.Tests
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }));
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }),
+        logger: _loggerFactory.CreateLogger<CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>>());
 
       return (connectionMonitor, eventStoreRepository);
     }
@@ -102,7 +113,7 @@ namespace Anabasis.Tests
     {
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-      var connectionMonitor = new ConnectionStatusMonitor(connection);
+      var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory.CreateLogger<ConnectionStatusMonitor>());
 
       var cacheConfiguration = new CatchupEventStoreCacheConfiguration<Guid, SomeDataAggregate<Guid>>(_userCredentials)
       {
@@ -114,7 +125,8 @@ namespace Anabasis.Tests
       var catchUpCache = new CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>(
         connectionMonitor,
         cacheConfiguration,
-       new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }));
+       new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }),
+       logger: _loggerFactory.CreateLogger<CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>>());
 
       var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<Guid>>();
 
@@ -127,33 +139,29 @@ namespace Anabasis.Tests
 
     }
 
+
     [Test, Order(0)]
-    public async Task ShouldCreateAnActor()
+    public async Task ShouldCreateAndRunACatchupEventStoreCacheAndLogSomething()
     {
-      _eventRepository = CreateEventRepository();
-      _cacheOne = CreateCatchupEventStoreCache();
+       _cacheOne = CreateCatchupEventStoreCache();
+      _repositoryOne = CreateEventRepository();
 
       await Task.Delay(100);
 
-      _testActorOne = new TestAggregateActor(_cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
+      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
+      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
+      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
 
-      Assert.NotNull(_testActorOne);
-    }
+      await Task.Delay(500);
 
-    [Test, Order(1)]
-    public async Task ShouldEmitEventsAndUpdateCache()
-    {
+      Assert.IsTrue(SinkExtensions.TestSink.Logs.Count > 0);
 
-      await _testActorOne.EmitEntityEvent(new SomeData<Guid>(_firstAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
 
-      await Task.Delay(100);
+      await Task.Delay(500);
 
-      var current = _testActorOne.State.GetCurrent(_firstAggregateId);
-
-      Assert.NotNull(current);
-      Assert.AreEqual(1, current.AppliedEvents.Length);
-
+      Assert.IsTrue(SinkExtensions.TestSink.Logs.Any(Log => Log.MessageTemplate.Text.Contains("OnEvent")));
+      Assert.IsTrue(SinkExtensions.TestSink.Logs.Any(Log=> Log.MessageTemplate.Text.Contains("OnResolvedEvent")));
     }
   }
 }
-

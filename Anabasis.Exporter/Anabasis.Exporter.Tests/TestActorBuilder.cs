@@ -91,7 +91,6 @@ namespace Anabasis.Tests
   public class TestActorBuilder
   {
 
-    private DebugLogger _debugLogger;
     private UserCredentials _userCredentials;
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
@@ -106,7 +105,6 @@ namespace Anabasis.Tests
     public async Task Setup()
     {
 
-      _debugLogger = new DebugLogger();
       _userCredentials = new UserCredentials("admin", "changeit");
       _connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
 
@@ -160,7 +158,7 @@ namespace Anabasis.Tests
     {
 
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
 
       var eventProvider = new ConsumerBasedEventProvider<TestActorAutoBuildOne>();
 
@@ -170,24 +168,21 @@ namespace Anabasis.Tests
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeMoreData), typeof(AgainSomeMoreData) }),
-        _debugLogger);
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeMoreData), typeof(AgainSomeMoreData) }));
 
       var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(_streamId, _groupIdOne, _userCredentials);
 
       var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
         connectionMonitor,
         persistentEventStoreQueueConfiguration,
-        eventProvider,
-        _debugLogger);
+        eventProvider);
 
       var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
       var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         connectionMonitor,
         volatileEventStoreQueueConfiguration,
-        eventProvider,
-        _debugLogger);
+        eventProvider);
 
       var testActorAutoBuildOne = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency());
       var testActorAutoBuildTwo = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency());

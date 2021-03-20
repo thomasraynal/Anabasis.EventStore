@@ -1,9 +1,9 @@
 using System;
 using EventStore.ClientAPI;
 using System.Threading.Tasks;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 {
@@ -14,10 +14,10 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
     public SingleStreamCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
-      IEventTypeProvider eventTypeProvider,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
       ISnapshotStrategy<TKey> snapshotStrategy = null,
-      ILogger logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
+      ILogger<SingleStreamCatchupEventStoreCache<TKey, TAggregate>> logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
     {
       _singleStreamCatchupEventStoreCacheConfiguration = cacheConfiguration;
 

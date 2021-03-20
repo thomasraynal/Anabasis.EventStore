@@ -13,19 +13,19 @@ namespace Anabasis.EventStore.Infrastructure.Cache
   public abstract class BaseEventStoreCache<TKey, TAggregate> : IDisposable, IEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
     protected readonly IEventStoreCacheConfiguration<TKey, TAggregate> _eventStoreCacheConfiguration;
-    protected readonly IEventTypeProvider _eventTypeProvider;
+    protected readonly IEventTypeProvider<TKey, TAggregate> _eventTypeProvider;
     protected readonly ISnapshotStrategy<TKey> _snapshotStrategy;
     protected readonly ISnapshotStore<TKey, TAggregate> _snapshotStore;
 
     private readonly IConnectionStatusMonitor _connectionMonitor;
-
-    private readonly ILogger _logger;
 
     private IDisposable _eventStoreConnectionStatus;
     private IDisposable _eventStreamConnectionDisposable;
     private readonly IDisposable _isStaleDisposable;
 
     private DateTime _lastProcessedEventUtcTimestamp;
+
+    protected ILogger Logger { get; }
 
     protected SourceCache<TAggregate, TKey> Cache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
 
@@ -68,77 +68,76 @@ namespace Anabasis.EventStore.Infrastructure.Cache
 
     public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
-      IEventTypeProvider eventTypeProvider,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
       ISnapshotStrategy<TKey> snapshotStrategy = null,
       ILogger logger = null)
     {
-
-      _logger = logger ?? new DummyLogger();
 
       _eventStoreCacheConfiguration = cacheConfiguration;
       _eventTypeProvider = eventTypeProvider;
       _connectionMonitor = connectionMonitor;
       _snapshotStrategy = snapshotStrategy;
       _snapshotStore = snapshotStore;
-
       _lastProcessedEventUtcTimestamp = DateTime.MinValue;
+
+      Logger = logger;
 
       ConnectionStatusSubject = new BehaviorSubject<bool>(false);
 
       IsCaughtUpSubject = new BehaviorSubject<bool>(false);
       IsStaleSubject = new BehaviorSubject<bool>(true);
 
-       _isStaleDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ =>
-      {
-        if (DateTime.UtcNow > _lastProcessedEventUtcTimestamp.Add(_eventStoreCacheConfiguration.IsStaleTimeSpan))
-        {
-          IsStaleSubject.OnNext(true);
-        }
+      _isStaleDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ =>
+     {
+       if (DateTime.UtcNow > _lastProcessedEventUtcTimestamp.Add(_eventStoreCacheConfiguration.IsStaleTimeSpan))
+       {
+         IsStaleSubject.OnNext(true);
+       }
 
-      });
+     });
 
     }
 
     protected void InitializeAndRun()
     {
 
-      _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe( connectionChanged =>
-      {
-        ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);
+      _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
+     {
+       ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);
 
-        if (connectionChanged.IsConnected)
-        {
+       if (connectionChanged.IsConnected)
+       {
 
-          OnLoadSnapshot();
+         OnLoadSnapshot();
 
-          OnInitialize(connectionChanged.IsConnected);
+         OnInitialize(connectionChanged.IsConnected);
 
-          _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
-              .Subscribe(@event =>
-              {
-                OnResolvedEvent(@event);
+         _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
+             .Subscribe(@event =>
+             {
+               OnResolvedEvent(@event);
 
-                if (IsStale) IsStaleSubject.OnNext(false);
+               if (IsStale) IsStaleSubject.OnNext(false);
 
-                LastProcessedEventSequenceNumber = @event.Event.EventNumber;
-                _lastProcessedEventUtcTimestamp = DateTime.UtcNow;
+               LastProcessedEventSequenceNumber = @event.Event.EventNumber;
+               _lastProcessedEventUtcTimestamp = DateTime.UtcNow;
 
-              });
+             });
 
-        }
-        else
-        {
+       }
+       else
+       {
 
-          if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
+         if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
 
-          if (IsCaughtUp)
-          {
-            IsCaughtUpSubject.OnNext(false);
-          }
+         if (IsCaughtUp)
+         {
+           IsCaughtUpSubject.OnNext(false);
+         }
 
-        }
-      });
+       }
+     });
     }
 
     protected abstract IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection);
@@ -188,7 +187,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache
     protected void UpdateCacheState(ResolvedEvent resolvedEvent, SourceCache<TAggregate, TKey> specificCache = null)
     {
       var recordedEvent = resolvedEvent.Event;
-      
+
       var cache = specificCache ?? Cache;
 
       var @event = DeserializeEvent(recordedEvent);

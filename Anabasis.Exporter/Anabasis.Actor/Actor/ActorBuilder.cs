@@ -10,7 +10,6 @@ using EventStore.Core;
 using Lamar;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.Actor.Actor
 {
@@ -93,8 +92,7 @@ namespace Anabasis.Actor.Actor
       var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         _connectionMonitor,
         volatileEventStoreQueueConfiguration,
-        eventProvider,
-        _logger);
+        eventProvider);
 
       _queuesToRegisterTo.Add(volatileEventStoreQueue);
 
@@ -110,8 +108,7 @@ namespace Anabasis.Actor.Actor
       var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
         _connectionMonitor,
         volatileEventStoreQueueConfiguration,
-        eventProvider,
-        _logger);
+        eventProvider);
 
       _queuesToRegisterTo.Add(volatileEventStoreQueue);
 
@@ -127,8 +124,7 @@ namespace Anabasis.Actor.Actor
       var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
         _connectionMonitor,
         persistentEventStoreQueueConfiguration,
-        eventProvider,
-        _logger);
+        eventProvider);
 
       _queuesToRegisterTo.Add(persistentSubscriptionEventStoreQueue);
 

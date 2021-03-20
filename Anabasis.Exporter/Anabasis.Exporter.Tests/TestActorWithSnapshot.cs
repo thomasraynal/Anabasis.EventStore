@@ -51,7 +51,6 @@ namespace Anabasis.Tests
   public class TestActorWithSnapshot
   {
 
-    private DebugLogger _debugLogger;
     private UserCredentials _userCredentials;
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
@@ -71,7 +70,6 @@ namespace Anabasis.Tests
     public async Task Setup()
     {
 
-      _debugLogger = new DebugLogger();
       _userCredentials = new UserCredentials("admin", "changeit");
       _connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
 
@@ -97,14 +95,13 @@ namespace Anabasis.Tests
     {
       var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials);
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
 
       var eventStoreRepository = new EventStoreAggregateRepository<Guid>(
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }),
-        _debugLogger);
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }));
 
       return (connectionMonitor, eventStoreRepository);
     }
@@ -113,7 +110,7 @@ namespace Anabasis.Tests
     {
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
 
       var cacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<Guid, SomeDataAggregate<Guid>>($"{_firstAggregateId}", _userCredentials)
       {
@@ -131,7 +128,7 @@ namespace Anabasis.Tests
         cacheConfiguration,
         snapshotStore: inMemorySnapshotStore,
         snapshotStrategy: defaultSnapshotStrategy,
-        eventTypeProvider: new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }));
+        eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }));
 
       var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<Guid>>();
 

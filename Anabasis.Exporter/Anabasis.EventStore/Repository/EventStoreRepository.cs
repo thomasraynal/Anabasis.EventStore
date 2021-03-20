@@ -29,8 +29,6 @@ namespace Anabasis.EventStore
         Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
-      _logger = logger ?? new DummyLogger();
-
       _eventStoreRepositoryConfiguration = eventStoreRepositoryConfiguration;
       _eventStoreConnection = eventStoreConnection;
       _eventTypeProvider = eventTypeProvider;

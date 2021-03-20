@@ -19,7 +19,6 @@ namespace Anabasis.Tests
   [TestFixture]
   public class TestSingleStreamCatchUpCache
   {
-    private DebugLogger _debugLogger;
     private UserCredentials _userCredentials;
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
@@ -34,7 +33,6 @@ namespace Anabasis.Tests
     public async Task Setup()
     {
 
-      _debugLogger = new DebugLogger();
       _userCredentials = new UserCredentials("admin", "changeit");
       _connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepReconnecting().KeepRetrying().Build();
 
@@ -60,14 +58,13 @@ namespace Anabasis.Tests
     {
       var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials);
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
 
       var eventStoreRepository = new EventStoreAggregateRepository<string>(
         eventStoreRepositoryConfiguration,
         connection,
         connectionMonitor,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }),
-        _debugLogger);
+        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }));
 
       return (connectionMonitor, eventStoreRepository);
     }
@@ -76,7 +73,7 @@ namespace Anabasis.Tests
     {
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _debugLogger);
+      var connectionMonitor = new ConnectionStatusMonitor(connection);
 
       var cacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<string, SomeDataAggregate<string>>(streamId, _userCredentials)
       {
@@ -87,7 +84,7 @@ namespace Anabasis.Tests
       var catchUpCache = new SingleStreamCatchupEventStoreCache<string, SomeDataAggregate<string>>(
         connectionMonitor,
         cacheConfiguration,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<string>) }));
+        new DefaultEventTypeProvider<string, SomeDataAggregate<string>>(() => new[] { typeof(SomeData<string>) }));
 
       var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<string>>();
 

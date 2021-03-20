@@ -4,7 +4,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
 {
@@ -15,11 +15,11 @@ namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
 
     public SubscribeFromEndEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       SubscribeFromEndCacheConfiguration<TKey, TAggregate> volatileEventStoreCacheConfiguration,
-      IEventTypeProvider eventTypeProvider,
-      ILogger logger = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, null, null, logger)
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+      ILogger<SubscribeFromEndEventStoreCache<TKey, TAggregate>> logger = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, null, null, logger)
     {
       _volatileEventStoreCacheConfiguration = volatileEventStoreCacheConfiguration;
-
+      
       InitializeAndRun();
     }
 

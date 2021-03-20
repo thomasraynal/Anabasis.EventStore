@@ -38,7 +38,7 @@ namespace Anabasis.EventStore.Infrastructure
     }
   }
 
-  public class ServiceCollectionEventTypeProvider<TKey, TAggregate> : IEventTypeProvider where TAggregate : IAggregate<TKey>
+  public class ServiceCollectionEventTypeProvider<TKey, TAggregate> : IEventTypeProvider<TKey,TAggregate> where TAggregate : IAggregate<TKey>
   {
     private readonly Dictionary<string, Type> _eventTypeCache;
     private readonly IServiceProvider _serviceProvider;

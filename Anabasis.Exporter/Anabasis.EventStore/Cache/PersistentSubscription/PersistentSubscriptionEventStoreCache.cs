@@ -3,8 +3,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using EventStore.ClientAPI;
 using System.Threading.Tasks;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 using Anabasis.EventStore.Infrastructure.Cache;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Infrastructure
 {
@@ -14,8 +14,8 @@ namespace Anabasis.EventStore.Infrastructure
 
     public PersistentSubscriptionEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       PersistentSubscriptionCacheConfiguration<TKey, TAggregate> persistentSubscriptionCacheConfiguration,
-      IEventTypeProvider eventTypeProvider,
-      ILogger logger = null) : base(connectionMonitor, persistentSubscriptionCacheConfiguration, eventTypeProvider, null, null, logger)
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+      ILogger<PersistentSubscriptionEventStoreCache<TKey, TAggregate>> logger = null) : base(connectionMonitor, persistentSubscriptionCacheConfiguration, eventTypeProvider, null, null, logger)
     {
       _persistentSubscriptionCacheConfiguration = persistentSubscriptionCacheConfiguration;
 

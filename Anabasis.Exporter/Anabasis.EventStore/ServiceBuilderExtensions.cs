@@ -29,8 +29,7 @@ namespace Anabasis.EventStore
       var catchupEventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TAggregate>(userCredentials);
       cacheBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-      //todo: managed shared typeeventprovider between different aggregate cache
-      services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
+      services.AddTransient<IEventTypeProvider<TKey, TAggregate>,ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
       services.AddSingleton(catchupEventStoreCacheConfiguration);
       services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
       services.AddTransient<CatchupEventStoreCache<TKey, TAggregate>>();

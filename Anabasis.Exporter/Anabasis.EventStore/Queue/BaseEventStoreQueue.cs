@@ -27,8 +27,6 @@ namespace Anabasis.EventStore.Infrastructure.Queue
       ILogger logger = null)
     {
 
-      _logger = logger ?? new DummyLogger();
-
       _eventStoreQueueConfiguration = cacheConfiguration;
       _eventTypeProvider = eventTypeProvider;
       _connectionMonitor = connectionMonitor;

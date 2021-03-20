@@ -85,7 +85,7 @@ namespace Anabasis.Tests.Demo
 
                       foreach (var blob in obs)
                       {
-                          _logger.LogInformation($"{blob.Current}");
+                          _logger?.LogInformation($"{blob.Current}");
                       }
 
                   });

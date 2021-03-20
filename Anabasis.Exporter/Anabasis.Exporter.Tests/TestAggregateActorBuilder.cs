@@ -74,7 +74,6 @@ namespace Anabasis.Tests
   [TestFixture]
   public class TestAggregateActorBuilder
   {
-    private DebugLogger _debugLogger;
     private UserCredentials _userCredentials;
     private ConnectionSettings _connectionSettings;
     private ClusterVNode _clusterVNode;
@@ -89,7 +88,6 @@ namespace Anabasis.Tests
     public async Task Setup()
     {
 
-      _debugLogger = new DebugLogger();
       _userCredentials = new UserCredentials("admin", "changeit");
       _connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
 
@@ -145,7 +143,7 @@ namespace Anabasis.Tests
       var testActorAutoBuildOne = AggregateActorBuilder<TestAggregateActorOne, Guid, SomeDataAggregate<Guid>, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
                                                                                    .WithReadAllFromStartCache(
                                                                                       catchupEventStoreCacheConfigurationBuilder: (conf)=> conf.KeepAppliedEventsOnAggregate = true,
-                                                                                      eventTypeProvider: new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }))
+                                                                                      eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }))
                                                                                    .WithSubscribeToAllQueue()
                                                                                    .WithPersistentSubscriptionQueue(_streamId2, _groupIdOne)
                                                                                    .Build();
@@ -153,7 +151,7 @@ namespace Anabasis.Tests
       var testActorAutoBuildTwo = AggregateActorBuilder<TestAggregatedActorTwo, Guid, SomeDataAggregate<Guid>, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
                                                                                    .WithReadAllFromStartCache(
                                                                                       catchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
-                                                                                      eventTypeProvider: new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }))
+                                                                                      eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }))
                                                                                    .Build();
 
       await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));

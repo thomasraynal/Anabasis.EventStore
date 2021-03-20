@@ -2,6 +2,7 @@ using Anabasis.EventStore.Cache.CatchupSubscription;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using EventStore.ClientAPI;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -15,7 +16,12 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
   {
     protected SourceCache<TAggregate, TKey> CaughtingUpCache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
 
-    protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor, IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration, IEventTypeProvider eventTypeProvider, ISnapshotStore<TKey, TAggregate> snapshotStore = null, ISnapshotStrategy<TKey> snapshotStrategy = null, ILogger logger = null) :
+    protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
+      IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+      ISnapshotStore<TKey, TAggregate> snapshotStore = null,
+      ISnapshotStrategy<TKey> snapshotStrategy = null,
+      ILogger logger = null) :
       base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
     {
     }
@@ -33,35 +39,26 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
 
       async  Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
         {
-          try
+
+          Logger.Log(LogLevel.Information, $"OnEvent => {@event.Event.EventType} - v.{@event.Event.EventNumber}");
+
+          obs.OnNext(@event);
+
+          if (_eventStoreCacheConfiguration.UseSnapshot)
           {
-
-            obs.OnNext(@event);
-
-            if (_eventStoreCacheConfiguration.UseSnapshot)
+            foreach (var aggregate in Cache.Items)
             {
-              foreach (var aggregate in Cache.Items)
+              if (_snapshotStrategy.IsSnapShotRequired(aggregate))
               {
-                if (_snapshotStrategy.IsSnapShotRequired(aggregate))
-                {
 
-                  var eventFilter = GetEventsFilters();
+                var eventFilter = GetEventsFilters();
 
-                  aggregate.VersionSnapshot = aggregate.Version;
+                aggregate.VersionSnapshot = aggregate.Version;
 
-                  await _snapshotStore.Save(eventFilter, aggregate);
+                await _snapshotStore.Save(eventFilter, aggregate);
 
-                }
               }
             }
-
-          }
-
-          catch (Exception ex)
-          {
-            var eventProcessingException = new EventProcessingException($"An error occured while processing the event {@event.OriginalEvent.EventType}", ex);
-            eventProcessingException.Data["event"] = @event;
-            throw eventProcessingException;
           }
         }
 

@@ -1,10 +1,9 @@
 using EventStore.ClientAPI;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue
 {
@@ -16,7 +15,7 @@ namespace Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue
       IConnectionStatusMonitor connectionMonitor,
       SubscribeFromEndToOneStreamEventStoreQueueConfiguration VolatileSubscribeToOneStreamEventStoreQueueConfiguration,
       IEventTypeProvider eventTypeProvider,
-      ILogger logger = null)
+      ILogger<SubscribeFromEndToOneStreamEventStoreQueue> logger = null)
       : base(connectionMonitor, VolatileSubscribeToOneStreamEventStoreQueueConfiguration, eventTypeProvider, logger)
     {
       _volatileSubscribeToOneStreamEventStoreQueueConfiguration = VolatileSubscribeToOneStreamEventStoreQueueConfiguration;

@@ -25,9 +25,9 @@ namespace Anabasis.Tests.Integration
     [OneTimeSetUp]
     public async Task SetUp()
     {
-      //_dockerEventStoreFixture = new DockerEventStoreFixture();
+      _dockerEventStoreFixture = new DockerEventStoreFixture();
 
-      //await _dockerEventStoreFixture.Initialize();
+      await _dockerEventStoreFixture.Initialize();
     }
 
     [Test]
@@ -36,12 +36,11 @@ namespace Anabasis.Tests.Integration
 
       var url = "tcp://admin:changeit@localhost:1113";
 
-      var debugLogger = new DebugLogger();
       var userCredentials = new UserCredentials("admin", "changeit");
       var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().DisableTls().Build();
 
 
-      var defaultEventTypeProvider = new DefaultEventTypeProvider(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged)});
+      var defaultEventTypeProvider = new DefaultEventTypeProvider<string, CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged)});
 
       var traderOne = AggregateActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, userCredentials, connectionSettings, eventTypeProvider: defaultEventTypeProvider)
                                                                                         .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
@@ -77,7 +76,7 @@ namespace Anabasis.Tests.Integration
     [OneTimeTearDown]
     public async Task TearDown()
     {
-      //await _dockerEventStoreFixture.Dispose();
+      await _dockerEventStoreFixture.Dispose();
     }
 
   }

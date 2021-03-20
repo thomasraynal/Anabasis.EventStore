@@ -41,7 +41,7 @@ namespace Anabasis.Tests.Demo
                  {
                      foreach (var item in obs)
                      {
-                       _logger.LogInformation($"{item.Reason} - {item.Current.ToString()}");
+                       _logger?.LogInformation($"{item.Reason} - {item.Current.ToString()}");
                      }
 
                  });
@@ -64,7 +64,7 @@ namespace Anabasis.Tests.Demo
                  })
                   .Subscribe(state =>
                   {
-                      _logger.LogInformation(state.ToString());
+                      _logger?.LogInformation(state.ToString());
                   }
                 );
      
@@ -77,7 +77,7 @@ namespace Anabasis.Tests.Demo
                     var isOutStandingDeletion = changed.Count() > 1;
                     if (isOutStandingDeletion)
                     {
-                       _logger.LogInformation("That is a lot of deletion!");
+                       _logger?.LogInformation("That is a lot of deletion!");
                     }
                 });
 
