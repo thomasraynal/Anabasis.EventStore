@@ -40,7 +40,7 @@ namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
       async  Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
         {
 
-          Logger.Log(LogLevel.Information, $"OnEvent => {@event.Event.EventType} - v.{@event.Event.EventNumber}");
+          Logger?.Log(LogLevel.Information, $"OnEvent => {@event.Event.EventType} - v.{@event.Event.EventNumber}");
 
           obs.OnNext(@event);
 

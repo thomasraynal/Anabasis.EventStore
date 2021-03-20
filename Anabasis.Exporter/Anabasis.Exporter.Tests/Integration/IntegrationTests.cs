@@ -59,11 +59,11 @@ namespace Anabasis.Tests.Integration
 
       Assert.IsTrue(traderTwo.State.IsConnected);
 
-      await Task.Delay(2000);
+      await Task.Delay(4000);
 
-      var eurodolOne = traderTwo.State.GetCurrent("EUR/USD");
+      var eurodolOne = traderOne.State.GetCurrent("EUR/USD");
       var eurodolTwo = traderTwo.State.GetCurrent("EUR/USD");
-      var chunnelOne = traderTwo.State.GetCurrent("EUR/GBP");
+      var chunnelOne = traderOne.State.GetCurrent("EUR/GBP");
       var chunnelTwo = traderTwo.State.GetCurrent("EUR/GBP");
 
       Assert.Greater(eurodolOne.AppliedEvents.Length, 0);
