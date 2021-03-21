@@ -8,6 +8,7 @@ using EventStore.ClientAPI.SystemData;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -26,21 +27,6 @@ namespace Anabasis.Tests.Integration
     private DockerEventStoreFixture _dockerEventStoreFixture;
     private readonly IPEndPoint _httpEndpoint = new IPEndPoint(IPAddress.Loopback, 2113);
 
-
-    class DummyLogger : ILogger
-    {
-      public void Error(string format, params object[] args)
-      { }
-      public void Error(Exception ex, string format, params object[] args)
-      { }
-      public void Debug(string format, params object[] args) { }
-      public void Debug(Exception ex, string format, params object[] args) { }
-      public void Info(string format, params object[] args)
-      { }
-      public void Info(Exception ex, string format, params object[] args)
-      { }
-    }
-
     [OneTimeSetUp]
     public async Task SetUp()
     {
@@ -49,7 +35,7 @@ namespace Anabasis.Tests.Integration
       await _dockerEventStoreFixture.Initialize();
     }
 
-    [Test]
+    [Test, Order(1)]
     public async Task ShouldRunAnIntegrationScenario()
     {
 
@@ -57,24 +43,6 @@ namespace Anabasis.Tests.Integration
 
       var userCredentials = new UserCredentials("admin", "changeit");
       var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().DisableTls().Build();
-
-
-
-      //var projectionsManager = new ProjectionsManager(
-      //    log: new ConsoleLogger(),
-      //    httpEndPoint: new IPEndPoint(IPAddress.Loopback, 2113),
-      //    operationTimeout: TimeSpan.FromMilliseconds(5000),
-      //    httpSchema: "http"
-      //);
-
-      //await Task.Delay(5000);
-
-      //var testProjection = File.ReadAllText("./Projections/testProjection.js");
-
-      //var all = await projectionsManager.ListAllAsync();
-
-      //await projectionsManager.CreateTransientAsync("countOf", testProjection, userCredentials);
-
 
 
       var defaultEventTypeProvider = new DefaultEventTypeProvider<string, CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged)});
@@ -109,6 +77,7 @@ namespace Anabasis.Tests.Integration
       Assert.Greater(chunnelTwo.AppliedEvents.Length, 0);
 
     }
+
 
     [OneTimeTearDown]
     public async Task TearDown()
