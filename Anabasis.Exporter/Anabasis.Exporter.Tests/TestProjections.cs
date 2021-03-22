@@ -74,7 +74,7 @@ namespace Anabasis.Tests
       return (connectionMonitor, eventStoreRepository);
     }
 
-    [Test, Order(0)]
+   // [Test, Order(0)]
     public async Task ShouldExecuteAQueryOnStream()
     {
 

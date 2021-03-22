@@ -59,13 +59,15 @@ namespace Anabasis.Tests.Integration
 
       Assert.Greater(allOne.Length, 0);
 
-      var projectionName = "countOf";
-
-      await eventStoreProjectionManagementClient.CreateTransientAsync(projectionName, testProjection, userCredentials);
+      await eventStoreProjectionManagementClient.CreateOneTimeAsync(testProjection, userCredentials);
 
       var allTwo = await eventStoreProjectionManagementClient.ListAllAsync().ToArrayAsync();
 
       Action<ResolvedEvent> handler =(ev)=> { };
+
+      var oneTimeSubs = await eventStoreProjectionManagementClient.ListOneTimeAsync().ToArrayAsync();
+
+      var subName = oneTimeSubs.First().Name;
 
       Assert.AreEqual(allTwo.Length, allOne.Length + 1);
 
@@ -75,7 +77,7 @@ namespace Anabasis.Tests.Integration
       do
       {
         await Task.Delay(50);
-        projectionDetails = await eventStoreProjectionManagementClient.GetStatusAsync(projectionName);
+        projectionDetails = await eventStoreProjectionManagementClient.GetStatusAsync(subName);
         isCompleted = projectionDetails.IsCompletedWithResults();
         if (!isCompleted) await Task.Delay(200);
       } while (!isCompleted && timeout > DateTime.UtcNow);
@@ -95,7 +97,7 @@ namespace Anabasis.Tests.Integration
       await connection.ConnectAsync();
 
       var subscription = connection.SubscribeToStreamFrom(
-          $"$projections-{projectionDetails.Name}-result",
+          $"$projections-{subName}-result",
           StreamCheckpoint.StreamStart,
           new CatchUpSubscriptionSettings(maxLiveQueueSize: CatchUpSubscriptionSettings.Default.MaxLiveQueueSize, readBatchSize: CatchUpSubscriptionSettings.Default.ReadBatchSize, verboseLogging: CatchUpSubscriptionSettings.Default.VerboseLogging, resolveLinkTos: false),
           (sub, ev) =>
@@ -124,7 +126,9 @@ namespace Anabasis.Tests.Integration
         subscription.Stop();
       }
 
-  
+
+
+
 
     }
 

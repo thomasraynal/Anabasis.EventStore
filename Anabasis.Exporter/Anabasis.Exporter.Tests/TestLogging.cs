@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Tests
 {
-  public class TestSink : ILogEventSink
+  public class SerilogTestSink : ILogEventSink
   {
 
     public List<LogEvent> Logs = new List<LogEvent>();
@@ -36,12 +36,12 @@ namespace Anabasis.Tests
 
   public static class SinkExtensions
   {
-    public static TestSink TestSink = new TestSink();
+    public static SerilogTestSink SerilogTestSink = new SerilogTestSink();
 
-    public static LoggerConfiguration UseTestSink(
+    public static LoggerConfiguration TestSink(
               this LoggerSinkConfiguration loggerConfiguration)
     {
-      return loggerConfiguration.Sink(TestSink);
+      return loggerConfiguration.Sink(SerilogTestSink);
     }
   }
 
@@ -55,7 +55,6 @@ namespace Anabasis.Tests
     private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) _repositoryOne;
 
-    private Guid _firstAggregateId;
     private ILoggerFactory _loggerFactory;
 
     [OneTimeSetUp]
@@ -79,7 +78,7 @@ namespace Anabasis.Tests
         .MinimumLevel.Debug()
         .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
         .WriteTo.Debug()
-        .WriteTo.UseTestSink()
+        .WriteTo.TestSink()
         .CreateLogger();
 
       _loggerFactory = new LoggerFactory();
@@ -154,14 +153,14 @@ namespace Anabasis.Tests
 
       await Task.Delay(500);
 
-      Assert.IsTrue(SinkExtensions.TestSink.Logs.Count > 0);
+      Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Count > 0);
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(Guid.NewGuid()));
 
       await Task.Delay(500);
 
-      Assert.IsTrue(SinkExtensions.TestSink.Logs.Any(Log => Log.MessageTemplate.Text.Contains("OnEvent")));
-      Assert.IsTrue(SinkExtensions.TestSink.Logs.Any(Log=> Log.MessageTemplate.Text.Contains("OnResolvedEvent")));
+      Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Any(Log => Log.MessageTemplate.Text.Contains("OnEvent")));
+      Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Any(Log=> Log.MessageTemplate.Text.Contains("OnResolvedEvent")));
     }
   }
 }
