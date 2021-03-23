@@ -12,5 +12,7 @@ namespace Anabasis.Common.Events
     }
 
     public Guid ExportId => CorrelationID;
+
+    public abstract string Log();
   }
 }

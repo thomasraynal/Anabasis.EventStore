@@ -155,7 +155,7 @@ namespace Anabasis.Tests
 
       Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Count > 0);
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(Guid.NewGuid()));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(Guid.NewGuid(), Guid.NewGuid()));
 
       await Task.Delay(500);
 

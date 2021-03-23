@@ -169,8 +169,8 @@ namespace Anabasis.Tests
       var aggregateOne = Guid.NewGuid();
       var aggregateTwo = Guid.NewGuid();
 
-      await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateOne));
-      await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateTwo));
+      await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateOne, _correlationId));
+      await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateTwo, _correlationId));
 
       await Task.Delay(500);
 
@@ -180,8 +180,8 @@ namespace Anabasis.Tests
       Assert.AreEqual(1, testActorAutoBuildOne.State.GetCurrent(aggregateOne).AppliedEvents.Length);
       Assert.AreEqual(1, testActorAutoBuildTwo.State.GetCurrent(aggregateTwo).AppliedEvents.Length);
 
-      await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateOne));
-      await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateTwo));
+      await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateOne, _correlationId));
+      await testActorAutoBuildOne.EmitEntityEvent(new SomeData<Guid>(aggregateTwo, _correlationId));
 
       await Task.Delay(100);
 

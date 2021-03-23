@@ -9,6 +9,5 @@ namespace Anabasis.EventStore.Infrastructure
   {
     Guid EventID { get;  }
     Guid CorrelationID { get;  }
-    string Log();
   }
 }

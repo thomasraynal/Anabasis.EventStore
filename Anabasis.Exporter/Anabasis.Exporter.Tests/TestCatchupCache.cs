@@ -120,7 +120,7 @@ namespace Anabasis.Tests
 
      _firstAggregateId = Guid.NewGuid();
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, Guid.NewGuid()));
 
       await Task.Delay(100);
 
@@ -133,7 +133,7 @@ namespace Anabasis.Tests
     public async Task ShouldCreateASecondEventAndUpdateTheAggregate()
     {
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, Guid.NewGuid()));
 
       await Task.Delay(100);
 
@@ -168,7 +168,7 @@ namespace Anabasis.Tests
 
       _secondAggregateId = Guid.NewGuid();
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_secondAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_secondAggregateId, Guid.NewGuid()));
 
       await Task.Delay(100);
 
@@ -197,8 +197,8 @@ namespace Anabasis.Tests
 
       _thirdAggregateId = Guid.NewGuid();
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_thirdAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, Guid.NewGuid()));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_thirdAggregateId, Guid.NewGuid()));
 
       await Task.Delay(100);
 

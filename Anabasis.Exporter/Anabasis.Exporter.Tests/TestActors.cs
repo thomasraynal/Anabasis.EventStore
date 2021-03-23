@@ -24,10 +24,6 @@ namespace Anabasis.Tests
     {
     }
 
-    public override string Log()
-    {
-      throw new NotImplementedException();
-    }
   }
 
   public class SomeCommand : BaseCommand
@@ -35,11 +31,6 @@ namespace Anabasis.Tests
  
     public SomeCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
     {
-    }
-
-    public override string Log()
-    {
-      throw new NotImplementedException();
     }
   }
 

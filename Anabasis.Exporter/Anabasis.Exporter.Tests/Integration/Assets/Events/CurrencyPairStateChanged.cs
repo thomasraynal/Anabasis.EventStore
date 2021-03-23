@@ -1,11 +1,12 @@
 
 using Anabasis.EventStore;
+using System;
 
 namespace Anabasis.Tests.Integration
 {
   public class CurrencyPairStateChanged : BaseAggregateEvent<string, CurrencyPair>
   {
-    public CurrencyPairStateChanged(string ccyPairId, string traderId, CcyPairState state): base(ccyPairId)
+    public CurrencyPairStateChanged(string ccyPairId, string traderId, CcyPairState state): base(ccyPairId, Guid.NewGuid())
     {
       State = state;
       TraderId = traderId;

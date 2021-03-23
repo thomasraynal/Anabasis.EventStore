@@ -12,10 +12,6 @@ namespace Anabasis.Tests
     {
     }
 
-    public override string Log()
-    {
-      return nameof(SomeMoreData);
-    }
   }
 
 
@@ -24,17 +20,12 @@ namespace Anabasis.Tests
     public SomeMoreData(Guid correlationId, string streamId) : base(correlationId, streamId)
     {
     }
-
-    public override string Log()
-    {
-      return nameof(SomeMoreData);
-    }
   }
 
   public class SomeData<TKey> : BaseAggregateEvent<TKey, SomeDataAggregate<TKey>>
   {
 
-    public SomeData(TKey entityId):base(entityId)
+    public SomeData(TKey entityId, Guid correlationId) :base(entityId, correlationId)
     {
       EntityId = entityId;
     }

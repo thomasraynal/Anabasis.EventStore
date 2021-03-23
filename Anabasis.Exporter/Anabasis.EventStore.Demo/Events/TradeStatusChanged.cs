@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Demo.Events
+namespace Anabasis.EventStore.Demo  
 {
   public class TradeStatusChanged : BaseAggregateEvent<long, Trade>
   {
     public TradeStatus Status { get; set; }
 
-    public TradeStatusChanged(long entityId) : base(entityId)
+    public TradeStatusChanged(long entityId, Guid correlationId) : base(entityId, correlationId)
     {
 
     }

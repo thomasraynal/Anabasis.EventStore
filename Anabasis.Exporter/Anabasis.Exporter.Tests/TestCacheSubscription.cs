@@ -127,7 +127,7 @@ namespace Anabasis.Tests
 
       _firstAggregateId = Guid.NewGuid();
       
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, Guid.NewGuid()));
 
       await Task.Delay(100);
 
@@ -155,7 +155,7 @@ namespace Anabasis.Tests
 
       Assert.AreEqual(1, eventCount);
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, Guid.NewGuid()));
 
       await Task.Delay(100);
 
@@ -226,7 +226,7 @@ namespace Anabasis.Tests
       Assert.AreEqual(1, currentState.HitCount);
       Assert.AreEqual(2, currentState.EventCount);
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, Guid.NewGuid()));
 
       await Task.Delay(100);
 

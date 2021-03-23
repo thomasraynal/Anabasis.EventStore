@@ -2,13 +2,13 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Demo.Events
+namespace Anabasis.EventStore.Demo
 {
   public class TradeMarketValueChanged : BaseAggregateEvent<long, Trade>
   {
     public decimal MarketPrice { get; set; }
 
-    public TradeMarketValueChanged(long entityId) : base(entityId)
+    public TradeMarketValueChanged(long entityId, Guid correlationId) : base(entityId, correlationId)
     {
     }
 

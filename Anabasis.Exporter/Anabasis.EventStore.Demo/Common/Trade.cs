@@ -6,29 +6,41 @@ namespace Anabasis.EventStore.Demo
 {
   public class Trade : BaseAggregate<long>
   {
-    public Trade(long id)
+    public Trade()
     {
-      EntityId = id;
     }
 
-    public Trade(long id, string bank, string ccyPair, TradeStatus status, BuyOrSell buySell, decimal tradePrice, int amount) : this(id)
+    public Trade(Trade trade, TradeStatus closed)
+    {
+      EntityId = trade.EntityId;
+      Customer = trade.Customer;
+      CurrencyPair = trade.CurrencyPair;
+      Status = closed;
+      BuyOrSell = trade.BuyOrSell;
+      TradePrice = trade.TradePrice;
+      Amount = trade.Amount;
+      MarketPrice = trade.MarketPrice;
+
+    }
+
+    public Trade(long id, string bank, string ccyPair, TradeStatus status, BuyOrSell buySell, decimal tradePrice, int amount) 
     {
       EntityId = id;
       Customer = bank;
       CurrencyPair = ccyPair;
       Status = status;
-      BuyOrSell = BuyOrSell;
+      BuyOrSell = buySell;
       TradePrice = tradePrice;
       Amount = amount;
     }
 
-    public Trade(long id, string bank, string ccyPair, TradeStatus status, BuyOrSell buySell, decimal tradePrice, int amount, DateTime timeStamp) : this(id)
+    public Trade(long id, string bank, string ccyPair, TradeStatus status, BuyOrSell buySell, decimal tradePrice, int amount, DateTime timeStamp)
     {
       EntityId = id;
       Customer = bank;
       CurrencyPair = ccyPair;
       Status = status;
-      BuyOrSell = BuyOrSell;
+      BuyOrSell = buySell;
       TradePrice = tradePrice;
       Amount = amount;
       Timestamp = timeStamp;
@@ -45,12 +57,6 @@ namespace Anabasis.EventStore.Demo
     public DateTime Timestamp { get; set; }
 
 
-    //public void SetMarketPrice(decimal marketPrice)
-    //{
-    //    MarketPrice = marketPrice;
-    //    PercentFromMarket = Math.Round(((TradePrice - MarketPrice) / MarketPrice) * 100, 4);
-    //    ;
-    //    _marketPriceChangedSubject.OnNext(marketPrice);
-    //}
+
   }
 }

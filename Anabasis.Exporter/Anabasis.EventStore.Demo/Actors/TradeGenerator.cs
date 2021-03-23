@@ -16,18 +16,18 @@ namespace Anabasis.EventStore.Demo
         private readonly object _locker = new object();
         private int _counter = 0;
 
-        public TradeGenerator(IStaticData staticData, IMarketDataService marketDataService)
+        public TradeGenerator(IStaticData staticData)
         {
             _staticData = staticData;
 
             //keep track of the latest price so we can generate trades are a reasonable distance from the market
-            _cleanUp = staticData.CurrencyPairs
-                                    .Select(currencypair => marketDataService.Watch(currencypair.EntityId)).Merge()
-                                    .Synchronize(_locker)
-                                    .Subscribe(md =>
-                                    {
-                                        _latestPrices[md.Instrument] = md;
-                                    });
+            //_cleanUp = staticData.CurrencyPairs
+            //                        .Select(currencypair => marketDataService.Watch(currencypair.EntityId)).Merge()
+            //                        .Synchronize(_locker)
+            //                        .Subscribe(md =>
+            //                        {
+            //                            _latestPrices[md.EntityId] = md;
+            //                        });
         }
 
         public IEnumerable<Trade> Generate(int numberToGenerate, bool initialLoad = false)

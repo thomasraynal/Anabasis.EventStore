@@ -77,6 +77,7 @@ namespace Anabasis.EventStore
 
       _connectionInfoChanged = Observable.Merge(connected, disconnected, reconnecting, closed, errorOccurred, authenticationFailed, _forceConnectionStatus)
                                          .Scan(ConnectionInfo.Initial, UpdateConnectionInfo)
+                                         //this is important
                                          .StartWith(ConnectionInfo.Initial)
                                          .Do(connectionInfo =>
                                          {

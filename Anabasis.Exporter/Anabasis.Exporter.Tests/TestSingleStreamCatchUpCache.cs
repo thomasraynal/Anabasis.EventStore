@@ -115,7 +115,7 @@ namespace Anabasis.Tests
     {
       _repositoryOne = CreateEventRepository();
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId, Guid.NewGuid()));
 
       await Task.Delay(100);
 
@@ -128,7 +128,7 @@ namespace Anabasis.Tests
     public async Task ShouldCreateASecondEventAndUpdateTheAggregate()
     {
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId, Guid.NewGuid()));
 
       await Task.Delay(100);
 
@@ -160,7 +160,7 @@ namespace Anabasis.Tests
     public async Task ShouldEmitOneMoreEvent()
     {
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId, Guid.NewGuid()));
 
       await Task.Delay(100);
 
@@ -187,8 +187,8 @@ namespace Anabasis.Tests
       Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
       Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
 
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId, Guid.NewGuid()));
+      await _repositoryOne.eventStoreRepository.Emit(new SomeData<string>(_streamId, Guid.NewGuid()));
 
       await Task.Delay(100);
 

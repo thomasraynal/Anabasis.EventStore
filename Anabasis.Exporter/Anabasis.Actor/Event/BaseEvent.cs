@@ -21,6 +21,5 @@ namespace Anabasis.Actor
     [JsonProperty]
     public string StreamId { get; internal set; }
 
-    public abstract string Log();
   }
 }

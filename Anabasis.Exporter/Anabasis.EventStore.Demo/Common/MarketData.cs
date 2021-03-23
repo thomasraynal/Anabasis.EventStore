@@ -10,10 +10,17 @@ namespace Anabasis.EventStore.Demo
       EntityId = instrument;
       Bid = bid;
       Offer = offer;
+      TimestampUtc = DateTime.UtcNow;
+    }
+
+    public MarketData()
+    {
+      TimestampUtc = DateTime.UtcNow;
     }
 
     public decimal Bid { get; set; }
     public decimal Offer { get; set; }
+    public DateTime TimestampUtc { get; set; }
 
     #region Equality
 

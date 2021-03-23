@@ -154,7 +154,7 @@ namespace Anabasis.Tests
 
       for (var i = 0; i < _cache.defaultSnapshotStrategy.SnapshotIntervalInEvents; i++)
       {
-        var @event = new SomeData<Guid>(_firstAggregateId);
+        var @event = new SomeData<Guid>(_firstAggregateId, _correlationId);
 
         emitedEvents.Add(@event);
 
@@ -173,7 +173,7 @@ namespace Anabasis.Tests
 
       for (var i = 0; i < _cache.defaultSnapshotStrategy.SnapshotIntervalInEvents; i++)
       {
-        var @event = new SomeData<Guid>(_firstAggregateId);
+        var @event = new SomeData<Guid>(_firstAggregateId, _correlationId);
 
         emitedEvents.Add(@event);
 
@@ -196,7 +196,7 @@ namespace Anabasis.Tests
       Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).Version);
       Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).VersionSnapshot);
 
-      await _eventRepository.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId));
+      await _eventRepository.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, _correlationId));
 
       await Task.Delay(100);
 
