@@ -64,14 +64,14 @@ namespace Anabasis.Actor.Actor
     string eventStoreUrl,
     UserCredentials userCredentials,
     ConnectionSettings connectionSettings,
+    IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
     Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-    IEventTypeProvider<TKey,TAggregate> eventTypeProvider = null,
     Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
       var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
 
-      return CreateInternal(connection, userCredentials, eventStoreRepositoryConfigurationBuilder, eventTypeProvider, logger);
+      return CreateInternal(connection, userCredentials, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
 
     }
 
@@ -79,22 +79,22 @@ namespace Anabasis.Actor.Actor
     public static AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
       UserCredentials userCredentials,
       ConnectionSettings connectionSettings,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null,
       Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
       var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
-      return CreateInternal(connection, userCredentials, eventStoreRepositoryConfigurationBuilder, eventTypeProvider, logger);
+      return CreateInternal(connection, userCredentials, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
 
     }
 
     private static AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> CreateInternal(
       IEventStoreConnection eventStoreConnection,
       UserCredentials userCredentials,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null,
       Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
@@ -104,9 +104,6 @@ namespace Anabasis.Actor.Actor
         _userCredentials = userCredentials,
         _connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger)
       };
-
-      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey,TAggregate,TActor>();
-
       var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
 
       eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
@@ -115,7 +112,7 @@ namespace Anabasis.Actor.Actor
         eventStoreRepositoryConfiguration,
         eventStoreConnection,
         builder._connectionMonitor,
-        eventProvider,
+        eventTypeProvider,
         logger);
 
       return builder;
@@ -123,55 +120,52 @@ namespace Anabasis.Actor.Actor
     }
 
     public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       Action<CatchupEventStoreCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
-      ISnapshotStrategy<TKey> snapshotStrategy = null,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null)
+      ISnapshotStrategy<TKey> snapshotStrategy = null)
     {
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
 
       var catchupEventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TAggregate>(_userCredentials);
-      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey,TAggregate,TActor >();
 
       catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-      _eventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, catchupEventStoreCacheConfiguration, eventProvider, snapshotStore, snapshotStrategy);
+      _eventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy);
 
       return this;
     }
 
     public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
       string streamId,
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       Action<SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>> singleStreamCatchupEventStoreCacheConfigurationBuilder = null,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
-      ISnapshotStrategy<TKey> snapshotStrategy = null,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null)
+      ISnapshotStrategy<TKey> snapshotStrategy = null)
     {
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
 
       var singleStreamCatchupEventStoreCacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>(streamId, _userCredentials);
-      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey, TAggregate, TActor>();
 
       singleStreamCatchupEventStoreCacheConfigurationBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
 
-      _eventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventProvider, snapshotStore, snapshotStrategy);
+      _eventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy);
 
       return this;
     }
 
     public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
-      Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null)
+      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+      Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null)
     {
 
       if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
 
       var volatileCacheConfiguration = new SubscribeFromEndCacheConfiguration<TKey, TAggregate>(_userCredentials);
-      var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey, TAggregate, TActor>();
 
       volatileCacheConfigurationBuilder?.Invoke(volatileCacheConfiguration);
 
-      _eventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(_connectionMonitor, volatileCacheConfiguration, eventProvider);
+      _eventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(_connectionMonitor, volatileCacheConfiguration, eventTypeProvider);
 
       return this;
 

@@ -14,5 +14,7 @@ namespace Anabasis.Common.Events
     public string TopicId { get; set; }
 
     public Guid ExportId => CorrelationID;
+
+    public abstract string Log();
   }
 }

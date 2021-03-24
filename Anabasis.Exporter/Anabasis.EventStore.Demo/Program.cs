@@ -21,18 +21,15 @@ namespace Anabasis.EventStore.Demo
     }
   }
 
-  public class CcyPairReporting
+  public class CcyPairReporting : Dictionary<string, (decimal bid, decimal offer, decimal spread, bool IsUp)>
   {
     public static CcyPairReporting Empty = new CcyPairReporting();
 
-    public Dictionary<string, (decimal bid, decimal offer, decimal spread, bool IsUp)> Data =
-      new Dictionary<string, (decimal bid, decimal offer, decimal spread, bool IsUp)>();
-
     public CcyPairReporting(CcyPairReporting previous)
     {
-      foreach(var keyValue in previous.Data)
+      foreach (var keyValue in previous)
       {
-        Data[keyValue.Key] = keyValue.Value;
+        this[keyValue.Key] = keyValue.Value;
       }
 
     }
@@ -45,10 +42,9 @@ namespace Anabasis.EventStore.Demo
 
   class Program
   {
-   
+
     static void Main(string[] args)
     {
-
 
       Task.Run(async () =>
       {
@@ -63,50 +59,106 @@ namespace Anabasis.EventStore.Demo
 
         await clusterVNode.StartAsync(true);
 
-        Console.WriteLine("Starting...");
-
         var userCredentials = new UserCredentials("admin", "changeit");
+
         var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
 
-        var marketDataService = ActorBuilder<MarketDataService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings).Build();
-        //   var tradeService = ActorBuilder<TradeService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings).Build();
+        var marketDataService = ActorBuilder<MarketDataService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
+                                               .Build();
 
-        //   var tradeSink = AggregateActorBuilder<TradeSink, long, Trade, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings).Build();
+        var tradeService = ActorBuilder<TradeService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
+                                              .WithSubscribeToAllQueue()
+                                              .Build();
+
+        var tradeDataEventProvider = new DefaultEventTypeProvider<long, Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
+
+        var tradePriceUpdateService = AggregateActorBuilder<TradePriceUpdateService, long, Trade, DemoSystemRegistry>
+                                              .Create(clusterVNode, userCredentials, connectionSettings, tradeDataEventProvider)
+                                              .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+                                              .WithSubscribeToAllQueue()
+                                              .Build();
+
+        var tradeSink = AggregateActorBuilder<TradeSink, long, Trade, DemoSystemRegistry>
+                                             .Create(clusterVNode, userCredentials, connectionSettings, tradeDataEventProvider)
+                                             .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+                                             .Build();
+
+        var marketDataEventProvider = new DefaultEventTypeProvider<string, MarketData>(() => new[] { typeof(MarketDataChanged) });
         var marketDataSink = AggregateActorBuilder<MarketDataSink, string, MarketData, DemoSystemRegistry>
-                                            .Create(clusterVNode, userCredentials, connectionSettings)
-                                            .WithReadAllFromStartCache(
-                                               eventTypeProvider: new DefaultEventTypeProvider<string, MarketData>(() => new[] { typeof(MarketDataChanged) }))
+                                            .Create(clusterVNode, userCredentials, connectionSettings, marketDataEventProvider)
+                                            .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
                                             .Build();
 
+        var marketDataCache = marketDataSink.State.AsObservableCache().Connect();
+        var tradeCache = tradeSink.State.AsObservableCache().Connect();
 
-        marketDataSink.State.AsObservableCache().Connect()
-        .Scan(CcyPairReporting.Empty,(previous, changeSet) =>
+        tradeCache.Subscribe(trades =>
         {
 
-          foreach (var change in changeSet)
+          foreach (var tradeChange in trades)
           {
-            var isUp = previous.Data.ContainsKey(change.Key) && change.Current.Offer > previous.Data[change.Key].offer;
 
-            previous.Data[change.Key] = (change.Current.Bid, change.Current.Offer, (change.Current.Offer - change.Current.Bid), isUp);
-          }
+            const string messageTemplate = "[{5}] => {0} {1} {2} ({4}). Status = {3}";
 
-          return previous;
+            var trade = tradeChange.Current;
 
-        })
-        .Subscribe(ccyPairReporting =>
-        {
-          foreach(var ccy in ccyPairReporting.Data)
-          {
-            var upDown = ccy.Value.IsUp ? "UP" : "DOWN";
-
-            Console.WriteLine($"[{ccy.Key}] => {ccy.Value.offer}/{ccy.Value.offer} {upDown}");
-
+            Console.WriteLine(string.Format(messageTemplate,
+                                                      trade.BuyOrSell,
+                                                      trade.Amount,
+                                                      trade.CurrencyPair,
+                                                      trade.Status,
+                                                      trade.Customer,
+                                                      tradeChange.Reason));
           }
 
         });
 
 
+        marketDataCache.Scan(CcyPairReporting.Empty, (previous, changeSet) =>
+         {
 
+           foreach (var change in changeSet)
+           {
+             var isUp = previous.ContainsKey(change.Key) && change.Current.Offer > previous[change.Key].offer;
+
+             previous[change.Key] = (change.Current.Bid, change.Current.Offer, (change.Current.Offer - change.Current.Bid), isUp);
+           }
+
+           return new CcyPairReporting(previous);
+
+         })
+        .Sample(TimeSpan.FromSeconds(5))
+        .Subscribe(ccyPairReporting =>
+        {
+
+          var reportings = ccyPairReporting.Select(ccyPair =>
+          {
+            var upDown = ccyPair.Value.IsUp ? "UP" : "DOWN";
+
+            return $"[{ccyPair.Key}] => {ccyPair.Value.offer}/{ccyPair.Value.offer} {upDown}";
+
+          }).ToArray();
+
+      
+          var bufferRightLast = "*";
+          var bufferLeft = "     *";
+          var spaceLeft = bufferLeft.Length;
+          var maxReportingLength = reportings.Max(reporting => reporting.Length);
+
+          var bar = string.Concat(Enumerable.Range(0, maxReportingLength + bufferLeft.Length + bufferRightLast.Length).Select(index => index < spaceLeft ? " " : "*").ToArray());
+
+          Console.WriteLine(bar);
+
+          foreach (var reportingLine in reportings)
+          {
+            var bufferLength = (maxReportingLength + bufferLeft.Length) - reportingLine.Length;
+            var bufferRight = bufferLength == 0 ? bufferLeft : string.Concat(Enumerable.Range(0, bufferLength - spaceLeft).Select(_ => " ").ToArray()) + bufferRightLast;
+
+            Console.WriteLine($"{bufferLeft}{reportingLine}{bufferRight}");
+          }
+
+          Console.WriteLine(bar);
+        });
 
       });
 

@@ -10,7 +10,6 @@ namespace Anabasis.EventStore.Demo
 
     public TradeStatusChanged(long entityId, Guid correlationId) : base(entityId, correlationId)
     {
-
     }
 
     protected override void ApplyInternal(Trade entity)

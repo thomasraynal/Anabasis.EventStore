@@ -6,12 +6,13 @@ using DynamicData.Kernel;
 
 namespace Anabasis.EventStore.Demo
 {
-  public class MarketDataService : BaseActor, IMarketDataService
+  public class MarketDataService : BaseActor
   {
     private readonly Dictionary<string, IObservable<MarketData>> _prices = new Dictionary<string, IObservable<MarketData>>();
 
     public MarketDataService(IStaticData staticData, IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
     {
+
       foreach (var item in staticData.CurrencyPairs)
       {
         _prices[item.EntityId] = GenerateStream(item).Replay(1).RefCount();
@@ -66,16 +67,6 @@ namespace Anabasis.EventStore.Demo
            });
      });
     }
-
-
-    //public IObservable<MarketData> Watch(string currencyPair)
-    //{
-    //  if (currencyPair == null) throw new ArgumentNullException(nameof(currencyPair));
-    //  return _prices.Lookup(currencyPair)
-    //      .ValueOrThrow(() => new Exception(currencyPair + " is an unknown currency pair"));
-    //}
-
-
 
   }
 }

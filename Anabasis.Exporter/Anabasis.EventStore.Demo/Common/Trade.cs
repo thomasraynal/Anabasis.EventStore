@@ -17,7 +17,7 @@ namespace Anabasis.EventStore.Demo
       CurrencyPair = trade.CurrencyPair;
       Status = closed;
       BuyOrSell = trade.BuyOrSell;
-      TradePrice = trade.TradePrice;
+      MarketPrice = TradePrice = trade.TradePrice;
       Amount = trade.Amount;
       MarketPrice = trade.MarketPrice;
 
@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Demo
       CurrencyPair = ccyPair;
       Status = status;
       BuyOrSell = buySell;
-      TradePrice = tradePrice;
+      MarketPrice = TradePrice = tradePrice;
       Amount = amount;
     }
 
@@ -41,7 +41,7 @@ namespace Anabasis.EventStore.Demo
       CurrencyPair = ccyPair;
       Status = status;
       BuyOrSell = buySell;
-      TradePrice = tradePrice;
+      MarketPrice = TradePrice = tradePrice;
       Amount = amount;
       Timestamp = timeStamp;
     }
