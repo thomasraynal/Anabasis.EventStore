@@ -3,8 +3,9 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <OutputType>Exe</OutputType>
+    <LangVersion>Latest</LangVersion>
     <StartupObject>Anabasis.EventStore.Demo.Program</StartupObject>
-    <Platforms>AnyCPU;x64</Platforms>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
