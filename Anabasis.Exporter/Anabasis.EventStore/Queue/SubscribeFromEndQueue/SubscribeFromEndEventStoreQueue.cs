@@ -1,3 +1,5 @@
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
@@ -7,7 +9,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue
+namespace Anabasis.EventStore.Queue
 {
   public class SubscribeFromEndEventStoreQueue : BaseEventStoreQueue
   {

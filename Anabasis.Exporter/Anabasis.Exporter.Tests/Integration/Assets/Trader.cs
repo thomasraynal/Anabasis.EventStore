@@ -1,11 +1,10 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Anabasis.Actor;
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure.Repository;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Repository;
 
 namespace Anabasis.Tests.Integration
 {

@@ -4,8 +4,11 @@ using System.Threading.Tasks;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using Microsoft.Extensions.Logging;
+using Anabasis.EventStore.Shared;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.EventProvider;
 
-namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
+namespace Anabasis.EventStore.Cache
 {
   public class SingleStreamCatchupEventStoreCache<TKey, TAggregate> : BaseCatchupEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {

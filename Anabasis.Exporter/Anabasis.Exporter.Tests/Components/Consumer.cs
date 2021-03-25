@@ -1,8 +1,7 @@
 using DynamicData;
 using Anabasis.Tests.Demo;
 using System;
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
+using Anabasis.EventStore.Cache;
 
 namespace Anabasis.Tests
 {

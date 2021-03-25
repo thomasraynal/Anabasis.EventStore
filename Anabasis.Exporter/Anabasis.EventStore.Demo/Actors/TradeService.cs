@@ -5,7 +5,8 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Anabasis.Actor;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Repository;
 using DynamicData;
 using DynamicData.Kernel;
 

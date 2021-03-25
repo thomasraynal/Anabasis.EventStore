@@ -1,3 +1,4 @@
+using Anabasis.EventStore.Shared;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Snapshot

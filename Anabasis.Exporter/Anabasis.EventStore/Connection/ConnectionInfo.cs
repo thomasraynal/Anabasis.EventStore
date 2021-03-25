@@ -1,6 +1,6 @@
-﻿using System;
+using System;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Connection
 {
     public class ConnectionInfo
     {

@@ -1,4 +1,4 @@
-﻿namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Shared
 {
     public static class MetadataKeys
     {

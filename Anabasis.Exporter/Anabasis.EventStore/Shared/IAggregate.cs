@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Shared
 {
   public interface IAggregate<TKey> : IEntity<TKey>
   {

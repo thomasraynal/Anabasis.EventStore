@@ -1,4 +1,5 @@
 using Anabasis.EventStore;
+using Anabasis.EventStore.Repository;
 using Anabasis.Importer;
 
 namespace Anabasis.Common

@@ -1,21 +1,14 @@
-using Anabasis.Actor.Actor;
-using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Snapshot;
 using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 using EventStore.Client;
-using EventStore.ClientAPI.Common.Log;
 using EventStore.ClientAPI;
 using ResolvedEvent = EventStore.ClientAPI.ResolvedEvent;
-using Anabasis.EventStore.Projection;
 
 namespace Anabasis.Tests.Integration
 {
@@ -78,7 +71,7 @@ namespace Anabasis.Tests.Integration
       {
         await Task.Delay(50);
         projectionDetails = await eventStoreProjectionManagementClient.GetStatusAsync(subName);
-        isCompleted = projectionDetails.IsCompletedWithResults();
+        isCompleted = false;// projectionDetails.IsCompletedWithResults();
         if (!isCompleted) await Task.Delay(200);
       } while (!isCompleted && timeout > DateTime.UtcNow);
 

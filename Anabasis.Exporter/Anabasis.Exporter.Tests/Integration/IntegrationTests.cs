@@ -1,19 +1,9 @@
-using Anabasis.Actor.Actor;
-using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Snapshot;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.Common.Log;
-using EventStore.ClientAPI.Projections;
 using EventStore.ClientAPI.SystemData;
-using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
-using System;
-using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Net;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests.Integration
@@ -51,7 +41,7 @@ namespace Anabasis.Tests.Integration
                                                                                         .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                           catchupEventStoreCacheConfigurationBuilder: (configuration)=> configuration.KeepAppliedEventsOnAggregate = true)
                                                                                         .Build();
-      await Task.Delay(1000);
+      await Task.Delay(2000);
 
       Assert.IsTrue(traderOne.State.IsConnected);
 

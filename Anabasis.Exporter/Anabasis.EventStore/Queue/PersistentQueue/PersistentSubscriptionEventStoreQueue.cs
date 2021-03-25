@@ -1,3 +1,5 @@
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
@@ -5,7 +7,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Infrastructure.Queue.PersistentQueue
+namespace Anabasis.EventStore.Queue
 {
   public class PersistentSubscriptionEventStoreQueue : BaseEventStoreQueue
   {

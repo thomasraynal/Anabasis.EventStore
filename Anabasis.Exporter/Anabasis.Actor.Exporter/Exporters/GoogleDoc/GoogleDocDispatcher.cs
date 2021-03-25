@@ -2,6 +2,8 @@ using Anabasis.Actor;
 using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Repository;
 using System.Linq;
 using System.Threading.Tasks;
 

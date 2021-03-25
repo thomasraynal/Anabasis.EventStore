@@ -1,8 +1,6 @@
-using Anabasis.Actor;
-using Anabasis.EventStore.Infrastructure.Repository;
-using System;
-using System.Collections.Generic;
-using System.Text;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Repository;
 
 namespace Anabasis.EventStore.Demo
 {

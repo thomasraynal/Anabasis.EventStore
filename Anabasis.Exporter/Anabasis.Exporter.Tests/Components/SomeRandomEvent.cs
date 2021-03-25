@@ -1,6 +1,4 @@
-using Anabasis.Actor;
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Event;
 using System;
 
 namespace Anabasis.Tests.Components

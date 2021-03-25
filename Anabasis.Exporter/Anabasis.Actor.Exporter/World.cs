@@ -1,7 +1,8 @@
-using Anabasis.Actor.Actor;
 using Anabasis.Common.Events;
 using Anabasis.Common.Infrastructure;
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;

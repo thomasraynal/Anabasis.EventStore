@@ -1,7 +1,8 @@
 using System;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Connection
 {
   public interface IConnectionStatusMonitor
   {

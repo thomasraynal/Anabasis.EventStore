@@ -1,4 +1,5 @@
 using Anabasis.Actor;
+using Anabasis.EventStore.Event;
 using System;
 using System.Collections.Generic;
 using System.Text;

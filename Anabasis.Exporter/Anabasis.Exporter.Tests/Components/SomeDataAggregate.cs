@@ -1,8 +1,6 @@
-using Anabasis.Actor;
-using Anabasis.EventStore;
+using Anabasis.EventStore.Event;
+using Anabasis.EventStore.Shared;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.Tests
 {

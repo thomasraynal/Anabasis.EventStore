@@ -1,6 +1,6 @@
 using System;
 
-namespace Anabasis.Actor
+namespace Anabasis.EventStore.Event
 {
   public abstract class BaseCommand : BaseEvent, ICommand
   {

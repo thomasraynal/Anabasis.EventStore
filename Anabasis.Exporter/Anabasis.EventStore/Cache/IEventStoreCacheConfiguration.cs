@@ -1,7 +1,9 @@
+using Anabasis.EventStore.Serialization;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI.SystemData;
 using System;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Cache
 {
   public interface IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
   {

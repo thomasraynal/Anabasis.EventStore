@@ -12,4 +12,8 @@
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="Queue\" />
+  </ItemGroup>
+
 </Project>

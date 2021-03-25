@@ -1,10 +1,9 @@
-using Anabasis.Actor.Exporter;
 using System;
 using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 
-namespace Anabasis.Actor
+namespace Anabasis.EventStore.Actor
 {
   public class MessageHandlerInvokerCache
   {

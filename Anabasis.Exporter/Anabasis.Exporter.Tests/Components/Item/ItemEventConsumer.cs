@@ -10,6 +10,8 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Shared;
 
 namespace Anabasis.Tests.Demo
 {

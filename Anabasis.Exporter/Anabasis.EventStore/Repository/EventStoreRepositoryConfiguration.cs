@@ -1,7 +1,8 @@
+using Anabasis.EventStore.Serialization;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Repository
 {
   public class EventStoreRepositoryConfiguration : IEventStoreRepositoryConfiguration
   {

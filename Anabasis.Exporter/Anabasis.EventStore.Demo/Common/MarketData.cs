@@ -1,3 +1,4 @@
+using Anabasis.EventStore.Shared;
 using System;
 
 namespace Anabasis.EventStore.Demo

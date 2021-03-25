@@ -1,10 +1,11 @@
-using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Infrastructure.Queue;
+using Anabasis.EventStore.Event;
+using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Anabasis.Actor
+namespace Anabasis.EventStore.Actor
 {
   public interface IActor
   {

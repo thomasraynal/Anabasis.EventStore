@@ -1,15 +1,14 @@
-using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
 using EventStore.Core;
 using Microsoft.Extensions.DependencyInjection;
-using ILogger = Microsoft.Extensions.Logging.ILogger;
 using System;
-using Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription;
-using Anabasis.EventStore.Infrastructure.Cache;
-using Anabasis.EventStore.Infrastructure.Repository;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Shared;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Repository;
 
 namespace Anabasis.EventStore
 {

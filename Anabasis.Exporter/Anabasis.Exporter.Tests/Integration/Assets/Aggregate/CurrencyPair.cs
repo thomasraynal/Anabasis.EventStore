@@ -1,10 +1,9 @@
 using System.Linq;
-using Anabasis.EventStore;
-
+using Anabasis.EventStore.Shared;
 
 namespace Anabasis.Tests.Integration
 {
-    public class CurrencyPair : BaseAggregate<string>
+  public class CurrencyPair : BaseAggregate<string>
     {
 
         public CcyPairState State { get; set; }

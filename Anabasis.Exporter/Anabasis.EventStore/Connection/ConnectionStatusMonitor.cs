@@ -1,11 +1,11 @@
 using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Connection
 {
 
   public class ConnectionStatusMonitor : IConnectionStatusMonitor

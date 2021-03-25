@@ -1,5 +1,7 @@
 using Anabasis.Actor;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Repository;
 using System;
 using System.Collections.Generic;
 using System.Text;

@@ -1,6 +1,6 @@
 using System.Threading.Tasks;
 
-namespace Anabasis.Actor
+namespace Anabasis.EventStore.Queue
 {
   public interface IDispatchQueue<TMessage>
   {

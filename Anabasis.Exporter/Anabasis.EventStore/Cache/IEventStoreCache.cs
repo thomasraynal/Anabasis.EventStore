@@ -1,7 +1,8 @@
+using Anabasis.EventStore.Shared;
 using DynamicData;
 using System;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Cache
 {
   public interface IEventStoreCache<TKey, TAggregate> : IDisposable where TAggregate : IAggregate<TKey>, new()
   {

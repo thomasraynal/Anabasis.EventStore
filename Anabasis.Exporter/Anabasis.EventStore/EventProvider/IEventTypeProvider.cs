@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Infrastructure
+namespace Anabasis.EventStore.EventProvider
 {
   public interface IEventTypeProvider
   {

@@ -1,8 +1,9 @@
-using Anabasis.Actor;
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Infrastructure.Queue.PersistentQueue;
-using Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.Event;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Repository;
 using Anabasis.Tests.Components;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;

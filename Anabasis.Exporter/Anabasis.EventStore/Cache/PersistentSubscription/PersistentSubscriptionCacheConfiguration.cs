@@ -1,8 +1,10 @@
+using Anabasis.EventStore.Serialization;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 using System;
 
-namespace Anabasis.EventStore.Infrastructure.Cache
+namespace Anabasis.EventStore.Cache
 {
   public class PersistentSubscriptionCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {

@@ -3,10 +3,13 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
-namespace Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription
+namespace Anabasis.EventStore.Cache
 {
   public class SubscribeFromEndEventStoreCache<TKey, TAggregate> : BaseEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {

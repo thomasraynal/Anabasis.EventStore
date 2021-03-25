@@ -1,5 +1,6 @@
 
 using Anabasis.EventStore;
+using Anabasis.EventStore.Shared;
 using System;
 
 namespace Anabasis.Tests.Integration

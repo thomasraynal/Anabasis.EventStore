@@ -3,6 +3,8 @@ using Anabasis.Actor.Exporter;
 using Anabasis.Common;
 using Anabasis.Common.Events;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Repository;
 using HtmlAgilityPack;
 using System.Collections.Generic;
 using System.Linq;

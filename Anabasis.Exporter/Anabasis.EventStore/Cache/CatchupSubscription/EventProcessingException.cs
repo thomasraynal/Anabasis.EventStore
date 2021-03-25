@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Anabasis.EventStore.Cache.CatchupSubscription
+namespace Anabasis.EventStore.Cache
 {
   [Serializable]
   public class EventProcessingException : Exception

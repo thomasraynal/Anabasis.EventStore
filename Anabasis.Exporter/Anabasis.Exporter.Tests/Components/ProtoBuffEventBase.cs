@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Shared;
 
 namespace Anabasis.Tests.Demo
 {

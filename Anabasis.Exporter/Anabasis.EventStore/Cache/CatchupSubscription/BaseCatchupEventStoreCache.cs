@@ -1,4 +1,6 @@
-using Anabasis.EventStore.Cache.CatchupSubscription;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using EventStore.ClientAPI;
@@ -10,7 +12,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
+namespace Anabasis.EventStore.Cache
 {
   public abstract class BaseCatchupEventStoreCache<TKey, TAggregate> : BaseEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {

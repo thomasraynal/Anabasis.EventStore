@@ -2,6 +2,8 @@ using Anabasis.Actor;
 using Anabasis.Common.Events;
 using Anabasis.Common.Events.Commands;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Event;
+using Anabasis.EventStore.Repository;
 using System;
 using System.Collections.Generic;
 using System.IO;

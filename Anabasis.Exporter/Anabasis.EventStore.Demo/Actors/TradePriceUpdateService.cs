@@ -2,9 +2,9 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Anabasis.Actor;
-using Anabasis.EventStore.Infrastructure.Repository;
-
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Repository;
 
 namespace Anabasis.EventStore.Demo
 {

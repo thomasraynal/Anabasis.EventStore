@@ -1,9 +1,8 @@
 using Anabasis.Common.Events;
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Shared;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Actor.Exporter.Exporters

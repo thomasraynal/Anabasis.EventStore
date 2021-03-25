@@ -7,8 +7,11 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 using System.Linq;
 using Anabasis.EventStore.Snapshot;
 using System.Threading.Tasks;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.Shared;
 
-namespace Anabasis.EventStore.Infrastructure.Cache
+namespace Anabasis.EventStore.Cache
 {
   public abstract class BaseEventStoreCache<TKey, TAggregate> : IDisposable, IEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {

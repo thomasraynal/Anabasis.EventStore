@@ -1,4 +1,5 @@
 using Anabasis.EventStore;
+using Anabasis.EventStore.Shared;
 using Anabasis.Tests;
 using ProtoBuf;
 using System;

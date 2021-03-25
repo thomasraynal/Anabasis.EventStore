@@ -2,7 +2,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Shared
 {
 
   public abstract class BaseAggregate<TKey> : IAggregate<TKey>

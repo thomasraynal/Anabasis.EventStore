@@ -3,7 +3,7 @@ using Newtonsoft.Json.Serialization;
 using System;
 using System.Text;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Shared
 {
   public static class JsonExtensions
   {

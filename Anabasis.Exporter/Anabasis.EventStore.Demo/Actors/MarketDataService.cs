@@ -1,7 +1,8 @@
 using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
-using Anabasis.Actor;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Repository;
 using DynamicData.Kernel;
 
 namespace Anabasis.EventStore.Demo

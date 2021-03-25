@@ -1,10 +1,11 @@
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure.Repository;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Anabasis.Actor
+namespace Anabasis.EventStore.Actor
 {
   public abstract class BaseAggregateActor<TKey, TAggregate> : BaseActor, IDisposable, IAggregateActor<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {

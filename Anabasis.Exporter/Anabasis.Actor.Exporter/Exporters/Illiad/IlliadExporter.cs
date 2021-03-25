@@ -1,6 +1,9 @@
 using Anabasis.Actor;
 using Anabasis.Common.Events;
 using Anabasis.EventStore;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Shared;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Serialization;
 using System;

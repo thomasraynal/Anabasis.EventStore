@@ -1,13 +1,11 @@
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure.Repository;
+using Anabasis.EventStore.Repository;
 using Anabasis.Tests.Demo;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Anabasis.Tests
 {
-    public class Producer : IProducer
+  public class Producer : IProducer
     {
         private readonly IEventStoreAggregateRepository<Guid> _repository;
 

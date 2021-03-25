@@ -2,7 +2,7 @@ using DynamicData;
 using System;
 using System.Reactive;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Shared
 {
     public static class DynamicDataExtensions
     {

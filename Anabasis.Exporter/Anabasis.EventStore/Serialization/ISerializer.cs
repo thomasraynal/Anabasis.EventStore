@@ -1,8 +1,8 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Serialization
 {
     public interface ISerializer
     {

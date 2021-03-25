@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Shared
 {
   public interface IEntity<TKey> : IHaveAStreamId
   {

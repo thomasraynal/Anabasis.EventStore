@@ -1,8 +1,8 @@
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Shared;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Repository
 {
   public interface IEventStoreRepository
   {

@@ -4,8 +4,11 @@ using System.Linq;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using System.Reactive.Linq;
+using Anabasis.EventStore.Shared;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Connection;
 
-namespace Anabasis.EventStore.Infrastructure.Repository
+namespace Anabasis.EventStore.Repository
 {
   public class EventStoreAggregateRepository<TKey> : EventStoreRepository, IEventStoreAggregateRepository<TKey>
   {

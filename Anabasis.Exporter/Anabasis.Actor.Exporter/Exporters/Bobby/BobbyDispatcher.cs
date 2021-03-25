@@ -1,5 +1,6 @@
 using Anabasis.Common.Events;
-using Anabasis.EventStore;
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Repository;
 using Anabasis.Exporter.Bobby;
 using HtmlAgilityPack;
 using Polly;

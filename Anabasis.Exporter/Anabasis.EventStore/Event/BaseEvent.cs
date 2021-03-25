@@ -1,7 +1,8 @@
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Shared;
 using Newtonsoft.Json;
 using System;
-namespace Anabasis.Actor
+
+namespace Anabasis.EventStore.Event
 {
   public abstract class BaseEvent : IEvent
   {

@@ -1,7 +1,7 @@
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Shared;
 using System;
 
-namespace Anabasis.Actor
+namespace Anabasis.EventStore.Event
 {
   public interface ICommandResponse : IEvent
   {

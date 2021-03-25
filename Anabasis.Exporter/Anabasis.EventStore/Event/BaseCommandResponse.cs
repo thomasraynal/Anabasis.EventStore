@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.Actor
+namespace Anabasis.EventStore.Event
 {
   public abstract class BaseCommandResponse : BaseEvent, ICommandResponse
   {

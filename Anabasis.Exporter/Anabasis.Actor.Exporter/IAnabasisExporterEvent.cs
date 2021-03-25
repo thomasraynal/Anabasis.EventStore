@@ -1,7 +1,5 @@
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.Shared;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.Common.Events
 {

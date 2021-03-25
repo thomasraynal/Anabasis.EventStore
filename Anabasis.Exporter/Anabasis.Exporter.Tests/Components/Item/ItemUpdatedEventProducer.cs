@@ -7,8 +7,10 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure.Repository;
+using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.Shared;
 
 namespace Anabasis.Tests.Demo
 {

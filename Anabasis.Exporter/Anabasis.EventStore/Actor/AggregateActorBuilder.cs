@@ -1,11 +1,9 @@
-using Anabasis.EventStore;
-using Anabasis.EventStore.Infrastructure;
-using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
-using Anabasis.EventStore.Infrastructure.Cache.VolatileSubscription;
-using Anabasis.EventStore.Infrastructure.Queue;
-using Anabasis.EventStore.Infrastructure.Queue.PersistentQueue;
-using Anabasis.EventStore.Infrastructure.Queue.SubscribeFromEndQueue;
-using Anabasis.EventStore.Infrastructure.Repository;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -15,7 +13,7 @@ using Lamar;
 using System;
 using System.Collections.Generic;
 
-namespace Anabasis.Actor.Actor
+namespace Anabasis.EventStore.Actor
 {
   public class AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry>
     where TActor : IAggregateActor<TKey, TAggregate>

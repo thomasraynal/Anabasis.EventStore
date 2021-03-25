@@ -1,10 +1,8 @@
+using Anabasis.EventStore.Serialization;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace Anabasis.EventStore.Infrastructure.Queue.PersistentQueue
+namespace Anabasis.EventStore.Queue
 {
   public class PersistentSubscriptionEventStoreQueueConfiguration : IEventStoreQueueConfiguration
   {

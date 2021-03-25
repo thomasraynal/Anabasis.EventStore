@@ -1,9 +1,10 @@
+using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Anabasis.EventStore.Infrastructure
+namespace Anabasis.EventStore.EventProvider
 {
 
   public class ServiceCollectionEventTypeProvider<TKey> : IEventTypeProvider

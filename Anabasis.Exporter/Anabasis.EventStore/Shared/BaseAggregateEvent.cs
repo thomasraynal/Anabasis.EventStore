@@ -1,10 +1,9 @@
-using Anabasis.EventStore.Infrastructure;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Shared
 {
   public abstract class BaseAggregateEvent<TKey, TEntity> : IEvent, IMutable<TKey, TEntity> where TEntity : IAggregate<TKey>
   {

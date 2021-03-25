@@ -1,9 +1,10 @@
+using Anabasis.EventStore.Shared;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Serialization
 {
   public class DefaultSerializer : ISerializer
   {

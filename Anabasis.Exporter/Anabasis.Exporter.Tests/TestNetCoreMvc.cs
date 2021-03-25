@@ -15,8 +15,11 @@ using EventStore.ClientAPI.Embedded;
 using EventStore.Core.Data;
 using EventStore.ClientAPI.SystemData;
 using EventStore.Core;
-using Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription;
-using Anabasis.EventStore.Infrastructure.Repository;
+using Anabasis.EventStore.Serialization;
+using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Shared;
 
 namespace Anabasis.Tests
 {

@@ -6,9 +6,11 @@ using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using MoreLinq;
 using System.Reactive.Linq;
-using Anabasis.EventStore.Infrastructure;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.Shared;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Repository
 {
   public class EventStoreRepository : IEventStoreRepository, IDisposable
   {

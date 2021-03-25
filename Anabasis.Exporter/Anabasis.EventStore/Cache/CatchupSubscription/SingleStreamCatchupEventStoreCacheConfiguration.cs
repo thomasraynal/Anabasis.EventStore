@@ -1,10 +1,12 @@
+using Anabasis.EventStore.Serialization;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Infrastructure.Cache.CatchupSubscription
+namespace Anabasis.EventStore.Cache
 {
   public class SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
   {

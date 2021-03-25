@@ -31,10 +31,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Anabasis.Actor\Anabasis.Actor.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
     <Content Remove="C:\Users\thoma\.nuget\packages\eventstore.client.embedded\20.6.0\build\..\runtimes\win-x64\native\js1.dll" />
   </ItemGroup>
 
@@ -53,6 +49,10 @@
   <ItemGroup>
     <Folder Include="POC\Ex1\" />
     <Folder Include="POC\Ex2\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

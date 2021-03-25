@@ -1,6 +1,7 @@
+using Anabasis.EventStore.Serialization;
 using EventStore.ClientAPI.SystemData;
 
-namespace Anabasis.EventStore.Infrastructure.Queue
+namespace Anabasis.EventStore.Queue
 {
   public interface IEventStoreQueueConfiguration
   {

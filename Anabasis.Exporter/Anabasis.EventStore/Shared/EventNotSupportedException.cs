@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Runtime.Serialization;
 using System.Text;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Shared
 {
   [Serializable]
   public class EventNotSupportedException : Exception

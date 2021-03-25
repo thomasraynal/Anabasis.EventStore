@@ -1,10 +1,13 @@
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Anabasis.EventStore.Infrastructure.Queue
+namespace Anabasis.EventStore.Queue
 {
   public abstract class BaseEventStoreQueue : IEventStoreQueue
   {
