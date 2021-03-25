@@ -2,8 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <Platforms>AnyCPU;x64</Platforms>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Update="docker-compose.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="DynamicData" Version="7.1.1" />
@@ -39,11 +44,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="POC\Ex1\" />
-    <Folder Include="POC\Ex2\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 
@@ -52,6 +52,5 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
-
 
 </Project>

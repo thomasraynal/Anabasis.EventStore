@@ -1,5 +1,16 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
+  <PropertyGroup>
+    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PackageProjectUrl>https://github.com/thomasraynal/Anabasis.EventStore.Zmq</PackageProjectUrl>
+    <Description>Bootstrap actor based applications with EventStore and DynamicData</Description>
+    <PackageTags>DynamicData;EventStore;EventSoursing;CQRS;Actors</PackageTags>
+    <Authors>Thomas Raynal</Authors>
+    <Company />
+    <Product />
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+  </PropertyGroup>
+  
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <Platforms>AnyCPU;x64</Platforms>
