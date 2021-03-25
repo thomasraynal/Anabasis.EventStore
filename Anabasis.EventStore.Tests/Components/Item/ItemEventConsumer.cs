@@ -13,7 +13,7 @@ using Anabasis.EventStore;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Shared;
 
-namespace Anabasis.Tests.Demo
+namespace Anabasis.EventStore.Tests.Demo
 {
     public class ItemCount
     {

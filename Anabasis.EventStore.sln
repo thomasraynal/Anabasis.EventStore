@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.30413.136
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Tests", "Anabasis.EventStore.Tests\Anabasis.Tests.csproj", "{880494C5-7D5A-45EC-AA9D-45C21B429ED6}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Tests", "Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj", "{880494C5-7D5A-45EC-AA9D-45C21B429ED6}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore", "Anabasis.EventStore\Anabasis.EventStore.csproj", "{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}"
 EndProject

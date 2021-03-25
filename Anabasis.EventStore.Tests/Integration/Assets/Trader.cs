@@ -6,7 +6,7 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Repository;
 
-namespace Anabasis.Tests.Integration
+namespace Anabasis.EventStore.Tests.Integration
 {
 
   public class Trader : BaseAggregateActor<string, CurrencyPair>, IDisposable

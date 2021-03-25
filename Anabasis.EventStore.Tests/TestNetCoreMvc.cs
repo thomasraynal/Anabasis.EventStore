@@ -1,4 +1,3 @@
-using Anabasis.Tests.Demo;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.TestHost;
 using NUnit.Framework;
@@ -9,7 +8,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.Linq;
 using System.Reactive.Linq;
 using Microsoft.AspNetCore.Builder;
-using Anabasis.EventStore;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.Core.Data;
@@ -20,11 +18,12 @@ using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Shared;
+using Anabasis.EventStore.Tests.Demo;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
 
-  public class TestSerializer : DefaultSerializer { }
+    public class TestSerializer : DefaultSerializer { }
 
   public static class TestContext
   {

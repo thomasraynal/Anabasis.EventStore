@@ -4,7 +4,7 @@ using Anabasis.EventStore.Event;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Queue;
 using Anabasis.EventStore.Repository;
-using Anabasis.Tests.Components;
+using Anabasis.EventStore.Tests.Components;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -16,9 +16,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
-  public class SomeCommandResponse : BaseCommandResponse
+    public class SomeCommandResponse : BaseCommandResponse
   {
 
     public SomeCommandResponse(Guid commandId, Guid correlationId, string streamId) : base(commandId, correlationId, streamId)

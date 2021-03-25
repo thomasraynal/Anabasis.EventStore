@@ -1,12 +1,7 @@
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Queue;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Shared;
-using Anabasis.EventStore.Snapshot;
-using Anabasis.Tests.Components;
 using DynamicData;
 using DynamicData.Binding;
 using EventStore.ClientAPI;
@@ -14,15 +9,13 @@ using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
 using EventStore.Common.Options;
 using EventStore.Core;
-using Lamar;
 using NUnit.Framework;
 using System;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
-  [TestFixture]
+    [TestFixture]
   public class TestSingleStreamCatchUpCache
   {
     private UserCredentials _userCredentials;

@@ -2,7 +2,7 @@ using Anabasis.EventStore.Event;
 using Anabasis.EventStore.Shared;
 using System;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
   public class AgainSomeMoreData : BaseEvent
   {

@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests.POC
+namespace Anabasis.EventStore.Tests.POC
 {
 
   public class TestDocOne : IAnabasisDocument

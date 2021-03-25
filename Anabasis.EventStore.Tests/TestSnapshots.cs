@@ -3,7 +3,7 @@ using NUnit.Framework;
 using System;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
   [TestFixture]
   public class TestSnapshots

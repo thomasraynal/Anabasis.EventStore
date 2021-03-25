@@ -12,7 +12,7 @@ using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Shared;
 
-namespace Anabasis.Tests.Demo
+namespace Anabasis.EventStore.Tests.Demo
 {
   public class ItemUpdatedEventProducer : IHostedService
     {

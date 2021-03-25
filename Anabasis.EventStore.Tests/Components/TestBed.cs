@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
     public class TestBed
     {

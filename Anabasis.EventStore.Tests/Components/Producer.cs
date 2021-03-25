@@ -1,9 +1,9 @@
 using Anabasis.EventStore.Repository;
-using Anabasis.Tests.Demo;
+using Anabasis.EventStore.Tests.Demo;
 using System;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
   public class Producer : IProducer
     {

@@ -4,9 +4,9 @@ configuration: Release
 nuget:
   disable_publish_on_pr: true
 build_script:
-- cmd: msbuild /restore /p:Configuration=Release /p:version=%APPVEYOR_BUILD_VERSION% -verbosity:minimal Anabasis.EventStore.sln
+- cmd: dotnet msbuild /restore  /p:Configuration=Release /p:version=%APPVEYOR_BUILD_VERSION% -verbosity:minimal Anabasis.EventStore.sln
 after_test:
-- cmd: appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%\DynamicData.Zmq.Mvc\bin\Release\Anabasis.EventStore.%APPVEYOR_BUILD_VERSION%.nupkg
+- cmd: appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%\Anabasis.EventStore\bin\Release\Anabasis.EventStore.%APPVEYOR_BUILD_VERSION%.nupkg
 test: one
 test_script:
 - cmd: |

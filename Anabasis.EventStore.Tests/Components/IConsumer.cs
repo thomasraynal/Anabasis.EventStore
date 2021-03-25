@@ -1,8 +1,8 @@
 using System;
+using Anabasis.EventStore.Tests.Demo;
 using DynamicData;
-using Anabasis.Tests.Demo;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
     public interface IConsumer
     {

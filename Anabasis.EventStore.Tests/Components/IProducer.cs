@@ -1,8 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
-using Anabasis.Tests.Demo;
+using Anabasis.EventStore.Tests.Demo;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
     public interface IProducer
     {

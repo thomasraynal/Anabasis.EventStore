@@ -4,7 +4,7 @@ using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Snapshot;
-using Anabasis.Tests.Components;
+using Anabasis.EventStore.Tests.Components;
 using DynamicData;
 using DynamicData.Binding;
 using EventStore.ClientAPI;
@@ -17,10 +17,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
 
-  public class TestAggregateActorWithSnapshot : BaseAggregateActor<Guid, SomeDataAggregate<Guid>>
+    public class TestAggregateActorWithSnapshot : BaseAggregateActor<Guid, SomeDataAggregate<Guid>>
   {
     public TestAggregateActorWithSnapshot(SingleStreamCatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
       IEventStoreAggregateRepository<Guid> eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)

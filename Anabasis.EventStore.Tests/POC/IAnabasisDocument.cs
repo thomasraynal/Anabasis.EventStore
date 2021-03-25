@@ -1,4 +1,4 @@
-﻿namespace Anabasis.Tests.POC
+﻿namespace Anabasis.EventStore.Tests.POC
 {
   public interface IAnabasisDocument
   {

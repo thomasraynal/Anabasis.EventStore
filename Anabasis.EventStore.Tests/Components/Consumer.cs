@@ -1,9 +1,9 @@
 using DynamicData;
-using Anabasis.Tests.Demo;
 using System;
 using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Tests.Demo;
 
-namespace Anabasis.Tests
+namespace Anabasis.EventStore.Tests
 {
   public class Consumer : IConsumer
   {

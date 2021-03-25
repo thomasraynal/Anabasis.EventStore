@@ -2,7 +2,7 @@ using Anabasis.EventStore;
 using Anabasis.EventStore.Shared;
 using System;
 
-namespace Anabasis.Tests.Integration
+namespace Anabasis.EventStore.Tests.Integration
 {
   public class CurrencyPairPriceChanged : BaseAggregateEvent<string, CurrencyPair>
   {

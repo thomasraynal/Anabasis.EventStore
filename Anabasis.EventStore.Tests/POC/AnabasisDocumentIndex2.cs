@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.Tests.POC
+namespace Anabasis.EventStore.Tests.POC
 {
   public class AnabasisDocumentIndex2
   {

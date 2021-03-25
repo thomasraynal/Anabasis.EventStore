@@ -1,7 +1,7 @@
 using Anabasis.EventStore.Event;
 using System;
 
-namespace Anabasis.Tests.Components
+namespace Anabasis.EventStore.Tests.Components
 {
   public class SomeRandomEvent : BaseEvent
   {

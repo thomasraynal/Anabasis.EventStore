@@ -1,11 +1,10 @@
 using Anabasis.EventStore;
 using Anabasis.EventStore.Shared;
-using Anabasis.Tests;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.Tests.Demo
+namespace Anabasis.EventStore.Tests.Demo
 {
     public class Blob : BaseAggregate<Guid>
     {

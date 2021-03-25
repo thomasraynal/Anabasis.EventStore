@@ -10,7 +10,7 @@ using EventStore.Client;
 using EventStore.ClientAPI;
 using ResolvedEvent = EventStore.ClientAPI.ResolvedEvent;
 
-namespace Anabasis.Tests.Integration
+namespace Anabasis.EventStore.Tests.Integration
 {
 
   [TestFixture]

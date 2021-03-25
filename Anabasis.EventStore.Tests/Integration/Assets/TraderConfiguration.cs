@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.Tests.Integration
+namespace Anabasis.EventStore.Tests.Integration
 {
     public class TraderConfiguration
     {

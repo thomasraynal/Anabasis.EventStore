@@ -5,7 +5,7 @@ using System.Text;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Shared;
 
-namespace Anabasis.Tests.Demo
+namespace Anabasis.EventStore.Tests.Demo
 {
   [ProtoContract]
   [ProtoInclude(10, typeof(CreateItemEvent))]

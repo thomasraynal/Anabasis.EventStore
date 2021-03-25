@@ -1,7 +1,7 @@
 using System.Linq;
 using Anabasis.EventStore.Shared;
 
-namespace Anabasis.Tests.Integration
+namespace Anabasis.EventStore.Tests.Integration
 {
   public class CurrencyPair : BaseAggregate<string>
     {

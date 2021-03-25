@@ -6,7 +6,7 @@ using System.Text;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Serialization;
 
-namespace Anabasis.Tests.Demo
+namespace Anabasis.EventStore.Tests.Demo
 {
     public class ProtoBuffSerializer : ISerializer
     {

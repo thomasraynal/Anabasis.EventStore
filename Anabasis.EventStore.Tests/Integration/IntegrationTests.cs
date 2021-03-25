@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests.Integration
+namespace Anabasis.EventStore.Tests.Integration
 {
 
 

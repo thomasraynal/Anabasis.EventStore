@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Repository;
 
-namespace Anabasis.Tests.Demo
+namespace Anabasis.EventStore.Tests.Demo
 {
   public class ItemCreatedEventProducer : IHostedService
     {

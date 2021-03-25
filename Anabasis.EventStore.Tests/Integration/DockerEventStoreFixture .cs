@@ -6,7 +6,7 @@ using Docker.DotNet;
 using Docker.DotNet.Models;
 using System.Threading.Tasks;
 
-namespace Anabasis.Tests.Integration
+namespace Anabasis.EventStore.Tests.Integration
 {
 
   //https://github.com/linedata/reactive-domain/blob/c2aa6b8ee6527406a8458f4093af4e61dd268749/src/ReactiveDomain.Testing/EmbeddedEventStoreFixture.cs
