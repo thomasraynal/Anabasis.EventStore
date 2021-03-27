@@ -1,6 +1,7 @@
 use snapshot for subscribe to all
 proper private setter for dto
 handle projections
+ACK on persistent sub
 
 do we need a T for streamId =>
   public interface IEntity<TKey> : IHaveAStreamId

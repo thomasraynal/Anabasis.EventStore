@@ -101,7 +101,7 @@ namespace Anabasis.EventStore.Actor
 
         if (null != candidateHandler)
         {
-          await (Task)candidateHandler.Invoke(this, new object[] { @event });
+          ((Task)candidateHandler.Invoke(this, new object[] { @event })).Wait();
         }
 
       }
