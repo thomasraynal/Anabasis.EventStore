@@ -84,30 +84,30 @@ namespace Anabasis.EventStore
 
     }
 
-    public static IServiceCollection AddEventStorePersistentSubscriptionCache<TKey, TAggregate>(this IServiceCollection services,
-    ClusterVNode clusterVNode,
-    UserCredentials userCredentials,
-    ConnectionSettings connectionSettings,
-    string streamId,
-    string groupId,
-    Action<PersistentSubscriptionCacheConfiguration<TKey, TAggregate>> cacheBuilder = null)
-  where TAggregate : IAggregate<TKey>, new()
-    {
+  //  public static IServiceCollection AddEventStorePersistentSubscriptionCache<TKey, TAggregate>(this IServiceCollection services,
+  //  ClusterVNode clusterVNode,
+  //  UserCredentials userCredentials,
+  //  ConnectionSettings connectionSettings,
+  //  string streamId,
+  //  string groupId,
+  //  Action<PersistentSubscriptionCacheConfiguration<TKey, TAggregate>> cacheBuilder = null)
+  //where TAggregate : IAggregate<TKey>, new()
+  //  {
 
-      var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
-      var connectionMonitor = new ConnectionStatusMonitor(connection);
+  //    var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
+  //    var connectionMonitor = new ConnectionStatusMonitor(connection);
 
-      var persistentSubscriptionCacheConfiguration = new PersistentSubscriptionCacheConfiguration<TKey, TAggregate>(streamId, groupId, userCredentials);
-      cacheBuilder?.Invoke(persistentSubscriptionCacheConfiguration);
+  //    var persistentSubscriptionCacheConfiguration = new PersistentSubscriptionCacheConfiguration<TKey, TAggregate>(streamId, groupId, userCredentials);
+  //    cacheBuilder?.Invoke(persistentSubscriptionCacheConfiguration);
 
-      services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
-      services.AddSingleton(persistentSubscriptionCacheConfiguration);
-      services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
-      services.AddTransient<PersistentSubscriptionEventStoreCache<TKey, TAggregate>>();
+  //    services.AddTransient<IEventTypeProvider, ServiceCollectionEventTypeProvider<TKey, TAggregate>>();
+  //    services.AddSingleton(persistentSubscriptionCacheConfiguration);
+  //    services.AddSingleton<IConnectionStatusMonitor>(connectionMonitor);
+  //    services.AddTransient<PersistentSubscriptionEventStoreCache<TKey, TAggregate>>();
 
-      return services;
+  //    return services;
 
-    }
+  //  }
 
     #region Repository
 

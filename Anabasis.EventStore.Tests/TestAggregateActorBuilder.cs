@@ -162,7 +162,7 @@ namespace Anabasis.EventStore.Tests
 
       await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId2));
 
-      await Task.Delay(300);
+      await Task.Delay(500);
 
       Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
 
