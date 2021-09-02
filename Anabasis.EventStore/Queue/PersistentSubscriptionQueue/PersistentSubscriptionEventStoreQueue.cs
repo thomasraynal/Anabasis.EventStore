@@ -15,9 +15,9 @@ namespace Anabasis.EventStore.Queue
         private EventStorePersistentSubscriptionBase _eventStorePersistentSubscription;
 
         public PersistentSubscriptionEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
-      PersistentSubscriptionEventStoreQueueConfiguration persistentEventStoreQueueConfiguration,
-      IEventTypeProvider eventTypeProvider,
-      ILogger<PersistentSubscriptionEventStoreQueue> logger = null) : base(connectionMonitor, persistentEventStoreQueueConfiguration, eventTypeProvider, logger)
+          PersistentSubscriptionEventStoreQueueConfiguration persistentEventStoreQueueConfiguration,
+          IEventTypeProvider eventTypeProvider,
+          ILogger<PersistentSubscriptionEventStoreQueue> logger = null) : base(connectionMonitor, persistentEventStoreQueueConfiguration, eventTypeProvider, logger)
         {
             _persistentEventStoreQueueConfiguration = persistentEventStoreQueueConfiguration;
 
@@ -84,9 +84,9 @@ namespace Anabasis.EventStore.Queue
                  _persistentEventStoreQueueConfiguration.AutoAck);
 
                 return Disposable.Create(() =>
-          {
-              _eventStorePersistentSubscription.Stop(TimeSpan.FromSeconds(5));
-          });
+                  {
+                      _eventStorePersistentSubscription.Stop(TimeSpan.FromSeconds(5));
+                  });
 
             });
         }

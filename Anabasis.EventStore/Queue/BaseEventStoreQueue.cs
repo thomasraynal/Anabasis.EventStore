@@ -9,96 +9,98 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Anabasis.EventStore.Queue
 {
-  public abstract class BaseEventStoreQueue : IEventStoreQueue
-  {
-    protected readonly IEventStoreQueueConfiguration _eventStoreQueueConfiguration;
-    protected readonly IEventTypeProvider _eventTypeProvider;
-    private readonly IConnectionStatusMonitor _connectionMonitor;
-    private readonly ILogger _logger;
-
-    private IDisposable _eventStoreConnectionStatus;
-    private IDisposable _eventStreamConnectionDisposable;
-
-    protected Subject<IEvent> _onEventSubject;
-    protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
-    public bool IsConnected => _connectionMonitor.IsConnected;
-    public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
-
-    public BaseEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
-      IEventStoreQueueConfiguration cacheConfiguration,
-      IEventTypeProvider eventTypeProvider,
-      ILogger logger = null)
+    public abstract class BaseEventStoreQueue : IEventStoreQueue
     {
+        protected readonly IEventStoreQueueConfiguration _eventStoreQueueConfiguration;
+        protected readonly IEventTypeProvider _eventTypeProvider;
+        private readonly IConnectionStatusMonitor _connectionMonitor;
+        private readonly ILogger _logger;
 
-      _eventStoreQueueConfiguration = cacheConfiguration;
-      _eventTypeProvider = eventTypeProvider;
-      _connectionMonitor = connectionMonitor;
+        private IDisposable _eventStoreConnectionStatus;
+        private IDisposable _eventStreamConnectionDisposable;
 
-      _onEventSubject = new Subject<IEvent>();
+        protected Subject<IEvent> _onEventSubject;
+        protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
+        public bool IsConnected => _connectionMonitor.IsConnected;
+        public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
-      ConnectionStatusSubject = new BehaviorSubject<bool>(false);
-
-    }
-
-    protected void InitializeAndRun()
-    {
-      _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
-      {
-        ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);
-
-        if (connectionChanged.IsConnected)
+        public BaseEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
+          IEventStoreQueueConfiguration cacheConfiguration,
+          IEventTypeProvider eventTypeProvider,
+          ILogger logger = null)
         {
 
-          OnInitialize(connectionChanged.IsConnected);
+            _logger = logger;
 
-          _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
-              .Subscribe(resolvedEvent =>
-              {
-                var recordedEvent = resolvedEvent.Event;
+            _eventStoreQueueConfiguration = cacheConfiguration;
+            _eventTypeProvider = eventTypeProvider;
+            _connectionMonitor = connectionMonitor;
 
-                var eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+            _onEventSubject = new Subject<IEvent>();
 
-                if (null == eventType)
+            ConnectionStatusSubject = new BehaviorSubject<bool>(false);
+
+        }
+
+        protected void InitializeAndRun()
+        {
+            _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
+            {
+                ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);
+
+                if (connectionChanged.IsConnected)
                 {
-                  if (_eventStoreQueueConfiguration.IgnoreUnknownEvent) return;
 
-                  throw new InvalidOperationException($"Event {recordedEvent.EventType} is not registered");
+                    OnInitialize(connectionChanged.IsConnected);
+
+                    _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
+                  .Subscribe(resolvedEvent =>
+                  {
+                        var recordedEvent = resolvedEvent.Event;
+
+                        var eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+
+                        if (null == eventType)
+                        {
+                            if (_eventStoreQueueConfiguration.IgnoreUnknownEvent) return;
+
+                            throw new InvalidOperationException($"Event {recordedEvent.EventType} is not registered");
+                        }
+
+                        var @event = DeserializeEvent(recordedEvent);
+
+                        _onEventSubject.OnNext(@event);
+
+                    });
                 }
+                else
+                {
 
-                var @event = DeserializeEvent(recordedEvent);
+                    if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
 
-                _onEventSubject.OnNext(@event);
-
-              });
+                }
+            });
         }
-        else
+
+        public IObservable<IEvent> OnEvent()
         {
-
-          if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
-
+            return _onEventSubject.AsObservable();
         }
-      });
+
+        private IEvent DeserializeEvent(RecordedEvent recordedEvent)
+        {
+            var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+
+            return _eventStoreQueueConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
+        }
+
+        protected abstract IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection);
+        public virtual void Dispose()
+        {
+            _eventStoreConnectionStatus.Dispose();
+            ConnectionStatusSubject.Dispose();
+        }
+
+        protected virtual void OnInitialize(bool isConnected) { }
     }
-
-    public IObservable<IEvent> OnEvent()
-    {
-      return _onEventSubject.AsObservable();
-    }
-
-    private IEvent DeserializeEvent(RecordedEvent recordedEvent)
-    {
-      var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
-
-      return _eventStoreQueueConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
-    }
-
-    protected abstract IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection);
-    public virtual void Dispose()
-    {
-      _eventStoreConnectionStatus.Dispose();
-      ConnectionStatusSubject.Dispose();
-    }
-
-    protected virtual void OnInitialize(bool isConnected) { }
-  }
 }
