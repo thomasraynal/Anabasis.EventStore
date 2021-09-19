@@ -3,7 +3,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <Platforms>AnyCPU</Platforms>
-    <PackageProjectUrl>https://github.com/thomasraynal/Anabasis.EventStore.Zmq</PackageProjectUrl>
+    <PackageProjectUrl>https://github.com/thomasraynal/Anabasis.EventStore</PackageProjectUrl>
     <Description>Bootstrap actor based applications with EventStore and DynamicData</Description>
     <PackageTags>DynamicData;EventStore;EventSoursing;CQRS;Actors</PackageTags>
     <Authors>Thomas Raynal</Authors>
