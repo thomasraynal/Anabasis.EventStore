@@ -5,7 +5,7 @@
     <Platforms>AnyCPU</Platforms>
     <PackageProjectUrl>https://github.com/thomasraynal/Anabasis.EventStore</PackageProjectUrl>
     <Description>Bootstrap actor based applications with EventStore and DynamicData</Description>
-    <PackageTags>DynamicData;EventStore;EventSoursing;CQRS;Actors</PackageTags>
+    <PackageTags>DynamicData;EventStore;EventSourcing;CQRS;Actors</PackageTags>
     <Authors>Thomas Raynal</Authors>
     <Company />
     <Product />
