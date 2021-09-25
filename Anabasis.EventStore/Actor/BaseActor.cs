@@ -46,10 +46,12 @@ namespace Anabasis.EventStore.Actor
       return Task.CompletedTask;
     }
 
-    public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-    {
-      await _eventStoreRepository.Emit(@event, extraHeaders);
-    }
+        public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+        {
+            if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
+
+            await _eventStoreRepository.Emit(@event, extraHeaders);
+        }
 
     public Task<TCommandResult> Send<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
     {

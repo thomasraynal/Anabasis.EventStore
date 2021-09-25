@@ -9,6 +9,7 @@ using EventStore.Core;
 using Lamar;
 using System;
 using System.Collections.Generic;
+using System.Net;
 
 namespace Anabasis.EventStore.Actor
 {
@@ -49,7 +50,42 @@ namespace Anabasis.EventStore.Actor
 
     }
 
-    public static ActorBuilder<TActor, TRegistry> Create(ClusterVNode clusterVNode,
+        public static ActorBuilder<TActor, TRegistry> Create(
+            string eventStoreUrl,
+            UserCredentials userCredentials,
+            ConnectionSettings connectionSettings,
+            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null,
+            IEventTypeProvider eventTypeProvider = null,
+            Microsoft.Extensions.Logging.ILogger logger = null)
+        {
+
+            var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
+
+            var builder = new ActorBuilder<TActor, TRegistry>
+            {
+                _logger = logger,
+                _userCredentials = userCredentials,
+                _connectionMonitor = new ConnectionStatusMonitor(connection, logger)
+            };
+
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
+
+            getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
+
+            builder._eventStoreRepository = new EventStoreRepository(
+              eventStoreRepositoryConfiguration,
+              connection,
+              builder._connectionMonitor,
+              eventProvider,
+              logger);
+
+            return builder;
+
+        }
+
+        public static ActorBuilder<TActor, TRegistry> Create(ClusterVNode clusterVNode,
       UserCredentials userCredentials,
       ConnectionSettings connectionSettings,
       Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null,

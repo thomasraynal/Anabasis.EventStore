@@ -20,10 +20,12 @@ namespace Anabasis.EventStore.Actor
 
     public IEventStoreCache<TKey, TAggregate> State { get; }
 
-    public async Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>
-    {
-      await _eventStoreAggregateRepository.Emit(@event, extraHeaders);
-    }
+        public async Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>
+        {
+            if (!_eventStoreAggregateRepository.IsConnected) throw new InvalidOperationException("Not connected");
+
+            await _eventStoreAggregateRepository.Emit(@event, extraHeaders);
+        }
 
   }
 }

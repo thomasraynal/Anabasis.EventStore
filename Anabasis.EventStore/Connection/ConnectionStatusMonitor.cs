@@ -57,19 +57,19 @@ namespace Anabasis.EventStore.Connection
 
       var closed = Observable.FromEventPattern<ClientClosedEventArgs>(h => connection.Closed += h, h => connection.Closed -= h).Select(arg =>
       {
-        _logger.LogWarning($"Connection closed - [{arg.EventArgs.Reason}]");
+        _logger?.LogWarning($"Connection closed - [{arg.EventArgs.Reason}]");
         return ConnectionStatus.Closed;
       });
 
       var errorOccurred = Observable.FromEventPattern<ClientErrorEventArgs>(h => connection.ErrorOccurred += h, h => connection.ErrorOccurred -= h).Select(arg =>
       {
-        _logger.LogError(arg.EventArgs.Exception, "An error occured while connected to EventStore");
+        _logger?.LogError(arg.EventArgs.Exception, "An error occured while connected to EventStore");
         return ConnectionStatus.ErrorOccurred;
       });
 
       var authenticationFailed = Observable.FromEventPattern<ClientAuthenticationFailedEventArgs>(h => connection.AuthenticationFailed += h, h => connection.AuthenticationFailed -= h).Select(arg =>
        {
-         _logger.LogError($"Authentication failed while connecting to EventStore - [{arg.EventArgs.Reason}]");
+         _logger?.LogError($"Authentication failed while connecting to EventStore - [{arg.EventArgs.Reason}]");
          return ConnectionStatus.AuthenticationFailed;
        });
 
