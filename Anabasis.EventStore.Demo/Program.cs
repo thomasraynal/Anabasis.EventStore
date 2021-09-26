@@ -63,28 +63,28 @@ namespace Anabasis.EventStore.Demo
 
         var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
 
-        var marketDataService = ActorBuilder<MarketDataService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
+        var marketDataService = StatelessActorBuilder<MarketDataService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
                                                .Build();
 
-        var tradeService = ActorBuilder<TradeService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
+        var tradeService = StatelessActorBuilder<TradeService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
                                               .WithSubscribeToAllQueue()
                                               .Build();
 
         var tradeDataEventProvider = new DefaultEventTypeProvider<long, Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
 
-        var tradePriceUpdateService = AggregateActorBuilder<TradePriceUpdateService, long, Trade, DemoSystemRegistry>
+        var tradePriceUpdateService = StatefulActorBuilder<TradePriceUpdateService, long, Trade, DemoSystemRegistry>
                                               .Create(clusterVNode, userCredentials, connectionSettings, tradeDataEventProvider)
                                               .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                                               .WithSubscribeToAllQueue()
                                               .Build();
 
-        var tradeSink = AggregateActorBuilder<TradeSink, long, Trade, DemoSystemRegistry>
+        var tradeSink = StatefulActorBuilder<TradeSink, long, Trade, DemoSystemRegistry>
                                              .Create(clusterVNode, userCredentials, connectionSettings, tradeDataEventProvider)
                                              .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                                              .Build();
 
         var marketDataEventProvider = new DefaultEventTypeProvider<string, MarketData>(() => new[] { typeof(MarketDataChanged) });
-        var marketDataSink = AggregateActorBuilder<MarketDataSink, string, MarketData, DemoSystemRegistry>
+        var marketDataSink = StatefulActorBuilder<MarketDataSink, string, MarketData, DemoSystemRegistry>
                                             .Create(clusterVNode, userCredentials, connectionSettings, marketDataEventProvider)
                                             .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
                                             .Build();

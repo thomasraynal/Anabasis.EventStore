@@ -13,8 +13,8 @@ using System.Net;
 
 namespace Anabasis.EventStore.Actor
 {
-  public class ActorBuilder<TActor, TRegistry>
-    where TActor : IActor
+  public class StatelessActorBuilder<TActor, TRegistry>
+    where TActor : IStatelessActor
     where TRegistry : ServiceRegistry, new()
   {
 
@@ -25,7 +25,7 @@ namespace Anabasis.EventStore.Actor
 
     private readonly List<IEventStoreQueue> _queuesToRegisterTo;
 
-    private ActorBuilder()
+    private StatelessActorBuilder()
     {
       _queuesToRegisterTo = new List<IEventStoreQueue>();
     }
@@ -50,7 +50,7 @@ namespace Anabasis.EventStore.Actor
 
     }
 
-        public static ActorBuilder<TActor, TRegistry> Create(
+        public static StatelessActorBuilder<TActor, TRegistry> Create(
             string eventStoreUrl,
             UserCredentials userCredentials,
             ConnectionSettings connectionSettings,
@@ -61,7 +61,7 @@ namespace Anabasis.EventStore.Actor
 
             var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
 
-            var builder = new ActorBuilder<TActor, TRegistry>
+            var builder = new StatelessActorBuilder<TActor, TRegistry>
             {
                 _logger = logger,
                 _userCredentials = userCredentials,
@@ -85,7 +85,7 @@ namespace Anabasis.EventStore.Actor
 
         }
 
-        public static ActorBuilder<TActor, TRegistry> Create(ClusterVNode clusterVNode,
+        public static StatelessActorBuilder<TActor, TRegistry> Create(ClusterVNode clusterVNode,
       UserCredentials userCredentials,
       ConnectionSettings connectionSettings,
       Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null,
@@ -93,7 +93,7 @@ namespace Anabasis.EventStore.Actor
       Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
-      var builder = new ActorBuilder<TActor, TRegistry>();
+      var builder = new StatelessActorBuilder<TActor, TRegistry>();
 
       var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
@@ -118,7 +118,7 @@ namespace Anabasis.EventStore.Actor
 
     }
 
-    public ActorBuilder<TActor, TRegistry> WithSubscribeToAllQueue(IEventTypeProvider eventTypeProvider = null)
+    public StatelessActorBuilder<TActor, TRegistry> WithSubscribeToAllQueue(IEventTypeProvider eventTypeProvider = null)
     {
       var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
@@ -134,7 +134,7 @@ namespace Anabasis.EventStore.Actor
       return this;
     }
 
-    public ActorBuilder<TActor, TRegistry> WithSubscribeToOneStreamQueue(string streamId, IEventTypeProvider eventTypeProvider = null)
+    public StatelessActorBuilder<TActor, TRegistry> WithSubscribeToOneStreamQueue(string streamId, IEventTypeProvider eventTypeProvider = null)
     {
       var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
@@ -150,7 +150,7 @@ namespace Anabasis.EventStore.Actor
       return this;
     }
 
-    public ActorBuilder<TActor, TRegistry> WithPersistentSubscriptionQueue(string streamId, string groupId)
+    public StatelessActorBuilder<TActor, TRegistry> WithPersistentSubscriptionQueue(string streamId, string groupId)
     {
       var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId, _userCredentials);
 

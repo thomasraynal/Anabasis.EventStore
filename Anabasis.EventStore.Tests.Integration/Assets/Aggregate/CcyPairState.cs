@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Tests.Integration
+namespace Anabasis.EventStore.Integration.Tests
 {
     public enum CcyPairState
     {

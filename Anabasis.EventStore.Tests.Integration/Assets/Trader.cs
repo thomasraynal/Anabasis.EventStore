@@ -6,10 +6,10 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Repository;
 
-namespace Anabasis.EventStore.Tests.Integration
+namespace Anabasis.EventStore.Integration.Tests
 {
 
-  public class Trader : BaseAggregateActor<string, CurrencyPair>, IDisposable
+  public class Trader : BaseStatefulActor<string, CurrencyPair>, IDisposable
   {
 
     private static readonly string[] CcyPairs = { "EUR/USD", "EUR/GBP" };

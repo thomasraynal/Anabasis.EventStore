@@ -34,7 +34,7 @@ namespace Anabasis.EventStore.Tests
     }
   }
 
-  public class TestActorAutoBuildOne : BaseActor
+  public class TestActorAutoBuildOne : BaseStatelessActor
   {
     public List<IEvent> Events { get; } = new List<IEvent>();
 
@@ -58,7 +58,7 @@ namespace Anabasis.EventStore.Tests
 
   }
 
-  public class TestActorAutoBuildTwo : BaseActor
+  public class TestActorAutoBuildTwo : BaseStatelessActor
   {
 
     public List<IEvent> Events { get; } = new List<IEvent>();
@@ -207,12 +207,12 @@ namespace Anabasis.EventStore.Tests
     public async Task ShouldBuildFromActorBuilderAndRunActors()
     {
 
-      var testActorAutoBuildOne = ActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
+      var testActorAutoBuildOne = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
                                                                                    .WithSubscribeToAllQueue()
                                                                                    .WithPersistentSubscriptionQueue(_streamId2, _groupIdOne)
                                                                                    .Build();
 
-      var testActorAutoBuildTwo = ActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
+      var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
                                                                                    .Build();
 
       await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Actor
 {
-  public interface IActor
+  public interface IStatelessActor
   {
     string Id { get; }
     Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders);

@@ -20,9 +20,9 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Tests
 {
 
-    public class TestAggregateActorWithSnapshot : BaseAggregateActor<Guid, SomeDataAggregate<Guid>>
+    public class TestStatefulActorWithSnapshot : BaseStatefulActor<Guid, SomeDataAggregate<Guid>>
   {
-    public TestAggregateActorWithSnapshot(SingleStreamCatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
+    public TestStatefulActorWithSnapshot(SingleStreamCatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
       IEventStoreAggregateRepository<Guid> eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
     {
       Events = new List<SomeRandomEvent>();

@@ -35,7 +35,7 @@ namespace Anabasis.EventStore.Tests
     }
   }
 
-  public class TestActorReceiver : BaseActor
+  public class TestActorReceiver : BaseStatelessActor
   {
     public TestActorReceiver(IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
     {
@@ -54,7 +54,7 @@ namespace Anabasis.EventStore.Tests
 
   }
 
-  public class TestActor : BaseActor
+  public class TestActor : BaseStatelessActor
   {
     public TestActor(IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
     {

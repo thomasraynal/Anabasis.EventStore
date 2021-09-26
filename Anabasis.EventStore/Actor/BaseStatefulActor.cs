@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Actor
 {
-  public abstract class BaseAggregateActor<TKey, TAggregate> : BaseActor, IDisposable, IAggregateActor<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+  public abstract class BaseStatefulActor<TKey, TAggregate> : BaseStatelessActor, IDisposable, IStatefulActor<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
 
-    public BaseAggregateActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache) : base(eventStoreRepository)
+    public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache) : base(eventStoreRepository)
     {
       _eventStoreAggregateRepository = eventStoreRepository;
       State = eventStoreCache;

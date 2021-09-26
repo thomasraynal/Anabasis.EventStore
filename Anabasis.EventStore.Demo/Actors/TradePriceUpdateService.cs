@@ -8,7 +8,7 @@ using Anabasis.EventStore.Repository;
 
 namespace Anabasis.EventStore.Demo
 {
-  public class TradePriceUpdateService : BaseAggregateActor<long, Trade>
+  public class TradePriceUpdateService : BaseStatefulActor<long, Trade>
   {
 
     public TradePriceUpdateService(IEventStoreAggregateRepository<long> eventStoreRepository, IEventStoreCache<long, Trade> eventStoreCache) : base(eventStoreRepository, eventStoreCache)

@@ -19,9 +19,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
-    public class TestAggregateActor : BaseAggregateActor<Guid, SomeDataAggregate<Guid>>
+    public class TestStatefulActor : BaseStatefulActor<Guid, SomeDataAggregate<Guid>>
   {
-    public TestAggregateActor(CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
+    public TestStatefulActor(CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
       IEventStoreAggregateRepository<Guid> eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
     {
       Events = new List<SomeRandomEvent>();
@@ -44,7 +44,7 @@ namespace Anabasis.EventStore.Tests
   }
 
   [TestFixture]
-  public class TestAggregateActors
+  public class TestStatefulActors
   {
 
     private UserCredentials _userCredentials;
@@ -56,7 +56,7 @@ namespace Anabasis.EventStore.Tests
     private Guid _firstAggregateId = Guid.NewGuid();
 
     private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) _eventRepository;
-    private TestAggregateActor _testActorOne;
+    private TestStatefulActor _testActorOne;
 
     [OneTimeSetUp]
     public async Task Setup()
@@ -135,7 +135,7 @@ namespace Anabasis.EventStore.Tests
 
       await Task.Delay(100);
 
-      _testActorOne = new TestAggregateActor(_cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
+      _testActorOne = new TestStatefulActor(_cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
 
       Assert.NotNull(_testActorOne);
     }

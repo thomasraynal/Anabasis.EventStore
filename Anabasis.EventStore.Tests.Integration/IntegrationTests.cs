@@ -6,7 +6,7 @@ using NUnit.Framework;
 using System.Net;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Tests.Integration
+namespace Anabasis.EventStore.Integration.Tests
 {
 
 
@@ -37,7 +37,7 @@ namespace Anabasis.EventStore.Tests.Integration
 
             var defaultEventTypeProvider = new DefaultEventTypeProvider<string, CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged) });
 
-            var traderOne = AggregateActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, userCredentials, connectionSettings, eventTypeProvider: defaultEventTypeProvider)
+            var traderOne = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, userCredentials, connectionSettings, eventTypeProvider: defaultEventTypeProvider)
                                                                                               .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                                 catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                               .Build();
@@ -45,7 +45,7 @@ namespace Anabasis.EventStore.Tests.Integration
 
             Assert.IsTrue(traderOne.State.IsConnected);
 
-            var traderTwo = AggregateActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, userCredentials, connectionSettings, eventTypeProvider: defaultEventTypeProvider)
+            var traderTwo = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, userCredentials, connectionSettings, eventTypeProvider: defaultEventTypeProvider)
                                                                                             .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                                catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                             .Build();

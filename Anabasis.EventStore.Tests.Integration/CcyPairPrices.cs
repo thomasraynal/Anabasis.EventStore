@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Anabasis.EventStore.Tests.Integration.Shared
+namespace Anabasis.EventStore.Integration.Tests.Shared
 {
     public class Price
     {

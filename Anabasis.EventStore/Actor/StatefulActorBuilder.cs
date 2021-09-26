@@ -16,8 +16,8 @@ using System.Net;
 
 namespace Anabasis.EventStore.Actor
 {
-  public class AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry>
-    where TActor : IAggregateActor<TKey, TAggregate>
+  public class StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
+    where TActor : IStatefulActor<TKey, TAggregate>
     where TAggregate : IAggregate<TKey>, new()
     where TRegistry : ServiceRegistry, new()
   {
@@ -30,14 +30,14 @@ namespace Anabasis.EventStore.Actor
 
     private readonly List<IEventStoreQueue> _queuesToRegisterTo;
 
-    private AggregateActorBuilder()
+    private StatefulActorBuilder()
     {
       _queuesToRegisterTo = new List<IEventStoreQueue>();
     }
 
     public TActor Build()
     {
-      if (null == _eventStoreCache) throw new InvalidOperationException($"You must specify a cache for an AggregateActor");
+      if (null == _eventStoreCache) throw new InvalidOperationException($"You must specify a cache for an StatefulActor");
 
       var container = new Container(configuration =>
       {
@@ -59,7 +59,7 @@ namespace Anabasis.EventStore.Actor
 
     }
 
-        public static AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(
+        public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(
         string eventStoreUrl,
         UserCredentials userCredentials,
         ConnectionSettings connectionSettings,
@@ -74,7 +74,7 @@ namespace Anabasis.EventStore.Actor
         }
 
 
-    public static AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
+    public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
       UserCredentials userCredentials,
       ConnectionSettings connectionSettings,
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
@@ -88,7 +88,7 @@ namespace Anabasis.EventStore.Actor
 
     }
 
-    private static AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> CreateInternal(
+    private static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> CreateInternal(
       IEventStoreConnection eventStoreConnection,
       UserCredentials userCredentials,
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
@@ -96,7 +96,7 @@ namespace Anabasis.EventStore.Actor
       Microsoft.Extensions.Logging.ILogger logger = null)
     {
 
-      var builder = new AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry>
+      var builder = new StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
       {
         _logger = logger,
         _userCredentials = userCredentials,
@@ -117,7 +117,7 @@ namespace Anabasis.EventStore.Actor
 
     }
 
-    public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
+    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       Action<CatchupEventStoreCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
@@ -134,7 +134,7 @@ namespace Anabasis.EventStore.Actor
       return this;
     }
 
-    public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
+    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
       string streamId,
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       Action<SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>> singleStreamCatchupEventStoreCacheConfigurationBuilder = null,
@@ -152,7 +152,7 @@ namespace Anabasis.EventStore.Actor
       return this;
     }
 
-    public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
+    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null)
     {
@@ -169,7 +169,7 @@ namespace Anabasis.EventStore.Actor
 
     }
 
-    public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithSubscribeToAllQueue()
+    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithSubscribeToAllQueue()
     {
       var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
 
@@ -185,7 +185,7 @@ namespace Anabasis.EventStore.Actor
       return this;
     }
 
-    public AggregateActorBuilder<TActor, TKey, TAggregate, TRegistry> WithPersistentSubscriptionQueue(string streamId, string groupId)
+    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithPersistentSubscriptionQueue(string streamId, string groupId)
     {
       var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId, _userCredentials);
 

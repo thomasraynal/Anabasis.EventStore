@@ -13,7 +13,7 @@ using DynamicData.Kernel;
 
 namespace Anabasis.EventStore.Demo
 {
-  public class TradeService : BaseActor, IDisposable
+  public class TradeService : BaseStatelessActor, IDisposable
   {
     private readonly Random _random = new Random();
     private readonly IStaticData _staticData;

@@ -7,7 +7,7 @@ using DynamicData.Kernel;
 
 namespace Anabasis.EventStore.Demo
 {
-  public class MarketDataService : BaseActor
+  public class MarketDataService : BaseStatelessActor
   {
     private readonly Dictionary<string, IObservable<MarketData>> _prices = new Dictionary<string, IObservable<MarketData>>();
 
