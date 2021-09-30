@@ -17,7 +17,7 @@ namespace Anabasis.EventStore.Shared
     [JsonProperty]
     public int VersionSnapshot { get; set; } = -1;
 
-    public void Mutate<TEntity>(IMutable<TKey, TEntity> @event) where TEntity : class, IAggregate<TKey>
+    public void Mutate<TEntity>(IMutation<TKey, TEntity> @event) where TEntity : class, IAggregate<TKey>
     {
       @event.Apply(this as TEntity);
       Version++;

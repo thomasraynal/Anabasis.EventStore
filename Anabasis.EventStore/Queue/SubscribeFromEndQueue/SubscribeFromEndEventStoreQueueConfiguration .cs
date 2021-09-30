@@ -9,7 +9,7 @@ namespace Anabasis.EventStore.Queue
 {
   public class SubscribeFromEndEventStoreQueueConfiguration : IEventStoreQueueConfiguration
   {
-    public SubscribeFromEndEventStoreQueueConfiguration (UserCredentials userCredentials)
+    public SubscribeFromEndEventStoreQueueConfiguration (UserCredentials userCredentials = null)
     {
       UserCredentials = userCredentials;
     }

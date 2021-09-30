@@ -2,6 +2,7 @@ using Anabasis.EventStore.Event;
 using Anabasis.EventStore.Queue;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Shared;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
@@ -15,13 +16,15 @@ namespace Anabasis.EventStore.Actor
         private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
+        private readonly ILogger _logger;
         private readonly IEventStoreRepository _eventStoreRepository;
 
-        protected BaseStatelessActor(IEventStoreRepository eventStoreRepository)
+        protected BaseStatelessActor(IEventStoreRepository eventStoreRepository, ILogger logger = null)
         {
             Id = $"{GetType()}-{Guid.NewGuid()}";
 
             _cleanUp = new CompositeDisposable();
+            //_logger = logger;
             _eventStoreRepository = eventStoreRepository;
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();

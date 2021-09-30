@@ -7,18 +7,18 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Actor
 {
-  public abstract class BaseStatefulActor<TKey, TAggregate> : BaseStatelessActor, IDisposable, IStatefulActor<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
-  {
-
-    public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache) : base(eventStoreRepository)
+    public abstract class BaseStatefulActor<TKey, TAggregate> : BaseStatelessActor, IDisposable, IStatefulActor<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
     {
-      _eventStoreAggregateRepository = eventStoreRepository;
-      State = eventStoreCache;
-    }
 
-    private readonly IEventStoreAggregateRepository<TKey> _eventStoreAggregateRepository;
+        public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache) : base(eventStoreRepository)
+        {
+            _eventStoreAggregateRepository = eventStoreRepository;
+            State = eventStoreCache;
+        }
 
-    public IEventStoreCache<TKey, TAggregate> State { get; }
+        private readonly IEventStoreAggregateRepository<TKey> _eventStoreAggregateRepository;
+
+        public IEventStoreCache<TKey, TAggregate> State { get; }
 
         public async Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>
         {
@@ -27,5 +27,5 @@ namespace Anabasis.EventStore.Actor
             await _eventStoreAggregateRepository.Emit(@event, extraHeaders);
         }
 
-  }
+    }
 }

@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Connection;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Repository
 {
@@ -15,7 +16,7 @@ namespace Anabasis.EventStore.Repository
     public EventStoreAggregateRepository(IEventStoreRepositoryConfiguration eventStoreRepositoryConfiguration,
       IEventStoreConnection eventStoreConnection, IConnectionStatusMonitor connectionMonitor,
       IEventTypeProvider eventTypeProvider,
-      Microsoft.Extensions.Logging.ILogger logger = null) : base(eventStoreRepositoryConfiguration, eventStoreConnection, connectionMonitor, eventTypeProvider, logger)
+      ILoggerFactory loggerFactory = null) : base(eventStoreRepositoryConfiguration, eventStoreConnection, connectionMonitor, eventTypeProvider, loggerFactory)
     {
     }
 
@@ -62,7 +63,7 @@ namespace Anabasis.EventStore.Repository
     }
     public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
     where TEntity : IAggregate<TKey>
-    where TEvent : IEntity<TKey>, IMutable<TKey, TEntity>
+    where TEvent : IEntity<TKey>, IMutation<TKey, TEntity>
     {
 
       aggregate.ApplyEvent(ev);

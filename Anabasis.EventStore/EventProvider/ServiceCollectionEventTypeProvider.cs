@@ -53,14 +53,14 @@ namespace Anabasis.EventStore.EventProvider
     //refacto
     public Type[] GetAll()
     {
-      return _serviceProvider.GetServices<IMutable<TKey, TAggregate>>().Select(type => type.GetType()).ToArray();
+      return _serviceProvider.GetServices<IMutation<TKey, TAggregate>>().Select(type => type.GetType()).ToArray();
     }
 
     public Type GetEventTypeByName(string name)
     {
       return _eventTypeCache.GetOrAdd(name, (key) =>
       {
-        var type = _serviceProvider.GetServices<IMutable<TKey, TAggregate>>()
+        var type = _serviceProvider.GetServices<IMutation<TKey, TAggregate>>()
                                .FirstOrDefault(type => type.GetType().FullName == name);
 
         if (null == type) return null;

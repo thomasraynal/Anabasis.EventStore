@@ -9,91 +9,108 @@ using System.Reactive.Linq;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Shared;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Repository
 {
-  public class EventStoreRepository : IEventStoreRepository, IDisposable
-  {
-    protected readonly IEventStoreConnection _eventStoreConnection;
-    protected readonly IEventStoreRepositoryConfiguration _eventStoreRepositoryConfiguration;
-    protected readonly IEventTypeProvider _eventTypeProvider;
+    public class EventStoreRepository : IEventStoreRepository, IDisposable
+    {
+        protected readonly IEventStoreConnection _eventStoreConnection;
+        protected readonly IEventStoreRepositoryConfiguration _eventStoreRepositoryConfiguration;
+        protected readonly IEventTypeProvider _eventTypeProvider;
 
-    private readonly IDisposable _cleanup;
-    private readonly Microsoft.Extensions.Logging.ILogger _logger;
+        private readonly IDisposable _cleanup;
+        private readonly Microsoft.Extensions.Logging.ILogger _logger;
 
-    public bool IsConnected { get; private set; }
+        public bool IsConnected { get; private set; }
 
-    public EventStoreRepository(
+
+        public EventStoreRepository(
+            Func<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration,
+            Func<IEventStoreConnection> getEventStoreConnection,
+            IConnectionStatusMonitor connectionMonitor,
+            Func<IEventTypeProvider> getEventTypeProvider,
+            ILoggerFactory loggerFactory = null)
+            : this(getEventStoreRepositoryConfiguration(),
+                 getEventStoreConnection(),
+                 connectionMonitor,
+                 getEventTypeProvider(),
+                 loggerFactory)
+        {
+        }
+
+        public EventStoreRepository(
         IEventStoreRepositoryConfiguration eventStoreRepositoryConfiguration,
         IEventStoreConnection eventStoreConnection,
         IConnectionStatusMonitor connectionMonitor,
         IEventTypeProvider eventTypeProvider,
-        Microsoft.Extensions.Logging.ILogger logger = null)
-    {
-
-      _eventStoreRepositoryConfiguration = eventStoreRepositoryConfiguration;
-      _eventStoreConnection = eventStoreConnection;
-      _eventTypeProvider = eventTypeProvider;
-
-      _cleanup = connectionMonitor.OnConnected
-            .Subscribe(isConnected =>
-           {
-             IsConnected = isConnected;
-
-           });
-    }
-
-    private async Task Save(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
-    {
-
-      foreach (var eventBatch in events.GroupBy(ev => ev.StreamId))
-      {
-
-        var eventsToSave = eventBatch.Select(ev =>
+        ILoggerFactory loggerFactory = null)
         {
-          var commitHeaders = CreateCommitHeaders(ev, extraHeaders);
 
-          return ToEventData(ev.EventID, ev, commitHeaders);
+            _logger = loggerFactory?.CreateLogger(nameof(EventStoreRepository));
 
-        });
+            _eventStoreRepositoryConfiguration = eventStoreRepositoryConfiguration;
+            _eventStoreConnection = eventStoreConnection;
+            _eventTypeProvider = eventTypeProvider;
 
-        await SaveEventBatch(eventBatch.Key, ExpectedVersion.Any, eventsToSave.ToArray());
-      }
+            _cleanup = connectionMonitor.OnConnected
+                  .Subscribe(isConnected =>
+                 {
+                     IsConnected = isConnected;
 
-    }
-
-    protected async Task SaveEventBatch(string streamId, int expectedVersion, EventData[] eventsToSave)
-    {
-      var eventBatches = GetEventBatches(eventsToSave);
-
-      if (eventBatches.Count == 1)
-      {
-        await _eventStoreConnection.AppendToStreamAsync(streamId, expectedVersion, eventBatches.Single());
-      }
-      else
-      {
-        using var transaction = await _eventStoreConnection.StartTransactionAsync(streamId, expectedVersion);
-
-        foreach (var batch in eventBatches)
+                 });
+        }
+        private async Task Save(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
         {
-          await transaction.WriteAsync(batch);
+
+            foreach (var eventBatch in events.GroupBy(ev => ev.StreamId))
+            {
+
+                var eventsToSave = eventBatch.Select(ev =>
+                {
+                    var commitHeaders = CreateCommitHeaders(ev, extraHeaders);
+
+                    return ToEventData(ev.EventID, ev, commitHeaders);
+
+                });
+
+                await SaveEventBatch(eventBatch.Key, ExpectedVersion.Any, eventsToSave.ToArray());
+            }
+
         }
 
-        await transaction.CommitAsync();
-      }
+        protected async Task SaveEventBatch(string streamId, int expectedVersion, EventData[] eventsToSave)
+        {
+            var eventBatches = GetEventBatches(eventsToSave);
 
-    }
+            if (eventBatches.Count == 1)
+            {
+                await _eventStoreConnection.AppendToStreamAsync(streamId, expectedVersion, eventBatches.Single());
+            }
+            else
+            {
+                using var transaction = await _eventStoreConnection.StartTransactionAsync(streamId, expectedVersion);
 
-    protected List<EventData[]> GetEventBatches(IEnumerable<EventData> events)
-    {
-      return events.Batch(_eventStoreRepositoryConfiguration.WritePageSize).Select(batch => batch.ToArray()).ToList();
-    }
+                foreach (var batch in eventBatches)
+                {
+                    await transaction.WriteAsync(batch);
+                }
 
-    protected virtual IDictionary<string, string> GetCommitHeaders(object aggregate)
-    {
-      var commitId = Guid.NewGuid();
+                await transaction.CommitAsync();
+            }
 
-      return new Dictionary<string, string>
+        }
+
+        protected List<EventData[]> GetEventBatches(IEnumerable<EventData> events)
+        {
+            return events.Batch(_eventStoreRepositoryConfiguration.WritePageSize).Select(batch => batch.ToArray()).ToList();
+        }
+
+        protected virtual IDictionary<string, string> GetCommitHeaders(object aggregate)
+        {
+            var commitId = Guid.NewGuid();
+
+            return new Dictionary<string, string>
             {
                 {MetadataKeys.CommitIdHeader, commitId.ToString()},
                 {MetadataKeys.AggregateClrTypeHeader, aggregate.GetType().AssemblyQualifiedName},
@@ -101,49 +118,49 @@ namespace Anabasis.EventStore.Repository
                 {MetadataKeys.ServerNameHeader, Environment.MachineName},
                 {MetadataKeys.ServerClockHeader, DateTime.UtcNow.ToString("o")}
             };
-    }
+        }
 
-    protected IDictionary<string, string> CreateCommitHeaders(object aggregate, KeyValuePair<string, string>[] extraHeaders)
-    {
-      var commitHeaders = GetCommitHeaders(aggregate);
+        protected IDictionary<string, string> CreateCommitHeaders(object aggregate, KeyValuePair<string, string>[] extraHeaders)
+        {
+            var commitHeaders = GetCommitHeaders(aggregate);
 
-      foreach (var extraHeader in extraHeaders)
-      {
-        commitHeaders[extraHeader.Key] = extraHeader.Value;
-      }
+            foreach (var extraHeader in extraHeaders)
+            {
+                commitHeaders[extraHeader.Key] = extraHeader.Value;
+            }
 
-      return commitHeaders;
-    }
+            return commitHeaders;
+        }
 
-    protected EventData ToEventData(Guid eventId, object @event, IDictionary<string, string> headers)
-    {
+        protected EventData ToEventData(Guid eventId, object @event, IDictionary<string, string> headers)
+        {
 
-      var data = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(@event);
+            var data = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(@event);
 
-      var eventHeaders = new Dictionary<string, string>(headers)
+            var eventHeaders = new Dictionary<string, string>(headers)
             {
                 {MetadataKeys.EventClrTypeHeader, @event.GetType().AssemblyQualifiedName}
             };
 
-      var metadata = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(eventHeaders);
-      var typeName = @event.GetType().FullName;
+            var metadata = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(eventHeaders);
+            var typeName = @event.GetType().FullName;
 
-      return new EventData(eventId, typeName, true, data, metadata);
-    }
+            return new EventData(eventId, typeName, true, data, metadata);
+        }
 
-    public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-    {
-      await Save(new[] { @event }, extraHeaders);
-    }
+        public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+        {
+            await Save(new[] { @event }, extraHeaders);
+        }
 
-    public async Task Emit(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
-    {
-      await Save(events, extraHeaders);
-    }
+        public async Task Emit(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
+        {
+            await Save(events, extraHeaders);
+        }
 
-    public void Dispose()
-    {
-      _cleanup.Dispose();
+        public void Dispose()
+        {
+            _cleanup.Dispose();
+        }
     }
-  }
 }

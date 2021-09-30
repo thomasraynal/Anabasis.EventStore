@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Queue
 {
   public class PersistentSubscriptionEventStoreQueueConfiguration : IEventStoreQueueConfiguration
   {
-    public PersistentSubscriptionEventStoreQueueConfiguration(string streamId, string groupId, UserCredentials userCredentials)
+    public PersistentSubscriptionEventStoreQueueConfiguration(string streamId, string groupId, UserCredentials userCredentials = null)
     {
       StreamId = streamId;
       GroupId = groupId;

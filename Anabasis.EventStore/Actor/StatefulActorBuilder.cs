@@ -10,54 +10,55 @@ using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
 using EventStore.Core;
 using Lamar;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Net;
 
 namespace Anabasis.EventStore.Actor
 {
-  public class StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
-    where TActor : IStatefulActor<TKey, TAggregate>
-    where TAggregate : IAggregate<TKey>, new()
-    where TRegistry : ServiceRegistry, new()
-  {
- 
-    private IEventStoreCache<TKey, TAggregate> _eventStoreCache;
-    private IEventStoreAggregateRepository<TKey> _eventStoreRepository;
-    private Microsoft.Extensions.Logging.ILogger _logger;
-    private UserCredentials _userCredentials;
-    private ConnectionStatusMonitor _connectionMonitor;
-
-    private readonly List<IEventStoreQueue> _queuesToRegisterTo;
-
-    private StatefulActorBuilder()
+    public class StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
+      where TActor : IStatefulActor<TKey, TAggregate>
+      where TAggregate : IAggregate<TKey>, new()
+      where TRegistry : ServiceRegistry, new()
     {
-      _queuesToRegisterTo = new List<IEventStoreQueue>();
-    }
 
-    public TActor Build()
-    {
-      if (null == _eventStoreCache) throw new InvalidOperationException($"You must specify a cache for an StatefulActor");
+        private IEventStoreCache<TKey, TAggregate> EventStoreCache { get; set; }
+        private IEventStoreAggregateRepository<TKey> EventStoreRepository { get; set; }
+        private ILoggerFactory LoggerFactory { get; set; }
+        private UserCredentials UserCredentials { get; set; }
+        private ConnectionStatusMonitor ConnectionMonitor { get; set; }
 
-      var container = new Container(configuration =>
-      {
-        configuration.For<IEventStoreCache<TKey,TAggregate>>().Use(_eventStoreCache);
-        configuration.For<IEventStoreAggregateRepository<TKey>>().Use(_eventStoreRepository);
-        configuration.For<IConnectionStatusMonitor>().Use(_connectionMonitor);
-        configuration.IncludeRegistry<TRegistry>();
+        private readonly List<IEventStoreQueue> _queuesToRegisterTo;
 
-      });
+        private StatefulActorBuilder()
+        {
+            _queuesToRegisterTo = new List<IEventStoreQueue>();
+        }
 
-      var actor = container.GetInstance<TActor>();
+        public TActor Build()
+        {
+            if (null == EventStoreCache) throw new InvalidOperationException($"You must specify a cache for an StatefulActor");
 
-      foreach (var queue in _queuesToRegisterTo)
-      {
-        actor.SubscribeTo(queue, closeSubscriptionOnDispose: true);
-      }
+            var container = new Container(configuration =>
+            {
+                configuration.For<IEventStoreCache<TKey, TAggregate>>().Use(EventStoreCache);
+                configuration.For<IEventStoreAggregateRepository<TKey>>().Use(EventStoreRepository);
+                configuration.For<IConnectionStatusMonitor>().Use(ConnectionMonitor);
+                configuration.IncludeRegistry<TRegistry>();
 
-      return actor;
+            });
 
-    }
+            var actor = container.GetInstance<TActor>();
+
+            foreach (var queue in _queuesToRegisterTo)
+            {
+                actor.SubscribeTo(queue, closeSubscriptionOnDispose: true);
+            }
+
+            return actor;
+
+        }
 
         public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(
         string eventStoreUrl,
@@ -65,142 +66,143 @@ namespace Anabasis.EventStore.Actor
         ConnectionSettings connectionSettings,
         IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
         Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-        Microsoft.Extensions.Logging.ILogger logger = null)
+        ILoggerFactory loggerFactory = null)
         {
             var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
 
-            return CreateInternal(connection, userCredentials, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
+            return CreateInternal(connection, userCredentials, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, loggerFactory);
 
         }
 
 
-    public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
-      UserCredentials userCredentials,
-      ConnectionSettings connectionSettings,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-      Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-      Microsoft.Extensions.Logging.ILogger logger = null)
-    {
+        public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
+          UserCredentials userCredentials,
+          ConnectionSettings connectionSettings,
+          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+          Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
+           ILoggerFactory loggerFactory = null)
+        {
 
-      var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
+            var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
-      return CreateInternal(connection, userCredentials, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, logger);
+            return CreateInternal(connection, userCredentials, eventTypeProvider, eventStoreRepositoryConfigurationBuilder, loggerFactory);
+
+        }
+
+        private static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> CreateInternal(
+          IEventStoreConnection eventStoreConnection,
+          UserCredentials userCredentials,
+          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+          Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
+          ILoggerFactory loggerFactory = null)
+        {
+
+            var builder = new StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
+            {
+                LoggerFactory = loggerFactory,
+                UserCredentials = userCredentials,
+                ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection)
+            };
+
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
+
+            eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
+
+            builder.EventStoreRepository = new EventStoreAggregateRepository<TKey>(
+              eventStoreRepositoryConfiguration,
+              eventStoreConnection,
+              builder.ConnectionMonitor,
+              eventTypeProvider,
+              loggerFactory);
+
+            return builder;
+
+        }
+
+        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
+          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+          Action<CatchupEventStoreCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
+          ISnapshotStore<TKey, TAggregate> snapshotStore = null,
+          ISnapshotStrategy<TKey> snapshotStrategy = null)
+        {
+            if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
+
+            var catchupEventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TAggregate>(UserCredentials);
+
+            catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
+
+            EventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(ConnectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy);
+
+            return this;
+        }
+
+        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
+          string streamId,
+          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+          Action<SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>> singleStreamCatchupEventStoreCacheConfigurationBuilder = null,
+          ISnapshotStore<TKey, TAggregate> snapshotStore = null,
+          ISnapshotStrategy<TKey> snapshotStrategy = null)
+        {
+            if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
+
+            var singleStreamCatchupEventStoreCacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>(streamId, UserCredentials);
+
+            singleStreamCatchupEventStoreCacheConfigurationBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
+
+            EventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(ConnectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy);
+
+            return this;
+        }
+
+        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
+          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+          Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null)
+        {
+
+            if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
+
+            var volatileCacheConfiguration = new SubscribeFromEndCacheConfiguration<TKey, TAggregate>(UserCredentials);
+
+            volatileCacheConfigurationBuilder?.Invoke(volatileCacheConfiguration);
+
+            EventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(ConnectionMonitor, volatileCacheConfiguration, eventTypeProvider);
+
+            return this;
+
+        }
+
+        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithSubscribeToAllQueue()
+        {
+            var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration(UserCredentials);
+
+            var eventProvider = new ConsumerBasedEventProvider<TActor>();
+
+            var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
+              ConnectionMonitor,
+              volatileEventStoreQueueConfiguration,
+              eventProvider);
+
+            _queuesToRegisterTo.Add(volatileEventStoreQueue);
+
+            return this;
+        }
+
+        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithPersistentSubscriptionQueue(string streamId, string groupId)
+        {
+            var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId, UserCredentials);
+
+            var eventProvider = new ConsumerBasedEventProvider<TActor>();
+
+            var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
+              ConnectionMonitor,
+              persistentEventStoreQueueConfiguration,
+              eventProvider);
+
+            _queuesToRegisterTo.Add(persistentSubscriptionEventStoreQueue);
+
+            return this;
+        }
 
     }
-
-    private static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> CreateInternal(
-      IEventStoreConnection eventStoreConnection,
-      UserCredentials userCredentials,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-      Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null,
-      Microsoft.Extensions.Logging.ILogger logger = null)
-    {
-
-      var builder = new StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
-      {
-        _logger = logger,
-        _userCredentials = userCredentials,
-        _connectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, logger)
-      };
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
-
-      eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
-
-      builder._eventStoreRepository = new EventStoreAggregateRepository<TKey>(
-        eventStoreRepositoryConfiguration,
-        eventStoreConnection,
-        builder._connectionMonitor,
-        eventTypeProvider,
-        logger);
-
-      return builder;
-
-    }
-
-    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-      Action<CatchupEventStoreCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
-      ISnapshotStore<TKey, TAggregate> snapshotStore = null,
-      ISnapshotStrategy<TKey> snapshotStrategy = null)
-    {
-      if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
-
-      var catchupEventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TAggregate>(_userCredentials);
-
-      catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
-
-      _eventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy);
-
-      return this;
-    }
-
-    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
-      string streamId,
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-      Action<SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>> singleStreamCatchupEventStoreCacheConfigurationBuilder = null,
-      ISnapshotStore<TKey, TAggregate> snapshotStore = null,
-      ISnapshotStrategy<TKey> snapshotStrategy = null)
-    {
-      if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
-
-      var singleStreamCatchupEventStoreCacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>(streamId, _userCredentials);
-
-      singleStreamCatchupEventStoreCacheConfigurationBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
-
-      _eventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(_connectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy);
-
-      return this;
-    }
-
-    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
-      IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-      Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null)
-    {
-
-      if (null != _eventStoreCache) throw new InvalidOperationException($"A cache has already been set => {_eventStoreCache.GetType()}");
-
-      var volatileCacheConfiguration = new SubscribeFromEndCacheConfiguration<TKey, TAggregate>(_userCredentials);
-
-      volatileCacheConfigurationBuilder?.Invoke(volatileCacheConfiguration);
-
-      _eventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(_connectionMonitor, volatileCacheConfiguration, eventTypeProvider);
-
-      return this;
-
-    }
-
-    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithSubscribeToAllQueue()
-    {
-      var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
-
-      var eventProvider = new ConsumerBasedEventProvider<TActor>();
-
-      var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
-        _connectionMonitor,
-        volatileEventStoreQueueConfiguration,
-        eventProvider);
-
-      _queuesToRegisterTo.Add(volatileEventStoreQueue);
-
-      return this;
-    }
-
-    public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithPersistentSubscriptionQueue(string streamId, string groupId)
-    {
-      var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId, _userCredentials);
-
-      var eventProvider = new ConsumerBasedEventProvider<TActor>();
-
-      var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
-        _connectionMonitor,
-        persistentEventStoreQueueConfiguration,
-        eventProvider);
-
-      _queuesToRegisterTo.Add(persistentSubscriptionEventStoreQueue);
-
-      return this;
-    }
-
-  }
 
 }

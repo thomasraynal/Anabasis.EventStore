@@ -9,7 +9,7 @@ namespace Anabasis.EventStore.Queue
 {
   public class SubscribeFromEndToOneStreamEventStoreQueueConfiguration : IEventStoreQueueConfiguration
   {
-    public SubscribeFromEndToOneStreamEventStoreQueueConfiguration(string streamId, UserCredentials userCredentials)
+    public SubscribeFromEndToOneStreamEventStoreQueueConfiguration(string streamId, UserCredentials userCredentials = null)
     {
       UserCredentials = userCredentials;
       StreamId = streamId;
