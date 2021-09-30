@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Cache
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
       ISnapshotStrategy<TKey> snapshotStrategy = null,
-      ILogger<SingleStreamCatchupEventStoreCache<TKey, TAggregate>> logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
+      ILoggerFactory loggerFactory = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
     {
       _singleStreamCatchupEventStoreCacheConfiguration = cacheConfiguration;
 

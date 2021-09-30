@@ -14,17 +14,17 @@ namespace Anabasis.EventStore.Cache
   {
 
     private readonly CatchupEventStoreCacheConfiguration<TKey, TAggregate> _catchupEventStoreCacheConfiguration;
-    private readonly ILogger<CatchupEventStoreCache<TKey, TAggregate>> _logger;
+    private readonly Microsoft.Extensions.Logging.ILogger _logger;
 
     public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       CatchupEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
       ISnapshotStrategy<TKey> snapshotStrategy = null,
-      ILogger<CatchupEventStoreCache<TKey, TAggregate>> logger = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
+      ILoggerFactory loggerFactory = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
     {
       _catchupEventStoreCacheConfiguration = cacheConfiguration;
-      _logger = logger;
+      _logger = loggerFactory.CreateLogger(GetType());
 
       InitializeAndRun();
     }

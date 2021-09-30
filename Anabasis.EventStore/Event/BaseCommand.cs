@@ -2,12 +2,13 @@ using System;
 
 namespace Anabasis.EventStore.Event
 {
-  public abstract class BaseCommand : BaseEvent, ICommand
-  {
-    public BaseCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
+    public abstract class BaseCommand : BaseEvent, ICommand
     {
-      StreamId = streamId;
-    }
+        public BaseCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
+        {
+            StreamId = streamId;
+            IsCommand = true;
+        }
 
-  }
+    }
 }

@@ -103,7 +103,7 @@ namespace Anabasis.EventStore.Tests
         connection,
         connectionMonitor,
         new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }),
-        logger: _loggerFactory.CreateLogger<CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>>());
+        loggerFactory: _loggerFactory);
 
       return (connectionMonitor, eventStoreRepository);
     }
@@ -112,7 +112,7 @@ namespace Anabasis.EventStore.Tests
     {
       var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory.CreateLogger<ConnectionStatusMonitor>());
+      var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
       var cacheConfiguration = new CatchupEventStoreCacheConfiguration<Guid, SomeDataAggregate<Guid>>(_userCredentials)
       {
@@ -125,7 +125,7 @@ namespace Anabasis.EventStore.Tests
         connectionMonitor,
         cacheConfiguration,
        new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }),
-       logger: _loggerFactory.CreateLogger<CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>>());
+       logger: _loggerFactory?.CreateLogger<CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>>());
 
       var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<Guid>>();
 

@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Cache
     public SubscribeFromEndEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       SubscribeFromEndCacheConfiguration<TKey, TAggregate> volatileEventStoreCacheConfiguration,
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-      ILogger<SubscribeFromEndEventStoreCache<TKey, TAggregate>> logger = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, null, null, logger)
+      ILoggerFactory loggerFactory = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, loggerFactory, null, null)
     {
       _volatileEventStoreCacheConfiguration = volatileEventStoreCacheConfiguration;
       

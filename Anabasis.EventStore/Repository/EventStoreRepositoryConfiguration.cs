@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Repository
 {
   public class EventStoreRepositoryConfiguration : IEventStoreRepositoryConfiguration
   {
-    public EventStoreRepositoryConfiguration(UserCredentials userCredentials)
+    public EventStoreRepositoryConfiguration(UserCredentials userCredentials = null)
     {
       UserCredentials = userCredentials;
     }

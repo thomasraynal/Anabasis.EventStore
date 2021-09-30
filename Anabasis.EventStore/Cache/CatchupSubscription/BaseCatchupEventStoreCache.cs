@@ -21,10 +21,10 @@ namespace Anabasis.EventStore.Cache
     protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
       IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
       IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
+      ILoggerFactory loggerFactory,
       ISnapshotStore<TKey, TAggregate> snapshotStore = null,
-      ISnapshotStrategy<TKey> snapshotStrategy = null,
-      ILogger logger = null) :
-      base(connectionMonitor, cacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy, logger)
+      ISnapshotStrategy<TKey> snapshotStrategy = null) :
+      base(connectionMonitor, cacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
     {
     }
 
