@@ -1,11 +1,11 @@
 ﻿using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Queue;
 using System;
+using System.Collections.Generic;
+using System.Text;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Mvc
 {
-    public interface IActorBuilder
+    public interface IStatefulActorBuilder
     {
         Func<IConnectionStatusMonitor, IEventStoreQueue>[] GetQueueFactories();
     }

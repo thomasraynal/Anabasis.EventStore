@@ -94,8 +94,6 @@ namespace Anabasis.EventStore.Actor
 
             builder.ConnectionMonitor = new ConnectionStatusMonitor(connection, loggerfactory);
 
-            //var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
-
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
 
             getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
@@ -110,7 +108,7 @@ namespace Anabasis.EventStore.Actor
 
         }
 
-        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeToAllQueue(IEventTypeProvider eventTypeProvider = null)
+        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToAllQueue(IEventTypeProvider eventTypeProvider = null)
         {
             var subscribeFromEndEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration();
 
@@ -126,7 +124,7 @@ namespace Anabasis.EventStore.Actor
             return this;
         }
 
-        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeToOneStreamQueue(string streamId, IEventTypeProvider eventTypeProvider = null)
+        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToOneStreamQueue(string streamId, IEventTypeProvider eventTypeProvider = null)
         {
             var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeFromEndToOneStreamEventStoreQueueConfiguration(streamId);
 

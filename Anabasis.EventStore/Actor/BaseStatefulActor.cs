@@ -10,6 +10,10 @@ namespace Anabasis.EventStore.Actor
 {
     public abstract class BaseStatefulActor<TKey, TAggregate> : BaseStatelessActor, IDisposable, IStatefulActor<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
     {
+        public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory) 
+            : this(eventStoreRepository, eventStoreCacheFactory.Get<TKey,TAggregate>(), loggerFactory)
+        {
+        }
 
         public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache, ILoggerFactory loggerFactory) : base(eventStoreRepository, loggerFactory)
         {

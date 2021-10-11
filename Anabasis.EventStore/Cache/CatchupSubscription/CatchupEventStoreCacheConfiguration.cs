@@ -10,7 +10,7 @@ namespace Anabasis.EventStore.Cache
 {
   public class CatchupEventStoreCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
   {
-    public CatchupEventStoreCacheConfiguration(UserCredentials userCredentials)
+    public CatchupEventStoreCacheConfiguration(UserCredentials userCredentials = null)
     {
       UserCredentials = userCredentials;
     }

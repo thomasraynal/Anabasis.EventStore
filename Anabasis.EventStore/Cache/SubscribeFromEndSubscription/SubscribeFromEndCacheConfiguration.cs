@@ -8,7 +8,7 @@ namespace Anabasis.EventStore.Cache
 {
   public class SubscribeFromEndCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {
-    public SubscribeFromEndCacheConfiguration(UserCredentials userCredentials)
+    public SubscribeFromEndCacheConfiguration(UserCredentials userCredentials= null)
     {
       UserCredentials = userCredentials;
     }

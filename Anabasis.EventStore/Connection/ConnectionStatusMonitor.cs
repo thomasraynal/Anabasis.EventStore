@@ -29,7 +29,7 @@ namespace Anabasis.EventStore.Connection
         public IObservable<ConnectionInfo> OnConnectionChanged => _connectionInfoChanged.AsObservable();
         public IObservable<bool> OnConnected => _isConnected.AsObservable();
 
-        public ConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory)
+        public ConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory = null)
         {
             _eventStoreConnection = connection;
 
