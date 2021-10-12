@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Shared
 {
-  public static class DictionnaryExtensions
+  public static class Dictionnary
   {
     public static TValue GetOrAdd<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key, Func<TKey,TValue> valueCreator)
     {

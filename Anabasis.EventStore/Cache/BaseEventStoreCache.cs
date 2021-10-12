@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Shared;
-using Anabasis.EventStore.Event;
 using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Cache
@@ -29,9 +28,7 @@ namespace Anabasis.EventStore.Cache
         private DateTime _lastProcessedEventUtcTimestamp;
 
         protected ILogger Logger { get; private set; }
-
         protected SourceCache<TAggregate, TKey> Cache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
-
         protected BehaviorSubject<bool> ConnectionStatusSubject { get; private set; }
         protected BehaviorSubject<bool> IsStaleSubject { get; private set; }
         protected BehaviorSubject<bool> IsCaughtUpSubject { get; private set; }
@@ -72,7 +69,7 @@ namespace Anabasis.EventStore.Cache
         public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
           IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
           IEventTypeProviderFactory eventTypeProviderFactory,
-          ILoggerFactory loggerFactory,
+          ILoggerFactory loggerFactory = null,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,
           ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
@@ -86,7 +83,7 @@ namespace Anabasis.EventStore.Cache
         public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
            IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
            IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-           ILoggerFactory loggerFactory,
+           ILoggerFactory loggerFactory = null,
            ISnapshotStore<TKey, TAggregate> snapshotStore = null,
            ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
@@ -96,7 +93,7 @@ namespace Anabasis.EventStore.Cache
         public void Setup(IConnectionStatusMonitor connectionMonitor,
           IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          ILoggerFactory loggerFactory,
+          ILoggerFactory loggerFactory = null,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,
           ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
@@ -108,7 +105,7 @@ namespace Anabasis.EventStore.Cache
             _snapshotStore = snapshotStore;
             _lastProcessedEventUtcTimestamp = DateTime.MinValue;
 
-            Logger = loggerFactory.CreateLogger(GetType());
+            Logger = loggerFactory?.CreateLogger(GetType());
 
             ConnectionStatusSubject = new BehaviorSubject<bool>(false);
 

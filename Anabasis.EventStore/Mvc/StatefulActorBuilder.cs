@@ -2,31 +2,36 @@
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Shared;
-using System.Collections.Generic;
-using Anabasis.EventStore.Queue;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.EventProvider;
-using Microsoft.Extensions.DependencyInjection;
+using Anabasis.EventStore.Mvc;
+using System.Collections.Generic;
+using Anabasis.EventStore.Queue;
 
 namespace Anabasis.EventStore
 {
 
-    public class StatefulActorBuilder<TActor, TKey, TAggregate>
-        where TActor : IStatefulActor<TKey, TAggregate>
+    public class StatefulActorBuilder<TActor, TKey, TAggregate> : IStatefulActorBuilder
+        where TActor : class, IStatefulActor<TKey, TAggregate>
         where TAggregate : IAggregate<TKey>, new()
     {
         private readonly World _world;
-  
-        public StatefulActorBuilder(World world)
+        private readonly List<Func<IConnectionStatusMonitor, IEventStoreQueue>> _queuesToRegisterTo;
+        private readonly IEventStoreCacheFactory _eventStoreCacheFactory;
+        private Func<IConnectionStatusMonitor, IEventStoreCache<TKey, TAggregate>> _cacheToRegisterTo;
+
+        public StatefulActorBuilder(World world, IEventStoreCacheFactory eventStoreCacheFactory)
         {
+            _queuesToRegisterTo = new List<Func<IConnectionStatusMonitor, IEventStoreQueue>>();
+            _eventStoreCacheFactory = eventStoreCacheFactory;
             _world = world;
         }
 
         public World CreateActor()
         {
-            _world.Add<TActor>(this);
-
+            _world.StatefulActorBuilders.Add((typeof(TActor), this));
+            _eventStoreCacheFactory.Add<TActor, TKey, TAggregate>(_cacheToRegisterTo);
             return _world;
         }
 
@@ -47,7 +52,7 @@ namespace Anabasis.EventStore
 
                 var catchupEventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(connectionMonitor,
                     catchupEventStoreCacheConfiguration,
-                    eventTypeProvider,
+                    eventProvider,
                     snapshotStore,
                     snapshotStrategy);
 
@@ -55,8 +60,12 @@ namespace Anabasis.EventStore
 
             });
 
-  
+            if (null != _cacheToRegisterTo) throw new InvalidOperationException("A cache as already been registered");
+
+            _cacheToRegisterTo = getCatchupEventStoreQueue;
+
             return this;
+
         }
 
         public StatefulActorBuilder<TActor, TKey, TAggregate> WithReadOneStreamFromStartCache(
@@ -83,11 +92,15 @@ namespace Anabasis.EventStore
 
                 var subscribeFromEndEventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(connectionMonitor,
                     subscribeFromEndCacheConfiguration,
-                    eventTypeProvider);
+                    eventProvider);
 
                 return subscribeFromEndEventStoreCache;
 
             });
+
+            if (null != _cacheToRegisterTo) throw new InvalidOperationException("A cache as already been registered");
+
+            _cacheToRegisterTo = getSubscribeFromEndEventStoreCache;
 
             return this;
         }

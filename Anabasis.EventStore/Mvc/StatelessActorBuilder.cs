@@ -19,6 +19,7 @@ namespace Anabasis.EventStore
             _queuesToRegisterTo = new List<Func<IConnectionStatusMonitor, IEventStoreQueue>>();
         }
 
+
         public StatelessActorBuilder<TActor> WithSubscribeFromEndToAllQueue(
             Action<SubscribeFromEndEventStoreQueueConfiguration> getSubscribeFromEndEventStoreQueueConfiguration = null,  
             IEventTypeProvider eventTypeProvider = null)
@@ -103,7 +104,7 @@ namespace Anabasis.EventStore
 
         public World CreateActor()
         {
-            _world.Add<TActor>(this);
+            _world.StatelessActorBuilders.Add((typeof(TActor), this));
 
             return _world;
         }

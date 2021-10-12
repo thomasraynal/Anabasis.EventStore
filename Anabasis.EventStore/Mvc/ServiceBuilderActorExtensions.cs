@@ -27,6 +27,12 @@ namespace Anabasis.EventStore
                 }
             }
 
+            foreach (var (actorType, _) in _world.StatefulActorBuilders)
+            {
+                //var actor = applicationBuilder.ApplicationServices.GetService(actorType);
+                //var connectionStatusMonitor = applicationBuilder.ApplicationServices.GetService<IConnectionStatusMonitor>();
+            }
+
             return applicationBuilder;
         }
 
