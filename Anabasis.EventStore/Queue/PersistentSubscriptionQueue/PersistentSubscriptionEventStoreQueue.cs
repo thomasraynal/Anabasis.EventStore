@@ -20,9 +20,6 @@ namespace Anabasis.EventStore.Queue
           ILogger<PersistentSubscriptionEventStoreQueue> logger = null) : base(connectionMonitor, persistentEventStoreQueueConfiguration, eventTypeProvider, logger)
         {
             _persistentEventStoreQueueConfiguration = persistentEventStoreQueueConfiguration;
-
-            InitializeAndRun();
-
         }
 
         public void Acknowledge(ResolvedEvent resolvedEvent)

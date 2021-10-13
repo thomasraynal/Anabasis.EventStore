@@ -24,9 +24,7 @@ namespace Anabasis.EventStore.Cache
       ILoggerFactory loggerFactory = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
     {
       _catchupEventStoreCacheConfiguration = cacheConfiguration;
-      _logger = loggerFactory.CreateLogger(GetType());
-
-      InitializeAndRun();
+      _logger = loggerFactory?.CreateLogger(GetType());
     }
 
     protected override void OnResolvedEvent(ResolvedEvent @event)

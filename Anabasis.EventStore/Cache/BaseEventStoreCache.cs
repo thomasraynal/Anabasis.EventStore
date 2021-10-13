@@ -26,6 +26,7 @@ namespace Anabasis.EventStore.Cache
         private IDisposable _eventStreamConnectionDisposable;
         private IDisposable _isStaleDisposable;
         private DateTime _lastProcessedEventUtcTimestamp;
+        private bool _isWiredUp;
 
         protected ILogger Logger { get; private set; }
         protected SourceCache<TAggregate, TKey> Cache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
@@ -52,7 +53,7 @@ namespace Anabasis.EventStore.Cache
             }
         }
 
-        public bool IsConnected => _connectionMonitor.IsConnected;
+        public bool IsConnected => _connectionMonitor.IsConnected && _isWiredUp;
 
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
@@ -103,6 +104,8 @@ namespace Anabasis.EventStore.Cache
             _connectionMonitor = connectionMonitor;
             _snapshotStrategy = snapshotStrategy;
             _snapshotStore = snapshotStore;
+            _isWiredUp = false;
+
             _lastProcessedEventUtcTimestamp = DateTime.MinValue;
 
             Logger = loggerFactory?.CreateLogger(GetType());
@@ -123,8 +126,11 @@ namespace Anabasis.EventStore.Cache
 
         }
 
-        protected void InitializeAndRun()
+        public void Connect()
         {
+            if (_isWiredUp) return;
+
+            _isWiredUp = true;
 
             _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
            {
@@ -138,16 +144,16 @@ namespace Anabasis.EventStore.Cache
                    OnInitialize(connectionChanged.IsConnected);
 
                    _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
-                 .Subscribe(@event =>
-                 {
-                     OnResolvedEvent(@event);
+                     .Subscribe(@event =>
+                     {
+                         OnResolvedEvent(@event);
 
-                     if (IsStale) IsStaleSubject.OnNext(false);
+                         if (IsStale) IsStaleSubject.OnNext(false);
 
-                     LastProcessedEventSequenceNumber = @event.Event.EventNumber;
-                     _lastProcessedEventUtcTimestamp = DateTime.UtcNow;
+                         LastProcessedEventSequenceNumber = @event.Event.EventNumber;
+                         _lastProcessedEventUtcTimestamp = DateTime.UtcNow;
 
-                 });
+                     });
 
                }
                else

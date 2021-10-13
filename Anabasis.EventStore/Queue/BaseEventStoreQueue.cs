@@ -14,6 +14,7 @@ namespace Anabasis.EventStore.Queue
         protected readonly IEventStoreQueueConfiguration _eventStoreQueueConfiguration;
         protected readonly IEventTypeProvider _eventTypeProvider;
         private readonly IConnectionStatusMonitor _connectionMonitor;
+        private bool _isWiredUp;
         private readonly ILogger _logger;
 
         private IDisposable _eventStoreConnectionStatus;
@@ -21,7 +22,7 @@ namespace Anabasis.EventStore.Queue
 
         protected Subject<IEvent> _onEventSubject;
         protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
-        public bool IsConnected => _connectionMonitor.IsConnected;
+        public bool IsConnected => _connectionMonitor.IsConnected && _isWiredUp;
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
         public BaseEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
@@ -35,6 +36,7 @@ namespace Anabasis.EventStore.Queue
             _eventStoreQueueConfiguration = cacheConfiguration;
             _eventTypeProvider = eventTypeProvider;
             _connectionMonitor = connectionMonitor;
+            _isWiredUp = false;
 
             _onEventSubject = new Subject<IEvent>();
 
@@ -42,8 +44,13 @@ namespace Anabasis.EventStore.Queue
 
         }
 
-        protected void InitializeAndRun()
+        public void Connect()
         {
+
+            if (_isWiredUp) return;
+
+            _isWiredUp = true;
+
             _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
             {
                 ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);

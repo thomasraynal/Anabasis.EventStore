@@ -5,8 +5,9 @@ using System.Text;
 
 namespace Anabasis.EventStore.Queue
 {
-  public interface IEventStoreQueue: IDisposable
-  {
-    IObservable<IEvent> OnEvent();
-  }
+    public interface IEventStoreQueue : IDisposable
+    {
+        IObservable<IEvent> OnEvent();
+        void Connect();
+    }
 }

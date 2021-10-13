@@ -23,8 +23,6 @@ namespace Anabasis.EventStore.Cache
       ILoggerFactory loggerFactory = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
     {
       _singleStreamCatchupEventStoreCacheConfiguration = cacheConfiguration;
-
-      InitializeAndRun();
     }
 
     protected override async Task OnLoadSnapshot()

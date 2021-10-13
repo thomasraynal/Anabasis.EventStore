@@ -15,5 +15,6 @@ namespace Anabasis.EventStore.Cache
         TAggregate GetCurrent(TKey key);
         TAggregate[] GetCurrents();
         IObservableCache<TAggregate, TKey> AsObservableCache();
+        void Connect();
     }
 }

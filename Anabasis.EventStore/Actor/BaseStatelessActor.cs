@@ -28,15 +28,19 @@ namespace Anabasis.EventStore.Actor
             _eventStoreRepository = eventStoreRepository;
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
-
+            
             Logger = loggerFactory?.CreateLogger(GetType());
 
         }
 
         public string Id { get; }
 
+        public bool IsConnected => _eventStoreRepository.IsConnected;
+
         public void SubscribeTo(IEventStoreQueue eventStoreQueue, bool closeSubscriptionOnDispose = false)
         {
+            eventStoreQueue.Connect();
+
             var disposable = eventStoreQueue.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
 
             if (closeSubscriptionOnDispose)
@@ -133,6 +137,20 @@ namespace Anabasis.EventStore.Actor
         public virtual void Dispose()
         {
             _cleanUp.Dispose();
+        }
+
+        public async Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            if (IsConnected) return;
+
+            var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
+
+            while(!IsConnected ||  DateTime.UtcNow > waitUntilMax)
+            {
+                await Task.Delay(100);
+            }
+
+            if (!IsConnected) throw new InvalidOperationException("Unable to connect");
         }
     }
 }

@@ -14,23 +14,27 @@ namespace Anabasis.EventStore.Actor
 
         public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
-            _eventStoreAggregateRepository = eventStoreRepository;
-
-            State = eventStoreCache;
+            Setup(eventStoreRepository, eventStoreCache);
         }
 
 
         public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory =null) : base(eventStoreRepository, loggerFactory)
         {
-            _eventStoreAggregateRepository = eventStoreRepository;
-
             var getEventStoreCache = eventStoreCacheFactory.Get<TKey, TAggregate>(GetType());
 
-            State = getEventStoreCache(connectionStatusMonitor);
-
+            Setup(eventStoreRepository, getEventStoreCache(connectionStatusMonitor));
         }
 
-        private readonly IEventStoreAggregateRepository<TKey> _eventStoreAggregateRepository;
+        private void Setup(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache)
+        {
+            _eventStoreAggregateRepository = eventStoreRepository;
+
+            State = eventStoreCache;
+
+            eventStoreCache.Connect();
+        }
+
+        private IEventStoreAggregateRepository<TKey> _eventStoreAggregateRepository;
 
         public IEventStoreCache<TKey, TAggregate> State { get; internal set; }
 

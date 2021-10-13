@@ -23,8 +23,6 @@ namespace Anabasis.EventStore.Queue
       : base(connectionMonitor, volatileEventStoreQueueConfiguration, eventTypeProvider, logger)
     {
       _volatileEventStoreQueueConfiguration = volatileEventStoreQueueConfiguration;
-
-      InitializeAndRun();
     }
 
     protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
