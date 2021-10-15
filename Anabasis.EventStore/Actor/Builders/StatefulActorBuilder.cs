@@ -125,7 +125,7 @@ namespace Anabasis.EventStore.Actor
 
             catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-            EventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(ConnectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy);
+            EventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(ConnectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
 
             return this;
         }
@@ -143,7 +143,7 @@ namespace Anabasis.EventStore.Actor
 
             singleStreamCatchupEventStoreCacheConfigurationBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
 
-            EventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(ConnectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventTypeProvider, snapshotStore, snapshotStrategy);
+            EventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(ConnectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
 
             return this;
         }
@@ -159,7 +159,7 @@ namespace Anabasis.EventStore.Actor
 
             volatileCacheConfigurationBuilder?.Invoke(volatileCacheConfiguration);
 
-            EventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(ConnectionMonitor, volatileCacheConfiguration, eventTypeProvider);
+            EventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(ConnectionMonitor, volatileCacheConfiguration, eventTypeProvider, LoggerFactory);
 
             return this;
 
@@ -174,7 +174,7 @@ namespace Anabasis.EventStore.Actor
             var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
               ConnectionMonitor,
               volatileEventStoreQueueConfiguration,
-              eventProvider);
+              eventProvider, LoggerFactory);
 
             _queuesToRegisterTo.Add(volatileEventStoreQueue);
 
@@ -190,7 +190,7 @@ namespace Anabasis.EventStore.Actor
             var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
               ConnectionMonitor,
               persistentEventStoreQueueConfiguration,
-              eventProvider);
+              eventProvider, LoggerFactory);
 
             _queuesToRegisterTo.Add(persistentSubscriptionEventStoreQueue);
 

@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Actor
 
         public ILogger Logger { get; }
 
-        protected BaseStatelessActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null)
+        protected BaseStatelessActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory)
         {
             Id = $"{GetType()}-{Guid.NewGuid()}";
 
@@ -41,6 +41,8 @@ namespace Anabasis.EventStore.Actor
         {
             eventStoreQueue.Connect();
 
+            Logger?.LogDebug($"{Id} => Subscribing to {eventStoreQueue.Id}");
+
             var disposable = eventStoreQueue.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
 
             if (closeSubscriptionOnDispose)
@@ -60,11 +62,14 @@ namespace Anabasis.EventStore.Actor
         {
             if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
 
+            Logger?.LogDebug($"{Id} => Emitting {@event.StreamId} - {@event.GetType()}");
+
             await _eventStoreRepository.Emit(@event, extraHeaders);
         }
 
         public Task<TCommandResult> Send<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
         {
+            Logger?.LogDebug($"{Id} => Sending command {command.StreamId} - {command.GetType()}");
 
             var taskSource = new TaskCompletionSource<ICommandResponse>();
 
@@ -91,6 +96,7 @@ namespace Anabasis.EventStore.Actor
         {
             try
             {
+                Logger?.LogDebug($"{Id} => Receiving event {@event.StreamId} - {@event.GetType()}");
 
                 var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
 

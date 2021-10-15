@@ -4,6 +4,7 @@ using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Queue;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore
 {
@@ -11,12 +12,12 @@ namespace Anabasis.EventStore
         where TActor : IStatelessActor
     {
         private readonly World _world;
-        private readonly List<Func<IConnectionStatusMonitor, IEventStoreQueue>> _queuesToRegisterTo;
+        private readonly List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>> _queuesToRegisterTo;
 
         public StatelessActorBuilder(World world)
         {
             _world = world;
-            _queuesToRegisterTo = new List<Func<IConnectionStatusMonitor, IEventStoreQueue>>();
+            _queuesToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>>();
         }
 
 
@@ -24,7 +25,7 @@ namespace Anabasis.EventStore
             Action<SubscribeFromEndEventStoreQueueConfiguration> getSubscribeFromEndEventStoreQueueConfiguration = null,  
             IEventTypeProvider eventTypeProvider = null)
         {
-            var getSubscribeFromEndEventStoreQueue = new Func<IConnectionStatusMonitor, IEventStoreQueue>((connectionMonitor) =>
+            var getSubscribeFromEndEventStoreQueue = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>((connectionMonitor, loggerFactory) =>
             {
                 var subscribeFromEndEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration();
 
@@ -35,7 +36,8 @@ namespace Anabasis.EventStore
                 var subscribeFromEndEventStoreQueue = new SubscribeFromEndEventStoreQueue(
                   connectionMonitor,
                   subscribeFromEndEventStoreQueueConfiguration,
-                  eventProvider);
+                  eventProvider,
+                  loggerFactory);
 
                 return subscribeFromEndEventStoreQueue;
 
@@ -46,15 +48,45 @@ namespace Anabasis.EventStore
             return this;
         }
 
-        public StatelessActorBuilder<TActor> WithSubscribeFromEndToOneStreamQueue(
+        public StatelessActorBuilder<TActor> WithSubscribeFromStartToOneStreamQueue(
             string streamId,
-            Action<SubscribeFromEndToOneStreamEventStoreQueueConfiguration> getSubscribeFromEndToOneStreamEventStoreQueueConfiguration = null,
+            Action<SubscribeToOneStreamEventStoreQueueConfiguration> getSubscribeFromEndToOneStreamEventStoreQueueConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
-            var getSubscribeFromEndToOneStreamQueue = new Func<IConnectionStatusMonitor, IEventStoreQueue>((connectionMonitor) =>
+            var getSubscribeFromEndToOneStreamQueue = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>((connectionMonitor, loggerFactory) =>
             {
 
-                var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeFromEndToOneStreamEventStoreQueueConfiguration(streamId);
+                var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamEventStoreQueueConfiguration(streamId);
+
+                getSubscribeFromEndToOneStreamEventStoreQueueConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreQueueConfiguration);
+
+                var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+
+                var subscribeFromEndToOneStreamEventStoreQueue = new SubscribeFromStartToOneStreamEventStoreQueue(
+                  connectionMonitor,
+                  subscribeFromEndToOneStreamEventStoreQueueConfiguration,
+                  eventProvider,
+                  loggerFactory);
+
+                return subscribeFromEndToOneStreamEventStoreQueue;
+
+            });
+
+            _queuesToRegisterTo.Add(getSubscribeFromEndToOneStreamQueue);
+
+            return this;
+
+        }
+
+        public StatelessActorBuilder<TActor> WithSubscribeFromEndToOneStreamQueue(
+            string streamId,
+            Action<SubscribeToOneStreamEventStoreQueueConfiguration> getSubscribeFromEndToOneStreamEventStoreQueueConfiguration = null,
+            IEventTypeProvider eventTypeProvider = null)
+        {
+            var getSubscribeFromEndToOneStreamQueue = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>((connectionMonitor, loggerFactory) =>
+            {
+
+                var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamEventStoreQueueConfiguration(streamId);
 
                 getSubscribeFromEndToOneStreamEventStoreQueueConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreQueueConfiguration);
 
@@ -63,7 +95,7 @@ namespace Anabasis.EventStore
                 var subscribeFromEndToOneStreamEventStoreQueue = new SubscribeFromEndToOneStreamEventStoreQueue(
                   connectionMonitor,
                   subscribeFromEndToOneStreamEventStoreQueueConfiguration,
-                  eventProvider);
+                  eventProvider, loggerFactory);
 
                 return subscribeFromEndToOneStreamEventStoreQueue;
 
@@ -80,7 +112,7 @@ namespace Anabasis.EventStore
             string groupId,
             Action<PersistentSubscriptionEventStoreQueueConfiguration> getPersistentSubscriptionEventStoreQueueConfiguration = null)
         {
-            var getPersistentSubscriptionEventStoreQueue = new Func<IConnectionStatusMonitor, IEventStoreQueue>((connectionMonitor) =>
+            var getPersistentSubscriptionEventStoreQueue = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>((connectionMonitor, loggerFactory) =>
             {
                 var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId);
 
@@ -91,7 +123,8 @@ namespace Anabasis.EventStore
                 var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
                   connectionMonitor,
                   persistentEventStoreQueueConfiguration,
-                  eventProvider);
+                  eventProvider,
+                  loggerFactory);
 
                 return persistentSubscriptionEventStoreQueue;
 
@@ -109,7 +142,7 @@ namespace Anabasis.EventStore
             return _world;
         }
 
-        public Func<IConnectionStatusMonitor, IEventStoreQueue>[] GetQueueFactories()
+        public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>[] GetQueueFactories()
         {
             return _queuesToRegisterTo.ToArray();
         }

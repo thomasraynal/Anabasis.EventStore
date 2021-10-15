@@ -2,6 +2,7 @@ using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -15,7 +16,6 @@ namespace Anabasis.EventStore.Queue
         protected readonly IEventTypeProvider _eventTypeProvider;
         private readonly IConnectionStatusMonitor _connectionMonitor;
         private bool _isWiredUp;
-        private readonly ILogger _logger;
 
         private IDisposable _eventStoreConnectionStatus;
         private IDisposable _eventStreamConnectionDisposable;
@@ -24,6 +24,8 @@ namespace Anabasis.EventStore.Queue
         protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
         public bool IsConnected => _connectionMonitor.IsConnected && _isWiredUp;
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
+        public string Id { get; }
+        protected ILogger Logger { get; }
 
         public BaseEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
           IEventStoreQueueConfiguration cacheConfiguration,
@@ -31,7 +33,9 @@ namespace Anabasis.EventStore.Queue
           ILogger logger = null)
         {
 
-            _logger = logger;
+            Logger = logger;
+
+            Id = $"{GetType()}-{Guid.NewGuid()}";
 
             _eventStoreQueueConfiguration = cacheConfiguration;
             _eventTypeProvider = eventTypeProvider;
@@ -46,13 +50,16 @@ namespace Anabasis.EventStore.Queue
 
         public void Connect()
         {
-
             if (_isWiredUp) return;
+
+            Logger?.LogDebug($"{Id} => Connecting");
 
             _isWiredUp = true;
 
             _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
             {
+                Logger?.LogDebug($"{Id} => IsConnected: {connectionChanged.IsConnected}");
+
                 ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);
 
                 if (connectionChanged.IsConnected)
@@ -82,7 +89,6 @@ namespace Anabasis.EventStore.Queue
                 }
                 else
                 {
-
                     if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
 
                 }

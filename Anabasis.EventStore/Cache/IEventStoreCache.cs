@@ -6,6 +6,7 @@ namespace Anabasis.EventStore.Cache
 {
     public interface IEventStoreCache<TKey, TAggregate> : IDisposable where TAggregate : IAggregate<TKey>, new()
     {
+        string Id { get; }
         bool IsStale { get; }
         bool IsCaughtUp { get; }
         bool IsConnected { get; }

@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Cache
         public SubscribeFromEndEventStoreCache(IConnectionStatusMonitor connectionMonitor,
           SubscribeFromEndCacheConfiguration<TKey, TAggregate> volatileEventStoreCacheConfiguration,
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          ILoggerFactory loggerFactory = null) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, loggerFactory, null, null)
+          ILoggerFactory loggerFactory) : base(connectionMonitor, volatileEventStoreCacheConfiguration, eventTypeProvider, loggerFactory, null, null)
         {
             _volatileEventStoreCacheConfiguration = volatileEventStoreCacheConfiguration;
         }
@@ -68,32 +68,39 @@ namespace Anabasis.EventStore.Cache
               {
                   if (IsCaughtUp) return;
 
+                  Logger?.LogInformation($"{Id} => onCaughtUp - IsCaughtUp: {IsCaughtUp}");
+
                   Cache.Edit((cache) =>
-             {
-                  cache.Clear();
-              });
+                 {
+                     Logger?.LogInformation($"{Id} => onCaughtUp - clear cache");
+
+                     cache.Clear();
+                 });
 
                   IsCaughtUpSubject.OnNext(true);
 
+                  Logger?.LogInformation($"{Id} => onCaughtUp - IsCaughtUp: {IsCaughtUp}");
               }
 
               var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
 
               var filter = Filter.EventType.Prefix(eventTypeFilter);
 
+              Logger?.LogInformation($"{Id} => ConnectToEventStream - FilteredSubscribeToAllFrom - Filters [{string.Join("|", eventTypeFilter)}]");
+
               var subscription = connection.FilteredSubscribeToAllFrom(
-           Position.End,
-           filter,
-           _volatileEventStoreCacheConfiguration.CatchUpSubscriptionFilteredSettings,
-           eventAppeared: onEvent,
-           liveProcessingStarted: onCaughtUp,
-           subscriptionDropped: onSubscriptionDropped,
-           userCredentials: _eventStoreCacheConfiguration.UserCredentials);
+               Position.End,
+               filter,
+               _volatileEventStoreCacheConfiguration.CatchUpSubscriptionFilteredSettings,
+               eventAppeared: onEvent,
+               liveProcessingStarted: onCaughtUp,
+               subscriptionDropped: onSubscriptionDropped,
+               userCredentials: _eventStoreCacheConfiguration.UserCredentials);
 
               return Disposable.Create(() =>
-         {
-                subscription.Stop();
-            });
+             {
+                 subscription.Stop();
+             });
 
           });
         }

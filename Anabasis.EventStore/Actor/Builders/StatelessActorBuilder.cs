@@ -19,6 +19,7 @@ namespace Anabasis.EventStore.Actor
     {
 
         private EventStoreRepository EventStoreRepository { get; set; }
+        private ILoggerFactory LoggerFactory { get;  set; }
         private ConnectionStatusMonitor ConnectionMonitor { get; set; }
         private readonly List<IEventStoreQueue> _queuesToRegisterTo;
 
@@ -31,6 +32,7 @@ namespace Anabasis.EventStore.Actor
         {
             var container = new Container(configuration =>
             {
+                configuration.For<ILoggerFactory>().Use(LoggerFactory);
                 configuration.For<IEventStoreRepository>().Use(EventStoreRepository);
                 configuration.For<IConnectionStatusMonitor>().Use(ConnectionMonitor);
                 configuration.IncludeRegistry<TRegistry>();
@@ -51,8 +53,7 @@ namespace Anabasis.EventStore.Actor
             string eventStoreUrl,
             ConnectionSettings connectionSettings,
             ILoggerFactory loggerFactory,
-            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null,
-            IEventTypeProvider eventTypeProvider = null)
+            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
         {
 
             var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
@@ -62,7 +63,7 @@ namespace Anabasis.EventStore.Actor
                 ConnectionMonitor = new ConnectionStatusMonitor(connection, loggerFactory)
             };
 
-            //var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+            builder.LoggerFactory = loggerFactory;
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
@@ -82,8 +83,7 @@ namespace Anabasis.EventStore.Actor
             UserCredentials userCredentials,
             ConnectionSettings connectionSettings,
             ILoggerFactory loggerfactory,
-            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null,
-            IEventTypeProvider eventTypeProvider = null
+            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null
             )
         {
 
@@ -91,6 +91,7 @@ namespace Anabasis.EventStore.Actor
 
             var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
+            builder.LoggerFactory = loggerfactory;
             builder.ConnectionMonitor = new ConnectionStatusMonitor(connection, loggerfactory);
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
@@ -116,23 +117,25 @@ namespace Anabasis.EventStore.Actor
             var subscribeFromEndEventStoreQueue = new SubscribeFromEndEventStoreQueue(
               ConnectionMonitor,
               subscribeFromEndEventStoreQueueConfiguration,
-              eventProvider);
+              eventProvider,
+              LoggerFactory);
 
             _queuesToRegisterTo.Add(subscribeFromEndEventStoreQueue);
 
             return this;
         }
 
-        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToOneStreamQueue(string streamId, IEventTypeProvider eventTypeProvider = null)
+        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToOneStreamQueue(string streamId,  IEventTypeProvider eventTypeProvider = null)
         {
-            var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeFromEndToOneStreamEventStoreQueueConfiguration(streamId);
+            var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamEventStoreQueueConfiguration(streamId);
 
             var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 
             var subscribeFromEndToOneStreamEventStoreQueue = new SubscribeFromEndToOneStreamEventStoreQueue(
               ConnectionMonitor,
               subscribeFromEndToOneStreamEventStoreQueueConfiguration,
-              eventProvider);
+              eventProvider,
+              LoggerFactory);
 
             _queuesToRegisterTo.Add(subscribeFromEndToOneStreamEventStoreQueue);
 
@@ -148,7 +151,8 @@ namespace Anabasis.EventStore.Actor
             var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
               ConnectionMonitor,
               persistentEventStoreQueueConfiguration,
-              eventProvider);
+              eventProvider,
+              LoggerFactory);
 
             _queuesToRegisterTo.Add(persistentSubscriptionEventStoreQueue);
 

@@ -63,12 +63,14 @@ namespace Anabasis.EventStore.Repository
         }
 
 
-        public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
+        public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
             where TEntity : IAggregate<TKey>
             where TEvent : IEntity<TKey>, IMutation<TKey, TEntity>
         {
 
-            aggregate.ApplyEvent(ev);
+            Logger?.LogDebug($"{Id} => Applying event: {@event.EntityId} {@event.GetType()}");
+
+            aggregate.ApplyEvent(@event);
 
             var afterApplyAggregateVersion = aggregate.Version;
 
@@ -85,6 +87,8 @@ namespace Anabasis.EventStore.Repository
         public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
             where TEvent : IEntity<TKey>
         {
+            Logger?.LogDebug($"{Id} => Emitting event: {@event.EntityId} {@event.GetType()}");
+
             var commitHeaders = CreateCommitHeaders(@event, extraHeaders);
 
             var eventsToSave = new[] { ToEventData(Guid.NewGuid(), @event, commitHeaders) };

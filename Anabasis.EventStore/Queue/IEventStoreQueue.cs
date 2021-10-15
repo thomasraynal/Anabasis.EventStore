@@ -7,6 +7,7 @@ namespace Anabasis.EventStore.Queue
 {
     public interface IEventStoreQueue : IDisposable
     {
+        string Id { get; }
         IObservable<IEvent> OnEvent();
         void Connect();
     }

@@ -27,7 +27,6 @@ namespace Anabasis.EventStore.Cache
         private IDisposable _isStaleDisposable;
         private DateTime _lastProcessedEventUtcTimestamp;
         private bool _isWiredUp;
-
         protected ILogger Logger { get; private set; }
         protected SourceCache<TAggregate, TKey> Cache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
         protected BehaviorSubject<bool> ConnectionStatusSubject { get; private set; }
@@ -57,6 +56,8 @@ namespace Anabasis.EventStore.Cache
 
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
+        public string Id { get; private set; }
+
         public TAggregate GetCurrent(TKey key)
         {
             return Cache.Items.FirstOrDefault(item => item.EntityId.Equals(key));
@@ -70,7 +71,7 @@ namespace Anabasis.EventStore.Cache
         public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
           IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
           IEventTypeProviderFactory eventTypeProviderFactory,
-          ILoggerFactory loggerFactory = null,
+          ILoggerFactory loggerFactory,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,
           ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
@@ -84,7 +85,7 @@ namespace Anabasis.EventStore.Cache
         public BaseEventStoreCache(IConnectionStatusMonitor connectionMonitor,
            IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
            IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-           ILoggerFactory loggerFactory = null,
+           ILoggerFactory loggerFactory,
            ISnapshotStore<TKey, TAggregate> snapshotStore = null,
            ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
@@ -94,7 +95,7 @@ namespace Anabasis.EventStore.Cache
         public void Setup(IConnectionStatusMonitor connectionMonitor,
           IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          ILoggerFactory loggerFactory = null,
+          ILoggerFactory loggerFactory,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,
           ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
@@ -109,6 +110,8 @@ namespace Anabasis.EventStore.Cache
             _lastProcessedEventUtcTimestamp = DateTime.MinValue;
 
             Logger = loggerFactory?.CreateLogger(GetType());
+
+            Id = $"{GetType()}-{Guid.NewGuid()}";
 
             ConnectionStatusSubject = new BehaviorSubject<bool>(false);
 
@@ -130,10 +133,14 @@ namespace Anabasis.EventStore.Cache
         {
             if (_isWiredUp) return;
 
+            Logger?.LogDebug($"{Id} => Connecting");
+
             _isWiredUp = true;
 
             _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
            {
+               Logger?.LogDebug($"{Id} => IsConnected: {connectionChanged.IsConnected}");
+
                ConnectionStatusSubject.OnNext(connectionChanged.IsConnected);
 
                if (connectionChanged.IsConnected)
@@ -173,6 +180,8 @@ namespace Anabasis.EventStore.Cache
         protected abstract IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection);
         protected virtual void OnResolvedEvent(ResolvedEvent @event)
         {
+            Logger?.LogDebug($"{Id} => OnResolvedEvent: {@event.Event.EventId} {@event.Event.EventStreamId} - v.{@event.Event.EventNumber}");
+
             UpdateCacheState(@event, Cache);
         }
 
@@ -218,6 +227,8 @@ namespace Anabasis.EventStore.Cache
         {
             var recordedEvent = resolvedEvent.Event;
 
+            Logger?.LogDebug($"{Id} => UpdateCacheState: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
+
             var cache = specificCache ?? Cache;
 
             var @event = DeserializeEvent(recordedEvent);
@@ -245,8 +256,12 @@ namespace Anabasis.EventStore.Cache
             }
             else
             {
+                Logger?.LogDebug($"{Id} => Creating aggregate: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
+
                 entity = new TAggregate();
             }
+
+            Logger?.LogDebug($"{Id} => Updating aggregate: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
 
             entity.ApplyEvent(@event, false, _eventStoreCacheConfiguration.KeepAppliedEventsOnAggregate);
 

@@ -17,18 +17,25 @@ namespace Anabasis.EventStore.Queue
         public PersistentSubscriptionEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
           PersistentSubscriptionEventStoreQueueConfiguration persistentEventStoreQueueConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILogger<PersistentSubscriptionEventStoreQueue> logger = null) : base(connectionMonitor, persistentEventStoreQueueConfiguration, eventTypeProvider, logger)
+          ILoggerFactory loggerFactory) : base(connectionMonitor, 
+              persistentEventStoreQueueConfiguration, 
+              eventTypeProvider, 
+              loggerFactory.CreateLogger<PersistentSubscriptionEventStoreQueue>())
         {
             _persistentEventStoreQueueConfiguration = persistentEventStoreQueueConfiguration;
         }
 
         public void Acknowledge(ResolvedEvent resolvedEvent)
         {
+            Logger?.LogDebug($"{Id} => ACK event - {resolvedEvent.Event.EventId}");
+
             _eventStorePersistentSubscription.Acknowledge(resolvedEvent);
         }
 
         public void NotAcknowledge(ResolvedEvent resolvedEvent, PersistentSubscriptionNakEventAction persistentSubscriptionNakEventAction, string reason = null)
         {
+            Logger?.LogDebug($"{Id} => NACK event - {resolvedEvent.Event.EventId} - reason : {reason}");
+
             _eventStorePersistentSubscription.Fail(resolvedEvent, persistentSubscriptionNakEventAction, reason);
         }
 
@@ -39,6 +46,8 @@ namespace Anabasis.EventStore.Queue
 
                 Task onEvent(EventStorePersistentSubscriptionBase _, ResolvedEvent resolvedEvent)
                 {
+                    Logger?.LogDebug($"{Id} => onEvent - {resolvedEvent.Event.EventId}");
+
                     observer.OnNext(resolvedEvent);
 
                     return Task.CompletedTask;
@@ -50,6 +59,7 @@ namespace Anabasis.EventStore.Queue
                     {
                         case SubscriptionDropReason.UserInitiated:
                         case SubscriptionDropReason.ConnectionClosed:
+                            Logger?.LogDebug($"{Id} => SubscriptionDropReason - reason : {subscriptionDropReason}");
                             break;
                         case SubscriptionDropReason.NotAuthenticated:
                         case SubscriptionDropReason.AccessDenied:
@@ -70,6 +80,8 @@ namespace Anabasis.EventStore.Queue
                             throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found");
                     }
                 }
+
+                Logger?.LogInformation($"{Id} => ConnectToEventStream - ConnectToPersistentSubscriptionAsync - StreamId: {_persistentEventStoreQueueConfiguration.StreamId} - GroupId: {_persistentEventStoreQueueConfiguration.GroupId}");
 
                 _eventStorePersistentSubscription = await connection.ConnectToPersistentSubscriptionAsync(
                  _persistentEventStoreQueueConfiguration.StreamId,

@@ -3,25 +3,27 @@ using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Queue
 {
-    public class SubscribeFromEndEventStoreQueue : BaseEventStoreQueue
+    public abstract class BaseSubscribeToOneStreamEventStoreQueue : BaseEventStoreQueue
     {
-        private readonly SubscribeFromEndEventStoreQueueConfiguration _volatileEventStoreQueueConfiguration;
+        private readonly SubscribeToOneStreamEventStoreQueueConfiguration _volatileSubscribeToOneStreamEventStoreQueueConfiguration;
+        private readonly int _streamPosition;
 
-        public SubscribeFromEndEventStoreQueue(
+        public BaseSubscribeToOneStreamEventStoreQueue(
+          int streamPosition,
           IConnectionStatusMonitor connectionMonitor,
-          SubscribeFromEndEventStoreQueueConfiguration volatileEventStoreQueueConfiguration,
+          SubscribeToOneStreamEventStoreQueueConfiguration subscribeToOneStreamEventStoreQueueConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILoggerFactory loggerFactory)
-          : base(connectionMonitor, volatileEventStoreQueueConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndEventStoreQueue>())
+          Microsoft.Extensions.Logging.ILogger logger = null)
+          : base(connectionMonitor, subscribeToOneStreamEventStoreQueueConfiguration, eventTypeProvider, logger)
         {
-            _volatileEventStoreQueueConfiguration = volatileEventStoreQueueConfiguration;
+            _volatileSubscribeToOneStreamEventStoreQueueConfiguration = subscribeToOneStreamEventStoreQueueConfiguration;
+            _streamPosition = streamPosition;
         }
 
         protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
@@ -71,26 +73,21 @@ namespace Anabasis.EventStore.Queue
                 {
                 }
 
-                var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+                Logger?.LogInformation($"{Id} => ConnectToEventStream - SubscribeToStreamFrom - StreamId: {_volatileSubscribeToOneStreamEventStoreQueueConfiguration.StreamId} - StreamPosition: {_streamPosition}");
 
-                var filter = Filter.EventType.Prefix(eventTypeFilter);
-
-                Logger?.LogInformation($"{Id} => ConnectToEventStream - FilteredSubscribeToAllFrom - Position: {Position.End} Filters: [{string.Join("|", eventTypeFilter)}]");
-
-                var subscription = connection.FilteredSubscribeToAllFrom(
-                    Position.End,
-                    filter,
-                    _volatileEventStoreQueueConfiguration.CatchUpSubscriptionFilteredSettings,
-                    eventAppeared: onEvent,
-                    liveProcessingStarted: onCaughtUp,
-                    subscriptionDropped: onSubscriptionDropped,
-                    userCredentials: _volatileEventStoreQueueConfiguration.UserCredentials);
+                var subscription = connection.SubscribeToStreamFrom(
+                  _volatileSubscribeToOneStreamEventStoreQueueConfiguration.StreamId,
+                  _streamPosition,
+                  _volatileSubscribeToOneStreamEventStoreQueueConfiguration.CatchUpSubscriptionFilteredSettings,
+                  eventAppeared: onEvent,
+                  liveProcessingStarted: onCaughtUp,
+                  subscriptionDropped: onSubscriptionDropped,
+                  userCredentials: _volatileSubscribeToOneStreamEventStoreQueueConfiguration.UserCredentials);
 
                 return Disposable.Create(() =>
-          {
-                  subscription.Stop();
-
-              });
+                  {
+                      subscription.Stop();
+                  });
 
             });
         }

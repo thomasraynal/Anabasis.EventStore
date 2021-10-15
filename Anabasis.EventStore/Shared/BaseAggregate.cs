@@ -7,8 +7,8 @@ namespace Anabasis.EventStore.Shared
 
   public abstract class BaseAggregate<TKey> : IAggregate<TKey>
   {
-    private readonly List<IEntity<TKey>> _pendingEvents = new List<IEntity<TKey>>();
-    private readonly List<IEntity<TKey>> _appliedEvents = new List<IEntity<TKey>>();
+    private readonly List<IEntity<TKey>> _pendingEvents = new();
+    private readonly List<IEntity<TKey>> _appliedEvents = new();
 
     public TKey EntityId { get; set; }
 

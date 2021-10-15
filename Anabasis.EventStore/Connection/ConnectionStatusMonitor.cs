@@ -7,7 +7,6 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Connection
 {
-
     public class ConnectionStatusMonitor : IConnectionStatusMonitor
     {
         private readonly IConnectableObservable<ConnectionInfo> _connectionInfoChanged;
@@ -29,7 +28,7 @@ namespace Anabasis.EventStore.Connection
         public IObservable<ConnectionInfo> OnConnectionChanged => _connectionInfoChanged.AsObservable();
         public IObservable<bool> OnConnected => _isConnected.AsObservable();
 
-        public ConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory = null)
+        public ConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory)
         {
             _eventStoreConnection = connection;
 
@@ -56,19 +55,22 @@ namespace Anabasis.EventStore.Connection
 
             var closed = Observable.FromEventPattern<ClientClosedEventArgs>(h => connection.Closed += h, h => connection.Closed -= h).Select(arg =>
             {
-                _logger?.LogWarning($"Connection closed - [{arg.EventArgs.Reason}]");
+                _logger?.LogWarning($"{nameof(ConnectionStatusMonitor)} => Connection closed - [{arg.EventArgs.Reason}]");
+
                 return ConnectionStatus.Closed;
             });
 
             var errorOccurred = Observable.FromEventPattern<ClientErrorEventArgs>(h => connection.ErrorOccurred += h, h => connection.ErrorOccurred -= h).Select(arg =>
             {
-                _logger?.LogError(arg.EventArgs.Exception, "An error occured while connected to EventStore");
+                _logger?.LogError(arg.EventArgs.Exception, $"{nameof(ConnectionStatusMonitor)} => An error occured while connected to EventStore");
+
                 return ConnectionStatus.ErrorOccurred;
             });
 
             var authenticationFailed = Observable.FromEventPattern<ClientAuthenticationFailedEventArgs>(h => connection.AuthenticationFailed += h, h => connection.AuthenticationFailed -= h).Select(arg =>
             {
-                _logger?.LogError($"Authentication failed while connecting to EventStore - [{arg.EventArgs.Reason}]");
+                _logger?.LogError($"{nameof(ConnectionStatusMonitor)} => Authentication failed while connecting to EventStore - [{arg.EventArgs.Reason}]");
+
                 return ConnectionStatus.AuthenticationFailed;
             });
 
@@ -82,7 +84,7 @@ namespace Anabasis.EventStore.Connection
                                                {
 
                                                    ConnectionInfo = connectionInfo;
-                                                   _logger?.LogInformation($"{connectionInfo}");
+                                                   _logger?.LogInformation($"{nameof(ConnectionStatusMonitor)} => ConnectionInfo - {connectionInfo}");
                                                    _isConnected.OnNext(connectionInfo.Status == ConnectionStatus.Connected);
 
                                                })

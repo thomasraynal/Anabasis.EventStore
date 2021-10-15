@@ -6,7 +6,6 @@ using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.EventStore
 {
@@ -17,7 +16,7 @@ namespace Anabasis.EventStore
 
         internal IServiceCollection ServiceCollection { get; }
 
-        private readonly EventStoreCacheFactory _eventStoreCacheFactory;
+        private readonly IEventStoreCacheFactory _eventStoreCacheFactory;
         private readonly IEventTypeProviderFactory _eventTypeProviderFactory;
 
         internal World(IServiceCollection services)
@@ -29,8 +28,8 @@ namespace Anabasis.EventStore
             _eventStoreCacheFactory = new EventStoreCacheFactory();
             _eventTypeProviderFactory = new EventTypeProviderFactory();
 
-            ServiceCollection.AddSingleton<IEventStoreCacheFactory>(_eventStoreCacheFactory);
-            ServiceCollection.AddSingleton<IEventTypeProviderFactory>(_eventTypeProviderFactory);
+            ServiceCollection.AddSingleton(_eventStoreCacheFactory);
+            ServiceCollection.AddSingleton(_eventTypeProviderFactory);
         }
 
         public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IEventTypeProvider eventTypeProvider = null)
@@ -43,7 +42,7 @@ namespace Anabasis.EventStore
 
             var statelessActorBuilder = new StatelessActorBuilder<TActor>(this);
 
-            ServiceCollection.AddSingleton<TActor>();
+            ServiceCollection.AddTransient<TActor>();
 
             return statelessActorBuilder;
 

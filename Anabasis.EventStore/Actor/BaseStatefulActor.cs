@@ -17,12 +17,11 @@ namespace Anabasis.EventStore.Actor
             Setup(eventStoreRepository, eventStoreCache);
         }
 
-
         public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory =null) : base(eventStoreRepository, loggerFactory)
         {
             var getEventStoreCache = eventStoreCacheFactory.Get<TKey, TAggregate>(GetType());
 
-            Setup(eventStoreRepository, getEventStoreCache(connectionStatusMonitor));
+            Setup(eventStoreRepository, getEventStoreCache(connectionStatusMonitor, loggerFactory));
         }
 
         private void Setup(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache)
@@ -40,6 +39,8 @@ namespace Anabasis.EventStore.Actor
 
         public async Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>
         {
+            Logger?.LogDebug($"{Id} => Emiting entity event {@event.StreamId} - {@event.GetType()}");
+
             if (!_eventStoreAggregateRepository.IsConnected) throw new InvalidOperationException("Not connected");
 
             await _eventStoreAggregateRepository.Emit(@event, extraHeaders);

@@ -7,9 +7,9 @@ using System.Text;
 
 namespace Anabasis.EventStore.Queue
 {
-  public class SubscribeFromEndToOneStreamEventStoreQueueConfiguration : IEventStoreQueueConfiguration
+  public class SubscribeToOneStreamEventStoreQueueConfiguration : IEventStoreQueueConfiguration
   {
-    public SubscribeFromEndToOneStreamEventStoreQueueConfiguration(string streamId, UserCredentials userCredentials = null)
+    public SubscribeToOneStreamEventStoreQueueConfiguration(string streamId, UserCredentials userCredentials = null)
     {
       UserCredentials = userCredentials;
       StreamId = streamId;

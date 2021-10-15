@@ -5,6 +5,7 @@ using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Actor;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore
 {
@@ -19,10 +20,11 @@ namespace Anabasis.EventStore
             var registerQueues = new Action<IConnectionStatusMonitor, IStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
              {
                  var actor = (IStatelessActor)applicationBuilder.ApplicationServices.GetService(actorType);
+                 var loggerFactory = applicationBuilder.ApplicationServices.GetService<ILoggerFactory>();
 
                  foreach (var getQueue in builder.GetQueueFactories())
                  {
-                     actor.SubscribeTo(getQueue(connectionStatusMonitor));
+                     actor.SubscribeTo(getQueue(connectionStatusMonitor, loggerFactory));
                  } 
 
              });

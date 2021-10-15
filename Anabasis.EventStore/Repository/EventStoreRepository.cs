@@ -18,9 +18,11 @@ namespace Anabasis.EventStore.Repository
         protected readonly IEventStoreRepositoryConfiguration _eventStoreRepositoryConfiguration;
 
         private readonly IDisposable _cleanup;
-        private readonly Microsoft.Extensions.Logging.ILogger _logger;
+        protected Microsoft.Extensions.Logging.ILogger Logger { get; }
 
         public bool IsConnected { get; private set; }
+
+        public string Id { get; }
 
         public EventStoreRepository(
             IEventStoreRepositoryConfiguration eventStoreRepositoryConfiguration,
@@ -28,7 +30,9 @@ namespace Anabasis.EventStore.Repository
             IConnectionStatusMonitor connectionMonitor,
             ILoggerFactory loggerFactory)
         {
-            _logger = loggerFactory?.CreateLogger(nameof(EventStoreRepository));
+            Logger = loggerFactory?.CreateLogger(nameof(EventStoreRepository));
+
+            Id = $"{GetType()}-{Guid.NewGuid()}";
 
             _eventStoreRepositoryConfiguration = eventStoreRepositoryConfiguration;
             _eventStoreConnection = eventStoreConnection;
@@ -46,10 +50,11 @@ namespace Anabasis.EventStore.Repository
 
             foreach (var eventBatch in events.GroupBy(ev => ev.StreamId))
             {
-
                 var eventsToSave = eventBatch.Select(ev =>
                 {
                     var commitHeaders = CreateCommitHeaders(ev, extraHeaders);
+
+                    Logger?.LogDebug($"{Id} => Emitting event: {ev.EventID} {ev.StreamId} {ev.GetType()}");
 
                     return ToEventData(ev.EventID, ev, commitHeaders);
 
