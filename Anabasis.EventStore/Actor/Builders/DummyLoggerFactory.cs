@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Text;
 
-namespace Anabasis.EventStore.Tests
+namespace Anabasis.EventStore.Actor
 {
     public class DummyLogger : ILogger
     {

@@ -137,9 +137,9 @@ namespace Anabasis.EventStore.Demo
 
                   var reportings = ccyPairReporting.Select(ccyPair =>
             {
-                    var upDown = ccyPair.Value.IsUp ? "UP" : "DOWN";
+                    var upDown = ccyPair.Value.IsUp ? "UP  " : "DOWN";
 
-                    return $"[{ccyPair.Key}] => {ccyPair.Value.offer}/{ccyPair.Value.offer} {upDown}";
+                    return $"[{ccyPair.Key}] => {upDown} {ccyPair.Value.offer}/{ccyPair.Value.offer} ";
 
                 }).ToArray();
 

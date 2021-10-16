@@ -12,7 +12,7 @@ namespace Anabasis.EventStore.Demo
   {
     private readonly Dictionary<string, IObservable<MarketData>> _prices = new();
 
-    public MarketDataService(IStaticData staticData, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory) : base(eventStoreRepository, loggerFactory)
+    public MarketDataService(IStaticData staticData, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
     {
 
       foreach (var item in staticData.CurrencyPairs)

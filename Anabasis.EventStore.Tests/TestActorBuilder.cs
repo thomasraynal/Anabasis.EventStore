@@ -39,7 +39,7 @@ namespace Anabasis.EventStore.Tests
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestActorAutoBuildOne(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory, ISomeDependency _) : base(eventStoreRepository, loggerFactory)
+        public TestActorAutoBuildOne(IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
         }
 
@@ -64,7 +64,7 @@ namespace Anabasis.EventStore.Tests
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestActorAutoBuildTwo(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory, ISomeDependency _) : base(eventStoreRepository, loggerFactory)
+        public TestActorAutoBuildTwo(IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
         }
         public async Task Handle(SomeCommand someCommand)
@@ -195,8 +195,8 @@ namespace Anabasis.EventStore.Tests
               eventProvider,
               _loggerFactory);
 
-            var testActorAutoBuildOne = new TestActorAutoBuildOne(eventStoreRepository, _loggerFactory, new SomeDependency());
-            var testActorAutoBuildTwo = new TestActorAutoBuildOne(eventStoreRepository, _loggerFactory, new SomeDependency());
+            var testActorAutoBuildOne = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency(), _loggerFactory);
+            var testActorAutoBuildTwo = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency(), _loggerFactory);
 
             testActorAutoBuildOne.SubscribeTo(persistentSubscriptionEventStoreQueue);
             testActorAutoBuildOne.SubscribeTo(volatileEventStoreQueue);

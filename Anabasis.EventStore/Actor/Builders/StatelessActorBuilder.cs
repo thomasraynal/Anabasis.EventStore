@@ -57,12 +57,13 @@ namespace Anabasis.EventStore.Actor
 
             var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
 
+            loggerFactory ??= new DummyLoggerFactory();
+
             var builder = new StatelessActorBuilder<TActor, TRegistry>
             {
-                ConnectionMonitor = new ConnectionStatusMonitor(connection, loggerFactory)
+                ConnectionMonitor = new ConnectionStatusMonitor(connection, loggerFactory),
+                LoggerFactory = loggerFactory
             };
-
-            builder.LoggerFactory = loggerFactory;
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
@@ -80,7 +81,7 @@ namespace Anabasis.EventStore.Actor
 
         public static StatelessActorBuilder<TActor, TRegistry> Create(ClusterVNode clusterVNode,
             ConnectionSettings connectionSettings,
-            ILoggerFactory loggerfactory = null,
+            ILoggerFactory loggerFactory = null,
             Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null
             )
         {
@@ -89,8 +90,8 @@ namespace Anabasis.EventStore.Actor
 
             var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
-            builder.LoggerFactory = loggerfactory;
-            builder.ConnectionMonitor = new ConnectionStatusMonitor(connection, loggerfactory);
+            builder.LoggerFactory = loggerFactory ?? new DummyLoggerFactory();
+            builder.ConnectionMonitor = new ConnectionStatusMonitor(connection, builder.LoggerFactory);
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
@@ -100,7 +101,7 @@ namespace Anabasis.EventStore.Actor
                 eventStoreRepositoryConfiguration,
                 connection,
                 builder.ConnectionMonitor,
-                loggerfactory);
+                builder.LoggerFactory);
 
             return builder;
 

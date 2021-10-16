@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Actor
 
         public ILogger Logger { get; }
 
-        protected BaseStatelessActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory)
+        protected BaseStatelessActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null)
         {
             Id = $"{GetType()}-{Guid.NewGuid()}";
 

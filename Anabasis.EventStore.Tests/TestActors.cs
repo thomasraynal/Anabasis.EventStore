@@ -36,7 +36,7 @@ namespace Anabasis.EventStore.Tests
 
     public class TestActorReceiver : BaseStatelessActor
     {
-        public TestActorReceiver(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory) : base(eventStoreRepository, loggerFactory)
+        public TestActorReceiver(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
 
         }
@@ -55,7 +55,7 @@ namespace Anabasis.EventStore.Tests
 
     public class TestActor : BaseStatelessActor
     {
-        public TestActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory) : base(eventStoreRepository, loggerFactory)
+        public TestActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
             Events = new List<SomeRandomEvent>();
         }

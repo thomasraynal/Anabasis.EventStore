@@ -22,7 +22,7 @@ namespace Anabasis.EventStore.Demo
     private int _counter = 0;
     private IDisposable _cleanup;
 
-    public TradeService(IStaticData staticData, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory) : base(eventStoreRepository, loggerFactory)
+    public TradeService(IStaticData staticData, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
     {
       _staticData = staticData;
 
