@@ -6,6 +6,8 @@ using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Actor;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
+using EventStore.Core;
+using EventStore.ClientAPI.Embedded;
 
 namespace Anabasis.EventStore
 {
@@ -52,6 +54,31 @@ namespace Anabasis.EventStore
             if (null != _world) throw new InvalidOperationException("A world already exist");
 
             var eventStoreConnection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
+
+            services.AddSingleton<IConnectionStatusMonitor, ConnectionStatusMonitor>();
+            services.AddSingleton(eventStoreConnection);
+            services.AddSingleton(connectionSettings);
+
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
+
+            getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
+
+            services.AddSingleton<IEventStoreRepositoryConfiguration>(eventStoreRepositoryConfiguration);
+
+            services.AddTransient<IEventStoreRepository, EventStoreRepository>();
+
+            return _world = new World(services);
+
+        }
+
+        public static World AddWorld(this IServiceCollection services,
+            ClusterVNode clusterVNode,
+            ConnectionSettings connectionSettings,
+            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
+        {
+            if (null != _world) throw new InvalidOperationException("A world already exist");
+
+            var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
             services.AddSingleton<IConnectionStatusMonitor, ConnectionStatusMonitor>();
             services.AddSingleton(eventStoreConnection);

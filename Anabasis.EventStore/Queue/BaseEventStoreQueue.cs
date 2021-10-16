@@ -15,17 +15,17 @@ namespace Anabasis.EventStore.Queue
         protected readonly IEventStoreQueueConfiguration _eventStoreQueueConfiguration;
         protected readonly IEventTypeProvider _eventTypeProvider;
         private readonly IConnectionStatusMonitor _connectionMonitor;
-        private bool _isWiredUp;
 
         private IDisposable _eventStoreConnectionStatus;
         private IDisposable _eventStreamConnectionDisposable;
 
         protected Subject<IEvent> _onEventSubject;
         protected BehaviorSubject<bool> ConnectionStatusSubject { get; }
-        public bool IsConnected => _connectionMonitor.IsConnected && _isWiredUp;
+        public bool IsConnected => _connectionMonitor.IsConnected && IsWiredUp;
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
         public string Id { get; }
         protected ILogger Logger { get; }
+        public bool IsWiredUp { get; private set; }
 
         public BaseEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
           IEventStoreQueueConfiguration cacheConfiguration,
@@ -40,7 +40,7 @@ namespace Anabasis.EventStore.Queue
             _eventStoreQueueConfiguration = cacheConfiguration;
             _eventTypeProvider = eventTypeProvider;
             _connectionMonitor = connectionMonitor;
-            _isWiredUp = false;
+            IsWiredUp = false;
 
             _onEventSubject = new Subject<IEvent>();
 
@@ -50,11 +50,11 @@ namespace Anabasis.EventStore.Queue
 
         public void Connect()
         {
-            if (_isWiredUp) return;
+            if (IsWiredUp) return;
 
             Logger?.LogDebug($"{Id} => Connecting");
 
-            _isWiredUp = true;
+            IsWiredUp = true;
 
             _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
             {
