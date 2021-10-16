@@ -84,7 +84,14 @@ namespace Anabasis.EventStore.Integration.Tests
             var finished = false;
             var error = false;
 
-            var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().DisableTls().Build();
+
+            var connectionSettings = ConnectionSettings.Create()
+                            .UseDebugLogger()
+                            .DisableTls()
+                            //.SetDefaultUserCredentials(new EventStore.ClientAPI.SystemData.UserCredentials("admin", "changeit"))
+                            .KeepRetrying()
+                            .Build();
+
             var connection = EventStoreConnection.Create(connectionSettings, new Uri(tcpUri));
 
             await connection.ConnectAsync();

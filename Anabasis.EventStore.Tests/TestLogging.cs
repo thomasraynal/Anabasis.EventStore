@@ -24,143 +24,149 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Tests
 {
     public class SerilogTestSink : ILogEventSink
-  {
-
-    public List<LogEvent> Logs = new List<LogEvent>();
-
-    public void Emit(LogEvent logEvent)
-    {
-      Logs.Add(logEvent);
-    }
-  }
-
-  public static class SinkExtensions
-  {
-    public static SerilogTestSink SerilogTestSink = new SerilogTestSink();
-
-    public static LoggerConfiguration TestSink(
-              this LoggerSinkConfiguration loggerConfiguration)
-    {
-      return loggerConfiguration.Sink(SerilogTestSink);
-    }
-  }
-
-  [TestFixture]
-  public class TestLogging
-  {
-    private UserCredentials _userCredentials;
-    private ConnectionSettings _connectionSettings;
-    private ClusterVNode _clusterVNode;
-
-    private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) _repositoryOne;
-
-    private ILoggerFactory _loggerFactory;
-
-    [OneTimeSetUp]
-    public async Task Setup()
     {
 
-      _userCredentials = new UserCredentials("admin", "changeit");
-      _connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
+        public List<LogEvent> Logs = new List<LogEvent>();
 
-      _clusterVNode = EmbeddedVNodeBuilder
-        .AsSingleNode()
-        .RunInMemory()
-        .RunProjections(ProjectionType.All)
-        .StartStandardProjections()
-        .WithWorkerThreads(1)
-        .Build();
-
-      await _clusterVNode.StartAsync(true);
-
-      Log.Logger = new LoggerConfiguration()
-        .MinimumLevel.Debug()
-        .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
-        .WriteTo.Debug()
-        .WriteTo.TestSink()
-        .CreateLogger();
-
-      _loggerFactory = new LoggerFactory();
-      _loggerFactory.AddSerilog(Log.Logger);
-
+        public void Emit(LogEvent logEvent)
+        {
+            Logs.Add(logEvent);
+        }
     }
 
-    [OneTimeTearDown]
-    public async Task TearDown()
+    public static class SinkExtensions
     {
-      await _clusterVNode.StopAsync();
+        public static SerilogTestSink SerilogTestSink = new SerilogTestSink();
+
+        public static LoggerConfiguration TestSink(
+                  this LoggerSinkConfiguration loggerConfiguration)
+        {
+            return loggerConfiguration.Sink(SerilogTestSink);
+        }
     }
 
-    private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) CreateEventRepository()
+    [TestFixture]
+    public class TestLogging
     {
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials);
-      var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-      var connectionMonitor = new ConnectionStatusMonitor(connection);
+        private UserCredentials _userCredentials;
+        private ConnectionSettings _connectionSettings;
+        private ClusterVNode _clusterVNode;
 
-      var eventStoreRepository = new EventStoreAggregateRepository<Guid>(
-        eventStoreRepositoryConfiguration,
-        connection,
-        connectionMonitor,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeData<Guid>) }),
-        loggerFactory: _loggerFactory);
+        private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
+        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) _repositoryOne;
 
-      return (connectionMonitor, eventStoreRepository);
+        private ILoggerFactory _loggerFactory;
+
+        [OneTimeSetUp]
+        public async Task Setup()
+        {
+
+            _userCredentials = new UserCredentials("admin", "changeit");
+
+            _connectionSettings = ConnectionSettings.Create()
+                .UseDebugLogger()
+                .SetDefaultUserCredentials(_userCredentials)
+                .KeepRetrying()
+                .Build();
+
+            _clusterVNode = EmbeddedVNodeBuilder
+              .AsSingleNode()
+              .RunInMemory()
+              .RunProjections(ProjectionType.All)
+              .StartStandardProjections()
+              .WithWorkerThreads(1)
+              .Build();
+
+            await _clusterVNode.StartAsync(true);
+
+            Log.Logger = new LoggerConfiguration()
+              .MinimumLevel.Debug()
+              .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
+              .WriteTo.Debug()
+              .WriteTo.TestSink()
+              .CreateLogger();
+
+            _loggerFactory = new LoggerFactory();
+            _loggerFactory.AddSerilog(Log.Logger);
+
+        }
+
+        [OneTimeTearDown]
+        public async Task TearDown()
+        {
+            await _clusterVNode.StopAsync();
+        }
+
+        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) CreateEventRepository()
+        {
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
+            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
+            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+
+            var eventStoreRepository = new EventStoreAggregateRepository<Guid>(
+              eventStoreRepositoryConfiguration,
+              connection,
+              connectionMonitor,
+              loggerFactory: _loggerFactory);
+
+            return (connectionMonitor, eventStoreRepository);
+        }
+
+        private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) CreateCatchupEventStoreCache()
+        {
+            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
+
+            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+
+            var cacheConfiguration = new CatchupEventStoreCacheConfiguration<Guid, SomeDataAggregate<Guid>>(_userCredentials)
+            {
+                UserCredentials = _userCredentials,
+                KeepAppliedEventsOnAggregate = true,
+                IsStaleTimeSpan = TimeSpan.FromSeconds(1)
+            };
+
+            var catchUpCache = new CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>(
+              connectionMonitor,
+              cacheConfiguration,
+             new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }),
+             _loggerFactory);
+
+            catchUpCache.Connect();
+
+            var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<Guid>>();
+
+            catchUpCache.AsObservableCache()
+                           .Connect()
+                           .Bind(aggregatesOnCacheOne)
+                           .Subscribe();
+
+            return (connectionMonitor, catchUpCache, aggregatesOnCacheOne);
+
+        }
+
+
+        [Test, Order(0)]
+        public async Task ShouldCreateAndRunACatchupEventStoreCacheAndLogSomething()
+        {
+            _cacheOne = CreateCatchupEventStoreCache();
+            _repositoryOne = CreateEventRepository();
+
+            await Task.Delay(100);
+
+            Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
+            Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
+            Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
+
+            await Task.Delay(500);
+
+            Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Count > 0);
+
+            await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(Guid.NewGuid(), Guid.NewGuid()));
+
+            await Task.Delay(500);
+
+            Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Any(Log => Log.MessageTemplate.Text.Contains("OnEvent")));
+            Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Any(Log => Log.MessageTemplate.Text.Contains("OnResolvedEvent")));
+        }
     }
-
-    private (ConnectionStatusMonitor connectionStatusMonitor, CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) CreateCatchupEventStoreCache()
-    {
-      var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-
-      var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
-
-      var cacheConfiguration = new CatchupEventStoreCacheConfiguration<Guid, SomeDataAggregate<Guid>>(_userCredentials)
-      {
-        UserCredentials = _userCredentials,
-        KeepAppliedEventsOnAggregate = true,
-        IsStaleTimeSpan = TimeSpan.FromSeconds(1)
-      };
-
-      var catchUpCache = new CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>(
-        connectionMonitor,
-        cacheConfiguration,
-       new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }),
-       logger: _loggerFactory?.CreateLogger<CatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>>());
-
-      var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<Guid>>();
-
-      catchUpCache.AsObservableCache()
-                     .Connect()
-                     .Bind(aggregatesOnCacheOne)
-                     .Subscribe();
-
-      return (connectionMonitor, catchUpCache, aggregatesOnCacheOne);
-
-    }
-
-
-    [Test, Order(0)]
-    public async Task ShouldCreateAndRunACatchupEventStoreCacheAndLogSomething()
-    {
-       _cacheOne = CreateCatchupEventStoreCache();
-      _repositoryOne = CreateEventRepository();
-
-      await Task.Delay(100);
-
-      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
-      Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
-
-      await Task.Delay(500);
-
-      Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Count > 0);
-
-      await _repositoryOne.eventStoreRepository.Emit(new SomeData<Guid>(Guid.NewGuid(), Guid.NewGuid()));
-
-      await Task.Delay(500);
-
-      Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Any(Log => Log.MessageTemplate.Text.Contains("OnEvent")));
-      Assert.IsTrue(SinkExtensions.SerilogTestSink.Logs.Any(Log=> Log.MessageTemplate.Text.Contains("OnResolvedEvent")));
-    }
-  }
 }

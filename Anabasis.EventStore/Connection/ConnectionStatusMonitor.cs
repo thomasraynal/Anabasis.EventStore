@@ -15,13 +15,7 @@ namespace Anabasis.EventStore.Connection
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
         private readonly BehaviorSubject<bool> _isConnected;
         private readonly IDisposable _cleanUp;
-        public bool IsConnected
-        {
-            get
-            {
-                return _isConnected.Value;
-            }
-        }
+        public bool IsConnected => _isConnected.Value;
 
         public ConnectionInfo ConnectionInfo { get; private set; }
 
@@ -78,7 +72,6 @@ namespace Anabasis.EventStore.Connection
 
             _connectionInfoChanged = Observable.Merge(connected, disconnected, reconnecting, closed, errorOccurred, authenticationFailed, _forceConnectionStatus)
                                                .Scan(ConnectionInfo.Initial, UpdateConnectionInfo)
-                                               //this is important
                                                .StartWith(ConnectionInfo.Initial)
                                                .Do(connectionInfo =>
                                                {

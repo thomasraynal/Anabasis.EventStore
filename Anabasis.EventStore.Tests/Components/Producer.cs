@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
-  public class Producer : IProducer
+    public class Producer : IProducer
     {
         private readonly IEventStoreAggregateRepository<Guid> _repository;
 
@@ -17,13 +17,8 @@ namespace Anabasis.EventStore.Tests
         public Guid Create()
         {
             var item = new Item();
-             _repository.Apply(item, new CreateItemEvent());
+            _repository.Apply(item, new CreateItemEvent());
             return item.EntityId;
-        }
-
-        public async Task<Item> Get(Guid item, bool loadEvents)
-        {
-            return await _repository.GetById<Item>(item, loadEvents);
         }
 
         public void Mutate(Item item, string payload)
@@ -33,7 +28,7 @@ namespace Anabasis.EventStore.Tests
                 Payload = payload
             };
 
-             _repository.Apply(item, itemUpdatedEvent);
+            _repository.Apply(item, itemUpdatedEvent);
         }
     }
 }

@@ -4,14 +4,15 @@ using System.Reactive.Linq;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Repository;
 using DynamicData.Kernel;
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Demo
 {
   public class MarketDataService : BaseStatelessActor
   {
-    private readonly Dictionary<string, IObservable<MarketData>> _prices = new Dictionary<string, IObservable<MarketData>>();
+    private readonly Dictionary<string, IObservable<MarketData>> _prices = new();
 
-    public MarketDataService(IStaticData staticData, IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
+    public MarketDataService(IStaticData staticData, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory) : base(eventStoreRepository, loggerFactory)
     {
 
       foreach (var item in staticData.CurrencyPairs)

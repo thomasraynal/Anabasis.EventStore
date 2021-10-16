@@ -32,12 +32,17 @@ namespace Anabasis.EventStore.Integration.Tests
             var url = "tcp://admin:changeit@localhost:1113";
 
             var userCredentials = new UserCredentials("admin", "changeit");
-            var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().DisableTls().Build();
 
+            var connectionSettings =  ConnectionSettings.Create()
+                            .UseDebugLogger()
+                            .DisableTls()
+                            .SetDefaultUserCredentials(userCredentials)
+                            .KeepRetrying()
+                            .Build();
 
             var defaultEventTypeProvider = new DefaultEventTypeProvider<string, CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged) });
 
-            var traderOne = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, userCredentials, connectionSettings, eventTypeProvider: defaultEventTypeProvider)
+            var traderOne = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, connectionSettings)
                                                                                               .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                                 catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                               .Build();
@@ -45,7 +50,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
             Assert.IsTrue(traderOne.State.IsConnected);
 
-            var traderTwo = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, userCredentials, connectionSettings, eventTypeProvider: defaultEventTypeProvider)
+            var traderTwo = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, connectionSettings)
                                                                                             .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                                catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                             .Build();

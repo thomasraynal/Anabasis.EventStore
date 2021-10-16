@@ -10,6 +10,7 @@ using EventStore.ClientAPI.SystemData;
 using EventStore.Common.Options;
 using EventStore.Core;
 using Lamar;
+using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -17,216 +18,226 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
-    public class SomeDependency: ISomeDependency
-  {
-
-  }
-
-  public interface ISomeDependency
-  {
-  }
-
-  public class SomeRegistry : ServiceRegistry
-  {
-    public SomeRegistry()
+    public class SomeDependency : ISomeDependency
     {
-      For<ISomeDependency>().Use<SomeDependency>();
-    }
-  }
-
-  public class TestActorAutoBuildOne : BaseStatelessActor
-  {
-    public List<IEvent> Events { get; } = new List<IEvent>();
-
-    public TestActorAutoBuildOne(IEventStoreRepository eventStoreRepository, ISomeDependency _) : base(eventStoreRepository)
-    {
-    }
-
-    public Task Handle(AgainSomeMoreData againSomeMoreData)
-    {
-      Events.Add(againSomeMoreData);
-
-      return Task.CompletedTask;
-    }
-
-    public Task Handle(SomeMoreData someMoreData)
-    {
-      Events.Add(someMoreData);
-
-      return Task.CompletedTask;
-    }
-
-  }
-
-  public class TestActorAutoBuildTwo : BaseStatelessActor
-  {
-
-    public List<IEvent> Events { get; } = new List<IEvent>();
-
-    public TestActorAutoBuildTwo(IEventStoreRepository eventStoreRepository, ISomeDependency _) : base(eventStoreRepository)
-    {
-    }
-    public async Task Handle(SomeCommand someCommand)
-    {
-      await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.StreamId));
-    }
-
-    public Task Handle(AgainSomeMoreData againSomeMoreData)
-    {
-      Events.Add(againSomeMoreData);
-
-      return Task.CompletedTask;
-    }
-
-    public Task Handle(SomeMoreData someMoreData)
-    {
-      Events.Add(someMoreData);
-
-      return Task.CompletedTask;
-    }
-  }
-
-
-  [TestFixture]
-  public class TestActorBuilder
-  {
-
-    private UserCredentials _userCredentials;
-    private ConnectionSettings _connectionSettings;
-    private ClusterVNode _clusterVNode;
-
-    private Guid _correlationId = Guid.NewGuid();
-    private readonly string _streamId = "streamId";
-    private readonly string _streamId2 = "streamId2";
-    private readonly string _groupIdOne = "groupIdOne";
-    private readonly string _groupIdTwo = "groupIdTwo";
-
-    [OneTimeSetUp]
-    public async Task Setup()
-    {
-
-      _userCredentials = new UserCredentials("admin", "changeit");
-      _connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
-
-      _clusterVNode = EmbeddedVNodeBuilder
-        .AsSingleNode()
-        .RunInMemory()
-        .RunProjections(ProjectionType.All)
-        .StartStandardProjections()
-        .WithWorkerThreads(1)
-        .Build();
-
-      await _clusterVNode.StartAsync(true);
-
-      await CreateSubscriptionGroups();
 
     }
 
-    [OneTimeTearDown]
-    public async Task TearDown()
+    public interface ISomeDependency
     {
-      await _clusterVNode.StopAsync();
     }
 
-    private async Task CreateSubscriptionGroups()
+    public class SomeRegistry : ServiceRegistry
     {
-      var connectionSettings = PersistentSubscriptionSettings.Create().StartFromCurrent().Build();
-      var connection = EmbeddedEventStoreConnection.Create(_clusterVNode);
+        public SomeRegistry()
+        {
+            For<ISomeDependency>().Use<SomeDependency>();
+        }
+    }
 
-      await connection.CreatePersistentSubscriptionAsync(
-           _streamId,
-           _groupIdOne,
-           connectionSettings,
-           _userCredentials);
+    public class TestActorAutoBuildOne : BaseStatelessActor
+    {
+        public List<IEvent> Events { get; } = new List<IEvent>();
 
-      await connection.CreatePersistentSubscriptionAsync(
-           _streamId,
-           _groupIdTwo,
-           connectionSettings,
-           _userCredentials);
+        public TestActorAutoBuildOne(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory, ISomeDependency _) : base(eventStoreRepository, loggerFactory)
+        {
+        }
 
-      await connection.CreatePersistentSubscriptionAsync(
-           _streamId2,
-           _groupIdOne,
-           connectionSettings,
-           _userCredentials);
+        public Task Handle(AgainSomeMoreData againSomeMoreData)
+        {
+            Events.Add(againSomeMoreData);
+
+            return Task.CompletedTask;
+        }
+
+        public Task Handle(SomeMoreData someMoreData)
+        {
+            Events.Add(someMoreData);
+
+            return Task.CompletedTask;
+        }
+
+    }
+
+    public class TestActorAutoBuildTwo : BaseStatelessActor
+    {
+
+        public List<IEvent> Events { get; } = new List<IEvent>();
+
+        public TestActorAutoBuildTwo(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory, ISomeDependency _) : base(eventStoreRepository, loggerFactory)
+        {
+        }
+        public async Task Handle(SomeCommand someCommand)
+        {
+            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.StreamId));
+        }
+
+        public Task Handle(AgainSomeMoreData againSomeMoreData)
+        {
+            Events.Add(againSomeMoreData);
+
+            return Task.CompletedTask;
+        }
+
+        public Task Handle(SomeMoreData someMoreData)
+        {
+            Events.Add(someMoreData);
+
+            return Task.CompletedTask;
+        }
     }
 
 
-    [Test, Order(0)]
-    public async Task ShouldBuildAndRunActors()
+    [TestFixture]
+    public class TestActorBuilder
     {
 
-      var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-      var connectionMonitor = new ConnectionStatusMonitor(connection);
+        private UserCredentials _userCredentials;
+        private ConnectionSettings _connectionSettings;
+        private ClusterVNode _clusterVNode;
+        private ILoggerFactory _loggerFactory;
 
-      var eventProvider = new ConsumerBasedEventProvider<TestActorAutoBuildOne>();
+        private Guid _correlationId = Guid.NewGuid();
+        private readonly string _streamId = "streamId";
+        private readonly string _streamId2 = "streamId2";
+        private readonly string _groupIdOne = "groupIdOne";
+        private readonly string _groupIdTwo = "groupIdTwo";
 
-      var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(_userCredentials);
+        [OneTimeSetUp]
+        public async Task Setup()
+        {
 
-      var eventStoreRepository = new EventStoreRepository(
-        eventStoreRepositoryConfiguration,
-        connection,
-        connectionMonitor,
-        new DefaultEventTypeProvider(() => new[] { typeof(SomeMoreData), typeof(AgainSomeMoreData) }));
+            _userCredentials = new UserCredentials("admin", "changeit");
 
-      var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(_streamId, _groupIdOne, _userCredentials);
+            _connectionSettings = ConnectionSettings.Create()
+                .UseDebugLogger()
+                .SetDefaultUserCredentials(_userCredentials)
+                .KeepRetrying()
+                .Build();
 
-      var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
-        connectionMonitor,
-        persistentEventStoreQueueConfiguration,
-        eventProvider);
+            _loggerFactory = new DummyLoggerFactory();
 
-      var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration (_userCredentials);
+            _clusterVNode = EmbeddedVNodeBuilder
+              .AsSingleNode()
+              .RunInMemory()
+              .RunProjections(ProjectionType.All)
+              .StartStandardProjections()
+              .WithWorkerThreads(1)
+              .Build();
 
-      var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
-        connectionMonitor,
-        volatileEventStoreQueueConfiguration,
-        eventProvider);
+            await _clusterVNode.StartAsync(true);
 
-      var testActorAutoBuildOne = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency());
-      var testActorAutoBuildTwo = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency());
+            await CreateSubscriptionGroups();
 
-      testActorAutoBuildOne.SubscribeTo(persistentSubscriptionEventStoreQueue);
-      testActorAutoBuildOne.SubscribeTo(volatileEventStoreQueue);
+        }
 
-      await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
+        [OneTimeTearDown]
+        public async Task TearDown()
+        {
+            await _clusterVNode.StopAsync();
+        }
 
-      await Task.Delay(100);
+        private async Task CreateSubscriptionGroups()
+        {
+            var connectionSettings = PersistentSubscriptionSettings.Create().StartFromCurrent().Build();
+            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode);
 
-      Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
+            await connection.CreatePersistentSubscriptionAsync(
+                 _streamId,
+                 _groupIdOne,
+                 connectionSettings,
+                 _userCredentials);
 
-      await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId));
+            await connection.CreatePersistentSubscriptionAsync(
+                 _streamId,
+                 _groupIdTwo,
+                 connectionSettings,
+                 _userCredentials);
 
-      await Task.Delay(100);
+            await connection.CreatePersistentSubscriptionAsync(
+                 _streamId2,
+                 _groupIdOne,
+                 connectionSettings,
+                 _userCredentials);
+        }
 
-      Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
+
+        [Test, Order(0)]
+        public async Task ShouldBuildAndRunActors()
+        {
+
+            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
+            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+
+            var eventProvider = new ConsumerBasedEventProvider<TestActorAutoBuildOne>();
+
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
+
+            var eventStoreRepository = new EventStoreRepository(
+              eventStoreRepositoryConfiguration,
+              connection,
+              connectionMonitor,
+              _loggerFactory);
+
+            var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(_streamId, _groupIdOne, _userCredentials);
+
+            var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
+              connectionMonitor,
+              persistentEventStoreQueueConfiguration,
+              eventProvider,
+              _loggerFactory);
+
+            var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration(_userCredentials);
+
+            var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
+              connectionMonitor,
+              volatileEventStoreQueueConfiguration,
+              eventProvider,
+              _loggerFactory);
+
+            var testActorAutoBuildOne = new TestActorAutoBuildOne(eventStoreRepository, _loggerFactory, new SomeDependency());
+            var testActorAutoBuildTwo = new TestActorAutoBuildOne(eventStoreRepository, _loggerFactory, new SomeDependency());
+
+            testActorAutoBuildOne.SubscribeTo(persistentSubscriptionEventStoreQueue);
+            testActorAutoBuildOne.SubscribeTo(volatileEventStoreQueue);
+
+            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
+
+            await Task.Delay(100);
+
+            Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
+
+            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId));
+
+            await Task.Delay(100);
+
+            Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
+        }
+
+        [Test, Order(1)]
+        public async Task ShouldBuildFromActorBuilderAndRunActors()
+        {
+
+            var testActorAutoBuildOne = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
+                                                                                         .WithSubscribeFromEndToAllQueue()
+                                                                                         .WithPersistentSubscriptionQueue(_streamId2, _groupIdOne)
+                                                                                         .Build();
+
+            var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
+                                                                                         .Build();
+
+            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
+
+            await Task.Delay(100);
+
+            Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
+
+            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId2));
+
+            await Task.Delay(100);
+
+            Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
+        }
+
     }
-
-    [Test, Order(1)]
-    public async Task ShouldBuildFromActorBuilderAndRunActors()
-    {
-
-      var testActorAutoBuildOne = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
-                                                                                   .WithSubscribeToAllQueue()
-                                                                                   .WithPersistentSubscriptionQueue(_streamId2, _groupIdOne)
-                                                                                   .Build();
-
-      var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _userCredentials, _connectionSettings)
-                                                                                   .Build();
-
-      await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
-
-      await Task.Delay(100);
-
-      Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
-
-      await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId2));
-
-      await Task.Delay(100);
-
-      Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
-    }
-
-  }
 }

@@ -9,20 +9,20 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Repository;
 using DynamicData;
 using DynamicData.Kernel;
-
+using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Demo
 {
   public class TradeService : BaseStatelessActor, IDisposable
   {
-    private readonly Random _random = new Random();
+    private readonly Random _random = new();
     private readonly IStaticData _staticData;
     private readonly IDictionary<string, MarketData> _latestPrices = new Dictionary<string, MarketData>();
-    private readonly object _locker = new object();
+    private readonly object _locker = new();
     private int _counter = 0;
     private IDisposable _cleanup;
 
-    public TradeService(IStaticData staticData, IEventStoreRepository eventStoreRepository) : base(eventStoreRepository)
+    public TradeService(IStaticData staticData, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory) : base(eventStoreRepository, loggerFactory)
     {
       _staticData = staticData;
 

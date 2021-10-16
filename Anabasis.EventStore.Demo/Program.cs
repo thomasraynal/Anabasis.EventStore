@@ -13,157 +13,161 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo
 {
-  public class DemoSystemRegistry : ServiceRegistry
-  {
-    public DemoSystemRegistry()
+    public class DemoSystemRegistry : ServiceRegistry
     {
-      For<IStaticData>().Use<StaticData>();
-    }
-  }
-
-  public class CcyPairReporting : Dictionary<string, (decimal bid, decimal offer, decimal spread, bool IsUp)>
-  {
-    public static CcyPairReporting Empty = new CcyPairReporting();
-
-    public CcyPairReporting(CcyPairReporting previous)
-    {
-      foreach (var keyValue in previous)
-      {
-        this[keyValue.Key] = keyValue.Value;
-      }
-
+        public DemoSystemRegistry()
+        {
+            For<IStaticData>().Use<StaticData>();
+        }
     }
 
-    public CcyPairReporting()
+    public class CcyPairReporting : Dictionary<string, (decimal bid, decimal offer, decimal spread, bool IsUp)>
     {
+        public static CcyPairReporting Empty = new CcyPairReporting();
+
+        public CcyPairReporting(CcyPairReporting previous)
+        {
+            foreach (var keyValue in previous)
+            {
+                this[keyValue.Key] = keyValue.Value;
+            }
+
+        }
+
+        public CcyPairReporting()
+        {
+        }
     }
-  }
 
 
-  class Program
-  {
-
-    static void Main(string[] args)
+    class Program
     {
 
-      Task.Run(async () =>
-      {
+        static void Main(string[] args)
+        {
 
-        var clusterVNode = EmbeddedVNodeBuilder
-              .AsSingleNode()
-              .RunInMemory()
-              .RunProjections(ProjectionType.All)
-              .StartStandardProjections()
-              .WithWorkerThreads(1)
-              .Build();
+            Task.Run(async () =>
+            {
 
-        await clusterVNode.StartAsync(true);
+                var clusterVNode = EmbeddedVNodeBuilder
+                .AsSingleNode()
+                .RunInMemory()
+                .RunProjections(ProjectionType.All)
+                .StartStandardProjections()
+                .WithWorkerThreads(1)
+                .Build();
 
-        var userCredentials = new UserCredentials("admin", "changeit");
+                await clusterVNode.StartAsync(true);
 
-        var connectionSettings = ConnectionSettings.Create().UseDebugLogger().KeepRetrying().Build();
+                var userCredentials = new UserCredentials("admin", "changeit");
 
-        var marketDataService = StatelessActorBuilder<MarketDataService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
+                var connectionSettings = ConnectionSettings.Create()
+                      .UseDebugLogger()
+                      .SetDefaultUserCredentials(userCredentials)
+                      .KeepRetrying()
+                      .Build();
+
+                var marketDataService = StatelessActorBuilder<MarketDataService, DemoSystemRegistry>.Create(clusterVNode, connectionSettings)
+                                                     .Build();
+
+                var tradeService = StatelessActorBuilder<TradeService, DemoSystemRegistry>.Create(clusterVNode, connectionSettings)
+                                                .WithSubscribeFromEndToAllQueue()
+                                                .Build();
+
+                var tradeDataEventProvider = new DefaultEventTypeProvider<long, Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
+
+                var tradePriceUpdateService = StatefulActorBuilder<TradePriceUpdateService, long, Trade, DemoSystemRegistry>
+                                                .Create(clusterVNode, connectionSettings)
+                                                .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+                                                .WithSubscribeFromEndToAllQueue()
+                                                .Build();
+
+                var tradeSink = StatefulActorBuilder<TradeSink, long, Trade, DemoSystemRegistry>
+                                               .Create(clusterVNode, connectionSettings)
+                                               .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                                                .Build();
 
-        var tradeService = StatelessActorBuilder<TradeService, DemoSystemRegistry>.Create(clusterVNode, userCredentials, connectionSettings)
-                                              .WithSubscribeToAllQueue()
+                var marketDataEventProvider = new DefaultEventTypeProvider<string, MarketData>(() => new[] { typeof(MarketDataChanged) });
+                var marketDataSink = StatefulActorBuilder<MarketDataSink, string, MarketData, DemoSystemRegistry>
+                                              .Create(clusterVNode, connectionSettings)
+                                              .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
                                               .Build();
 
-        var tradeDataEventProvider = new DefaultEventTypeProvider<long, Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
+                var marketDataCache = marketDataSink.State.AsObservableCache().Connect();
+                var tradeCache = tradeSink.State.AsObservableCache().Connect();
 
-        var tradePriceUpdateService = StatefulActorBuilder<TradePriceUpdateService, long, Trade, DemoSystemRegistry>
-                                              .Create(clusterVNode, userCredentials, connectionSettings, tradeDataEventProvider)
-                                              .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                              .WithSubscribeToAllQueue()
-                                              .Build();
-
-        var tradeSink = StatefulActorBuilder<TradeSink, long, Trade, DemoSystemRegistry>
-                                             .Create(clusterVNode, userCredentials, connectionSettings, tradeDataEventProvider)
-                                             .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                             .Build();
-
-        var marketDataEventProvider = new DefaultEventTypeProvider<string, MarketData>(() => new[] { typeof(MarketDataChanged) });
-        var marketDataSink = StatefulActorBuilder<MarketDataSink, string, MarketData, DemoSystemRegistry>
-                                            .Create(clusterVNode, userCredentials, connectionSettings, marketDataEventProvider)
-                                            .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
-                                            .Build();
-
-        var marketDataCache = marketDataSink.State.AsObservableCache().Connect();
-        var tradeCache = tradeSink.State.AsObservableCache().Connect();
-
-        tradeCache.Subscribe(trades =>
-        {
-
-          foreach (var tradeChange in trades)
+                tradeCache.Subscribe(trades =>
           {
 
-            const string messageTemplate = "[{5}] => {0} {1} {2} ({4}). Status = {3}";
+                  foreach (var tradeChange in trades)
+                  {
 
-            var trade = tradeChange.Current;
+                      const string messageTemplate = "[{5}] => {0} {1} {2} ({4}). Status = {3}";
 
-            Console.WriteLine(string.Format(messageTemplate,
-                                                      trade.BuyOrSell,
-                                                      trade.Amount,
-                                                      trade.CurrencyPair,
-                                                      trade.Status,
-                                                      trade.Customer,
-                                                      tradeChange.Reason));
-          }
+                      var trade = tradeChange.Current;
 
-        });
+                      Console.WriteLine(string.Format(messageTemplate,
+                                                          trade.BuyOrSell,
+                                                          trade.Amount,
+                                                          trade.CurrencyPair,
+                                                          trade.Status,
+                                                          trade.Customer,
+                                                          tradeChange.Reason));
+                  }
+
+              });
 
 
-        marketDataCache.Scan(CcyPairReporting.Empty, (previous, changeSet) =>
-         {
-
-           foreach (var change in changeSet)
+                marketDataCache.Scan(CcyPairReporting.Empty, (previous, changeSet) =>
            {
-             var isUp = previous.ContainsKey(change.Key) && change.Current.Offer > previous[change.Key].offer;
 
-             previous[change.Key] = (change.Current.Bid, change.Current.Offer, (change.Current.Offer - change.Current.Bid), isUp);
-           }
+                   foreach (var change in changeSet)
+                   {
+                       var isUp = previous.ContainsKey(change.Key) && change.Current.Offer > previous[change.Key].offer;
 
-           return new CcyPairReporting(previous);
+                       previous[change.Key] = (change.Current.Bid, change.Current.Offer, (change.Current.Offer - change.Current.Bid), isUp);
+                   }
 
-         })
-        .Sample(TimeSpan.FromSeconds(5))
-        .Subscribe(ccyPairReporting =>
-        {
+                   return new CcyPairReporting(previous);
 
-          var reportings = ccyPairReporting.Select(ccyPair =>
+               })
+          .Sample(TimeSpan.FromSeconds(5))
+          .Subscribe(ccyPairReporting =>
           {
-            var upDown = ccyPair.Value.IsUp ? "UP" : "DOWN";
 
-            return $"[{ccyPair.Key}] => {ccyPair.Value.offer}/{ccyPair.Value.offer} {upDown}";
+                  var reportings = ccyPairReporting.Select(ccyPair =>
+            {
+                    var upDown = ccyPair.Value.IsUp ? "UP" : "DOWN";
 
-          }).ToArray();
+                    return $"[{ccyPair.Key}] => {ccyPair.Value.offer}/{ccyPair.Value.offer} {upDown}";
 
-      
-          var bufferRightLast = "*";
-          var bufferLeft = "     *";
-          var spaceLeft = bufferLeft.Length;
-          var maxReportingLength = reportings.Max(reporting => reporting.Length);
+                }).ToArray();
 
-          var bar = string.Concat(Enumerable.Range(0, maxReportingLength + bufferLeft.Length + bufferRightLast.Length).Select(index => index < spaceLeft ? " " : "*").ToArray());
 
-          Console.WriteLine(bar);
+                  var bufferRightLast = "*";
+                  var bufferLeft = "     *";
+                  var spaceLeft = bufferLeft.Length;
+                  var maxReportingLength = reportings.Max(reporting => reporting.Length);
 
-          foreach (var reportingLine in reportings)
-          {
-            var bufferLength = (maxReportingLength + bufferLeft.Length) - reportingLine.Length;
-            var bufferRight = bufferLength == 0 ? bufferLeft : string.Concat(Enumerable.Range(0, bufferLength - spaceLeft).Select(_ => " ").ToArray()) + bufferRightLast;
+                  var bar = string.Concat(Enumerable.Range(0, maxReportingLength + bufferLeft.Length + bufferRightLast.Length).Select(index => index < spaceLeft ? " " : "*").ToArray());
 
-            Console.WriteLine($"{bufferLeft}{reportingLine}{bufferRight}");
-          }
+                  Console.WriteLine(bar);
 
-          Console.WriteLine(bar);
-        });
+                  foreach (var reportingLine in reportings)
+                  {
+                      var bufferLength = (maxReportingLength + bufferLeft.Length) - reportingLine.Length;
+                      var bufferRight = bufferLength == 0 ? bufferLeft : string.Concat(Enumerable.Range(0, bufferLength - spaceLeft).Select(_ => " ").ToArray()) + bufferRightLast;
 
-      });
+                      Console.WriteLine($"{bufferLeft}{reportingLine}{bufferRight}");
+                  }
 
-      Console.Read();
+                  Console.WriteLine(bar);
+              });
 
+            });
+
+            Console.Read();
+
+        }
     }
-  }
 }

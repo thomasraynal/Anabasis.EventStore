@@ -4,7 +4,6 @@ using Anabasis.EventStore.Queue;
 using Anabasis.EventStore.Repository;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
-using EventStore.ClientAPI.SystemData;
 using EventStore.Core;
 using Lamar;
 using Microsoft.Extensions.Logging;
@@ -52,7 +51,7 @@ namespace Anabasis.EventStore.Actor
         public static StatelessActorBuilder<TActor, TRegistry> Create(
             string eventStoreUrl,
             ConnectionSettings connectionSettings,
-            ILoggerFactory loggerFactory,
+            ILoggerFactory loggerFactory = null,
             Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
         {
 
@@ -80,9 +79,8 @@ namespace Anabasis.EventStore.Actor
         }
 
         public static StatelessActorBuilder<TActor, TRegistry> Create(ClusterVNode clusterVNode,
-            UserCredentials userCredentials,
             ConnectionSettings connectionSettings,
-            ILoggerFactory loggerfactory,
+            ILoggerFactory loggerfactory = null,
             Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null
             )
         {
@@ -94,7 +92,7 @@ namespace Anabasis.EventStore.Actor
             builder.LoggerFactory = loggerfactory;
             builder.ConnectionMonitor = new ConnectionStatusMonitor(connection, loggerfactory);
 
-            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
             getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
 

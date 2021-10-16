@@ -67,11 +67,13 @@ namespace Anabasis.EventStore.Repository
 
         protected async Task SaveEventBatch(string streamId, int expectedVersion, EventData[] eventsToSave)
         {
+            WriteResult writeResult;
+
             var eventBatches = GetEventBatches(eventsToSave);
 
             if (eventBatches.Count == 1)
             {
-                await _eventStoreConnection.AppendToStreamAsync(streamId, expectedVersion, eventBatches.Single());
+                writeResult = await _eventStoreConnection.AppendToStreamAsync(streamId, expectedVersion, eventBatches.Single());
             }
             else
             {
@@ -82,7 +84,7 @@ namespace Anabasis.EventStore.Repository
                     await transaction.WriteAsync(batch);
                 }
 
-                await transaction.CommitAsync();
+                writeResult = await transaction.CommitAsync();
             }
 
         }

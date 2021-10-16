@@ -7,7 +7,6 @@ using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
-using EventStore.ClientAPI.SystemData;
 using EventStore.Core;
 using Lamar;
 using Microsoft.Extensions.Logging;
@@ -61,35 +60,32 @@ namespace Anabasis.EventStore.Actor
 
         public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(
         string eventStoreUrl,
-        UserCredentials userCredentials,
         ConnectionSettings connectionSettings,
-        ILoggerFactory loggerFactory,
+        ILoggerFactory loggerFactory = null,
         Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
         {
             var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
 
-            return CreateInternal(connection, userCredentials, loggerFactory, eventStoreRepositoryConfigurationBuilder);
+            return CreateInternal(connection, loggerFactory, eventStoreRepositoryConfigurationBuilder);
 
         }
 
 
         public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
-          UserCredentials userCredentials,
           ConnectionSettings connectionSettings,
-          ILoggerFactory loggerFactory,
+          ILoggerFactory loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
         {
 
             var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
-            return CreateInternal(connection, userCredentials, loggerFactory, eventStoreRepositoryConfigurationBuilder);
+            return CreateInternal(connection, loggerFactory, eventStoreRepositoryConfigurationBuilder);
 
         }
 
         private static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> CreateInternal(
           IEventStoreConnection eventStoreConnection,
-          UserCredentials userCredentials,
-          ILoggerFactory loggerFactory,
+          ILoggerFactory loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
         {
 
@@ -99,7 +95,7 @@ namespace Anabasis.EventStore.Actor
                 ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, loggerFactory)
             };
 
-            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration(userCredentials);
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
             eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
 
