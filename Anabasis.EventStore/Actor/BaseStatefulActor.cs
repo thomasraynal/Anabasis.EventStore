@@ -37,14 +37,6 @@ namespace Anabasis.EventStore.Actor
 
         public IEventStoreCache<TKey, TAggregate> State { get; internal set; }
 
-        public async Task EmitEntityEvent<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>
-        {
-            Logger?.LogDebug($"{Id} => Emiting entity event {@event.StreamId} - {@event.GetType()}");
-
-            if (!_eventStoreAggregateRepository.IsConnected) throw new InvalidOperationException("Not connected");
-
-            await _eventStoreAggregateRepository.Emit(@event, extraHeaders);
-        }
 
     }
 }

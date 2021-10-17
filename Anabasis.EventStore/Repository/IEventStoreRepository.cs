@@ -10,5 +10,6 @@ namespace Anabasis.EventStore.Repository
         string Id { get; }
         Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders);
         Task Emit(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders);
+        Task Emit<TEvent,TKey>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>;
     }
 }

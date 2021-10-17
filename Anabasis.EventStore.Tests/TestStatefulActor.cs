@@ -2,6 +2,7 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Queue;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Tests.Components;
 using DynamicData;
@@ -143,7 +144,14 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
+            var subscribeToAllQueue = new SubscribeFromEndEventStoreQueue(_cacheOne.connectionStatusMonitor,
+                new SubscribeFromEndEventStoreQueueConfiguration(),
+                new ConsumerBasedEventProvider<TestStatefulActor>(),
+                _loggerFactory);
+
             _testActorOne = new TestStatefulActor(_cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
+
+            _testActorOne.SubscribeTo(subscribeToAllQueue);
 
             Assert.NotNull(_testActorOne);
         }
@@ -152,14 +160,20 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldEmitEventsAndUpdateCache()
         {
 
-            await _testActorOne.EmitEntityEvent(new SomeData<Guid>(_firstAggregateId, Guid.NewGuid()));
+            await _testActorOne.Emit(new SomeData<Guid>(_firstAggregateId, Guid.NewGuid()));
 
-            await Task.Delay(100);
+            await Task.Delay(500);
 
             var current = _testActorOne.State.GetCurrent(_firstAggregateId);
 
             Assert.NotNull(current);
             Assert.AreEqual(1, current.AppliedEvents.Length);
+
+            await _testActorOne.Emit(new SomeRandomEvent(Guid.NewGuid()));
+
+            await Task.Delay(500);
+
+            Assert.AreEqual(1, _testActorOne.Events.Count);
 
         }
     }

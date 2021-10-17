@@ -26,7 +26,7 @@ namespace Anabasis.EventStore
 
                  foreach (var getQueue in builder.GetQueueFactories())
                  {
-                     actor.SubscribeTo(getQueue(connectionStatusMonitor, loggerFactory));
+                     actor.SubscribeTo(getQueue(connectionStatusMonitor, loggerFactory), closeSubscriptionOnDispose: true);
                  } 
 
              });

@@ -42,7 +42,7 @@ namespace Anabasis.EventStore
 
             var statelessActorBuilder = new StatelessActorBuilder<TActor>(this);
 
-            ServiceCollection.AddTransient<TActor>();
+            ServiceCollection.AddSingleton<TActor>();
 
             return statelessActorBuilder;
 

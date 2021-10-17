@@ -11,8 +11,9 @@ namespace Anabasis.EventStore.Actor
     {
         string Id { get; }
         bool IsConnected { get; }
+        IEventStoreQueue[] Queues { get; }
         Task WaitUntilConnected(TimeSpan? timeout = null);
-        Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders);
+        public Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent;
         Task<TCommandResult> Send<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse;
         void SubscribeTo(IEventStoreQueue eventStoreQueue, bool closeSubscriptionOnDispose = false);
     }

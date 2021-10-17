@@ -76,7 +76,7 @@ namespace Anabasis.EventStore.Integration.Tests
         {
           var changePrice = Next();
 
-          await EmitEntityEvent(changePrice);
+          await Emit(changePrice);
 
         }
       }

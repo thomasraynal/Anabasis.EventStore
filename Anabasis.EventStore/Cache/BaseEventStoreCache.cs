@@ -26,7 +26,8 @@ namespace Anabasis.EventStore.Cache
         private IDisposable _eventStreamConnectionDisposable;
         private IDisposable _isStaleDisposable;
         private DateTime _lastProcessedEventUtcTimestamp;
-        private bool _isWiredUp;
+
+        public bool IsWiredUp { get; private set; }
         protected ILogger Logger { get; private set; }
         protected SourceCache<TAggregate, TKey> Cache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
         protected BehaviorSubject<bool> ConnectionStatusSubject { get; private set; }
@@ -52,7 +53,7 @@ namespace Anabasis.EventStore.Cache
             }
         }
 
-        public bool IsConnected => _connectionMonitor.IsConnected && _isWiredUp;
+        public bool IsConnected => _connectionMonitor.IsConnected && IsWiredUp;
 
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
@@ -105,7 +106,7 @@ namespace Anabasis.EventStore.Cache
             _connectionMonitor = connectionMonitor;
             _snapshotStrategy = snapshotStrategy;
             _snapshotStore = snapshotStore;
-            _isWiredUp = false;
+            IsWiredUp = false;
 
             _lastProcessedEventUtcTimestamp = DateTime.MinValue;
 
@@ -131,11 +132,11 @@ namespace Anabasis.EventStore.Cache
 
         public void Connect()
         {
-            if (_isWiredUp) return;
+            if (IsWiredUp) return;
 
             Logger?.LogDebug($"{Id} => Connecting");
 
-            _isWiredUp = true;
+            IsWiredUp = true;
 
             _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(connectionChanged =>
            {

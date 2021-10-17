@@ -56,11 +56,11 @@ namespace Anabasis.EventStore.Cache
                       case SubscriptionDropReason.Unknown:
                       case SubscriptionDropReason.NotFound:
 
-                          throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state");
+                          throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
 
                       default:
 
-                          throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found");
+                          throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception);
                   }
               }
 

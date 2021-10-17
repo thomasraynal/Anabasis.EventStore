@@ -136,6 +136,19 @@ namespace Anabasis.EventStore.Repository
             return new EventData(eventId, typeName, true, data, metadata);
         }
 
+
+        public async Task Emit<TEvent,TKey>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+            where TEvent : IEntity<TKey>
+        {
+            Logger?.LogDebug($"{Id} => Emitting event: {@event.EntityId} {@event.GetType()}");
+
+            var commitHeaders = CreateCommitHeaders(@event, extraHeaders);
+
+            var eventsToSave = new[] { ToEventData(Guid.NewGuid(), @event, commitHeaders) };
+
+            await SaveEventBatch(@event.StreamId, ExpectedVersion.Any, eventsToSave);
+        }
+
         public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
         {
             await Save(new[] { @event }, extraHeaders);

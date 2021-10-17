@@ -10,6 +10,7 @@ namespace Anabasis.EventStore.Cache
         bool IsStale { get; }
         bool IsCaughtUp { get; }
         bool IsConnected { get; }
+        bool IsWiredUp { get; }
         IObservable<bool> OnConnected { get; }
         IObservable<bool> OnCaughtUp { get; }
         IObservable<bool> OnStale { get; }

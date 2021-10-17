@@ -34,7 +34,6 @@ namespace Anabasis.EventStore.Cache
           Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp,
           Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped);
 
-
         protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
         {
 
@@ -108,7 +107,7 @@ namespace Anabasis.EventStore.Cache
                             break;
 
                         case SubscriptionDropReason.CatchUpError:
-                            Logger?.Log(LogLevel.Information, $"{nameof(SubscriptionDropReason)} - {subscriptionDropReason}");
+                            Logger?.LogInformation($"{nameof(SubscriptionDropReason)} - {subscriptionDropReason}", exception);
                             break;
 
                         case SubscriptionDropReason.NotAuthenticated:
@@ -121,11 +120,9 @@ namespace Anabasis.EventStore.Cache
                         case SubscriptionDropReason.PersistentSubscriptionDeleted:
                         case SubscriptionDropReason.Unknown:
                         case SubscriptionDropReason.NotFound:
-
                             throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
 
                         default:
-
                             throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception);
                     }
 

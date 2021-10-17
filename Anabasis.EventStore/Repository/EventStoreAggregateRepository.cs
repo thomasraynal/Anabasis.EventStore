@@ -84,17 +84,6 @@ namespace Anabasis.EventStore.Repository
 
         }
 
-        public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-            where TEvent : IEntity<TKey>
-        {
-            Logger?.LogDebug($"{Id} => Emitting event: {@event.EntityId} {@event.GetType()}");
-
-            var commitHeaders = CreateCommitHeaders(@event, extraHeaders);
-
-            var eventsToSave = new[] { ToEventData(Guid.NewGuid(), @event, commitHeaders) };
-
-            await SaveEventBatch(@event.StreamId, ExpectedVersion.Any, eventsToSave);
-        }
 
         private IEntity<TKey> DeserializeEvent(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
         {

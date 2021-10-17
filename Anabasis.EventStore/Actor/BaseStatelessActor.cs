@@ -17,7 +17,8 @@ namespace Anabasis.EventStore.Actor
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
         private readonly IEventStoreRepository _eventStoreRepository;
-
+        private readonly List<IEventStoreQueue> _eventStoreQueues;
+        
         public ILogger Logger { get; }
 
         protected BaseStatelessActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null)
@@ -28,7 +29,7 @@ namespace Anabasis.EventStore.Actor
             _eventStoreRepository = eventStoreRepository;
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
-            
+            _eventStoreQueues = new List<IEventStoreQueue>();
             Logger = loggerFactory?.CreateLogger(GetType());
 
         }
@@ -36,12 +37,15 @@ namespace Anabasis.EventStore.Actor
         public string Id { get; }
 
         public bool IsConnected => _eventStoreRepository.IsConnected;
+        public IEventStoreQueue[] Queues => _eventStoreQueues.ToArray();
 
         public void SubscribeTo(IEventStoreQueue eventStoreQueue, bool closeSubscriptionOnDispose = false)
         {
             eventStoreQueue.Connect();
 
             Logger?.LogDebug($"{Id} => Subscribing to {eventStoreQueue.Id}");
+
+            _eventStoreQueues.Add(eventStoreQueue);
 
             var disposable = eventStoreQueue.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
 
@@ -58,7 +62,15 @@ namespace Anabasis.EventStore.Actor
             return Task.CompletedTask;
         }
 
-        public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+        public async Task Emit<TKey,TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>
+        {
+            Logger?.LogDebug($"{Id} => Emiting entity event {@event.StreamId} - {@event.GetType()}");
+
+            if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
+
+            await _eventStoreRepository.Emit<TEvent,TKey>(@event, extraHeaders);
+        }
+        public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent: IEvent
         {
             if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
 

@@ -47,7 +47,7 @@ namespace Anabasis.EventStore.Queue
                     {
                         case SubscriptionDropReason.UserInitiated:
                         case SubscriptionDropReason.ConnectionClosed:
-                            Logger?.LogDebug($"{Id} => SubscriptionDropReason - reason : {subscriptionDropReason}");
+                            Logger?.LogDebug(exception,$"{Id} => SubscriptionDropReason - reason : {subscriptionDropReason}");
                             break;
                         case SubscriptionDropReason.NotAuthenticated:
                         case SubscriptionDropReason.AccessDenied:
@@ -61,11 +61,11 @@ namespace Anabasis.EventStore.Queue
                         case SubscriptionDropReason.Unknown:
                         case SubscriptionDropReason.NotFound:
 
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state");
+                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
 
                         default:
 
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found");
+                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception);
                     }
                 }
 

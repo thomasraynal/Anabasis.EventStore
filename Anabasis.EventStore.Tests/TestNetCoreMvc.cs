@@ -20,6 +20,10 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
+using Anabasis.EventSore.Shared;
+using System.Reactive.Disposables;
+using System.Diagnostics;
+using EventStore.Core.Data;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -96,11 +100,13 @@ namespace Anabasis.EventStore.Tests
         {
             UserCredentials = new UserCredentials("admin", "changeit");
 
+
             ConnectionSettings = ConnectionSettings.Create()
                 .UseDebugLogger()
                 .SetDefaultUserCredentials(UserCredentials)
                 .KeepRetrying()
                 .Build();
+    
 
             ClusterVNode = EmbeddedVNodeBuilder
               .AsSingleNode()
@@ -109,6 +115,7 @@ namespace Anabasis.EventStore.Tests
               .StartStandardProjections()
               .WithWorkerThreads(1)
               .Build();
+
         }
         public static async Task Start()
         {
@@ -126,9 +133,7 @@ namespace Anabasis.EventStore.Tests
         public void ConfigureServices(IServiceCollection services)
         {
 
-            services.AddLogging();
-
-            var eventTypeProvider = new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>), typeof(SomeMoreData), typeof(AgainSomeMoreData) });
+            var eventTypeProvider = new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) });
 
             services.AddWorld(TestBed.ClusterVNode, TestBed.ConnectionSettings)
 
@@ -172,6 +177,7 @@ namespace Anabasis.EventStore.Tests
         [OneTimeSetUp]
         public async Task SetupFixture()
         {
+            await TestBed.Start();
 
             var builder = new WebHostBuilder()
                         .UseKestrel()
@@ -184,13 +190,14 @@ namespace Anabasis.EventStore.Tests
             _testServer = new TestServer(builder);
             _host = _testServer.Host;
 
-            await TestBed.Start();
+         
 
         }
 
         [Test, Order(0)]
         public void ShouldCheckThatAllActorsAreCreated()
         {
+
             var testStatefulActorOneMvc = _host.Services.GetService<TestStatefulActorOneMvc>();
             var testStatefulActorTwoMvc = _host.Services.GetService<TestStatefulActorTwoMvc>();
             var testStatelessActorOneMvc = _host.Services.GetService<TestStatelessActorOneMvc>();
@@ -215,20 +222,31 @@ namespace Anabasis.EventStore.Tests
             var testStatefulActorTwoMvc = _host.Services.GetService<TestStatefulActorTwoMvc>();
             var testStatelessActorOneMvc = _host.Services.GetService<TestStatelessActorOneMvc>();
 
-            await Task.Delay(500);
+            await Task.Delay(200);
 
-            await testStatefulActorOneMvc.Emit(new SomeMoreData(Guid.NewGuid(), streamOne));
-            await testStatefulActorOneMvc.Emit(new AgainSomeMoreData(Guid.NewGuid(), streamOne));
-            await testStatefulActorOneMvc.Emit(new AgainSomeMoreData(Guid.NewGuid(), streamTwo));
+            await testStatelessActorOneMvc.Emit(new SomeMoreData(Guid.NewGuid(), streamOne));
+            await testStatelessActorOneMvc.Emit(new AgainSomeMoreData(Guid.NewGuid(), streamOne));
+            await testStatelessActorOneMvc.Emit(new AgainSomeMoreData(Guid.NewGuid(), streamTwo));
 
-            await Task.Delay(1000);
+            await Task.Delay(200);
 
-            Assert.Equals(3, testStatefulActorOneMvc.Events.Count);
-            Assert.Equals(3, testStatefulActorTwoMvc.Events.Count);
-            Assert.Equals(3, testStatelessActorOneMvc.Events.Count);
+            Assert.AreEqual(3, testStatefulActorOneMvc.Events.Count);
+            Assert.AreEqual(3, testStatefulActorTwoMvc.Events.Count);
+            Assert.AreEqual(3, testStatelessActorOneMvc.Events.Count);
 
-            Assert.Equals(2, testStatefulActorOneMvc.State.GetCurrents().Length);
-            Assert.Equals(2, testStatefulActorTwoMvc.State.GetCurrents().Length);
+            Assert.AreEqual(0, testStatefulActorOneMvc.State.GetCurrents().Length);
+            Assert.AreEqual(0, testStatefulActorTwoMvc.State.GetCurrents().Length);
+
+            var aggregateIdOne = Guid.NewGuid();
+
+            await testStatelessActorOneMvc.Emit<Guid, SomeData<Guid>>(new SomeData<Guid>(aggregateIdOne, Guid.NewGuid()));
+            await testStatelessActorOneMvc.Emit<Guid, SomeData<Guid>>(new SomeData<Guid>(aggregateIdOne, Guid.NewGuid()));
+            await testStatelessActorOneMvc.Emit<Guid, SomeData<Guid>>(new SomeData<Guid>(Guid.NewGuid(), Guid.NewGuid()));
+
+            await Task.Delay(200);
+
+            Assert.AreEqual(2, testStatefulActorOneMvc.State.GetCurrents().Length);
+            Assert.AreEqual(2, testStatefulActorTwoMvc.State.GetCurrents().Length);
         }
 
     }
