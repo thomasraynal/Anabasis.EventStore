@@ -166,7 +166,7 @@ namespace Anabasis.EventStore.Tests
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
-            await Task.Delay(100);
+            await Task.Delay(200);
 
             Assert.AreEqual(0, eventCount);
 
@@ -174,7 +174,7 @@ namespace Anabasis.EventStore.Tests
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
-            await Task.Delay(100);
+            await Task.Delay(200);
 
             Assert.AreEqual(2, eventCount);
 
