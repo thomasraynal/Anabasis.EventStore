@@ -76,10 +76,12 @@ namespace Anabasis.EventStore.Queue
 
                 var filter = Filter.EventType.Prefix(eventTypeFilter);
 
-                Logger?.LogInformation($"{Id} => ConnectToEventStream - FilteredSubscribeToAllFrom - Position: {Position.End} Filters: [{string.Join("|", eventTypeFilter)}]");
+                var position = Position.End;
+
+                Logger?.LogInformation($"{Id} => ConnectToEventStream - FilteredSubscribeToAllFrom - Position: {position} Filters: [{string.Join("|", eventTypeFilter)}]");
 
                 _subscription = connection.FilteredSubscribeToAllFrom(
-                    Position.End,
+                    position,
                     filter,
                     _volatileEventStoreQueueConfiguration.CatchUpSubscriptionFilteredSettings,
                     eventAppeared: onEvent,

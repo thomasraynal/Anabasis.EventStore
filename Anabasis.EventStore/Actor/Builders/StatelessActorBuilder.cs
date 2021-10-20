@@ -126,7 +126,7 @@ namespace Anabasis.EventStore.Actor
 
         public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToOneStreamQueue(string streamId,  IEventTypeProvider eventTypeProvider = null)
         {
-            var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamEventStoreQueueConfiguration(streamId);
+            var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration(streamId);
 
             var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 

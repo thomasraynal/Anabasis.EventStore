@@ -11,13 +11,13 @@ namespace Anabasis.EventStore.Queue
 {
     public abstract class BaseSubscribeToOneStreamEventStoreQueue : BaseEventStoreQueue
     {
-        private readonly SubscribeToOneStreamEventStoreQueueConfiguration _volatileSubscribeToOneStreamEventStoreQueueConfiguration;
+        private readonly SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration _volatileSubscribeToOneStreamEventStoreQueueConfiguration;
         private readonly int _streamPosition;
 
         public BaseSubscribeToOneStreamEventStoreQueue(
           int streamPosition,
           IConnectionStatusMonitor connectionMonitor,
-          SubscribeToOneStreamEventStoreQueueConfiguration subscribeToOneStreamEventStoreQueueConfiguration,
+          SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration subscribeToOneStreamEventStoreQueueConfiguration,
           IEventTypeProvider eventTypeProvider,
           Microsoft.Extensions.Logging.ILogger logger = null)
           : base(connectionMonitor, subscribeToOneStreamEventStoreQueueConfiguration, eventTypeProvider, logger)

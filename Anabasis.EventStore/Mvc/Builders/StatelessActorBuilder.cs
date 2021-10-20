@@ -50,19 +50,19 @@ namespace Anabasis.EventStore
 
         public StatelessActorBuilder<TActor> WithSubscribeFromStartToOneStreamQueue(
             string streamId,
-            Action<SubscribeToOneStreamEventStoreQueueConfiguration> getSubscribeFromEndToOneStreamEventStoreQueueConfiguration = null,
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration> getSubscribeFromEndToOneStreamEventStoreQueueConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
             var getSubscribeFromEndToOneStreamQueue = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>((connectionMonitor, loggerFactory) =>
             {
 
-                var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamEventStoreQueueConfiguration(streamId);
+                var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration(streamId);
 
                 getSubscribeFromEndToOneStreamEventStoreQueueConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreQueueConfiguration);
 
                 var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 
-                var subscribeFromEndToOneStreamEventStoreQueue = new SubscribeFromStartToOneStreamEventStoreQueue(
+                var subscribeFromEndToOneStreamEventStoreQueue = new SubscribeFromStartOrLaterToOneStreamEventStoreQueue(
                   connectionMonitor,
                   subscribeFromEndToOneStreamEventStoreQueueConfiguration,
                   eventProvider,
@@ -80,13 +80,13 @@ namespace Anabasis.EventStore
 
         public StatelessActorBuilder<TActor> WithSubscribeFromEndToOneStreamQueue(
             string streamId,
-            Action<SubscribeToOneStreamEventStoreQueueConfiguration> getSubscribeFromEndToOneStreamEventStoreQueueConfiguration = null,
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration> getSubscribeFromEndToOneStreamEventStoreQueueConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
             var getSubscribeFromEndToOneStreamQueue = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreQueue>((connectionMonitor, loggerFactory) =>
             {
 
-                var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamEventStoreQueueConfiguration(streamId);
+                var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration(streamId);
 
                 getSubscribeFromEndToOneStreamEventStoreQueueConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreQueueConfiguration);
 

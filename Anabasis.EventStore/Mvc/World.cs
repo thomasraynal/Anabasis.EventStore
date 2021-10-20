@@ -6,6 +6,7 @@ using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Anabasis.EventStore
 {
@@ -35,6 +36,9 @@ namespace Anabasis.EventStore
         public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IEventTypeProvider eventTypeProvider = null)
             where TActor : class, IStatelessActor
         {
+            if (StatefulActorBuilders.Any(statefulActorBuilder => statefulActorBuilder.actorType == typeof(TActor)))
+                throw new InvalidOperationException($"Actors are registered as singleton in the AspNetCore.Builder context : only one instance of each actor type is authorized." +
+                    $" Use the Anabasis.EventStore.Actor.*Builders and register/invoke them manually if you wish create multiples actors of the same type");
 
             eventTypeProvider ??= new ConsumerBasedEventProvider<TActor>();
 
@@ -52,6 +56,10 @@ namespace Anabasis.EventStore
             where TActor : class, IStatefulActor<TKey, TAggregate>
             where TAggregate : IAggregate<TKey>, new()
         {
+
+            if (StatelessActorBuilders.Any(statefulActorBuilder => statefulActorBuilder.actorType == typeof(TActor)))
+                throw new InvalidOperationException($"Actors are registered as singleton in the AspNetCore.Builder context : only one instance of each actor type is authorized." +
+                    $" Use the Anabasis.EventStore.Actor.*Builders and register/invoke them manually if you wish create multiples actors of the same type");
 
             ServiceCollection.AddTransient<IEventStoreAggregateRepository<TKey>, EventStoreAggregateRepository<TKey>>();
             ServiceCollection.AddSingleton<TActor>();

@@ -132,9 +132,9 @@ namespace Anabasis.EventStore.Cache
                 var subscription = GetEventStoreCatchUpSubscription(connection, onEvent, onCaughtUp, onSubscriptionDropped);
 
                 return Disposable.Create(() =>
-              {
-                  subscription.Stop();
-              });
+                  {
+                      subscription.Stop();
+                  });
 
             });
         }

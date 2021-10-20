@@ -122,6 +122,7 @@ namespace Anabasis.EventStore.Tests
         [Test, Order(0)]
         public async Task ShouldCreateAndRunAVolatileEventStoreQueue()
         {
+
             _queueOne = CreatePersistentEventStoreQueue(_streamId, _groupIdOne);
 
             await Task.Delay(100);

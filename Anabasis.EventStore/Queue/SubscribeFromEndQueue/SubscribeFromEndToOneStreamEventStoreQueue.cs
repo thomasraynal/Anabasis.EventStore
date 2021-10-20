@@ -10,7 +10,7 @@ namespace Anabasis.EventStore.Queue
 {
     public class SubscribeFromEndToOneStreamEventStoreQueue : BaseSubscribeToOneStreamEventStoreQueue
     {
-        public SubscribeFromEndToOneStreamEventStoreQueue(IConnectionStatusMonitor connectionMonitor, SubscribeToOneStreamEventStoreQueueConfiguration subscribeToOneStreamEventStoreQueueConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null) : base(StreamPosition.End, connectionMonitor, subscribeToOneStreamEventStoreQueueConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndToOneStreamEventStoreQueue>())
+        public SubscribeFromEndToOneStreamEventStoreQueue(IConnectionStatusMonitor connectionMonitor, SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration subscribeToOneStreamEventStoreQueueConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null) : base(StreamPosition.End, connectionMonitor, subscribeToOneStreamEventStoreQueueConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndToOneStreamEventStoreQueue>())
         {
         }
     }

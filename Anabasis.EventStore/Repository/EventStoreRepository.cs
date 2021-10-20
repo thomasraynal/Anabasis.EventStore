@@ -18,7 +18,7 @@ namespace Anabasis.EventStore.Repository
         protected readonly IEventStoreRepositoryConfiguration _eventStoreRepositoryConfiguration;
 
         private readonly IDisposable _cleanup;
-        protected Microsoft.Extensions.Logging.ILogger Logger { get; }
+        protected  ILogger<EventStoreRepository> Logger { get; }
 
         public bool IsConnected { get; private set; }
 
@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Repository
             IConnectionStatusMonitor connectionMonitor,
             ILoggerFactory loggerFactory)
         {
-            Logger = loggerFactory?.CreateLogger(nameof(EventStoreRepository));
+            Logger = loggerFactory?.CreateLogger<EventStoreRepository>();
 
             Id = $"{GetType()}-{Guid.NewGuid()}";
 
