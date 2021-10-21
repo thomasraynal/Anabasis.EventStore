@@ -119,7 +119,7 @@ namespace Anabasis.EventStore.Tests
         {
             _multipleStreamsCatchupCache = CreateCatchupEventStoreCache(_streamIdOne, _streamIdTwo, _streamIdThree);
 
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             Assert.IsTrue(_multipleStreamsCatchupCache.catchupEventStoreCache.IsCaughtUp);
             Assert.IsTrue(_multipleStreamsCatchupCache.catchupEventStoreCache.IsStale);
@@ -134,11 +134,52 @@ namespace Anabasis.EventStore.Tests
 
             await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdOne, Guid.NewGuid()));
 
-            await Task.Delay(100);
+            await Task.Delay(500);
 
             Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates.Count);
             Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
             Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[0].AppliedEvents.Length);
+
+            await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdTwo, Guid.NewGuid()));
+
+            await Task.Delay(500);
+
+            Assert.AreEqual(2, _multipleStreamsCatchupCache.someDataAggregates.Count);
+            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
+            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
+
         }
+
+        [Test, Order(2)]
+        public async Task ShouldRebuildCacheAfterHavingLostEventStoreConnection()
+        {
+            Assert.AreEqual(2, _multipleStreamsCatchupCache.someDataAggregates.Count);
+            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
+            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
+
+            _multipleStreamsCatchupCache.connectionStatusMonitor.ForceConnectionStatus(false);
+
+            await Task.Delay(500);
+
+            await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdThree, Guid.NewGuid()));
+
+            await Task.Delay(500);
+
+            Assert.AreEqual(2, _multipleStreamsCatchupCache.someDataAggregates.Count);
+            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
+            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
+
+            await Task.Delay(500);
+
+            _multipleStreamsCatchupCache.connectionStatusMonitor.ForceConnectionStatus(true);
+
+            await Task.Delay(500);
+
+            Assert.AreEqual(3, _multipleStreamsCatchupCache.someDataAggregates.Count);
+            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
+            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
+
+        }
+
     }
 }
