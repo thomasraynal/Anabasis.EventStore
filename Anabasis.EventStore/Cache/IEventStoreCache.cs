@@ -1,3 +1,4 @@
+using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Shared;
 using DynamicData;
 using System;
@@ -17,6 +18,7 @@ namespace Anabasis.EventStore.Cache
         TAggregate GetCurrent(TKey key);
         TAggregate[] GetCurrents();
         IObservableCache<TAggregate, TKey> AsObservableCache();
+        IEventTypeProvider<TKey, TAggregate> EventTypeProvider { get; }
         void Connect();
     }
 }

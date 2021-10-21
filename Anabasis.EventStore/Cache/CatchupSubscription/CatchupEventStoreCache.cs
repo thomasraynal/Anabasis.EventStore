@@ -43,7 +43,7 @@ namespace Anabasis.EventStore.Cache
             {
                 var eventTypeFilter = GetEventsFilters();
 
-                var snapshots = await _snapshotStore.Get(eventTypeFilter);
+                var snapshots = await _snapshotStore.GetByVersionOrLast(eventTypeFilter);
 
                 if (null != snapshots)
                 {

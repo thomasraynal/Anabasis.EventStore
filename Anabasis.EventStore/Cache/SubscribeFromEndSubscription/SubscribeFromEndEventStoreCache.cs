@@ -82,7 +82,7 @@ namespace Anabasis.EventStore.Cache
                   Logger?.LogInformation($"{Id} => onCaughtUp - IsCaughtUp: {IsCaughtUp}");
               }
 
-              var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+              var eventTypeFilter = EventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
 
               var filter = Filter.EventType.Prefix(eventTypeFilter);
 

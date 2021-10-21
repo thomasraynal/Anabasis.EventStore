@@ -17,7 +17,7 @@ namespace Anabasis.EventStore.Cache
     public abstract class BaseEventStoreCache<TKey, TAggregate> : IEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
     {
         protected readonly IEventStoreCacheConfiguration<TKey, TAggregate> _eventStoreCacheConfiguration;
-        protected readonly IEventTypeProvider<TKey, TAggregate> _eventTypeProvider;
+        
         protected readonly ISnapshotStrategy<TKey> _snapshotStrategy;
         protected readonly ISnapshotStore<TKey, TAggregate> _snapshotStore;
 
@@ -27,6 +27,7 @@ namespace Anabasis.EventStore.Cache
         private readonly IDisposable _isStaleDisposable;
         private DateTime _lastProcessedEventUtcTimestamp;
 
+        public IEventTypeProvider<TKey, TAggregate> EventTypeProvider { get; }
         public bool IsWiredUp { get; private set; }
         protected ILogger Logger { get; private set; }
         protected SourceCache<TAggregate, TKey> Cache { get; }
@@ -77,15 +78,20 @@ namespace Anabasis.EventStore.Cache
            ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
 
+            if (cacheConfiguration.UseSnapshot && snapshotStore == null && snapshotStrategy == null)
+            {
+                throw new InvalidOperationException($"{cacheConfiguration.GetType().Name}.UseSnapshot " +
+                    $"is set to true but no snapshotStore and/or snapshotStrategy are provided");
+            }
+
             Cache = new SourceCache<TAggregate, TKey>(item => item.EntityId);
+            EventTypeProvider = eventTypeProvider;
+            IsWiredUp = false;
 
             _eventStoreCacheConfiguration = cacheConfiguration;
-            _eventTypeProvider = eventTypeProvider;
             _connectionMonitor = connectionMonitor;
             _snapshotStrategy = snapshotStrategy;
             _snapshotStore = snapshotStore;
-            IsWiredUp = false;
-
             _lastProcessedEventUtcTimestamp = DateTime.MinValue;
 
             Logger = loggerFactory?.CreateLogger(GetType());
@@ -196,7 +202,7 @@ namespace Anabasis.EventStore.Cache
 
         private IMutation<TKey, TAggregate> DeserializeEvent(RecordedEvent recordedEvent)
         {
-            var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+            var targetType = EventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
             if (null == targetType) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
 

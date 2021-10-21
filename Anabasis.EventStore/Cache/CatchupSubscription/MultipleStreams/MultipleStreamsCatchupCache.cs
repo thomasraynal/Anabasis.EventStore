@@ -16,34 +16,11 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    internal class MultipleStreamsCatchupCacheSubscriptionHolder<TKey, TAggregate> : IDisposable
-    {
-        private readonly BehaviorSubject<bool> _isCaughtUpSubject;
-
-        internal MultipleStreamsCatchupCacheSubscriptionHolder()
-        {
-            _isCaughtUpSubject = new BehaviorSubject<bool>(false);
-        }
-
-        internal bool IsCaughtUp => _isCaughtUpSubject.Value;
-        internal BehaviorSubject<bool> OnCaughtUpSubject => _isCaughtUpSubject;
-        internal IObservable<bool> OnCaughtUp => _isCaughtUpSubject.AsObservable();
-        internal string StreamId { get; set; }
-        internal DateTime LastProcessedEventUtcTimestamp { get; set; }
-        internal IDisposable EventStreamConnectionDisposable { get; set; }
-        internal long? LastProcessedEventSequenceNumber { get; set; } = null;
-        internal long? CurrentSnapshotVersion { get; set; } = null;
-
-        public void Dispose()
-        {
-            _isCaughtUpSubject.Dispose();
-        }
-    }
 
     public class MultipleStreamsCatchupCache<TKey, TAggregate> : IEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
     {
         private readonly MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate> _multipleStreamsCatchupCacheConfiguration;
-        private readonly IEventTypeProvider<TKey, TAggregate> _eventTypeProvider;
+    
         private readonly ISnapshotStrategy<TKey> _snapshotStrategy;
         private readonly ISnapshotStore<TKey, TAggregate> _snapshotStore;
         private readonly ManualResetEventSlim _blockEventConsumption;
@@ -64,6 +41,7 @@ namespace Anabasis.EventStore.Cache
         private readonly object _catchUpLocker = new();
         private readonly List<MultipleStreamsCatchupCacheSubscriptionHolder<TKey, TAggregate>> _multipleStreamsCatchupCacheSubscriptionHolders;
 
+        public IEventTypeProvider<TKey, TAggregate> EventTypeProvider { get; }
         public string Id { get; }
         public bool IsWiredUp { get; private set; }
         public IObservable<bool> OnStale => _isStaleSubject.AsObservable();
@@ -73,6 +51,11 @@ namespace Anabasis.EventStore.Cache
         public bool IsConnected => _connectionMonitor.IsConnected && IsWiredUp;
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
 
+        public IMultipleStreamsCatchupCacheSubscriptionHolder[] GetSubscriptionStates()
+        {
+            return _multipleStreamsCatchupCacheSubscriptionHolders.ToArray();
+        }
+
         public MultipleStreamsCatchupCache(IConnectionStatusMonitor connectionMonitor,
            MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate> multipleStreamsCatchupCacheConfiguration,
            IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
@@ -81,15 +64,21 @@ namespace Anabasis.EventStore.Cache
            ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
 
+            if(multipleStreamsCatchupCacheConfiguration.UseSnapshot && snapshotStore == null && snapshotStrategy == null)
+            {
+                throw new InvalidOperationException($"{nameof(MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate>)}.UseSnapshot " +
+                    $"is set to true but no snapshotStore and/or snapshotStrategy are provided");
+            }
+
             IsWiredUp = false;
             Id = $"{GetType()}-{Guid.NewGuid()}";
+            EventTypeProvider = eventTypeProvider;
 
             _cache = new SourceCache<TAggregate, TKey>(item => item.EntityId);
             _caughtingUpCache = new SourceCache<TAggregate, TKey>(item => item.EntityId);
             _blockEventConsumption = new ManualResetEventSlim();
             _logger = loggerFactory?.CreateLogger<MultipleStreamsCatchupCache<TKey, TAggregate>>();
             _multipleStreamsCatchupCacheConfiguration = multipleStreamsCatchupCacheConfiguration;
-            _eventTypeProvider = eventTypeProvider;
             _connectionMonitor = connectionMonitor;
             _snapshotStrategy = snapshotStrategy;
             _snapshotStore = snapshotStore;
@@ -182,9 +171,9 @@ namespace Anabasis.EventStore.Cache
             return _cache.AsObservableCache();
         }
 
-        public string[] GetEventsFilters()
+        private string[] GetEventsFilters()
         {
-            var eventTypeFilters = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+            var eventTypeFilters = EventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
 
             return eventTypeFilters;
         }
@@ -195,20 +184,22 @@ namespace Anabasis.EventStore.Cache
             {
                 var eventTypeFilter = GetEventsFilters();
 
-                var snapshots = await _snapshotStore.Get(eventTypeFilter);
-
-                if (null != snapshots)
+                foreach (var multipleStreamsCatchupCacheSubscriptionHolder in _multipleStreamsCatchupCacheSubscriptionHolders)
                 {
-                    foreach (var snapshot in snapshots)
-                    {
-                        _logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.StreamId}");
+                    var snapshot = await _snapshotStore.GetByVersionOrLast(multipleStreamsCatchupCacheSubscriptionHolder.StreamId, eventTypeFilter);
 
-                        _cache.AddOrUpdate(snapshot);
-                    }
+                    if (null == snapshot) continue;
+
+                    multipleStreamsCatchupCacheSubscriptionHolder.CurrentSnapshotVersion = snapshot.Version;
+
+                    _logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.StreamId}");
+
+                    _cache.AddOrUpdate(snapshot);
 
                 }
             }
         }
+        
 
         protected void OnResolvedEvent(ResolvedEvent @event)
         {
@@ -388,7 +379,7 @@ namespace Anabasis.EventStore.Cache
 
         private IMutation<TKey, TAggregate> DeserializeEvent(RecordedEvent recordedEvent)
         {
-            var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+            var targetType = EventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
             if (null == targetType) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
 

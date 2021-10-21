@@ -140,7 +140,7 @@ namespace Anabasis.EventStore.Cache
         }
         public string[] GetEventsFilters()
         {
-            var eventTypeFilters = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+            var eventTypeFilters = EventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
 
             return eventTypeFilters;
         }

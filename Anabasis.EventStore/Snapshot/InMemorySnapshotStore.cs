@@ -63,7 +63,7 @@ namespace Anabasis.EventStore.Snapshot
 
     }
 
-    public async Task<TAggregate> Get(string streamId, string[] eventFilters, int? version = null)
+    public async Task<TAggregate> GetByVersionOrLast(string streamId, string[] eventFilters, int? version = null)
     {
 
       using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
@@ -91,7 +91,7 @@ namespace Anabasis.EventStore.Snapshot
 
     }
 
-    public async Task<TAggregate[]> Get(string[] eventFilters, int? version = null)
+    public async Task<TAggregate[]> GetByVersionOrLast(string[] eventFilters, int? version = null)
     {
       using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
 

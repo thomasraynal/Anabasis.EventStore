@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Tests
             var entityA = Guid.NewGuid();
             var someDataAggregate = new SomeDataAggregate<Guid>(entityA);
 
-            var snapshots = await snaphotRepository.Get(eventFilterOne);
+            var snapshots = await snaphotRepository.GetByVersionOrLast(eventFilterOne);
 
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 0);
@@ -28,19 +28,19 @@ namespace Anabasis.EventStore.Tests
 
             await snaphotRepository.Save(eventFilterOne, someDataAggregate);
 
-            snapshots = await snaphotRepository.Get(eventFilterOne);
+            snapshots = await snaphotRepository.GetByVersionOrLast(eventFilterOne);
 
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 1);
             Assert.AreEqual(entityA, snapshots[0].EntityId);
 
-            snapshots = await snaphotRepository.Get(eventFilterOne, 0);
+            snapshots = await snaphotRepository.GetByVersionOrLast(eventFilterOne, 0);
 
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 1);
             Assert.AreEqual(entityA, snapshots[0].EntityId);
 
-            snapshots = await snaphotRepository.Get(eventFilterOne, 1);
+            snapshots = await snaphotRepository.GetByVersionOrLast(eventFilterOne, 1);
 
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 0);
@@ -51,7 +51,7 @@ namespace Anabasis.EventStore.Tests
 
             await snaphotRepository.Save(eventFilterOne, someDataAggregate);
 
-            snapshots = await snaphotRepository.Get(eventFilterOne, 1);
+            snapshots = await snaphotRepository.GetByVersionOrLast(eventFilterOne, 1);
 
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 1);
@@ -83,21 +83,21 @@ namespace Anabasis.EventStore.Tests
             await snaphotRepository.Save(eventFilterOne, someDataAggregateB);
             await snaphotRepository.Save(eventFilterTwo, someDataAggregateC);
 
-            var snapshots = await snaphotRepository.Get(eventFilterOne);
+            var snapshots = await snaphotRepository.GetByVersionOrLast(eventFilterOne);
 
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 2);
 
-            snapshots = await snaphotRepository.Get(eventFilterTwo);
+            snapshots = await snaphotRepository.GetByVersionOrLast(eventFilterTwo);
 
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 1);
 
-            var snapshot = await snaphotRepository.Get($"{entityA}", eventFilterTwo);
+            var snapshot = await snaphotRepository.GetByVersionOrLast($"{entityA}", eventFilterTwo);
 
             Assert.Null(snapshot);
 
-            snapshot = await snaphotRepository.Get($"{entityA}", eventFilterOne);
+            snapshot = await snaphotRepository.GetByVersionOrLast($"{entityA}", eventFilterOne);
 
             Assert.NotNull(snapshot);
 

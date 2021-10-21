@@ -31,7 +31,7 @@ namespace Anabasis.EventStore.Cache
             {
                 var eventTypeFilter = GetEventsFilters();
 
-                var snapshot = await _snapshotStore.Get(_singleStreamCatchupEventStoreCacheConfiguration.StreamId, eventTypeFilter);
+                var snapshot = await _snapshotStore.GetByVersionOrLast(_singleStreamCatchupEventStoreCacheConfiguration.StreamId, eventTypeFilter);
 
                 if (null != snapshot)
                 {

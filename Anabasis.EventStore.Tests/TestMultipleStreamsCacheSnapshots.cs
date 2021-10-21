@@ -2,6 +2,7 @@
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using DynamicData.Binding;
 using EventStore.ClientAPI;
@@ -23,19 +24,22 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Tests
 {
     [TestFixture]
-    public class TestMultipleStreamsCache
+    public class TestMultipleStreamsCacheSnapshots
     {
         private UserCredentials _userCredentials;
         private ConnectionSettings _connectionSettings;
         private ClusterVNode _clusterVNode;
         private LoggerFactory _loggerFactory;
 
-        private string _streamIdOne = "streamIdOne";
-        private string _streamIdTwo = "streamIdTwo";
-        private string _streamIdThree = "streamIdThree";
+        private readonly string _streamIdOne = "streamIdOne";
+        private readonly string _streamIdTwo = "streamIdTwo";
+        private readonly string _streamIdThree = "streamIdThree";
 
         private (ConnectionStatusMonitor connectionStatusMonitor, MultipleStreamsCatchupCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _multipleStreamsCatchupCache;
         private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) _eventStoreRepository;
+
+        private ISnapshotStrategy<string> _defaultSnapshotStrategy;
+        private ISnapshotStore<string, SomeDataAggregate<string>> _inMemorySnapshotStore;
 
         [OneTimeSetUp]
         public async Task Setup()
@@ -92,14 +96,20 @@ namespace Anabasis.EventStore.Tests
             var cacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<string, SomeDataAggregate<string>>(streamIds)
             {
                 KeepAppliedEventsOnAggregate = true,
-                IsStaleTimeSpan = TimeSpan.FromSeconds(1)
+                IsStaleTimeSpan = TimeSpan.FromSeconds(1),
+                UseSnapshot = true
             };
+
+            _defaultSnapshotStrategy = new DefaultSnapshotStrategy<string>();
+            _inMemorySnapshotStore = new InMemorySnapshotStore<string, SomeDataAggregate<string>>();
 
             var catchUpCache = new MultipleStreamsCatchupCache<string, SomeDataAggregate<string>>(
               connectionMonitor,
               cacheConfiguration,
               new DefaultEventTypeProvider<string, SomeDataAggregate<string>>(() => new[] { typeof(SomeData<string>) }),
-              _loggerFactory);
+              _loggerFactory,
+              _inMemorySnapshotStore,
+              _defaultSnapshotStrategy);
 
             catchUpCache.Connect();
 
@@ -133,52 +143,46 @@ namespace Anabasis.EventStore.Tests
             _eventStoreRepository = CreateEventRepository();
 
             await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdOne, Guid.NewGuid()));
-
-            await Task.Delay(500);
-
-            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates.Count);
-            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
-            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[0].AppliedEvents.Length);
-
             await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdTwo, Guid.NewGuid()));
-
-            await Task.Delay(500);
-
-            Assert.AreEqual(2, _multipleStreamsCatchupCache.someDataAggregates.Count);
-            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
-            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
-
-        }
-
-        [Test, Order(2)]
-        public async Task ShouldRebuildCacheAfterHavingLostEventStoreConnection()
-        {
-            Assert.AreEqual(2, _multipleStreamsCatchupCache.someDataAggregates.Count);
-            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
-            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
-
-            _multipleStreamsCatchupCache.connectionStatusMonitor.ForceConnectionStatus(false);
-
-            await Task.Delay(500);
-
             await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdThree, Guid.NewGuid()));
 
             await Task.Delay(500);
 
-            Assert.AreEqual(2, _multipleStreamsCatchupCache.someDataAggregates.Count);
-            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
-            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
-
-            await Task.Delay(500);
-
-            _multipleStreamsCatchupCache.connectionStatusMonitor.ForceConnectionStatus(true);
-
-            await Task.Delay(500);
-
             Assert.AreEqual(3, _multipleStreamsCatchupCache.someDataAggregates.Count);
-            Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
-            Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
 
+            foreach (var aggregate in _multipleStreamsCatchupCache.someDataAggregates)
+            {
+                Assert.AreEqual(0, aggregate.Version);
+                Assert.AreEqual(1, aggregate.AppliedEvents.Length);
+            }
+
+            var subscriptionStates = _multipleStreamsCatchupCache.catchupEventStoreCache.GetSubscriptionStates();
+
+            foreach (var subscriptionState in subscriptionStates)
+            {
+                Assert.Null(subscriptionState.CurrentSnapshotVersion);
+                Assert.NotNull(subscriptionState.LastProcessedEventSequenceNumber);
+                Assert.NotNull(subscriptionState.LastProcessedEventUtcTimestamp);
+                Assert.NotNull(subscriptionState.StreamId);
+            }
+
+            var nbOfEventUntilSnapshot = _defaultSnapshotStrategy.SnapshotIntervalInEvents -
+                _multipleStreamsCatchupCache.catchupEventStoreCache.GetCurrent(_streamIdOne).AppliedEvents.Length;
+
+            for (var i = 0; i < nbOfEventUntilSnapshot; i++)
+            {
+                await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdOne, Guid.NewGuid()));
+            }
+
+            await Task.Delay(500);
+
+            var snapshot = await _inMemorySnapshotStore.GetAll();
+
+            Assert.AreEqual(1, snapshot.Length);
+   
+            Assert.AreEqual(_streamIdOne, snapshot[0].EntityId);
+            Assert.AreEqual(9, snapshot[0].Version);
+            Assert.AreEqual(9, snapshot[0].VersionSnapshot);
         }
 
     }
