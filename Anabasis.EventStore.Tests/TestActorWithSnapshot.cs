@@ -177,7 +177,7 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(1, snapShots.Length);
 
             Assert.AreEqual(9, snapShots[0].Version);
-            Assert.AreEqual(9, snapShots[0].VersionSnapshot);
+            Assert.AreEqual(9, snapShots[0].VersionFromSnapshot);
 
 
             for (var i = 0; i < _cache.defaultSnapshotStrategy.SnapshotIntervalInEvents; i++)
@@ -196,21 +196,21 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(2, snapShots.Length);
 
             Assert.AreEqual(19, snapShots[1].Version);
-            Assert.AreEqual(19, snapShots[1].VersionSnapshot);
+            Assert.AreEqual(19, snapShots[1].VersionFromSnapshot);
 
             _secondCache = CreateCatchupEventStoreCache();
 
             await Task.Delay(100);
 
             Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).Version);
-            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).VersionSnapshot);
+            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).VersionFromSnapshot);
 
             await _eventRepository.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, _correlationId));
 
             await Task.Delay(100);
 
             Assert.AreEqual(20, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).Version);
-            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).VersionSnapshot);
+            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).VersionFromSnapshot);
 
         }
 

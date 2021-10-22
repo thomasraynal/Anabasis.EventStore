@@ -26,14 +26,11 @@ namespace Anabasis.EventStore.Actor
 
         private void Setup(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache)
         {
-            _eventStoreAggregateRepository = eventStoreRepository;
 
             State = eventStoreCache;
 
             eventStoreCache.Connect();
         }
-
-        private IEventStoreAggregateRepository<TKey> _eventStoreAggregateRepository;
 
         public IEventStoreCache<TKey, TAggregate> State { get; internal set; }
 

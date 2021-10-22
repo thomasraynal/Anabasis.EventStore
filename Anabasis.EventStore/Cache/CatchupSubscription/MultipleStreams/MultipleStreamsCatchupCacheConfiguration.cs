@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Cache
         {
             StreamIds = streamIds;
         }
-        public string[] StreamIds { get; set; }
+        public string[] StreamIds { get;  }
 
         public TimeSpan IsStaleTimeSpan { get; set; }
 

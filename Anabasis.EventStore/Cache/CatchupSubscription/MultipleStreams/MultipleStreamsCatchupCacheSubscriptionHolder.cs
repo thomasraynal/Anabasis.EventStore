@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Cache
         public DateTime LastProcessedEventUtcTimestamp { get; internal set; }
         internal IDisposable EventStreamConnectionDisposable { get; set; }
         public long? LastProcessedEventSequenceNumber { get; internal set; } = null;
-        public long? CurrentSnapshotVersion { get; internal set; } = null;
+        public long? CurrentSnapshotEventVersion { get; internal set; } = null;
         public void Dispose()
         {
             _isCaughtUpSubject.Dispose();

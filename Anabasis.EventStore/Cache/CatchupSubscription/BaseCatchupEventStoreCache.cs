@@ -17,7 +17,7 @@ namespace Anabasis.EventStore.Cache
     public abstract class BaseCatchupEventStoreCache<TKey, TAggregate> : BaseEventStoreCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
     {
         protected SourceCache<TAggregate, TKey> CaughtingUpCache { get; } = new SourceCache<TAggregate, TKey>(item => item.EntityId);
-        protected readonly ManualResetEventSlim _blockEventConsumption;
+        private readonly object _catchUpLocker = new();
 
         protected BaseCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
           IEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
@@ -27,7 +27,6 @@ namespace Anabasis.EventStore.Cache
           ISnapshotStrategy<TKey> snapshotStrategy = null) :
           base(connectionMonitor, cacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
-            _blockEventConsumption = new ManualResetEventSlim(true);
         }
 
         protected abstract EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection,
@@ -40,61 +39,64 @@ namespace Anabasis.EventStore.Cache
             return Observable.Create<ResolvedEvent>(obs =>
             {
 
-                async Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
+                 Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
                 {
-                    _blockEventConsumption.Wait();
-
-                    Logger?.LogDebug($"{Id} => OnEvent {@event.Event.EventType} - v.{@event.Event.EventNumber}");
-
-                    obs.OnNext(@event);
-
-                    if (_eventStoreCacheConfiguration.UseSnapshot)
+                    lock (_catchUpLocker)
                     {
-                        foreach (var aggregate in Cache.Items)
+
+                        Logger?.LogDebug($"{Id} => OnEvent {@event.Event.EventType} - v.{@event.Event.EventNumber}");
+
+                        obs.OnNext(@event);
+
+                        if (_eventStoreCacheConfiguration.UseSnapshot)
                         {
-                            if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+                            foreach (var aggregate in Cache.Items)
                             {
-                                Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
+                                if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+                                {
+                                    Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
 
-                                var eventFilter = GetEventsFilters();
+                                    var eventFilter = GetEventsFilters();
 
-                                aggregate.VersionSnapshot = aggregate.Version;
+                                    aggregate.VersionFromSnapshot = aggregate.Version;
 
-                                await _snapshotStore.Save(eventFilter, aggregate);
+                                    _snapshotStore.Save(eventFilter, aggregate).Wait();
 
+                                }
                             }
                         }
+
+                        return Task.CompletedTask;
+
                     }
                 }
 
                 void onCaughtUp(EventStoreCatchUpSubscription _)
                 {
                     Logger?.LogInformation($"{Id} => OnCaughtUp - IsCaughtUp: {IsCaughtUp}");
-
-                    //event consumption should be sequential caughtUpEnd -> next event, so this is just to be sure...
-                    _blockEventConsumption.Reset();
-
-                    //this handle a caughting up NOT due to disconnection, i.e a caughting up due to a lag
-                    if (!IsCaughtUp)
+                    lock (_catchUpLocker)
                     {
 
-                        Cache.Edit(innerCache =>
-                       {
-                           Logger?.LogInformation($"{Id} => OnCaughtUp - switch from CaughtingUpCache");
+                        if (!IsCaughtUp)
+                        {
 
-                           innerCache.Load(CaughtingUpCache.Items);
+                            Cache.Edit(innerCache =>
+                           {
+                               Logger?.LogInformation($"{Id} => OnCaughtUp - switch from CaughtingUpCache");
 
-                           CaughtingUpCache.Clear();
+                               innerCache.Load(CaughtingUpCache.Items);
 
-                       });
+                               CaughtingUpCache.Clear();
 
-                        IsCaughtUpSubject.OnNext(true);
+                           });
+
+                            IsCaughtUpSubject.OnNext(true);
+
+                        }
+
+                        Logger?.LogInformation($"{Id} => OnCaughtUp - IsCaughtUp: {IsCaughtUp}");
 
                     }
-
-                    Logger?.LogInformation($"{Id} => OnCaughtUp - IsCaughtUp: {IsCaughtUp}");
-
-                    _blockEventConsumption.Set();
 
                 }
 

@@ -5,23 +5,23 @@ using System.Text;
 
 namespace Anabasis.EventStore.Cache
 {
-  [Serializable]
-  public class EventProcessingException : Exception
-  {
-    public EventProcessingException()
+    [Serializable]
+    public class EventProcessingException : Exception
     {
-    }
+        public EventProcessingException()
+        {
+        }
 
-    public EventProcessingException(string message) : base(message)
-    {
-    }
+        public EventProcessingException(string message) : base(message)
+        {
+        }
 
-    public EventProcessingException(string message, Exception innerException) : base(message, innerException)
-    {
-    }
+        public EventProcessingException(string message, Exception innerException) : base(message, innerException)
+        {
+        }
 
-    protected EventProcessingException(SerializationInfo info, StreamingContext context) : base(info, context)
-    {
+        protected EventProcessingException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
     }
-  }
 }

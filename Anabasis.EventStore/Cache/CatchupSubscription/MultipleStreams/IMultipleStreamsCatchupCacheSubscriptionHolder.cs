@@ -4,7 +4,7 @@ namespace Anabasis.EventStore.Cache
 {
     public interface IMultipleStreamsCatchupCacheSubscriptionHolder
     {
-        long? CurrentSnapshotVersion { get; }
+        long? CurrentSnapshotEventVersion { get; }
         bool IsCaughtUp { get; }
         long? LastProcessedEventSequenceNumber { get; }
         DateTime LastProcessedEventUtcTimestamp { get; }

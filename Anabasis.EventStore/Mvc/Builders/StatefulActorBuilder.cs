@@ -74,25 +74,35 @@ namespace Anabasis.EventStore
         public StatefulActorBuilder<TActor, TKey, TAggregate> WithReadOneStreamFromStartCache(
           string streamId,
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null,
-          Action<SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>> singleStreamCatchupEventStoreCacheConfigurationBuilder = null,
+          Action<MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
+          ISnapshotStore<TKey, TAggregate> snapshotStore = null,
+          ISnapshotStrategy<TKey> snapshotStrategy = null)
+        {
+            return WithReadManyStreamFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration, snapshotStore, snapshotStrategy);
+        }
+
+        public StatefulActorBuilder<TActor, TKey, TAggregate> WithReadManyStreamFromStartCache(
+          string[] streamIds,
+          IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null,
+          Action<MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,
           ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
 
-            var getSubscribeFromEndEventStoreCache = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TKey, TAggregate>>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndMultipleStreamsEventStoreCache = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TKey, TAggregate>>((connectionMonitor, loggerFactory) =>
             {
-                var singleStreamCatchupEventStoreCacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate>(streamId);
+                var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate>(streamIds);
 
-                singleStreamCatchupEventStoreCacheConfigurationBuilder?.Invoke(singleStreamCatchupEventStoreCacheConfiguration);
+                getMultipleStreamsCatchupCacheConfiguration?.Invoke(multipleStreamsCatchupCacheConfiguration);
 
-                var singleStreamCatchupEventStoreCache = new SingleStreamCatchupEventStoreCache<TKey, TAggregate>(connectionMonitor, singleStreamCatchupEventStoreCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy);
+                var multipleStreamsCatchupCache = new MultipleStreamsCatchupCache<TKey, TAggregate>(connectionMonitor, multipleStreamsCatchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy);
 
-                return singleStreamCatchupEventStoreCache;
+                return multipleStreamsCatchupCache;
             });
 
             if (null != _cacheToRegisterTo) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
 
-            _cacheToRegisterTo = getSubscribeFromEndEventStoreCache;
+            _cacheToRegisterTo = getSubscribeFromEndMultipleStreamsEventStoreCache;
 
             return this;
         }
