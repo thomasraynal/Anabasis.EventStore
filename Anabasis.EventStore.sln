@@ -17,7 +17,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Demo", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Tests.Integration", "Anabasis.EventStore.Tests.Integration\Anabasis.EventStore.Tests.Integration.csproj", "{5DC81E11-2F10-4C7A-BBE5-F84391509929}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Demo.AspNet", "Anabasis.EventStore.Demo.AspNet\Anabasis.EventStore.Demo.AspNet.csproj", "{2E3CCB30-4D28-4A4B-A7AB-AB0728B5AD91}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Demo.AspNet", "Anabasis.EventStore.Demo.AspNet\Anabasis.EventStore.Demo.AspNet.csproj", "{2E3CCB30-4D28-4A4B-A7AB-AB0728B5AD91}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Demo2", "Anabasis.EventStore.Demo2\Anabasis.EventStore.Demo2.csproj", "{38EB4ACA-07B1-4174-A780-D60422FA0290}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -67,6 +69,14 @@ Global
 		{2E3CCB30-4D28-4A4B-A7AB-AB0728B5AD91}.Release|Any CPU.Build.0 = Release|Any CPU
 		{2E3CCB30-4D28-4A4B-A7AB-AB0728B5AD91}.Release|x64.ActiveCfg = Release|Any CPU
 		{2E3CCB30-4D28-4A4B-A7AB-AB0728B5AD91}.Release|x64.Build.0 = Release|Any CPU
+		{38EB4ACA-07B1-4174-A780-D60422FA0290}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{38EB4ACA-07B1-4174-A780-D60422FA0290}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{38EB4ACA-07B1-4174-A780-D60422FA0290}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{38EB4ACA-07B1-4174-A780-D60422FA0290}.Debug|x64.Build.0 = Debug|Any CPU
+		{38EB4ACA-07B1-4174-A780-D60422FA0290}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{38EB4ACA-07B1-4174-A780-D60422FA0290}.Release|Any CPU.Build.0 = Release|Any CPU
+		{38EB4ACA-07B1-4174-A780-D60422FA0290}.Release|x64.ActiveCfg = Release|Any CPU
+		{38EB4ACA-07B1-4174-A780-D60422FA0290}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -61,11 +61,11 @@ namespace Anabasis.EventStore.Actor
         string eventStoreUrl,
         ConnectionSettings connectionSettings,
         ILoggerFactory loggerFactory = null,
-        Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
+        Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfigurationBuilder = null)
         {
             var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
 
-            return CreateInternal(connection, loggerFactory, eventStoreRepositoryConfigurationBuilder);
+            return CreateInternal(connection, loggerFactory, getEventStoreRepositoryConfigurationBuilder);
 
         }
 
