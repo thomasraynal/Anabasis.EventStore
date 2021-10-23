@@ -152,7 +152,7 @@ namespace Anabasis.EventStore.Tests
 
             var testActorAutoBuildOne = StatefulActorBuilder<TestStatefulActorOne, Guid, SomeDataAggregate<Guid>, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
-                                                                                            catchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
+                                                                                            getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }))
                                                                                          .WithSubscribeFromEndToAllQueue()
                                                                                          .WithPersistentSubscriptionQueue(_streamId2, _groupIdOne)
@@ -160,7 +160,7 @@ namespace Anabasis.EventStore.Tests
 
             var testActorAutoBuildTwo = StatefulActorBuilder<TestAggregatedActorTwo, Guid, SomeDataAggregate<Guid>, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
-                                                                                            catchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
+                                                                                            getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }))
                                                                                          .Build();
 

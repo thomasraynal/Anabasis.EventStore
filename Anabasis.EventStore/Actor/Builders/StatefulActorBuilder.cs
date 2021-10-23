@@ -110,7 +110,7 @@ namespace Anabasis.EventStore.Actor
 
         public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          Action<CatchupEventStoreCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
+          Action<CatchupEventStoreCacheConfiguration<TKey, TAggregate>> getCatchupEventStoreCacheConfigurationBuilder = null,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,
           ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
@@ -118,7 +118,7 @@ namespace Anabasis.EventStore.Actor
 
             var catchupEventStoreCacheConfiguration = new CatchupEventStoreCacheConfiguration<TKey, TAggregate>();
 
-            catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
+            getCatchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
             EventStoreCache = new CatchupEventStoreCache<TKey, TAggregate>(ConnectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
 
@@ -155,30 +155,33 @@ namespace Anabasis.EventStore.Actor
 
         public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null)
+          Action<SubscribeFromEndCacheConfiguration<TKey, TAggregate>> getSubscribeFromEndCacheConfiguration = null)
         {
 
             if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
 
-            var volatileCacheConfiguration = new SubscribeFromEndCacheConfiguration<TKey, TAggregate>();
+            var subscribeFromEndCacheConfiguration = new SubscribeFromEndCacheConfiguration<TKey, TAggregate>();
 
-            volatileCacheConfigurationBuilder?.Invoke(volatileCacheConfiguration);
+            getSubscribeFromEndCacheConfiguration?.Invoke(subscribeFromEndCacheConfiguration);
 
-            EventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(ConnectionMonitor, volatileCacheConfiguration, eventTypeProvider, LoggerFactory);
+            EventStoreCache = new SubscribeFromEndEventStoreCache<TKey, TAggregate>(ConnectionMonitor, subscribeFromEndCacheConfiguration, eventTypeProvider, LoggerFactory);
 
             return this;
 
         }
 
-        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithSubscribeFromEndToAllQueue()
+        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithSubscribeFromEndToAllQueue(
+            Action<SubscribeFromEndEventStoreQueueConfiguration> getSubscribeFromEndEventStoreQueueConfiguration = null)
         {
-            var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration();
+            var subscribeFromEndEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration();
+
+            getSubscribeFromEndEventStoreQueueConfiguration?.Invoke(subscribeFromEndEventStoreQueueConfiguration);
 
             var eventProvider = new ConsumerBasedEventProvider<TActor>();
 
             var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
               ConnectionMonitor,
-              volatileEventStoreQueueConfiguration,
+              subscribeFromEndEventStoreQueueConfiguration,
               eventProvider, LoggerFactory);
 
             _queuesToRegisterTo.Add(volatileEventStoreQueue);

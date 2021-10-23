@@ -3,7 +3,7 @@
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp3.1</TargetFramework>
-    <StartupObject>Anabasis.EventStore.Demo2.Program_ReadManyStreamFromStartCache</StartupObject>
+    <StartupObject>Anabasis.EventStore.Samples.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>

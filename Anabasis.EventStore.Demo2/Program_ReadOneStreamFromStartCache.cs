@@ -7,28 +7,23 @@ using System;
 
 namespace Anabasis.EventStore.Samples
 {
-
-
-    public class Program_ReadManyStreamFromStartCache
+    public static class Program_ReadOneStreamFromStartCache
     {
 
-        public  static void Run()
+        public static void Run()
         {
-
-            
             var eventTypeProvider = new DefaultEventTypeProvider<string, EventCountAggregate>(() => new[] { typeof(EventCountOne), typeof(EventCountTwo) }); ;
 
             var eventCountActor = StatefulActorBuilder<EventCountStatefulActor, string, EventCountAggregate, DemoSystemRegistry>
                                        .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings())
-                                       .WithReadManyStreamFromStartCache(
-                                            new[] { StaticData.EntityOne, StaticData.EntityTwo, StaticData.EntityThree },
+                                       .WithReadOneStreamFromStartCache(StaticData.EntityOne,
                                             eventTypeProvider: eventTypeProvider,
                                             getMultipleStreamsCatchupCacheConfiguration: builder => builder.KeepAppliedEventsOnAggregate = true)
                                        .Build();
 
 
             Do.Run(eventCountActor);
-
         }
+
     }
 }

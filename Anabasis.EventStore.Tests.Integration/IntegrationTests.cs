@@ -44,7 +44,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
             var traderOne = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, connectionSettings)
                                                                                               .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
-                                                                                                catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
+                                                                                                getCatchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                               .Build();
             await Task.Delay(2000);
 
@@ -52,7 +52,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
             var traderTwo = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, connectionSettings)
                                                                                             .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
-                                                                                               catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
+                                                                                               getCatchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                             .Build();
 
             await Task.Delay(500);
