@@ -68,24 +68,24 @@ namespace Anabasis.EventStore.Queue
                     OnInitialize(connectionChanged.IsConnected);
 
                     _eventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value)
-                  .Subscribe(resolvedEvent =>
-                  {
-                        var recordedEvent = resolvedEvent.Event;
+                      .Subscribe(resolvedEvent =>
+                      {
+                            var recordedEvent = resolvedEvent.Event;
 
-                        var eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+                            var eventType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
-                        if (null == eventType)
-                        {
-                            if (_eventStoreQueueConfiguration.IgnoreUnknownEvent) return;
+                            if (null == eventType)
+                            {
+                                if (_eventStoreQueueConfiguration.IgnoreUnknownEvent) return;
 
-                            throw new InvalidOperationException($"Event {recordedEvent.EventType} is not registered");
-                        }
+                                throw new InvalidOperationException($"Event {recordedEvent.EventType} is not registered");
+                            }
 
-                        var @event = DeserializeEvent(recordedEvent);
+                            var @event = DeserializeEvent(recordedEvent);
 
-                        _onEventSubject.OnNext(@event);
+                            _onEventSubject.OnNext(@event);
 
-                    });
+                        });
                 }
                 else
                 {

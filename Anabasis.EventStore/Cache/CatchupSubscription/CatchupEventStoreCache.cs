@@ -40,7 +40,8 @@ namespace Anabasis.EventStore.Cache
         protected override Task OnLoadSnapshot()
         {
 
-            throw new NotImplementedException();
+            return Task.CompletedTask;
+
 
             //if (_catchupEventStoreCacheConfiguration.UseSnapshot)
             //{

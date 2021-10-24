@@ -16,7 +16,7 @@ namespace Anabasis.EventStore.Cache
         }
         public string[] StreamIds { get;  }
 
-        public TimeSpan IsStaleTimeSpan { get; set; }
+        public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.FromHours(1);
 
         public bool KeepAppliedEventsOnAggregate { get; set; } = false;
 
