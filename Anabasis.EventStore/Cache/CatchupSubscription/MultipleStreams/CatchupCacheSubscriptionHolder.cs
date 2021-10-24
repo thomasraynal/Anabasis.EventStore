@@ -4,11 +4,11 @@ using System.Reactive.Subjects;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class MultipleStreamsCatchupCacheSubscriptionHolder<TKey, TAggregate> : IDisposable, IMultipleStreamsCatchupCacheSubscriptionHolder
+    public class CatchupCacheSubscriptionHolder<TKey, TAggregate> : IDisposable, IMultipleStreamsCatchupCacheSubscriptionHolder
     {
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
 
-        internal MultipleStreamsCatchupCacheSubscriptionHolder()
+        internal CatchupCacheSubscriptionHolder()
         {
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
         }

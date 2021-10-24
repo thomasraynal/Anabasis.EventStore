@@ -15,7 +15,6 @@ namespace Anabasis.EventStore.Cache
     {
 
         private readonly CatchupEventStoreCacheConfiguration<TKey, TAggregate> _catchupEventStoreCacheConfiguration;
-        private readonly Microsoft.Extensions.Logging.ILogger _logger;
 
         public CatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
           CatchupEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
@@ -25,41 +24,6 @@ namespace Anabasis.EventStore.Cache
           ISnapshotStrategy<TKey> snapshotStrategy = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
             _catchupEventStoreCacheConfiguration = cacheConfiguration;
-            _logger = loggerFactory?.CreateLogger(GetType());
-        }
-
-        protected override void OnResolvedEvent(ResolvedEvent @event)
-        {
-            var cache = IsCaughtUp ? Cache : CaughtingUpCache;
-
-            _logger?.LogDebug($"{Id} => OnResolvedEvent {@event.Event.EventType} - v.{@event.Event.EventNumber} - IsCaughtUp => {IsCaughtUp}");
-
-            UpdateCacheState(@event, cache);
-        }
-
-        protected override Task OnLoadSnapshot()
-        {
-
-            return Task.CompletedTask;
-
-
-            //if (_catchupEventStoreCacheConfiguration.UseSnapshot)
-            //{
-            //    var eventTypeFilter = GetEventsFilters();
-
-            //    var snapshots = await _snapshotStore.GetByVersionOrLast(eventTypeFilter);
-
-            //    if (null != snapshots)
-            //    {
-            //        foreach (var snapshot in snapshots)
-            //        {
-            //            Logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.StreamId}");
-
-            //            Cache.AddOrUpdate(snapshot);
-            //        }
-
-            //    }
-            //}
         }
 
         protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)

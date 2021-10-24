@@ -127,8 +127,6 @@ namespace Anabasis.EventStore.Cache
                         default:
                             throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception);
                     }
-
-
                 }
 
                 var subscription = GetEventStoreCatchUpSubscription(connection, onEvent, onCaughtUp, onSubscriptionDropped);
@@ -147,12 +145,19 @@ namespace Anabasis.EventStore.Cache
             return eventTypeFilters;
         }
 
+        private SourceCache<TAggregate, TKey> CurrentCache => IsCaughtUp ? Cache : CaughtingUpCache;
+        
+        protected override void OnResolvedEvent(ResolvedEvent @event)
+        {
+
+            Logger?.LogDebug($"{Id} => OnResolvedEvent {@event.Event.EventType} - v.{@event.Event.EventNumber} - IsCaughtUp => {IsCaughtUp}");
+
+            UpdateCacheState(@event, CurrentCache);
+        }
 
         public override void Dispose()
         {
-
             CaughtingUpCache.Dispose();
-
             base.Dispose();
         }
 
