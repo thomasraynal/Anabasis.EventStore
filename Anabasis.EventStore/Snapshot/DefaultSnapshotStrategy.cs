@@ -5,13 +5,18 @@ using System.Text;
 
 namespace Anabasis.EventStore.Snapshot
 {
-  public class DefaultSnapshotStrategy<TKey> : ISnapshotStrategy<TKey>
-  {
-    public int SnapshotIntervalInEvents => 10;
-
-    public bool IsSnapShotRequired(IAggregate<TKey> aggregate)
+    public class DefaultSnapshotStrategy<TKey> : ISnapshotStrategy<TKey>
     {
-      return aggregate.Version - aggregate.VersionFromSnapshot >= SnapshotIntervalInEvents;
+        public DefaultSnapshotStrategy(int snapshotIntervalInEvents = 10)
+        {
+            SnapshotIntervalInEvents = snapshotIntervalInEvents;
+        }
+
+        public int SnapshotIntervalInEvents { get; }
+
+        public bool IsSnapShotRequired(IAggregate<TKey> aggregate)
+        {
+            return aggregate.Version - aggregate.VersionFromSnapshot >= SnapshotIntervalInEvents;
+        }
     }
-  }
 }

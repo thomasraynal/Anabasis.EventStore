@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.Cache
 
                         obs.OnNext(@event);
 
-                        if (_eventStoreCacheConfiguration.UseSnapshot)
+                        if (IsCaughtUp && _eventStoreCacheConfiguration.UseSnapshot)
                         {
                             foreach (var aggregate in Cache.Items)
                             {
@@ -146,6 +146,7 @@ namespace Anabasis.EventStore.Cache
 
             return eventTypeFilters;
         }
+
 
         public override void Dispose()
         {

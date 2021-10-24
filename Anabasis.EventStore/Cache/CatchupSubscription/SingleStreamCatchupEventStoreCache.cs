@@ -37,12 +37,15 @@ namespace Anabasis.EventStore.Cache
                 {
                     Logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.StreamId}");
 
-                    Cache.AddOrUpdate(snapshot);
+                    var cache = IsCaughtUp ? Cache : CaughtingUpCache;
+
+                    cache.AddOrUpdate(snapshot);
                     LastProcessedEventSequenceNumber = snapshot.Version;
                 }
 
             }
         }
+
 
         protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)
         {

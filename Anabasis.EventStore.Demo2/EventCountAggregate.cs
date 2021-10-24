@@ -12,9 +12,13 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Samples
 {
+   
 
     public class EventCountAggregate : BaseAggregate<string>
     {
+
+        private static object _locker = new object();
+
         public EventCountAggregate()
         {
         }
@@ -23,15 +27,20 @@ namespace Anabasis.EventStore.Samples
 
         public void PrintConsole()
         {
-            var header = $"{nameof(EventCountAggregate)} - {StreamId} - {HitCounter}";
-
-            Console.WriteLine(header);
-
-            var groupedEvents = AppliedEvents.GroupBy(ev => ev.GetType().Name);
-
-            foreach(var events in groupedEvents)
+            lock (_locker)
             {
-                Console.WriteLine($"    {events.Key} : {events.Count()}");
+
+                var header = $"{nameof(EventCountAggregate)} - {StreamId} - {HitCounter}";
+
+                Console.WriteLine(header);
+
+                var groupedEvents = AppliedEvents.GroupBy(ev => ev.GetType().Name);
+
+                foreach (var events in groupedEvents)
+                {
+                    Console.WriteLine($"    {events.Key} : {events.Count()}");
+
+                }
 
             }
 

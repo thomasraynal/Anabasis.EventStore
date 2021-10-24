@@ -37,25 +37,28 @@ namespace Anabasis.EventStore.Cache
             UpdateCacheState(@event, cache);
         }
 
-        protected override async Task OnLoadSnapshot()
+        protected override Task OnLoadSnapshot()
         {
-            if (_catchupEventStoreCacheConfiguration.UseSnapshot)
-            {
-                var eventTypeFilter = GetEventsFilters();
 
-                var snapshots = await _snapshotStore.GetByVersionOrLast(eventTypeFilter);
+            throw new NotImplementedException();
 
-                if (null != snapshots)
-                {
-                    foreach (var snapshot in snapshots)
-                    {
-                        Logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.StreamId}");
+            //if (_catchupEventStoreCacheConfiguration.UseSnapshot)
+            //{
+            //    var eventTypeFilter = GetEventsFilters();
 
-                        Cache.AddOrUpdate(snapshot);
-                    }
+            //    var snapshots = await _snapshotStore.GetByVersionOrLast(eventTypeFilter);
 
-                }
-            }
+            //    if (null != snapshots)
+            //    {
+            //        foreach (var snapshot in snapshots)
+            //        {
+            //            Logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.StreamId}");
+
+            //            Cache.AddOrUpdate(snapshot);
+            //        }
+
+            //    }
+            //}
         }
 
         protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(IEventStoreConnection connection, Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent, Action<EventStoreCatchUpSubscription> onCaughtUp, Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)

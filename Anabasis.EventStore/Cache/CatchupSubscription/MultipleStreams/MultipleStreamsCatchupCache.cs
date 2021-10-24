@@ -171,6 +171,11 @@ namespace Anabasis.EventStore.Cache
             return eventTypeFilters;
         }
 
+        private SourceCache<TAggregate, TKey> GetCurrentCache()
+        {
+            return IsCaughtUp ? _cache : _caughtingUpCache;
+        }
+
         protected async Task OnLoadSnapshot()
         {
             if (_multipleStreamsCatchupCacheConfiguration.UseSnapshot)
@@ -189,7 +194,9 @@ namespace Anabasis.EventStore.Cache
 
                     _logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.StreamId}");
 
-                    _cache.AddOrUpdate(snapshot);
+                    var cache = GetCurrentCache();
+
+                    cache.AddOrUpdate(snapshot);
 
                 }
             }
@@ -198,7 +205,7 @@ namespace Anabasis.EventStore.Cache
 
         protected void OnResolvedEvent(ResolvedEvent @event)
         {
-            var cache = IsCaughtUp ? _cache : _caughtingUpCache;
+            var cache = GetCurrentCache();
 
             _logger?.LogDebug($"{Id} => OnResolvedEvent {@event.Event.EventType} - v.{@event.Event.EventNumber} - IsCaughtUp => {IsCaughtUp}");
 
@@ -284,7 +291,7 @@ namespace Anabasis.EventStore.Cache
 
                         obs.OnNext(@event);
 
-                        if (_multipleStreamsCatchupCacheConfiguration.UseSnapshot)
+                        if (IsCaughtUp && _multipleStreamsCatchupCacheConfiguration.UseSnapshot)
                         {
                             foreach (var aggregate in _cache.Items)
                             {

@@ -3,6 +3,7 @@ using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 
 namespace Anabasis.EventStore.Samples
@@ -62,19 +63,20 @@ namespace Anabasis.EventStore.Samples
             }
         }
 
-        public static void Run(IStatefulActor<string, EventCountAggregate> statefulActor)
+        public static void Run(params IStatefulActor<string, EventCountAggregate>[] statefulActors)
         {
-
-            statefulActor.State.AsObservableCache().Connect().Subscribe((changes) =>
+            foreach(var statefulActor in statefulActors)
             {
-                foreach (var change in changes)
+                statefulActor.State.AsObservableCache().Connect().Subscribe((changes) =>
                 {
-                    change.Current.PrintConsole();
-                }
-            });
+                    foreach (var change in changes)
+                    {
+                        change.Current.PrintConsole();
+                    }
+                });
+            }
 
-
-            Run(statefulActor as IStatelessActor);
+            Run(statefulActors.First() as IStatelessActor);
 
         }
     }
