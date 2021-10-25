@@ -24,8 +24,8 @@ namespace Anabasis.EventStore.Tests
         private LoggerFactory _loggerFactory;
         private ClusterVNode _clusterVNode;
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheOne;
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheTwo;
+        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheOne;
+        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _cacheTwo;
         private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<string> eventStoreRepository) _repositoryOne;
 
         private readonly string _streamId = "str";
@@ -78,19 +78,19 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupEventStoreCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) CreateCatchupEventStoreCache(string streamId)
+        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) CreateCatchupEventStoreCache(string streamId)
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var cacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<string, SomeDataAggregate<string>>(streamId, _userCredentials)
+            var cacheConfiguration = new SingleStreamCatchupCacheConfiguration<string, SomeDataAggregate<string>>(streamId, _userCredentials)
             {
                 KeepAppliedEventsOnAggregate = true,
                 IsStaleTimeSpan = TimeSpan.FromSeconds(1)
             };
 
-            var catchUpCache = new SingleStreamCatchupEventStoreCache<string, SomeDataAggregate<string>>(
+            var catchUpCache = new SingleStreamCatchupCache<string, SomeDataAggregate<string>>(
               connectionMonitor,
               cacheConfiguration,
               new DefaultEventTypeProvider<string, SomeDataAggregate<string>>(() => new[] { typeof(SomeData<string>) }),

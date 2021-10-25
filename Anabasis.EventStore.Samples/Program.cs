@@ -8,7 +8,7 @@ namespace Anabasis.EventStore.Samples
     {
         static void Main(string[] _)
         {
-            Program_ReadOneStreamFromStartCacheWithSnapshot.Run();
+            Program_ReadAllFromEndCache.Run();
         }
     }
 }

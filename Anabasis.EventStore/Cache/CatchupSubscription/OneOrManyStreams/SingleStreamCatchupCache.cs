@@ -6,10 +6,10 @@ using Anabasis.EventStore.EventProvider;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class SingleStreamCatchupEventStoreCache<TKey, TAggregate> : MultipleStreamsCatchupCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+    public class SingleStreamCatchupCache<TKey, TAggregate> : MultipleStreamsCatchupCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
     {
-        public SingleStreamCatchupEventStoreCache(IConnectionStatusMonitor connectionMonitor,
-          SingleStreamCatchupEventStoreCacheConfiguration<TKey, TAggregate> cacheConfiguration,
+        public SingleStreamCatchupCache(IConnectionStatusMonitor connectionMonitor,
+          SingleStreamCatchupCacheConfiguration<TKey, TAggregate> cacheConfiguration,
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
           ILoggerFactory loggerFactory,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,

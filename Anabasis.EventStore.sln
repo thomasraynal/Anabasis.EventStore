@@ -10,7 +10,6 @@ EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2751A486-6A83-4D62-B37E-713DAC303FD8}"
 	ProjectSection(SolutionItems) = preProject
 		appveyor.yml = appveyor.yml
-		TODO.txt = TODO.txt
 	EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Demo", "Anabasis.EventStore.Demo\Anabasis.EventStore.Demo.csproj", "{265F3478-5371-49E5-985D-CE6CBCE60931}"
@@ -19,7 +18,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Tests.I
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Demo.AspNet", "Anabasis.EventStore.Demo.AspNet\Anabasis.EventStore.Demo.AspNet.csproj", "{2E3CCB30-4D28-4A4B-A7AB-AB0728B5AD91}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Samples", "Anabasis.EventStore.Samples\Anabasis.EventStore.Samples.csproj", "{38EB4ACA-07B1-4174-A780-D60422FA0290}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Samples", "Anabasis.EventStore.Samples\Anabasis.EventStore.Samples.csproj", "{38EB4ACA-07B1-4174-A780-D60422FA0290}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

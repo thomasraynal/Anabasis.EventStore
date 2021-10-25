@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Tests
 
     public class TestStatefulActorWithSnapshot : BaseStatefulActor<Guid, SomeDataAggregate<Guid>>
     {
-        public TestStatefulActorWithSnapshot(SingleStreamCatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
+        public TestStatefulActorWithSnapshot(SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
           IEventStoreAggregateRepository<Guid> eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
         {
             Events = new List<SomeRandomEvent>();
@@ -55,14 +55,14 @@ namespace Anabasis.EventStore.Tests
         private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository<Guid> eventStoreRepository) _eventRepository;
 
         private (ConnectionStatusMonitor connectionStatusMonitor,
-          SingleStreamCatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
+          SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
           InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>> inMemorySnapshotStore,
           DefaultSnapshotStrategy<Guid> defaultSnapshotStrategy,
           ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cache;
 
         private Guid _correlationId = Guid.NewGuid();
         private Guid _firstAggregateId = Guid.NewGuid();
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>> inMemorySnapshotStore, DefaultSnapshotStrategy<Guid> defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _secondCache;
+        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>> inMemorySnapshotStore, DefaultSnapshotStrategy<Guid> defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _secondCache;
         private ILoggerFactory _loggerFactory;
 
         [OneTimeSetUp]
@@ -112,13 +112,13 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupEventStoreCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>> inMemorySnapshotStore, DefaultSnapshotStrategy<Guid> defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) CreateCatchupEventStoreCache()
+        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>> inMemorySnapshotStore, DefaultSnapshotStrategy<Guid> defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) CreateCatchupEventStoreCache()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var cacheConfiguration = new SingleStreamCatchupEventStoreCacheConfiguration<Guid, SomeDataAggregate<Guid>>($"{_firstAggregateId}", _userCredentials)
+            var cacheConfiguration = new SingleStreamCatchupCacheConfiguration<Guid, SomeDataAggregate<Guid>>($"{_firstAggregateId}", _userCredentials)
             {
                 UserCredentials = _userCredentials,
                 KeepAppliedEventsOnAggregate = true,
@@ -129,7 +129,7 @@ namespace Anabasis.EventStore.Tests
             var defaultSnapshotStrategy = new DefaultSnapshotStrategy<Guid>();
             var inMemorySnapshotStore = new InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>>();
 
-            var singleStreamCatchupEventStoreCache = new SingleStreamCatchupEventStoreCache<Guid, SomeDataAggregate<Guid>>(
+            var singleStreamCatchupEventStoreCache = new SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>>(
               connectionMonitor,
               cacheConfiguration,
               loggerFactory: _loggerFactory,
