@@ -6,7 +6,6 @@ using DynamicData;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -86,36 +85,6 @@ namespace Anabasis.EventStore.Cache
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
             _isStaleSubject = new BehaviorSubject<bool>(true);
             _cleanUp = new CompositeDisposable();
-
-            //if (catchupCacheConfiguration.IsSubscribeAll)
-            //{
-            //    CatchupCacheSubscriptionHolders = new List<CatchupCacheSubscriptionHolder<TKey, TAggregate>>()
-            //    {
-            //        new CatchupCacheSubscriptionHolder<TKey, TAggregate>()
-            //        {
-            //            StreamId = null
-            //        }
-            //    };
-            //}
-            //else
-            //{
-
-            //    if (null == catchupCacheConfiguration.StreamIds && catchupCacheConfiguration.StreamIds.Length == 0)
-            //    {
-            //        throw new InvalidOperationException("No streamId is specified!");
-            //    }
-
-            //    CatchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId =>
-            //    {
-            //        return new CatchupCacheSubscriptionHolder<TKey, TAggregate>()
-            //        {
-            //            StreamId = streamId
-            //        };
-
-            //    }).ToList();
-
-            //}
-
  
         }
 
@@ -195,7 +164,10 @@ namespace Anabasis.EventStore.Cache
             _cleanUp.Add(isStaleSubscription);
         }
 
-        protected abstract Task OnLoadSnapshot(ISnapshotStrategy<TKey> snapshotStrategy, ISnapshotStore<TKey, TAggregate> snapshotStore);
+        protected abstract Task OnLoadSnapshot(
+            CatchupCacheSubscriptionHolder<TKey, TAggregate>[] catchupCacheSubscriptionHolders,
+            ISnapshotStrategy<TKey> snapshotStrategy, 
+            ISnapshotStore<TKey, TAggregate> snapshotStore);
 
         public IObservableCache<TAggregate, TKey> AsObservableCache()
         {
@@ -235,7 +207,7 @@ namespace Anabasis.EventStore.Cache
                 if (connectionChanged.IsConnected)
                 {
 
-                    await OnLoadSnapshot(_snapshotStrategy, _snapshotStore);
+                    await OnLoadSnapshot(_catchupCacheSubscriptionHolders, _snapshotStrategy, _snapshotStore);
 
                     foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
                     {

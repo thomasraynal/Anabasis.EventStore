@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Tests
 {
     public class TestStatefulActor : BaseStatefulActor<Guid, SomeDataAggregate<Guid>>
     {
-        public TestStatefulActor(AllStreamsFromStartCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
+        public TestStatefulActor(AllStreamsCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
           IEventStoreAggregateRepository<Guid> eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
         {
             Events = new List<SomeRandomEvent>();
@@ -54,7 +54,7 @@ namespace Anabasis.EventStore.Tests
         private LoggerFactory _loggerFactory;
         private ClusterVNode _clusterVNode;
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, AllStreamsFromStartCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
+        private (ConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cacheOne;
 
         private Guid _firstAggregateId = Guid.NewGuid();
 
@@ -106,20 +106,20 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, AllStreamsFromStartCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) CreateCatchupEventStoreCache()
+        private (ConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) CreateCatchupEventStoreCache()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var cacheConfiguration = new AllStreamsFromStartCatchupCacheConfiguration<Guid, SomeDataAggregate<Guid>>()
+            var cacheConfiguration = new AllStreamsCatchupCacheConfiguration<Guid, SomeDataAggregate<Guid>>(Position.Start)
             {
                 UserCredentials = _userCredentials,
                 KeepAppliedEventsOnAggregate = true,
                 IsStaleTimeSpan = TimeSpan.FromSeconds(1)
             };
 
-            var catchUpCache = new AllStreamsFromStartCatchupCache<Guid, SomeDataAggregate<Guid>>(
+            var catchUpCache = new AllStreamsCatchupCache<Guid, SomeDataAggregate<Guid>>(
               connectionMonitor,
               cacheConfiguration,
              new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }), 

@@ -25,13 +25,16 @@ namespace Anabasis.EventStore.Cache
             _multipleStreamsCatchupCacheConfiguration = catchupCacheConfiguration;
         }
 
-        protected override async Task OnLoadSnapshot(ISnapshotStrategy<TKey> snapshotStrategy, ISnapshotStore<TKey,TAggregate> snapshotStore)
+        protected override async Task OnLoadSnapshot(
+            CatchupCacheSubscriptionHolder<TKey, TAggregate>[] catchupCacheSubscriptionHolders,
+            ISnapshotStrategy<TKey> snapshotStrategy, 
+            ISnapshotStore<TKey,TAggregate> snapshotStore)
         {
             if (UseSnapshot)
             {
                 var eventTypeFilter = GetEventsFilters();
 
-                foreach (var catchupCacheSubscriptionHolder in CatchupCacheSubscriptionHolders)
+                foreach (var catchupCacheSubscriptionHolder in catchupCacheSubscriptionHolders)
                 {
                     var snapshot = await snapshotStore.GetByVersionOrLast(catchupCacheSubscriptionHolder.StreamId, eventTypeFilter);
 

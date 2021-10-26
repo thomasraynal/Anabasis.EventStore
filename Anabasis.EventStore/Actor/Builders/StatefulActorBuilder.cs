@@ -110,17 +110,17 @@ namespace Anabasis.EventStore.Actor
 
         public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          Action<AllStreamsFromStartCatchupCacheConfiguration<TKey, TAggregate>> getCatchupEventStoreCacheConfigurationBuilder = null,
+          Action<AllStreamsCatchupCacheConfiguration<TKey, TAggregate>> getCatchupEventStoreCacheConfigurationBuilder = null,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,
           ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
             if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
 
-            var catchupEventStoreCacheConfiguration = new AllStreamsFromStartCatchupCacheConfiguration<TKey, TAggregate>();
+            var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TKey, TAggregate>(Position.Start);
 
             getCatchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-            EventStoreCache = new AllStreamsFromStartCatchupCache<TKey, TAggregate>(ConnectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
+            EventStoreCache = new AllStreamsCatchupCache<TKey, TAggregate>(ConnectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
 
             return this;
         }
@@ -155,16 +155,16 @@ namespace Anabasis.EventStore.Actor
 
         public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          Action<AllStreamsFromEndCatchupCacheConfiguration<TKey, TAggregate>> getSubscribeFromEndCacheConfiguration = null)
+          Action<AllStreamsCatchupCacheConfiguration<TKey, TAggregate>> getSubscribeFromEndCacheConfiguration = null)
         {
 
             if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
 
-            var subscribeFromEndCacheConfiguration = new AllStreamsFromEndCatchupCacheConfiguration<TKey, TAggregate>();
+            var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TKey, TAggregate>(Position.End);
 
             getSubscribeFromEndCacheConfiguration?.Invoke(subscribeFromEndCacheConfiguration);
 
-            EventStoreCache = new AllStreamsFromEndCatchupCache<TKey, TAggregate>(ConnectionMonitor, subscribeFromEndCacheConfiguration, eventTypeProvider, LoggerFactory);
+            EventStoreCache = new AllStreamsCatchupCache<TKey, TAggregate>(ConnectionMonitor, subscribeFromEndCacheConfiguration, eventTypeProvider, LoggerFactory);
 
             return this;
 

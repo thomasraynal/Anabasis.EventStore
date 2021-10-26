@@ -2,16 +2,9 @@ using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
-using DynamicData;
-using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reactive.Subjects;
-using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {

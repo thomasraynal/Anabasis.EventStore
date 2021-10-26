@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Anabasis.EventStore.Queue;
 using Microsoft.Extensions.Logging;
 using System.Linq;
+using EventStore.ClientAPI;
 
 namespace Anabasis.EventStore
 {
@@ -39,20 +40,20 @@ namespace Anabasis.EventStore
 
         public StatefulActorBuilder<TActor, TKey, TAggregate> WithReadAllFromStartCache(
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null,
-          Action<AllStreamsFromStartCatchupCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
+          Action<AllStreamsCatchupCacheConfiguration<TKey, TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
           ISnapshotStore<TKey, TAggregate> snapshotStore = null,
           ISnapshotStrategy<TKey> snapshotStrategy = null)
         {
 
             var getCatchupEventStoreQueue = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TKey, TAggregate>>((connectionMonitor,loggerFactory) =>
             {
-                var catchupEventStoreCacheConfiguration = new AllStreamsFromStartCatchupCacheConfiguration<TKey, TAggregate>();
+                var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TKey, TAggregate>(Position.Start);
 
                 catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
                 var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey, TAggregate, TActor>();
 
-                var catchupEventStoreCache = new AllStreamsFromStartCatchupCache<TKey, TAggregate>(connectionMonitor,
+                var catchupEventStoreCache = new AllStreamsCatchupCache<TKey, TAggregate>(connectionMonitor,
                     catchupEventStoreCacheConfiguration,
                     eventProvider,
                     loggerFactory,
@@ -109,17 +110,17 @@ namespace Anabasis.EventStore
 
         public StatefulActorBuilder<TActor, TKey, TAggregate> WithReadAllFromEndCache(
           IEventTypeProvider<TKey, TAggregate> eventTypeProvider = null,
-          Action<AllStreamsFromEndCatchupCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null)
+          Action<AllStreamsCatchupCacheConfiguration<TKey, TAggregate>> volatileCacheConfigurationBuilder = null)
         {
             var getSubscribeFromEndEventStoreCache = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TKey, TAggregate>>((connectionMonitor, loggerFactory) =>
             {
-                var subscribeFromEndCacheConfiguration = new AllStreamsFromEndCatchupCacheConfiguration<TKey, TAggregate>();
+                var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TKey, TAggregate>(Position.End);
 
                 volatileCacheConfigurationBuilder?.Invoke(subscribeFromEndCacheConfiguration);
 
                 var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TKey, TAggregate, TActor>();
 
-                var subscribeFromEndEventStoreCache = new AllStreamsFromEndCatchupCache<TKey, TAggregate>(connectionMonitor,
+                var subscribeFromEndEventStoreCache = new AllStreamsCatchupCache<TKey, TAggregate>(connectionMonitor,
                     subscribeFromEndCacheConfiguration,
                     eventProvider, loggerFactory);
 
