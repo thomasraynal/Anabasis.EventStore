@@ -1,5 +1,6 @@
 ﻿using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
+using Anabasis.EventStore.Snapshot.InMemory;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

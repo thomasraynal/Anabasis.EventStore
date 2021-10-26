@@ -1,5 +1,6 @@
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 using NUnit.Framework;

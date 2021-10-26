@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <OutputType>Exe</OutputType>
     <LangVersion>Latest</LangVersion>
     <StartupObject>Anabasis.EventStore.Demo.Program</StartupObject>
@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.EventStore.Demo\Anabasis.EventStore.Demo.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 

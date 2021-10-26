@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Text;
 
-namespace Anabasis.EventStore.Actor
+namespace Anabasis.EventStore.Standalone
 {
-    public class DummyLogger : ILogger
+    internal class DummyLogger : ILogger
     {
         public IDisposable BeginScope<TState>(TState state)
         {
@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Actor
         }
     }
 
-    public class DummyLoggerFactory : ILoggerFactory
+    internal class DummyLoggerFactory : ILoggerFactory
     {
         public void AddProvider(ILoggerProvider provider)
         {

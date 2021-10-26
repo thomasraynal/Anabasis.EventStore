@@ -8,7 +8,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Snapshot
+namespace Anabasis.EventStore.Snapshot.InMemory
 {
   public class InMemorySnapshotStore<TKey, TAggregate> : ISnapshotStore<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
   {

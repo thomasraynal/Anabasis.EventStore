@@ -1,3 +1,4 @@
+using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
@@ -13,7 +14,7 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 
-namespace Anabasis.EventStore.Actor
+namespace Anabasis.EventStore.Standalone
 {
     public class StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
       where TActor : IStatefulActor<TKey, TAggregate>

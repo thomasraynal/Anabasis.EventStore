@@ -2,7 +2,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Anabasis.EventStore.Snapshot
+namespace Anabasis.EventStore.Snapshot.InMemory
 {
     public class AggregateSnapshot
     {

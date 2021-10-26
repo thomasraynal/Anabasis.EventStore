@@ -3,6 +3,7 @@ using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Shared;
+using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;

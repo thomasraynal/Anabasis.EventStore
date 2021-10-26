@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <Platforms>AnyCPU</Platforms>
     <LangVersion>Latest</LangVersion>
   </PropertyGroup>
@@ -43,6 +43,9 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Anabasis.EventStore.Demo.Standalone\Anabasis.EventStore.Demo.Standalone.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.InMemorySnapshotStore\Anabasis.EventStore.Snapshot.InMemory.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 

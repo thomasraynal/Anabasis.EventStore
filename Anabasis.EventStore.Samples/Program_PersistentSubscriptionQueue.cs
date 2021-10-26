@@ -1,4 +1,5 @@
 ﻿using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.Core;

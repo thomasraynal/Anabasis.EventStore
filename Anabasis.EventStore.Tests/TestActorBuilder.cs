@@ -4,6 +4,7 @@ using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Queue;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Shared;
+using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;

@@ -1,12 +1,13 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
-    <LangVersion>Latest</LangVersion>
   </PropertyGroup>
-
+  <ItemGroup>
+    <PackageReference Include="Lamar" Version="6.0.0" />
+  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
-
+  
 </Project>

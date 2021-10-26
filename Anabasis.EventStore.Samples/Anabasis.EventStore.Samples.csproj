@@ -2,11 +2,13 @@
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <StartupObject>Anabasis.EventStore.Samples.Program</StartupObject>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Anabasis.EventStore.InMemorySnapshotStore\Anabasis.EventStore.Snapshot.InMemory.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 
