@@ -1,14 +1,14 @@
-using System;
-using System.Linq;
-using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Aggregation;
 using DynamicData.Binding;
+using System;
+using System.Linq;
+using System.Reactive.Linq;
 
 namespace Anabasis.EventStore.Demo
 {
-  //https://github.com/RolandPheasant/Dynamic.Trader
-  public class CurrencyPairPosition: AbstractNotifyPropertyChanged,  IDisposable, IEquatable<CurrencyPairPosition>
+    //https://github.com/RolandPheasant/Dynamic.Trader
+    public class CurrencyPairPosition : AbstractNotifyPropertyChanged, IDisposable, IEquatable<CurrencyPairPosition>
     {
         private readonly IDisposable _cleanUp;
         private TradesPosition _position;
@@ -21,10 +21,10 @@ namespace Anabasis.EventStore.Demo
                 .ToCollection()
                 .Select(query =>
                 {
-                    var buy = query.Where(trade => trade.BuyOrSell == BuyOrSell.Buy).Sum(trade=>trade.Amount);
+                    var buy = query.Where(trade => trade.BuyOrSell == BuyOrSell.Buy).Sum(trade => trade.Amount);
                     var sell = query.Where(trade => trade.BuyOrSell == BuyOrSell.Sell).Sum(trade => trade.Amount);
                     var count = query.Count;
-                    return new TradesPosition(buy,sell,count);
+                    return new TradesPosition(buy, sell, count);
                 })
                 .Subscribe(position => Position = position);
         }
@@ -32,7 +32,7 @@ namespace Anabasis.EventStore.Demo
         public TradesPosition Position
         {
             get => _position;
-            set => SetAndRaise(ref  _position,value);
+            set => SetAndRaise(ref _position, value);
         }
 
         public string CurrencyPair { get; }
@@ -51,7 +51,7 @@ namespace Anabasis.EventStore.Demo
             if (ReferenceEquals(null, obj)) return false;
             if (ReferenceEquals(this, obj)) return true;
             if (obj.GetType() != this.GetType()) return false;
-            return Equals((CurrencyPairPosition) obj);
+            return Equals((CurrencyPairPosition)obj);
         }
 
         public override int GetHashCode()

@@ -1,10 +1,10 @@
+using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Repository;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Repository;
 
 namespace Anabasis.EventStore.Demo
 {

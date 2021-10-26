@@ -2,10 +2,14 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
+    <OutputType>Exe</OutputType>
     <LangVersion>Latest</LangVersion>
+    <StartupObject>Anabasis.EventStore.Demo.Program</StartupObject>
+    <Platforms>AnyCPU</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Anabasis.EventStore.Demo\Anabasis.EventStore.Demo.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 

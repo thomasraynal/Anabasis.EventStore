@@ -1,3 +1,4 @@
+
 namespace Anabasis.EventStore.Demo
 {
     //https://github.com/RolandPheasant/Dynamic.Trader

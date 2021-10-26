@@ -5,7 +5,7 @@ namespace Anabasis.EventStore.Demo
     public class TradesPosition
     {
         private readonly int _count;
-        
+
         public TradesPosition(decimal buy, decimal sell, int count)
         {
             Buy = buy;
