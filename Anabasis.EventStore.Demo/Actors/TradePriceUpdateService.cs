@@ -1,6 +1,8 @@
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
+using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Reactive.Linq;
@@ -12,6 +14,14 @@ namespace Anabasis.EventStore.Demo
     {
 
         public TradePriceUpdateService(IEventStoreAggregateRepository<long> eventStoreRepository, IEventStoreCache<long, Trade> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
+        {
+        }
+
+        public TradePriceUpdateService(IEventStoreAggregateRepository<long> eventStoreRepository, IEventStoreCache<long, Trade> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
+        {
+        }
+
+        public TradePriceUpdateService(IEventStoreAggregateRepository<long> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
         {
         }
 
