@@ -22,7 +22,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Samples
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Demo", "Anabasis.EventStore.Demo\Anabasis.EventStore.Demo.csproj", "{3DAF5531-5E8C-4CEE-B483-6A0C17E11532}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Snapshot.InMemory", "Anabasis.EventStore.Snapshot.InMemory\Anabasis.EventStore.Snapshot.InMemory.csproj", "{2D88954B-9B00-4974-9A33-EF4324396FC1}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Snapshot.InMemory", "Anabasis.EventStore.InMemorySnapshotStore\Anabasis.EventStore.Snapshot.InMemory.csproj", "{2D88954B-9B00-4974-9A33-EF4324396FC1}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Standalone", "Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj", "{676A86DC-BE16-477E-81D3-04868EA2F766}"
 EndProject

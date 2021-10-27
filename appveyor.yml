@@ -17,9 +17,7 @@ after_test:
 - cmd: appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%\%SOLUTION_NAME%\bin\Release\%SOLUTION_NAME%.%APPVEYOR_BUIL D_VERSION%.nupkg
 test: off
 test_script:
-- ps: IF ($env:SOLUTION_NAME -eq "Anabasis.EventStore.sln") | 
-    {cd $env:APPVEYOR_BUILD_FOLDER
-    dotnet test Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj --configuration Release --no-build --no-restore}
+- ps: IF ($env:SOLUTION_NAME -eq "Anabasis.EventStore.sln") {cd $env:APPVEYOR_BUILD_FOLDER ; dotnet test Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj --configuration Release --no-build --no-restore}
 # test:
 #   assemblies:
 #     only:
