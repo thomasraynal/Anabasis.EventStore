@@ -1,7 +1,7 @@
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -21,11 +21,11 @@ namespace Anabasis.EventStore.Standalone
         private EventStoreRepository EventStoreRepository { get; set; }
         private ILoggerFactory LoggerFactory { get;  set; }
         private ConnectionStatusMonitor ConnectionMonitor { get; set; }
-        private readonly List<IEventStoreQueue> _queuesToRegisterTo;
+        private readonly List<IEventStoreStream> _streamsToRegisterTo;
 
         private StatelessActorBuilder()
         {
-            _queuesToRegisterTo = new List<IEventStoreQueue>();
+            _streamsToRegisterTo = new List<IEventStoreStream>();
         }
 
         public TActor Build()
@@ -40,9 +40,9 @@ namespace Anabasis.EventStore.Standalone
 
             var actor = container.GetInstance<TActor>();
 
-            foreach (var queue in _queuesToRegisterTo)
+            foreach (var stream in _streamsToRegisterTo)
             {
-                actor.SubscribeTo(queue, closeSubscriptionOnDispose: true);
+                actor.SubscribeTo(stream, closeSubscriptionOnDispose: true);
             }
 
             return actor;
@@ -108,53 +108,53 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToAllQueue(IEventTypeProvider eventTypeProvider = null)
+        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToAllStream(IEventTypeProvider eventTypeProvider = null)
         {
-            var subscribeFromEndEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration();
+            var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
 
             var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 
-            var subscribeFromEndEventStoreQueue = new SubscribeFromEndEventStoreQueue(
+            var subscribeFromEndEventStoreStream = new SubscribeFromEndEventStoreStream(
               ConnectionMonitor,
-              subscribeFromEndEventStoreQueueConfiguration,
+              subscribeFromEndEventStoreStreamConfiguration,
               eventProvider,
               LoggerFactory);
 
-            _queuesToRegisterTo.Add(subscribeFromEndEventStoreQueue);
+            _streamsToRegisterTo.Add(subscribeFromEndEventStoreStream);
 
             return this;
         }
 
-        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToOneStreamQueue(string streamId,  IEventTypeProvider eventTypeProvider = null)
+        public StatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToOneStreamStream(string streamId,  IEventTypeProvider eventTypeProvider = null)
         {
-            var subscribeFromEndToOneStreamEventStoreQueueConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreQueueConfiguration(streamId);
+            var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
 
             var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
 
-            var subscribeFromEndToOneStreamEventStoreQueue = new SubscribeFromEndToOneStreamEventStoreQueue(
+            var subscribeFromEndToOneStreamEventStoreStream = new SubscribeFromEndToOneStreamEventStoreStream(
               ConnectionMonitor,
-              subscribeFromEndToOneStreamEventStoreQueueConfiguration,
+              subscribeFromEndToOneStreamEventStoreStreamConfiguration,
               eventProvider,
               LoggerFactory);
 
-            _queuesToRegisterTo.Add(subscribeFromEndToOneStreamEventStoreQueue);
+            _streamsToRegisterTo.Add(subscribeFromEndToOneStreamEventStoreStream);
 
             return this;
         }
 
-        public StatelessActorBuilder<TActor, TRegistry> WithPersistentSubscriptionQueue(string streamId, string groupId)
+        public StatelessActorBuilder<TActor, TRegistry> WithPersistentSubscriptionStream(string streamId, string groupId)
         {
-            var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId);
+            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
 
             var eventProvider = new ConsumerBasedEventProvider<TActor>();
 
-            var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
+            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
               ConnectionMonitor,
-              persistentEventStoreQueueConfiguration,
+              persistentEventStoreStreamConfiguration,
               eventProvider,
               LoggerFactory);
 
-            _queuesToRegisterTo.Add(persistentSubscriptionEventStoreQueue);
+            _streamsToRegisterTo.Add(persistentSubscriptionEventStoreStream);
 
             return this;
         }

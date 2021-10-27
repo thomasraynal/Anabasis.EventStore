@@ -2,11 +2,11 @@ using Anabasis.EventStore.Serialization;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 
-namespace Anabasis.EventStore.Queue
+namespace Anabasis.EventStore.Stream
 {
-  public class PersistentSubscriptionEventStoreQueueConfiguration : IEventStoreQueueConfiguration
+  public class PersistentSubscriptionEventStoreStreamConfiguration : IEventStoreStreamConfiguration
   {
-    public PersistentSubscriptionEventStoreQueueConfiguration(string streamId, string groupId, UserCredentials userCredentials = null)
+    public PersistentSubscriptionEventStoreStreamConfiguration(string streamId, string groupId, UserCredentials userCredentials = null)
     {
       StreamId = streamId;
       GroupId = groupId;

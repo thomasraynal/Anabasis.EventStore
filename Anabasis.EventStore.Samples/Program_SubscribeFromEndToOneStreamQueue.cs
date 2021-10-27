@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Samples
 {
-    public class Program_SubscribeFromEndToOneStreamQueue
+    public class Program_SubscribeFromEndToOneStreamStream
     {
 
         public static void Run()
@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Samples
       
             var eventCountActor = StatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
                                        .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings())
-                                       .WithSubscribeFromEndToOneStreamQueue(streamId: StaticData.EntityOne)
+                                       .WithSubscribeFromEndToOneStreamStream(streamId: StaticData.EntityOne)
                                        .Build();
 
             Do.Run(eventCountActor);

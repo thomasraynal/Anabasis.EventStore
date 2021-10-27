@@ -19,14 +19,14 @@ namespace Anabasis.EventStore
 
         public static IApplicationBuilder UseWorld(this IApplicationBuilder applicationBuilder)
         {
-            var registerQueues = new Action<IConnectionStatusMonitor, IStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
+            var registerStreams = new Action<IConnectionStatusMonitor, IStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
              {
                  var actor = (IStatelessActor)applicationBuilder.ApplicationServices.GetService(actorType);
                  var loggerFactory = applicationBuilder.ApplicationServices.GetService<ILoggerFactory>();
 
-                 foreach (var getQueue in builder.GetQueueFactories())
+                 foreach (var getStream in builder.GetStreamFactories())
                  {
-                     actor.SubscribeTo(getQueue(connectionStatusMonitor, loggerFactory), closeSubscriptionOnDispose: true);
+                     actor.SubscribeTo(getStream(connectionStatusMonitor, loggerFactory), closeSubscriptionOnDispose: true);
                  } 
 
              });
@@ -35,12 +35,12 @@ namespace Anabasis.EventStore
 
             foreach (var (actorType, builder) in _world.StatelessActorBuilders)
             {
-                registerQueues(connectionStatusMonitor, builder, actorType);
+                registerStreams(connectionStatusMonitor, builder, actorType);
             }
 
             foreach (var (actorType, builder) in _world.StatefulActorBuilders)
             {
-                registerQueues(connectionStatusMonitor, builder, actorType);
+                registerStreams(connectionStatusMonitor, builder, actorType);
             }
 
             return applicationBuilder;

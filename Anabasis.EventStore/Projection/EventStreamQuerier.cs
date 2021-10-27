@@ -74,7 +74,7 @@
 //        var subscription = connection.SubscribeToStreamFrom(
 //            resultStreamName,
 //            StreamCheckpoint.StreamStart,
-//            new CatchUpSubscriptionSettings(maxLiveQueueSize: CatchUpSubscriptionSettings.Default.MaxLiveQueueSize, readBatchSize: CatchUpSubscriptionSettings.Default.ReadBatchSize, verboseLogging: CatchUpSubscriptionSettings.Default.VerboseLogging, resolveLinkTos: false),
+//            new CatchUpSubscriptionSettings(maxLiveStreamSize: CatchUpSubscriptionSettings.Default.MaxLiveStreamSize, readBatchSize: CatchUpSubscriptionSettings.Default.ReadBatchSize, verboseLogging: CatchUpSubscriptionSettings.Default.VerboseLogging, resolveLinkTos: false),
 //            (sub, ev) =>
 //            {
 //              if (ev.Event.EventType == GesHelper.EofEventType) { finished = true; return; }

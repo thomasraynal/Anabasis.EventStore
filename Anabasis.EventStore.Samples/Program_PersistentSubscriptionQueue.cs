@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Samples
 {
-    public class Program_PersistentSubscriptionQueue
+    public class Program_PersistentSubscriptionStream
     {
 
         private static async Task CreateSubscriptionGroups(ClusterVNode clusterVNode)
@@ -48,12 +48,12 @@ namespace Anabasis.EventStore.Samples
 
             var eventCountActorOne = StatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
                                        .Create(clusterVNode, Do.GetConnectionSettings())
-                                       .WithPersistentSubscriptionQueue(streamId: StaticData.PersistentStreamOne,StaticData.GroupIdOne)
+                                       .WithPersistentSubscriptionStream(streamId: StaticData.PersistentStreamOne,StaticData.GroupIdOne)
                                        .Build();
 
             var eventCountActorTwo = StatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
                            .Create(clusterVNode, Do.GetConnectionSettings())
-                           .WithPersistentSubscriptionQueue(streamId: StaticData.PersistentStreamOne, StaticData.GroupIdOne)
+                           .WithPersistentSubscriptionStream(streamId: StaticData.PersistentStreamOne, StaticData.GroupIdOne)
                            .Build();
 
             var position = 0;

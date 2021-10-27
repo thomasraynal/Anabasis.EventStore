@@ -3,41 +3,41 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Queue
+namespace Anabasis.EventStore.Stream
 {
-    public abstract class DispatchQueue<TMessage> : IDisposable, IDispatchQueue<TMessage>
+    public abstract class DispatchStream<TMessage> : IDisposable, IDispatchStream<TMessage>
     {
 
         private readonly CancellationTokenSource _cancellationTokenSource;
-        private readonly BlockingCollection<TMessage> _workQueue;
+        private readonly BlockingCollection<TMessage> _workStream;
         private readonly Task _workProc;
 
-        protected DispatchQueue()
+        protected DispatchStream()
         {
-            _workQueue = new BlockingCollection<TMessage>();
+            _workStream = new BlockingCollection<TMessage>();
             _workProc = Task.Run(HandleWork, CancellationToken.None);
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
         protected abstract Task OnMessageReceived(TMessage message);
 
-        public void Enqueue(TMessage message)
+        public void Enstream(TMessage message)
         {
-            _workQueue.Add(message);
+            _workStream.Add(message);
         }
 
         private void HandleWork()
         {
-            foreach (var message in _workQueue.GetConsumingEnumerable(_cancellationTokenSource.Token))
+            foreach (var message in _workStream.GetConsumingEnumerable(_cancellationTokenSource.Token))
             {
                 OnMessageReceived(message).Wait();
             }
         }
         private void WaitUntilIsEmpty()
         {
-            _workQueue.CompleteAdding();
+            _workStream.CompleteAdding();
 
-            while (_workQueue.Count > 0)
+            while (_workStream.Count > 0)
             {
                 Thread.Sleep(1);
             }

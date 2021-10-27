@@ -7,22 +7,22 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Queue
+namespace Anabasis.EventStore.Stream
 {
-    public class PersistentSubscriptionEventStoreQueue : BaseEventStoreQueue
+    public class PersistentSubscriptionEventStoreStream : BaseEventStoreStream
     {
-        private readonly PersistentSubscriptionEventStoreQueueConfiguration _persistentEventStoreQueueConfiguration;
+        private readonly PersistentSubscriptionEventStoreStreamConfiguration _persistentEventStoreStreamConfiguration;
         private EventStorePersistentSubscriptionBase _eventStorePersistentSubscription;
 
-        public PersistentSubscriptionEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
-          PersistentSubscriptionEventStoreQueueConfiguration persistentEventStoreQueueConfiguration,
+        public PersistentSubscriptionEventStoreStream(IConnectionStatusMonitor connectionMonitor,
+          PersistentSubscriptionEventStoreStreamConfiguration persistentEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
           ILoggerFactory loggerFactory) : base(connectionMonitor, 
-              persistentEventStoreQueueConfiguration, 
+              persistentEventStoreStreamConfiguration, 
               eventTypeProvider, 
-              loggerFactory.CreateLogger<PersistentSubscriptionEventStoreQueue>())
+              loggerFactory.CreateLogger<PersistentSubscriptionEventStoreStream>())
         {
-            _persistentEventStoreQueueConfiguration = persistentEventStoreQueueConfiguration;
+            _persistentEventStoreStreamConfiguration = persistentEventStoreStreamConfiguration;
         }
 
         public void Acknowledge(ResolvedEvent resolvedEvent)
@@ -81,16 +81,16 @@ namespace Anabasis.EventStore.Queue
                     }
                 }
 
-                Logger?.LogInformation($"{Id} => ConnectToEventStream - ConnectToPersistentSubscriptionAsync - StreamId: {_persistentEventStoreQueueConfiguration.StreamId} - GroupId: {_persistentEventStoreQueueConfiguration.GroupId}");
+                Logger?.LogInformation($"{Id} => ConnectToEventStream - ConnectToPersistentSubscriptionAsync - StreamId: {_persistentEventStoreStreamConfiguration.StreamId} - GroupId: {_persistentEventStoreStreamConfiguration.GroupId}");
 
                 _eventStorePersistentSubscription = await connection.ConnectToPersistentSubscriptionAsync(
-                 _persistentEventStoreQueueConfiguration.StreamId,
-                 _persistentEventStoreQueueConfiguration.GroupId,
+                 _persistentEventStoreStreamConfiguration.StreamId,
+                 _persistentEventStoreStreamConfiguration.GroupId,
                  eventAppeared: onEvent,
                  subscriptionDropped: onSubscriptionDropped,
-                 userCredentials: _persistentEventStoreQueueConfiguration.UserCredentials,
-                 _persistentEventStoreQueueConfiguration.BufferSize,
-                 _persistentEventStoreQueueConfiguration.AutoAck);
+                 userCredentials: _persistentEventStoreStreamConfiguration.UserCredentials,
+                 _persistentEventStoreStreamConfiguration.BufferSize,
+                 _persistentEventStoreStreamConfiguration.AutoAck);
 
                 return Disposable.Create(() =>
                   {

@@ -1,6 +1,6 @@
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Tests.Components;
 using EventStore.ClientAPI;
@@ -16,15 +16,15 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Tests
 {
     [TestFixture]
-    public class TestPersistentQueue
+    public class TestPersistentStream
     {
         private UserCredentials _userCredentials;
         private ConnectionSettings _connectionSettings;
         private LoggerFactory _loggerFactory;
         private ClusterVNode _clusterVNode;
-        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreQueue persistentEventStoreQueue) _queueOne;
+        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamOne;
         private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) _repositoryOne;
-        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreQueue persistentEventStoreQueue) _queueTwo;
+        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamTwo;
 
         private Guid _correlationId = Guid.NewGuid();
         private readonly string _streamId = "streamId";
@@ -80,23 +80,23 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreQueue persistentEventStoreQueue) CreatePersistentEventStoreQueue(string streamId, string groupId)
+        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) CreatePersistentEventStoreStream(string streamId, string groupId)
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId, _userCredentials);
+            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId, _userCredentials);
 
-            var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
+            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
               connectionMonitor,
-              persistentEventStoreQueueConfiguration,
+              persistentEventStoreStreamConfiguration,
               new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }),
               _loggerFactory);
 
-            persistentSubscriptionEventStoreQueue.Connect();
+            persistentSubscriptionEventStoreStream.Connect();
 
-            return (connectionMonitor, persistentSubscriptionEventStoreQueue);
+            return (connectionMonitor, persistentSubscriptionEventStoreStream);
 
         }
 
@@ -120,14 +120,14 @@ namespace Anabasis.EventStore.Tests
 
 
         [Test, Order(0)]
-        public async Task ShouldCreateAndRunAVolatileEventStoreQueue()
+        public async Task ShouldCreateAndRunAVolatileEventStoreStream()
         {
 
-            _queueOne = CreatePersistentEventStoreQueue(_streamId, _groupIdOne);
+            _streamOne = CreatePersistentEventStoreStream(_streamId, _groupIdOne);
 
             await Task.Delay(100);
 
-            Assert.IsTrue(_queueOne.persistentEventStoreQueue.IsConnected);
+            Assert.IsTrue(_streamOne.persistentEventStoreStream.IsConnected);
 
         }
 
@@ -137,7 +137,7 @@ namespace Anabasis.EventStore.Tests
 
             var eventCount = 0;
 
-            _queueOne.persistentEventStoreQueue.OnEvent().Subscribe((@event) =>
+            _streamOne.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
             {
                 eventCount++;
             });
@@ -158,9 +158,9 @@ namespace Anabasis.EventStore.Tests
 
             var eventCount = 0;
 
-            _queueOne.connectionStatusMonitor.ForceConnectionStatus(false);
+            _streamOne.connectionStatusMonitor.ForceConnectionStatus(false);
 
-            _queueOne.persistentEventStoreQueue.OnEvent().Subscribe((@event) =>
+            _streamOne.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
             {
                 eventCount++;
             });
@@ -171,7 +171,7 @@ namespace Anabasis.EventStore.Tests
 
             Assert.AreEqual(0, eventCount);
 
-            _queueOne.connectionStatusMonitor.ForceConnectionStatus(true);
+            _streamOne.connectionStatusMonitor.ForceConnectionStatus(true);
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
@@ -187,14 +187,14 @@ namespace Anabasis.EventStore.Tests
             var eventCountOne = 0;
             var eventCountTwo = 0;
 
-            _queueOne.persistentEventStoreQueue.OnEvent().Subscribe((@event) =>
+            _streamOne.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
             {
                 eventCountOne++;
             });
 
-            _queueTwo = CreatePersistentEventStoreQueue(_streamId, _groupIdTwo);
+            _streamTwo = CreatePersistentEventStoreStream(_streamId, _groupIdTwo);
 
-            _queueTwo.persistentEventStoreQueue.OnEvent().Subscribe((@event) =>
+            _streamTwo.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
             {
                 eventCountTwo++;
             });

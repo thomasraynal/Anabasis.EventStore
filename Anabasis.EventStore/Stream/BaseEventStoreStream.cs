@@ -8,11 +8,11 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using ILogger = Microsoft.Extensions.Logging.ILogger;
 
-namespace Anabasis.EventStore.Queue
+namespace Anabasis.EventStore.Stream
 {
-    public abstract class BaseEventStoreQueue : IEventStoreQueue
+    public abstract class BaseEventStoreStream : IEventStoreStream
     {
-        protected readonly IEventStoreQueueConfiguration _eventStoreQueueConfiguration;
+        protected readonly IEventStoreStreamConfiguration _eventStoreStreamConfiguration;
         protected readonly IEventTypeProvider _eventTypeProvider;
         private readonly IConnectionStatusMonitor _connectionMonitor;
 
@@ -27,8 +27,8 @@ namespace Anabasis.EventStore.Queue
         protected ILogger Logger { get; }
         public bool IsWiredUp { get; private set; }
 
-        public BaseEventStoreQueue(IConnectionStatusMonitor connectionMonitor,
-          IEventStoreQueueConfiguration cacheConfiguration,
+        public BaseEventStoreStream(IConnectionStatusMonitor connectionMonitor,
+          IEventStoreStreamConfiguration cacheConfiguration,
           IEventTypeProvider eventTypeProvider,
           ILogger logger = null)
         {
@@ -37,7 +37,7 @@ namespace Anabasis.EventStore.Queue
 
             Id = $"{GetType()}-{Guid.NewGuid()}";
 
-            _eventStoreQueueConfiguration = cacheConfiguration;
+            _eventStoreStreamConfiguration = cacheConfiguration;
             _eventTypeProvider = eventTypeProvider;
             _connectionMonitor = connectionMonitor;
             IsWiredUp = false;
@@ -76,7 +76,7 @@ namespace Anabasis.EventStore.Queue
 
                             if (null == eventType)
                             {
-                                if (_eventStoreQueueConfiguration.IgnoreUnknownEvent) return;
+                                if (_eventStoreStreamConfiguration.IgnoreUnknownEvent) return;
 
                                 throw new InvalidOperationException($"Event {recordedEvent.EventType} is not registered");
                             }
@@ -104,7 +104,7 @@ namespace Anabasis.EventStore.Queue
         {
             var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
-            return _eventStoreQueueConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
+            return _eventStoreStreamConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
         }
 
         protected abstract IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection);

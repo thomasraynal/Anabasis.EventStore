@@ -3,26 +3,27 @@ using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Queue
+namespace Anabasis.EventStore.Stream
 {
-    public class SubscribeFromEndEventStoreQueue : BaseEventStoreQueue
+    public abstract class BaseSubscribeToOneStreamEventStoreStream : BaseEventStoreStream
     {
-        private readonly SubscribeFromEndEventStoreQueueConfiguration _volatileEventStoreQueueConfiguration;
-        private EventStoreAllFilteredCatchUpSubscription _subscription;
+        private readonly SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration _volatileSubscribeToOneStreamEventStoreStreamConfiguration;
+        private readonly int _streamPosition;
 
-        public SubscribeFromEndEventStoreQueue(
+        public BaseSubscribeToOneStreamEventStoreStream(
+          int streamPosition,
           IConnectionStatusMonitor connectionMonitor,
-          SubscribeFromEndEventStoreQueueConfiguration volatileEventStoreQueueConfiguration,
+          SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration subscribeToOneStreamEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILoggerFactory loggerFactory)
-          : base(connectionMonitor, volatileEventStoreQueueConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndEventStoreQueue>())
+          Microsoft.Extensions.Logging.ILogger logger = null)
+          : base(connectionMonitor, subscribeToOneStreamEventStoreStreamConfiguration, eventTypeProvider, logger)
         {
-            _volatileEventStoreQueueConfiguration = volatileEventStoreQueueConfiguration;
+            _volatileSubscribeToOneStreamEventStoreStreamConfiguration = subscribeToOneStreamEventStoreStreamConfiguration;
+            _streamPosition = streamPosition;
         }
 
         protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
@@ -46,7 +47,7 @@ namespace Anabasis.EventStore.Queue
                     {
                         case SubscriptionDropReason.UserInitiated:
                         case SubscriptionDropReason.ConnectionClosed:
-                            Logger?.LogDebug(exception, $"{Id} => SubscriptionDropReason - reason : {subscriptionDropReason}");
+                            Logger?.LogDebug(exception,$"{Id} => SubscriptionDropReason - reason : {subscriptionDropReason}");
                             break;
                         case SubscriptionDropReason.NotAuthenticated:
                         case SubscriptionDropReason.AccessDenied:
@@ -72,27 +73,21 @@ namespace Anabasis.EventStore.Queue
                 {
                 }
 
-                var eventTypeFilter = _eventTypeProvider.GetAll().Select(type => type.FullName).ToArray();
+                Logger?.LogInformation($"{Id} => ConnectToEventStream - SubscribeToStreamFrom - StreamId: {_volatileSubscribeToOneStreamEventStoreStreamConfiguration.StreamId} - StreamPosition: {_streamPosition}");
 
-                var filter = Filter.EventType.Prefix(eventTypeFilter);
-
-                var position = Position.End;
-
-                Logger?.LogInformation($"{Id} => ConnectToEventStream - FilteredSubscribeToAllFrom - Position: {position} Filters: [{string.Join("|", eventTypeFilter)}]");
-
-                _subscription = connection.FilteredSubscribeToAllFrom(
-                    position,
-                    filter,
-                    _volatileEventStoreQueueConfiguration.CatchUpSubscriptionFilteredSettings,
-                    eventAppeared: onEvent,
-                    liveProcessingStarted: onCaughtUp,
-                    subscriptionDropped: onSubscriptionDropped,
-                    userCredentials: _volatileEventStoreQueueConfiguration.UserCredentials);
+                var subscription = connection.SubscribeToStreamFrom(
+                  _volatileSubscribeToOneStreamEventStoreStreamConfiguration.StreamId,
+                  _streamPosition,
+                  _volatileSubscribeToOneStreamEventStoreStreamConfiguration.CatchUpSubscriptionFilteredSettings,
+                  eventAppeared: onEvent,
+                  liveProcessingStarted: onCaughtUp,
+                  subscriptionDropped: onSubscriptionDropped,
+                  userCredentials: _volatileSubscribeToOneStreamEventStoreStreamConfiguration.UserCredentials);
 
                 return Disposable.Create(() =>
-                {
-                    _subscription.Stop();
-                });
+                  {
+                      subscription.Stop();
+                  });
 
             });
         }
