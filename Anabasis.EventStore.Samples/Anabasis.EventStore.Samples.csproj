@@ -6,8 +6,9 @@
     <StartupObject>Anabasis.EventStore.Samples.Program</StartupObject>
   </PropertyGroup>
 
+
   <ItemGroup>
-    <ProjectReference Include="..\Anabasis.EventStore.InMemorySnapshotStore\Anabasis.EventStore.Snapshot.InMemory.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.Snapshot.InMemory\Anabasis.EventStore.Snapshot.InMemory.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
