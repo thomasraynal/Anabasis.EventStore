@@ -5,11 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Queue
+namespace Anabasis.EventStore.Stream
 {
-  public class SubscribeFromEndEventStoreQueueConfiguration : IEventStoreQueueConfiguration
+  public class SubscribeFromEndEventStoreStreamConfiguration : IEventStoreStreamConfiguration
   {
-    public SubscribeFromEndEventStoreQueueConfiguration (UserCredentials userCredentials = null)
+    public SubscribeFromEndEventStoreStreamConfiguration (UserCredentials userCredentials = null)
     {
       UserCredentials = userCredentials;
     }

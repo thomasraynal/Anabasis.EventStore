@@ -2,7 +2,7 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Event;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Tests.Components;
 using EventStore.ClientAPI;
@@ -85,9 +85,9 @@ namespace Anabasis.EventStore.Tests
         private ClusterVNode _clusterVNode;
         private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreRepository eventStoreRepository) _eventRepository;
         private TestActor _testActorOne;
-        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreQueue persistentEventStoreQueue) _queueOne;
+        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamOne;
         private TestActor _testActorTwo;
-        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreQueue persistentEventStoreQueue) _queueTwo;
+        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamTwo;
 
         private Guid _correlationId = Guid.NewGuid();
         private readonly string _streamId = "streamId";
@@ -145,21 +145,21 @@ namespace Anabasis.EventStore.Tests
                  _userCredentials);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreQueue volatileEventStoreQueue) CreateVolatileEventStoreQueue()
+        private (ConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreStream volatileEventStoreStream) CreateVolatileEventStoreStream()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration(_userCredentials);
+            var volatileEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration(_userCredentials);
 
-            var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
+            var volatileEventStoreStream = new SubscribeFromEndEventStoreStream(
               connectionMonitor,
-              volatileEventStoreQueueConfiguration,
+              volatileEventStoreStreamConfiguration,
               new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent), typeof(SomeCommandResponse), typeof(SomeCommand) }),
               _loggerFactory);
 
-            return (connectionMonitor, volatileEventStoreQueue);
+            return (connectionMonitor, volatileEventStoreStream);
 
         }
 
@@ -178,21 +178,21 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreQueue persistentEventStoreQueue) CreatePersistentEventStoreQueue(string streamId, string groupId)
+        private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) CreatePersistentEventStoreStream(string streamId, string groupId)
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(streamId, groupId, _userCredentials);
+            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId, _userCredentials);
 
-            var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
+            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
               connectionMonitor,
-              persistentEventStoreQueueConfiguration,
+              persistentEventStoreStreamConfiguration,
               new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }),
               _loggerFactory);
 
-            return (connectionMonitor, persistentSubscriptionEventStoreQueue);
+            return (connectionMonitor, persistentSubscriptionEventStoreStream);
 
         }
 
@@ -210,7 +210,7 @@ namespace Anabasis.EventStore.Tests
         }
 
         [Test, Order(1)]
-        public async Task ShouldCreateAQueueAndBindItToTheActor()
+        public async Task ShouldCreateAStreamAndBindItToTheActor()
         {
             _eventRepository = CreateEventRepository();
 
@@ -220,9 +220,9 @@ namespace Anabasis.EventStore.Tests
 
             Assert.NotNull(_testActorOne);
 
-            _queueOne = CreatePersistentEventStoreQueue(_streamId, _groupIdOne);
+            _streamOne = CreatePersistentEventStoreStream(_streamId, _groupIdOne);
 
-            _testActorOne.SubscribeTo(_queueOne.persistentEventStoreQueue);
+            _testActorOne.SubscribeTo(_streamOne.persistentEventStoreStream);
 
             await _testActorOne.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
@@ -240,9 +240,9 @@ namespace Anabasis.EventStore.Tests
 
             Assert.NotNull(_testActorOne);
 
-            _queueTwo = CreatePersistentEventStoreQueue(_streamId, _groupIdOne);
+            _streamTwo = CreatePersistentEventStoreStream(_streamId, _groupIdOne);
 
-            _testActorTwo.SubscribeTo(_queueTwo.persistentEventStoreQueue);
+            _testActorTwo.SubscribeTo(_streamTwo.persistentEventStoreStream);
 
             var events = Enumerable.Range(0, 10).Select(_ => new SomeRandomEvent(_correlationId, _streamId)).ToArray();
 
@@ -265,13 +265,13 @@ namespace Anabasis.EventStore.Tests
         [Test, Order(3)]
         public async Task ShouldSendACommand()
         {
-            var (_, volatileEventStoreQueue) = CreateVolatileEventStoreQueue();
+            var (_, volatileEventStoreStream) = CreateVolatileEventStoreStream();
 
             var sender = new TestActor(_eventRepository.eventStoreRepository, _loggerFactory);
-            sender.SubscribeTo(volatileEventStoreQueue);
+            sender.SubscribeTo(volatileEventStoreStream);
 
             var receiver = new TestActorReceiver(_eventRepository.eventStoreRepository, _loggerFactory);
-            receiver.SubscribeTo(volatileEventStoreQueue);
+            receiver.SubscribeTo(volatileEventStoreStream);
 
             var someCommandResponse = await sender.Send<SomeCommandResponse>(new SomeCommand(Guid.NewGuid(), "some-stream"), TimeSpan.FromSeconds(3));
 

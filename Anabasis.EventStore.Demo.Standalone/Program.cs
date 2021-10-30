@@ -27,13 +27,13 @@ namespace Anabasis.EventStore.Demo
 
                 var tradeService = StatelessActorBuilder<TradeService, DemoSystemRegistry>
                                                 .Create(StaticData.ClusterVNode, connectionSettings)
-                                                .WithSubscribeFromEndToAllQueue()
+                                                .WithSubscribeFromEndToAllStream()
                                                 .Build();
 
                 var tradePriceUpdateService = StatefulActorBuilder<TradePriceUpdateService, long, Trade, DemoSystemRegistry>
                                                 .Create(StaticData.ClusterVNode, connectionSettings)
                                                 .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                                .WithSubscribeFromEndToAllQueue()
+                                                .WithSubscribeFromEndToAllStream()
                                                 .Build();
 
                 var tradeSink = StatefulActorBuilder<TradeSink, long, Trade, DemoSystemRegistry>

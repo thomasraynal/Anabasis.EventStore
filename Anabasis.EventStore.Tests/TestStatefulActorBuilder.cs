@@ -155,8 +155,8 @@ namespace Anabasis.EventStore.Tests
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }))
-                                                                                         .WithSubscribeFromEndToAllQueue()
-                                                                                         .WithPersistentSubscriptionQueue(_streamId2, _groupIdOne)
+                                                                                         .WithSubscribeFromEndToAllStream()
+                                                                                         .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
                                                                                          .Build();
 
             var testActorAutoBuildTwo = StatefulActorBuilder<TestAggregatedActorTwo, Guid, SomeDataAggregate<Guid>, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)

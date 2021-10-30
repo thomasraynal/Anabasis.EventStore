@@ -141,18 +141,18 @@ namespace Anabasis.EventStore.Tests
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
-                    .WithSubscribeFromEndToAllQueue()
+                    .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
                    .AddStatefulActor<TestStatefulActorTwoMvc, Guid, SomeDataAggregate<Guid>>()
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
-                    .WithSubscribeFromEndToAllQueue()
+                    .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
                    .AddStatelessActor<TestStatelessActorOneMvc>()
-                    .WithSubscribeFromEndToAllQueue()
+                    .WithSubscribeFromEndToAllStreams()
                     .CreateActor();
         }
 

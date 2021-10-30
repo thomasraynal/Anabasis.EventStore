@@ -3,21 +3,33 @@ image: Visual Studio 2019
 configuration: Release
 environment:
   matrix:
-  - SOLUTION_NAME: Anabasis.EventStore.sln
-  - SOLUTION_NAME: Anabasis.EventStore.Standalone.sln
-  - SOLUTION_NAME: Anabasis.EventStore.Snapshot.InMemory.sln
+  - SOLUTION_NAME: Anabasis.EventStore
+  - SOLUTION_NAME: Anabasis.EventStore.Standalone
+  - SOLUTION_NAME: Anabasis.EventStore.Snapshot.InMemory
 branches:
   only:
     - master
 nuget:
   disable_publish_on_pr: true
 build_script:
-- cmd: dotnet msbuild /restore  /p:Configuration=Release /p:version=%APPVEYOR_BUILD_VERSION% -verbosity:minimal %SOLUTION_NAME%
+- cmd: dotnet msbuild /restore  /p:Configuration=Release /p:version=%APPVEYOR_BUILD_VERSION% -verbosity:minimal %SOLUTION_NAME%.sln
 after_test:
-- cmd: appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%\%SOLUTION_NAME%\bin\Release\%SOLUTION_NAME%.%APPVEYOR_BUIL D_VERSION%.nupkg
+- cmd: appveyor PushArtifact %APPVEYOR_BUILD_FOLDER%\%SOLUTION_NAME%\bin\Release\%SOLUTION_NAME%.%APPVEYOR_BUILD_VERSION%.nupkg
 test: off
 test_script:
-- ps: IF ($env:SOLUTION_NAME -eq "Anabasis.EventStore.sln") {cd $env:APPVEYOR_BUILD_FOLDER ; dotnet test Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj --configuration Release --no-build --no-restore}
+- cmd: |
+   cd %APPVEYOR_BUILD_FOLDER%
+   dotnet test Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj --configuration Release --no-build --no-restore
+# test_script:
+# - ps: |
+#       if ($env:SOLUTION_NAME -eq "Anabasis.EventStore")
+#       {
+#         cd $env:APPVEYOR_BUILD_FOLDER ; dotnet test Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj --configuration Release --no-build --no-restore
+#       }
+  
+  
+  
+# IF ($env:SOLUTION_NAME -eq "Anabasis.EventStore") {cd $env:APPVEYOR_BUILD_FOLDER ; dotnet test Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj --configuration Release --no-build --no-restore}
 # test:
 #   assemblies:
 #     only:

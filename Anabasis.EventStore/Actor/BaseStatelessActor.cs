@@ -1,5 +1,5 @@
 using Anabasis.EventStore.Event;
-using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.Logging;
@@ -17,7 +17,7 @@ namespace Anabasis.EventStore.Actor
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
         private readonly IEventStoreRepository _eventStoreRepository;
-        private readonly List<IEventStoreQueue> _eventStoreQueues;
+        private readonly List<IEventStoreStream> _eventStoreStreams;
         
         public ILogger Logger { get; }
 
@@ -29,7 +29,7 @@ namespace Anabasis.EventStore.Actor
             _eventStoreRepository = eventStoreRepository;
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
-            _eventStoreQueues = new List<IEventStoreQueue>();
+            _eventStoreStreams = new List<IEventStoreStream>();
             Logger = loggerFactory?.CreateLogger(GetType());
 
         }
@@ -37,21 +37,21 @@ namespace Anabasis.EventStore.Actor
         public string Id { get; }
 
         public bool IsConnected => _eventStoreRepository.IsConnected;
-        public IEventStoreQueue[] Queues => _eventStoreQueues.ToArray();
+        public IEventStoreStream[] Streams => _eventStoreStreams.ToArray();
 
-        public void SubscribeTo(IEventStoreQueue eventStoreQueue, bool closeSubscriptionOnDispose = false)
+        public void SubscribeTo(IEventStoreStream eventStoreStream, bool closeSubscriptionOnDispose = false)
         {
-            eventStoreQueue.Connect();
+            eventStoreStream.Connect();
 
-            Logger?.LogDebug($"{Id} => Subscribing to {eventStoreQueue.Id}");
+            Logger?.LogDebug($"{Id} => Subscribing to {eventStoreStream.Id}");
 
-            _eventStoreQueues.Add(eventStoreQueue);
+            _eventStoreStreams.Add(eventStoreStream);
 
-            var disposable = eventStoreQueue.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
+            var disposable = eventStoreStream.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
 
             if (closeSubscriptionOnDispose)
             {
-                _cleanUp.Add(eventStoreQueue);
+                _cleanUp.Add(eventStoreStream);
             }
 
             _cleanUp.Add(disposable);

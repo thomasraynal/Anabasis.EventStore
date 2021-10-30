@@ -1,9 +1,9 @@
 using Anabasis.EventStore.Serialization;
 using EventStore.ClientAPI.SystemData;
 
-namespace Anabasis.EventStore.Queue
+namespace Anabasis.EventStore.Stream
 {
-  public interface IEventStoreQueueConfiguration
+  public interface IEventStoreStreamConfiguration
   {
     UserCredentials UserCredentials { get; }
     ISerializer Serializer { get; }

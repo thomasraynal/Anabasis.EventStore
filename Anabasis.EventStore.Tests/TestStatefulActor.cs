@@ -2,7 +2,7 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Tests.Components;
 using DynamicData;
@@ -144,14 +144,14 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            var subscribeToAllQueue = new SubscribeFromEndEventStoreQueue(_cacheOne.connectionStatusMonitor,
-                new SubscribeFromEndEventStoreQueueConfiguration(),
+            var subscribeToAllStream = new SubscribeFromEndEventStoreStream(_cacheOne.connectionStatusMonitor,
+                new SubscribeFromEndEventStoreStreamConfiguration(),
                 new ConsumerBasedEventProvider<TestStatefulActor>(),
                 _loggerFactory);
 
             _testActorOne = new TestStatefulActor(_cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
 
-            _testActorOne.SubscribeTo(subscribeToAllQueue);
+            _testActorOne.SubscribeTo(subscribeToAllStream);
 
             Assert.NotNull(_testActorOne);
         }

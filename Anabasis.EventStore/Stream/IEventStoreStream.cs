@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Queue
+namespace Anabasis.EventStore.Stream
 {
-    public interface IEventStoreQueue : IDisposable
+    public interface IEventStoreStream : IDisposable
     {
         string Id { get; }
         bool IsWiredUp { get; }

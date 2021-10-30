@@ -36,12 +36,12 @@ namespace Anabasis.EventStore.Demo
                     .CreateActor()
 
                     .AddStatelessActor<TradeService>()
-                    .WithSubscribeFromEndToAllQueue()
+                    .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
                     .AddStatefulActor<TradePriceUpdateService, long, Trade>()
                     .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                    .WithSubscribeFromEndToAllQueue()
+                    .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
                     .AddStatefulActor<TradeSink, long, Trade>()

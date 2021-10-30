@@ -1,7 +1,7 @@
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Queue;
+using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Standalone;
@@ -180,27 +180,27 @@ namespace Anabasis.EventStore.Tests
               connectionMonitor,
               _loggerFactory);
 
-            var persistentEventStoreQueueConfiguration = new PersistentSubscriptionEventStoreQueueConfiguration(_streamId, _groupIdOne, _userCredentials);
+            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(_streamId, _groupIdOne, _userCredentials);
 
-            var persistentSubscriptionEventStoreQueue = new PersistentSubscriptionEventStoreQueue(
+            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
               connectionMonitor,
-              persistentEventStoreQueueConfiguration,
+              persistentEventStoreStreamConfiguration,
               eventProvider,
               _loggerFactory);
 
-            var volatileEventStoreQueueConfiguration = new SubscribeFromEndEventStoreQueueConfiguration(_userCredentials);
+            var volatileEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration(_userCredentials);
 
-            var volatileEventStoreQueue = new SubscribeFromEndEventStoreQueue(
+            var volatileEventStoreStream = new SubscribeFromEndEventStoreStream(
               connectionMonitor,
-              volatileEventStoreQueueConfiguration,
+              volatileEventStoreStreamConfiguration,
               eventProvider,
               _loggerFactory);
 
             var testActorAutoBuildOne = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency(), _loggerFactory);
             var testActorAutoBuildTwo = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency(), _loggerFactory);
 
-            testActorAutoBuildOne.SubscribeTo(persistentSubscriptionEventStoreQueue);
-            testActorAutoBuildOne.SubscribeTo(volatileEventStoreQueue);
+            testActorAutoBuildOne.SubscribeTo(persistentSubscriptionEventStoreStream);
+            testActorAutoBuildOne.SubscribeTo(volatileEventStoreStream);
 
             await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
 
@@ -221,8 +221,8 @@ namespace Anabasis.EventStore.Tests
         {
 
             var testActorAutoBuildOne = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
-                                                                                         .WithSubscribeFromEndToAllQueue()
-                                                                                         .WithPersistentSubscriptionQueue(_streamId2, _groupIdOne)
+                                                                                         .WithSubscribeFromEndToAllStream()
+                                                                                         .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
                                                                                          .Build();
 
             var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
