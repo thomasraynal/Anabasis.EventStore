@@ -24,7 +24,6 @@ namespace Anabasis.EventStore.Samples
                                             getSubscribeFromEndCacheConfiguration: builder => builder.KeepAppliedEventsOnAggregate = true)
                                        .Build();
 
-
             Do.Run(eventCountActor);
 
         }

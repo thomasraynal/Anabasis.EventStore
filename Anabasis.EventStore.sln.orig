@@ -1,0 +1,53 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.30413.136
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore", "Anabasis.EventStore\Anabasis.EventStore.csproj", "{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2751A486-6A83-4D62-B37E-713DAC303FD8}"
+	ProjectSection(SolutionItems) = preProject
+		appveyor.yml = appveyor.yml
+	EndProjectSection
+EndProject
+<<<<<<< HEAD
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Demo.Standalone", "Anabasis.EventStore.Demo.Standalone\Anabasis.EventStore.Demo.Standalone.csproj", "{265F3478-5371-49E5-985D-CE6CBCE60931}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Tests.Integration", "Anabasis.EventStore.Tests.Integration\Anabasis.EventStore.Tests.Integration.csproj", "{5DC81E11-2F10-4C7A-BBE5-F84391509929}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Demo.AspNet", "Anabasis.EventStore.Demo.AspNet\Anabasis.EventStore.Demo.AspNet.csproj", "{2E3CCB30-4D28-4A4B-A7AB-AB0728B5AD91}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Samples", "Anabasis.EventStore.Samples\Anabasis.EventStore.Samples.csproj", "{38EB4ACA-07B1-4174-A780-D60422FA0290}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Demo", "Anabasis.EventStore.Demo\Anabasis.EventStore.Demo.csproj", "{3DAF5531-5E8C-4CEE-B483-6A0C17E11532}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Snapshot.InMemory", "Anabasis.EventStore.Snapshot.InMemory\Anabasis.EventStore.Snapshot.InMemory.csproj", "{2D88954B-9B00-4974-9A33-EF4324396FC1}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventStore.Standalone", "Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj", "{676A86DC-BE16-477E-81D3-04868EA2F766}"
+EndProject
+=======
+>>>>>>> master
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Debug|x64.ActiveCfg = Debug|x64
+		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Debug|x64.Build.0 = Debug|x64
+		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Release|x64.ActiveCfg = Release|Any CPU
+		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Release|x64.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {0228CEE5-162D-4901-8721-2CDCAC4DB6F2}
+	EndGlobalSection
+EndGlobal
