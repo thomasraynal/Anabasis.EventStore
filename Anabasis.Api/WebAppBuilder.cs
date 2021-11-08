@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore;
+﻿using Anabasis.Api.Filters;
+using Anabasis.Api.Middleware;
+using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
@@ -11,20 +14,17 @@ using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Anabasis.Api
 {
-    public class WebAppBuilder
+    public static class WebAppBuilder
     {
         public static IWebHostBuilder Create(AppContext appContext,
-            Action<JsonOptions> configureJson = null,
-            Action<KestrelServerOptions> configureKestrel = null,
-            Action<IApplicationBuilder> configureApplicationBuilder = null)
+            Action<MvcNewtonsoftJsonOptions> configureJson = null,
+            Action<KestrelServerOptions> configureKestrel = null)
         {
 
             if (null == configureKestrel)
@@ -40,47 +40,55 @@ namespace Anabasis.Api
                 .UseSetting(WebHostDefaults.StartupAssemblyKey, Assembly.GetExecutingAssembly().GetName().Name)
                 .ConfigureServices((context, services) =>
                 {
-                    foreach (var service in appContext.ServiceCollection)
-                    {
-                        services.Add(service);
-                    }
 
-                    ConfigureServices(context, services, appContext);
-                    configureServices?.Invoke(services, appContext, exceptionsMapper);
-
-                    services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+                    ConfigureServices(services, appContext, configureJson);
 
                 })
                 .Configure(appBuilder =>
                 {
+                    appBuilder.WithClientIPAddress();
+                    appBuilder.WithRequestContextHeaders();
+                    appBuilder.WithVersionNumber(appContext.ApiVersion.Major);
 
-                    configureApplicationBuilder?.Invoke(appBuilder);
-                    Configure(appBuilder, app, executingAssembly, withSwagger, disableSharedSecretKeyAuthentication);
-                })
-                ;
+                    appBuilder.UseForwardedHeaders(new ForwardedHeadersOptions
+                    {
+                        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+                    });
 
+                    appBuilder.UseRouting();
+
+                    appBuilder.UseSwagger();
+                    appBuilder.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{appContext.ApiVersion.Major}/swagger.json",
+                        $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
+
+                    appBuilder.UseEndpoints(endpoints => endpoints.MapControllers());
+
+
+                });
+                
 
             return webHostBuilder;
         }
 
-        static void ConfigureServices(WebHostBuilderContext webContext, IServiceCollection services, AppContext appContext)
+        private static void ConfigureServices(
+            IServiceCollection services, 
+            AppContext appContext, 
+            Action<MvcNewtonsoftJsonOptions> configureJson = null)
         {
-            services.AddSingleton<IDataService, DataService>();
 
             const long MBytes = 1024L * 1024L;
 
             var healthChecksBuilder = services.AddHealthChecks()
-                                              .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * MBytes, "Working Set", HealthStatus.Degraded)
-                                              .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Too much Working Set", HealthStatus.Unhealthy);
+                                              .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * MBytes, "Working Set Degraded", HealthStatus.Degraded)
+                                              .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Working Set Unhealthy", HealthStatus.Unhealthy);
             services
-                .AddMvc(options =>
+                .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
+                .AddSingleton(appContext)
+                .AddControllers(options =>
                 {
-
-                    //options.Filters.Add<BeezUPResponseSuccessfulActionFilterAttribute>();
-                    //options.Filters.Add<RequiredParametersFilterAttribute>();
-                    //options.Filters.Add<ValidateModelAttribute>();
-                    //options.Filters.Add<BeezUPExceptionActionFilterAttribute>();
-
+                    options.Filters.Add<RequiredParametersActionFilterAttribute>();
+                    options.Filters.Add<ModelValidationActionFilterAttribute>();
+                    options.Filters.Add<ExceptionActionFilterAttribute>();
                     options.RespectBrowserAcceptHeader = true;
                 })
                 .AddNewtonsoftJson(options =>
@@ -100,7 +108,10 @@ namespace Anabasis.Api
 
                     settings.StringEscapeHandling = StringEscapeHandling.EscapeNonAscii;
 
+                    configureJson?.Invoke(options);
+
                 });
+
 
             services.Configure<ApiBehaviorOptions>(options =>
             {
@@ -135,32 +146,10 @@ namespace Anabasis.Api
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc($"v{appContext.ApiVersion.Major}", new OpenApiInfo { Title = "dev", Version = $"v{appContext.ApiVersion.Major}" });
+                c.SwaggerDoc($"v{appContext.ApiVersion.Major}",
+                    new OpenApiInfo { Title = appContext.Environment, Version = $"v{appContext.ApiVersion.Major}" });
             });
 
         }
-
-        // https://docs.microsoft.com/en-us/aspnet/core/fundamentals/middleware?tabs=aspnetcore2x
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        internal static void Configure(IApplicationBuilder app, BeezUPApp beezUPApp, Assembly executingAssembly, bool withSwagger, bool disableSharedSecretKeyAuthentication)
-        {
-            if (withSwagger)
-            {
-                app.UseBeezUPSwagger(executingAssembly, BeezUPAppWebApiDefaults.API_VERSION, beezUPApp.Context.ApplicationName.FullName);
-            }
-
-            var loggerFactory = app.ApplicationServices.GetService<ILoggerFactory>();
-            beezUPApp.AddLogger(new BeezUPLoggerToMSLoggerAdapter(beezUPApp.Context, loggerFactory));
-
-            app
-
-                .WithBeezUPMiddleware()
-                .WithVersionNumber(BeezUPAppWebApiDefaults.API_VERSION)
-                .UseMvc(routeBuilder =>
-                {
-                    routeBuilder.Routes.Add(new CustomDirectRouter(routeBuilder.DefaultHandler));
-                });
-        }
-
     }
 }

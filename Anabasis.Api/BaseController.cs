@@ -22,6 +22,7 @@ using System;
 //HateOAS
 //OpenTracing
 //AppContext
+//inline json operations
     
 
 

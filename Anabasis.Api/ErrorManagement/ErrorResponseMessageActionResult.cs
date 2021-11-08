@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Api
@@ -24,8 +23,8 @@ namespace Anabasis.Api
             response.StatusCode = _status;
             response.ContentType = "application/json";
 
-            var bodyBytes = _errorResponseMessage.ToJsonToBytes();
-            await response.Body.WriteAsync(bodyBytes, 0, bodyBytes.Length).CAF();
+            var bodyBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(_errorResponseMessage));
+            await response.Body.WriteAsync(bodyBytes.AsMemory(0, bodyBytes.Length));
         }
     }
 }
