@@ -36,7 +36,7 @@ namespace Anabasis.Api.Converters
                 default:
                     return reader.Value;
 
-                    throw new JsonSerializationException(String.Format("Unexpected token when converting ExpandoObject: {0}", reader.TokenType));
+                    throw new JsonSerializationException(string.Format("Unexpected token when converting ExpandoObject: {0}", reader.TokenType));
             }
         }
 

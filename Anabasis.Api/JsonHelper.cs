@@ -60,7 +60,6 @@ namespace Anabasis.Api
         public static DataTable ToDataTable(this JArray data)
         {
             return ToDataTable(data.Cast<JObject>());
-
         }
 
         public static DataTable ToDataTable(this IEnumerable<JObject> data)

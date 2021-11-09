@@ -1,11 +1,9 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.Extensions;
+﻿using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Globalization;
 using System.Net;
 
 namespace Anabasis.Api.Filters
@@ -51,40 +49,44 @@ namespace Anabasis.Api.Filters
             }
             else
             {
-               // _logger.LogException(exception);
+                // _logger.LogException(exception);
             }
 
-            var exType = exception.GetType();
+            var exceptionType = exception.GetType();
             var actionName = context.ActionDescriptor.GetActionName();
 
-            if (_defaultErrors.TryGetValue(exType, out var status))
+            if (_defaultErrors.TryGetValue(exceptionType, out var status))
             {
                 context.Result = GetErrorResult(exception, status, actionName);
                 return;
             }
 
+            if (exception is ICanMapToHttpError)
+            {
+                var canMapToHttpError = exception as ICanMapToHttpError;
+
+                context.Result = GetErrorResult(exception, canMapToHttpError.HttpStatusCode, actionName, canMapToHttpError.Message);
+
+                return;
+            }
+
             context.Result = GetErrorResult(exception, HttpStatusCode.InternalServerError, actionName);
+
             return;
         }
 
-        private ErrorResponseMessageActionResult GetErrorResult(Exception exception, HttpStatusCode statusCode, string actionName)
+        private ErrorResponseMessageActionResult GetErrorResult(Exception exception, HttpStatusCode statusCode, string actionName, string customMessage = null)
         {
 
-            string docUrl = null;
-
-            if (actionName != null)
-            {
-                docUrl = actionName;
-            }
+            var docUrl = actionName == null ? null : DocUrlHelper.GetDocUrl(actionName);
 
             return new ErrorResponseMessageActionResult(
 
                 new ErrorResponseMessage(new[] { new UserErrorMessage(
                     exception.GetType().FullName,
-                    exception.Message,
-                    string.IsNullOrWhiteSpace(CultureInfo.InvariantCulture.Name) ? null : CultureInfo.InvariantCulture.Name,
+                    customMessage ?? exception.Message,
                     null,
-                    null,
+                    docUrl,
                     exception.StackTrace?.ToString()
                     )}),
 

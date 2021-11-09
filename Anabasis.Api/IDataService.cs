@@ -5,6 +5,6 @@ namespace Anabasis.Api
 {
     public interface IDataService
     {
-        DataTable GetData();
+        Ressource GetData();
     }
 }

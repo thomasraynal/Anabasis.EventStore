@@ -5,29 +5,22 @@ using System;
     //Multiple Logger => Serilog 
 //Tracing
 //Configuration
-//ModelBinder
-//ErrorHandling
 //HealthChecks => WithHealthCheck - use .net healthcheck extensions
     //print healthcheck to log => HosteedService/GenericHost
-//JsonSerialization
-    //initialize then override by app
 //Handlers
     //ErrorLogger
     //ExMessages
     //Required parameters
     //Model validation
-//Header management
 //preconditions management
 //authentication
 //HateOAS
 //OpenTracing
-//AppContext
-//inline json operations
+//internal short term cache
     
-
-
 namespace Anabasis.Api
 {
+    [ApiController]
     public abstract class BaseController : ControllerBase
     {
 

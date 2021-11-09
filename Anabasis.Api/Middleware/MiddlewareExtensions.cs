@@ -16,9 +16,9 @@ namespace Anabasis.Api.Middleware
             return app;
         }
 
-        public static IApplicationBuilder WithVersionNumber(this IApplicationBuilder app, int versionNumber)
+        public static IApplicationBuilder WithApiVersion(this IApplicationBuilder app, int versionNumber)
         {
-            app.UseMiddleware<VersionNumberMiddleware>(versionNumber);
+            app.UseMiddleware<ApiVersionMiddleware>(versionNumber);
             return app;
         }
 

@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -19,8 +20,10 @@ namespace Anabasis.Api
 
             var appContext = new AppContext(appName, environment, version);
 
-            WebAppBuilder.Create(appContext)
-                         //.UseStartup<Startup>()
+            WebAppBuilder.Create(appContext, configureServiceCollection:(services)=>
+                        {
+                            services.AddSingleton<IDataService, RessourceService>();
+                        })
                          .Build()
                          .Run();
         }

@@ -39,10 +39,13 @@ namespace Anabasis.Api.Middleware
 
             request.HttpContext.Items[HttpHeaderConstants.HTTP_HEADER_REQUEST_ID] = requestId;
             request.HttpContext.Items[HttpHeaderConstants.HTTP_HEADER_CORRELATION_ID] = correlationId;
-
+       
             var response = context.Response;
+
             response.Headers[HttpHeaderConstants.HTTP_HEADER_APP_NAME] = _applicationName;
             response.Headers[HttpHeaderConstants.HTTP_HEADER_REQUEST_ID] = $"{requestId}";
+            response.Headers[HttpHeaderConstants.HTTP_HEADER_CORRELATION_ID] = $"{correlationId}";
+            response.Headers[HttpHeaderConstants.HTTP_HEADER_CLIENT_IP_ADRESSS] = $"{request.HttpContext.Items[HttpHeaderConstants.HTTP_HEADER_CLIENT_IP_ADRESSS]}";
 
             await _next(context);
         }

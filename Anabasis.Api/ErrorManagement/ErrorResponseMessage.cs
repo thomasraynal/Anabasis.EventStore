@@ -9,8 +9,6 @@ using System.Threading.Tasks;
 namespace Anabasis.Api
 {
 
-    [Serializable]
-    [DataContract]
     public partial class ErrorResponseMessage
     {
         [JsonConstructor]
@@ -22,7 +20,6 @@ namespace Anabasis.Api
         }
 
         [Required]
-        [DataMember]
         public UserErrorMessage[] Errors { get; set; }
 
     }

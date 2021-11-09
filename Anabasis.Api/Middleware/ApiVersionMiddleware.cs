@@ -7,20 +7,20 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Api.Middleware
 {
-    public class VersionNumberMiddleware
+    public class ApiVersionMiddleware
     {
         private readonly RequestDelegate _next;
-        private readonly string _versionNumber;
+        private readonly string _apiVersionNumber;
 
-        public VersionNumberMiddleware(RequestDelegate next, int versionNumber)
+        public ApiVersionMiddleware(RequestDelegate next, int versionNumber)
         {
             _next = next;
-            _versionNumber = $"v{versionNumber}";
+            _apiVersionNumber = $"v{versionNumber}";
         }
 
         public async Task Invoke(HttpContext context)
         {
-            context.Response.Headers[HttpHeaderConstants.HTTP_HEADER_API_VERSION] = _versionNumber;
+            context.Response.Headers[HttpHeaderConstants.HTTP_HEADER_API_VERSION] = _apiVersionNumber;
             await _next(context);
         }
     }

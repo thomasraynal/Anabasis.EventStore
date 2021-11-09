@@ -24,7 +24,9 @@ namespace Anabasis.Api
     {
         public static IWebHostBuilder Create(AppContext appContext,
             Action<MvcNewtonsoftJsonOptions> configureJson = null,
-            Action<KestrelServerOptions> configureKestrel = null)
+            Action<KestrelServerOptions> configureKestrel = null,
+            Action<IApplicationBuilder> configureApplicationBuilder = null,
+            Action<IServiceCollection> configureServiceCollection = null)
         {
 
             if (null == configureKestrel)
@@ -43,12 +45,15 @@ namespace Anabasis.Api
 
                     ConfigureServices(services, appContext, configureJson);
 
+                    configureServiceCollection?.Invoke(services);
+
                 })
                 .Configure(appBuilder =>
                 {
                     appBuilder.WithClientIPAddress();
                     appBuilder.WithRequestContextHeaders();
-                    appBuilder.WithVersionNumber(appContext.ApiVersion.Major);
+                    appBuilder.WithApiVersion(appContext.ApiVersion.Major);
+                    appBuilder.UseResponseCompression();
 
                     appBuilder.UseForwardedHeaders(new ForwardedHeadersOptions
                     {
@@ -58,14 +63,16 @@ namespace Anabasis.Api
                     appBuilder.UseRouting();
 
                     appBuilder.UseSwagger();
+
                     appBuilder.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{appContext.ApiVersion.Major}/swagger.json",
                         $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
 
                     appBuilder.UseEndpoints(endpoints => endpoints.MapControllers());
 
+                    configureApplicationBuilder?.Invoke(appBuilder);
+
 
                 });
-                
 
             return webHostBuilder;
         }
@@ -94,19 +101,18 @@ namespace Anabasis.Api
                 .AddNewtonsoftJson(options =>
                 {
 
-                    var settings = options.SerializerSettings;
+                    var jsonSerializerSettings = options.SerializerSettings;
+                    var defaultJsonSerializerSettings = Json.GetDefaultJsonSerializerSettings();
 
-                    settings.ReferenceLoopHandling = ReferenceLoopHandling.Ignore;
-                    settings.NullValueHandling = NullValueHandling.Ignore;
-                    settings.DateTimeZoneHandling = DateTimeZoneHandling.Utc;
-                    settings.Formatting = Formatting.None;
-                    settings.DateFormatHandling = DateFormatHandling.IsoDateFormat;
+                    jsonSerializerSettings.ReferenceLoopHandling = defaultJsonSerializerSettings.ReferenceLoopHandling;
+                    jsonSerializerSettings.NullValueHandling = defaultJsonSerializerSettings.NullValueHandling;
+                    jsonSerializerSettings.DateTimeZoneHandling = defaultJsonSerializerSettings.DateTimeZoneHandling;
+                    jsonSerializerSettings.Formatting = defaultJsonSerializerSettings.Formatting;
+                    jsonSerializerSettings.DateFormatHandling = defaultJsonSerializerSettings.DateFormatHandling;
 
-                    settings.Converters.Add(new UriJsonConverter());
-                    settings.Converters.Add(new StringEnumConverter());
-                    settings.Converters.Add(new ExpandoObjectConverter());
+                    jsonSerializerSettings.Converters = defaultJsonSerializerSettings.Converters;
 
-                    settings.StringEscapeHandling = StringEscapeHandling.EscapeNonAscii;
+                    jsonSerializerSettings.StringEscapeHandling = defaultJsonSerializerSettings.StringEscapeHandling;
 
                     configureJson?.Invoke(options);
 
@@ -144,10 +150,17 @@ namespace Anabasis.Api
 
             services.AddRouting();
 
-            services.AddSwaggerGen(c =>
+            services.AddSwaggerGen(swaggerGenOptions =>
             {
-                c.SwaggerDoc($"v{appContext.ApiVersion.Major}",
-                    new OpenApiInfo { Title = appContext.Environment, Version = $"v{appContext.ApiVersion.Major}" });
+                swaggerGenOptions.DocInclusionPredicate((version, apiDesc) => !string.IsNullOrEmpty(apiDesc.HttpMethod));
+
+                swaggerGenOptions.MapType<Guid>(() => new OpenApiSchema { Type = "string", Format = "Guid" });
+                swaggerGenOptions.CustomSchemaIds(type => type.Name);
+                swaggerGenOptions.IgnoreObsoleteProperties();
+                swaggerGenOptions.UseInlineDefinitionsForEnums();
+
+                swaggerGenOptions.SwaggerDoc($"v{appContext.ApiVersion.Major}",
+                    new OpenApiInfo { Title = appContext.ApplicationName, Version = $"v{appContext.ApiVersion.Major}" });
             });
 
         }

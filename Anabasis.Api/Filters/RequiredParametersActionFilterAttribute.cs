@@ -33,7 +33,6 @@ namespace Anabasis.Api.Filters
                             new UserErrorMessage(
                                 "BadRequest",
                                 $"The parameter '{parameter}' is required. Please check the specification.",
-                                "en-US",
                                 new Dictionary<string, object>()
                                 {
                                     { "parameterName", parameter}

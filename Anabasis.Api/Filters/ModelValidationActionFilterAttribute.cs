@@ -20,7 +20,6 @@ namespace Anabasis.Api.Filters
                         modelState => new UserErrorMessage(
                             "BadRequest",
                              modelState.Value.Errors.Select(e => e.ErrorMessage).Aggregate((s1, s2) => $"{s1}{Environment.NewLine}{s2}"),
-                            "en-US",
                             new Dictionary<string, object>()
                             {
                                 { modelState.Key, modelState.Value?.RawValue?.ToString() ?? ""}
