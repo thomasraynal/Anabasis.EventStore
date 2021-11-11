@@ -23,7 +23,7 @@ namespace Anabasis.Api
             response.StatusCode = _status;
             response.ContentType = "application/json";
 
-            var bodyBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(_errorResponseMessage));
+            var bodyBytes = Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(_errorResponseMessage, Json.GetDefaultJsonSerializerSettings()));
             await response.Body.WriteAsync(bodyBytes.AsMemory(0, bodyBytes.Length));
         }
     }

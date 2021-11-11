@@ -41,6 +41,9 @@ namespace Anabasis.Api
         }
 
         [HttpGet]
+        [SwaggerResponse(500, type: typeof(ErrorResponseMessage), Description = "Occurs when something goes wrong")]
+        [SwaggerResponse(200, type: typeof(Ressource), Description = "Specified ressource")]
+        [ResponseCache(NoStore = false, Duration = 60, Location = ResponseCacheLocation.Any)]
         public Ressource Get()
         {
             return _dataService.GetData();
@@ -61,7 +64,7 @@ namespace Anabasis.Api
             return Ok(ressourceObject);
         }
 
-        [HttpGet("byName/{ressourceNdame}", Name = "GetByName")]
+        [HttpGet("byName/{ressourceName}", Name = "GetByName")]
         [SwaggerResponse(500, type: typeof(ErrorResponseMessage), Description = "Occurs when something goes wrong")]
         [SwaggerResponse(404, type: typeof(ErrorResponseMessage), Description = "Specified ressourceName not found")]
         [SwaggerResponse(200, type: typeof(RessourceObject), Description = "Specified ressourceName object")]

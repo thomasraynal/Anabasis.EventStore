@@ -13,6 +13,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Serilog;
+using Serilog.Events;
 using System;
 using System.Linq;
 using System.Net;
@@ -29,6 +31,17 @@ namespace Anabasis.Api
             Action<IServiceCollection> configureServiceCollection = null)
         {
 
+            Log.Logger = new LoggerConfiguration()
+               .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
+               .Enrich.FromLogContext()
+               .WriteTo.Console()
+               .WriteTo.Sentry(
+                    dsn: "https://e538c4939ce44d75988960f7a082a5bd@o1067128.ingest.sentry.io/6060457",
+                    sampleRate: 1f,
+                    debug: true)
+               .CreateLogger();
+
+
             if (null == configureKestrel)
                 configureKestrel = kestrelServerOptions => { kestrelServerOptions.AllowSynchronousIO = true; };
 
@@ -40,6 +53,7 @@ namespace Anabasis.Api
                 .UseEnvironment(appContext.Environment.ToString())
                 .UseSetting(WebHostDefaults.ApplicationKey, appContext.ApplicationName)
                 .UseSetting(WebHostDefaults.StartupAssemblyKey, Assembly.GetExecutingAssembly().GetName().Name)
+                .UseSerilog()
                 .ConfigureServices((context, services) =>
                 {
 
@@ -54,6 +68,7 @@ namespace Anabasis.Api
                     appBuilder.WithRequestContextHeaders();
                     appBuilder.WithApiVersion(appContext.ApiVersion.Major);
                     appBuilder.UseResponseCompression();
+                    appBuilder.UseResponseCaching();
 
                     appBuilder.UseForwardedHeaders(new ForwardedHeadersOptions
                     {
@@ -61,6 +76,8 @@ namespace Anabasis.Api
                     });
 
                     appBuilder.UseRouting();
+
+                    appBuilder.UseSerilogRequestLogging();
 
                     appBuilder.UseSwagger();
 
@@ -85,9 +102,16 @@ namespace Anabasis.Api
 
             const long MBytes = 1024L * 1024L;
 
-            var healthChecksBuilder = services.AddHealthChecks()
-                                              .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * MBytes, "Working Set Degraded", HealthStatus.Degraded)
-                                              .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Working Set Unhealthy", HealthStatus.Unhealthy);
+            services.AddHealthChecks()
+                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * MBytes, "Working Set Degraded", HealthStatus.Degraded)
+                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Working Set Unhealthy", HealthStatus.Unhealthy);
+
+            services.AddResponseCaching((options)=>
+            {
+                options.SizeLimit = 10 * MBytes;
+                options.MaximumBodySize = 5 * MBytes;
+            });
+
             services
                 .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
                 .AddSingleton(appContext)
@@ -117,7 +141,6 @@ namespace Anabasis.Api
                     configureJson?.Invoke(options);
 
                 });
-
 
             services.Configure<ApiBehaviorOptions>(options =>
             {

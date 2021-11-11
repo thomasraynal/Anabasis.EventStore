@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
+using Serilog;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -27,8 +29,7 @@ namespace Anabasis.Api.Filters
 
         public override void OnException(ExceptionContext context)
         {
-            var response = context.HttpContext.Response;
-            var request = context.HttpContext.Request;
+
             var exception = context.Exception;
 
             var correlationId = context.HttpContext.GetCorrelationId();
@@ -41,17 +42,8 @@ namespace Anabasis.Api.Filters
             exception.SetData(ExceptionData.HttpMethod, context.HttpContext.Request.Method);
             exception.SetData(ExceptionData.CalledUrl, url);
 
-            if (request.ContentLength.HasValue)
-            {
-                // CurrentHttpRequest.Set(request);
-                // _logger.LogException(exception);
-                // CurrentHttpRequest.Clear();
-            }
-            else
-            {
-                // _logger.LogException(exception);
-            }
-
+            Log.Error(exception, string.Empty);
+            
             var exceptionType = exception.GetType();
             var actionName = context.ActionDescriptor.GetActionName();
 

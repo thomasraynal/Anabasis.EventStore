@@ -10,8 +10,6 @@ using System;
 //Handlers
     //ErrorLogger
     //ExMessages
-    //Required parameters
-    //Model validation
 //preconditions management
 //authentication
 //HateOAS
@@ -23,6 +21,5 @@ namespace Anabasis.Api
     [ApiController]
     public abstract class BaseController : ControllerBase
     {
-
     }
 }

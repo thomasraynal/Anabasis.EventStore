@@ -1,5 +1,6 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
+using Newtonsoft.Json.Serialization;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,6 +25,7 @@ namespace Anabasis.Api
             jsonSerializerSettings.Converters.Add(new StringEnumConverter());
             jsonSerializerSettings.Converters.Add(new ExpandoObjectConverter());
 
+            jsonSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             jsonSerializerSettings.StringEscapeHandling = StringEscapeHandling.EscapeNonAscii;
 
             return jsonSerializerSettings;
