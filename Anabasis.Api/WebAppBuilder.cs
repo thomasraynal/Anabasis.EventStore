@@ -1,4 +1,5 @@
-﻿using Anabasis.Api.Filters;
+﻿using Anabasis.Api.ErrorManagement;
+using Anabasis.Api.Filters;
 using Anabasis.Api.Middleware;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
@@ -6,13 +7,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Versioning;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.Server.Kestrel.Core;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
-using Newtonsoft.Json;
-using Newtonsoft.Json.Converters;
 using Serilog;
 using Serilog.Events;
 using System;
@@ -24,23 +25,65 @@ namespace Anabasis.Api
 {
     public static class WebAppBuilder
     {
-        public static IWebHostBuilder Create(AppContext appContext,
+        
+        public static IWebHostBuilder Create(
+            Version apiVersion,
+            string sentryDsn,
+            int apiPort = 80,
+            Uri docUrl= null,
+            int? memoryCheckTresholdInMB = 200,
             Action<MvcNewtonsoftJsonOptions> configureJson = null,
             Action<KestrelServerOptions> configureKestrel = null,
             Action<IApplicationBuilder> configureApplicationBuilder = null,
-            Action<IServiceCollection> configureServiceCollection = null)
+            Action<IServiceCollection> configureServiceCollection = null,
+            Action<ConfigurationBuilder> configureConfigurationBuilder = null,
+            Action<LoggerConfiguration> configureLogging = null)
         {
 
-            Log.Logger = new LoggerConfiguration()
+            var configurationBuilder = new ConfigurationBuilder();
+
+            configurationBuilder.AddJsonFile(AppContext.AppConfigurationFile, false, false);
+            configurationBuilder.AddJsonFile(AppContext.GroupConfigurationFile, true, false);
+
+            configureConfigurationBuilder?.Invoke(configurationBuilder);
+
+            var configurationRoot = configurationBuilder.Build();
+
+            var appConfigurationOptions = new AppConfigurationOptions();
+            configurationRoot.GetSection(nameof(AppConfigurationOptions)).Bind(appConfigurationOptions);
+
+            appConfigurationOptions.Validate();
+
+            var groupConfigurationOptions = new GroupConfigurationOptions();
+            configurationRoot.GetSection(nameof(GroupConfigurationOptions)).Bind(groupConfigurationOptions);
+
+            groupConfigurationOptions.Validate();
+
+            var appContext = new AppContext(
+                appConfigurationOptions.ApplicationName,
+                groupConfigurationOptions.GroupName,
+                apiVersion,
+                sentryDsn,
+                groupConfigurationOptions.Environment,
+                docUrl,
+                apiPort,
+                memoryCheckTresholdInMB.Value,
+                Environment.MachineName);
+
+            var loggerConfiguration = new LoggerConfiguration();
+
+            loggerConfiguration
                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                .Enrich.FromLogContext()
                .WriteTo.Console()
                .WriteTo.Sentry(
-                    dsn: "https://e538c4939ce44d75988960f7a082a5bd@o1067128.ingest.sentry.io/6060457",
+                    dsn: appContext.SentryDsn,
                     sampleRate: 1f,
-                    debug: true)
-               .CreateLogger();
+                    debug: true);
 
+            configureLogging?.Invoke(loggerConfiguration);
+
+            Log.Logger = loggerConfiguration.CreateLogger();
 
             if (null == configureKestrel)
                 configureKestrel = kestrelServerOptions => { kestrelServerOptions.AllowSynchronousIO = true; };
@@ -66,7 +109,6 @@ namespace Anabasis.Api
                 {
                     appBuilder.WithClientIPAddress();
                     appBuilder.WithRequestContextHeaders();
-                    appBuilder.WithApiVersion(appContext.ApiVersion.Major);
                     appBuilder.UseResponseCompression();
                     appBuilder.UseResponseCaching();
 
@@ -112,6 +154,15 @@ namespace Anabasis.Api
                 options.MaximumBodySize = 5 * MBytes;
             });
 
+            services.AddApiVersioning(apiVersioningOptions =>
+            {
+                apiVersioningOptions.ErrorResponses = new ErrorResponseProvider();
+                apiVersioningOptions.ReportApiVersions = true;
+                apiVersioningOptions.AssumeDefaultVersionWhenUnspecified = true;
+                apiVersioningOptions.ApiVersionReader = new HeaderApiVersionReader(HttpHeaderConstants.HTTP_HEADER_API_VERSION);
+                apiVersioningOptions.DefaultApiVersion = new ApiVersion(appContext.ApiVersion.Major, appContext.ApiVersion.Minor); 
+            });
+
             services
                 .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
                 .AddSingleton(appContext)
@@ -147,21 +198,21 @@ namespace Anabasis.Api
                 options.InvalidModelStateResponseFactory = actionContext =>
                 {
                     var error = actionContext.ModelState
-                        .Where(e => e.Value.Errors.Count > 0)
-                        .Select(e => new ValidationProblemDetails(actionContext.ModelState))
+                        .Where(errors => errors.Value.Errors.Count > 0)
+                        .Select(_ => new ValidationProblemDetails(actionContext.ModelState))
                         .FirstOrDefault();
 
                     var actionName = actionContext.ActionDescriptor.GetActionName();
 
                     var messages = actionContext.ModelState
-                        .Where(e => e.Value.Errors.Count > 0)
-                        .SelectMany(e => e.Value.Errors)
-                        .Select(e => new UserErrorMessage("BadRequest", e.ErrorMessage, docUrl: appContext.DocUrl))
+                        .Where(errors => errors.Value.Errors.Count > 0)
+                        .SelectMany(errors => errors.Value.Errors)
+                        .Select(errors => new UserErrorMessage("BadRequest", errors.ErrorMessage, docUrl: appContext.DocUrl))
                         .ToArray();
 
                     var response = new ErrorResponseMessage(messages);
 
-                    return new ErrorResponseMessageActionResult(response, (int)HttpStatusCode.BadRequest);
+                    return new ErrorResponseMessageActionResult(response, HttpStatusCode.BadRequest);
 
                 };
             });
@@ -189,3 +240,4 @@ namespace Anabasis.Api
         }
     }
 }
+

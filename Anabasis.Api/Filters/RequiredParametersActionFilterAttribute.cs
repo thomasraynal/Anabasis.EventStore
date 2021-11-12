@@ -39,7 +39,7 @@ namespace Anabasis.Api.Filters
                                 },
                                null)).ToArray());
 
-                context.Result = new ErrorResponseMessageActionResult(errorResponseMessage,  (int)HttpStatusCode.BadRequest);
+                context.Result = new ErrorResponseMessageActionResult(errorResponseMessage, HttpStatusCode.BadRequest);
             }
         }
 

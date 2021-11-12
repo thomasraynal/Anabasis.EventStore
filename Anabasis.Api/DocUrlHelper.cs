@@ -7,9 +7,9 @@ namespace Anabasis.Api
 {
     public static class DocUrlHelper
     {
-        public static Uri GetDocUrl(string actionName)
+        public static Uri GetDocUrl(string actionName, Uri docUrl)
         {
-            return new Uri($"https://api-docs.beezup.com/#operation/{actionName}");
+            return new Uri($"{docUrl.AbsoluteUri}/{actionName}");
         }
     }
 }

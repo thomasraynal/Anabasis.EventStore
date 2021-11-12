@@ -70,20 +70,16 @@ namespace Anabasis.Api.Filters
         private ErrorResponseMessageActionResult GetErrorResult(Exception exception, HttpStatusCode statusCode, string actionName, string customMessage = null)
         {
 
-            var docUrl = actionName == null ? null : DocUrlHelper.GetDocUrl(actionName);
+            var docUrl = actionName == null ? null : DocUrlHelper.GetDocUrl(actionName, _appContext.DocUrl);
 
-            return new ErrorResponseMessageActionResult(
-
-                new ErrorResponseMessage(new[] { new UserErrorMessage(
+            var userErrorMessages = new[] { new UserErrorMessage(
                     exception.GetType().FullName,
                     customMessage ?? exception.Message,
-                    null,
-                    docUrl,
-                    exception.StackTrace?.ToString()
-                    )}),
+                    docUrl: docUrl,
+                    stackTrace: exception.StackTrace?.ToString()
+                    )};
 
-                (int)statusCode
-            );
+            return new ErrorResponseMessageActionResult(new ErrorResponseMessage(userErrorMessages), statusCode);
         }
     }
 }

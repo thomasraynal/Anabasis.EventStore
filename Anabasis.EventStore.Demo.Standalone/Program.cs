@@ -1,9 +1,6 @@
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Standalone;
 using System;
-using System.Linq;
-using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo

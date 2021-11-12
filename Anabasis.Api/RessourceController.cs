@@ -30,7 +30,8 @@ namespace Anabasis.Api
 
     }
 
-    [Route("data")]
+    [ApiVersion("1.0")]
+    [Route("api/{version:apiVersion}/data")]
     public class RessourceController : BaseController
     {
         private readonly IDataService _dataService;

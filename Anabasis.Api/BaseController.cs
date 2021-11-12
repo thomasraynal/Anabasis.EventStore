@@ -1,21 +1,17 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System;
 
-//Logging
-    //Multiple Logger => Serilog 
 //Tracing
-//Configuration
 //HealthChecks => WithHealthCheck - use .net healthcheck extensions
     //print healthcheck to log => HosteedService/GenericHost
 //Handlers
-    //ErrorLogger
     //ExMessages
 //preconditions management
 //authentication
 //HateOAS
 //OpenTracing
-//internal short term cache
-    
+//json - switch to ms json
+
 namespace Anabasis.Api
 {
     [ApiController]

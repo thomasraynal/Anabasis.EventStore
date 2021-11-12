@@ -11,8 +11,8 @@ namespace Anabasis.Api
     {
         public static string GetActionName(this ActionDescriptor actionDescriptor)
         {
-            var tmp = actionDescriptor as ControllerActionDescriptor;
-            return tmp?.ActionName ?? actionDescriptor?.DisplayName ?? "Unknown";
+            var controllerActionDescriptor = actionDescriptor as ControllerActionDescriptor;
+            return controllerActionDescriptor?.ActionName ?? actionDescriptor?.DisplayName ?? "Unknown";
         }
     }
 }

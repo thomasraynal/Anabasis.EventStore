@@ -15,15 +15,19 @@ namespace Anabasis.Api
         public static void Main(string[] args)
         {
             var version = new Version(1, 0);
-            var appName = "testApp";
-            var environment = "test";
+            var sentryDsn = "https://3abd2cfbe4fb457e86f8f17fca6e8260@o1067128.ingest.sentry.io/6060457";
+            var docUrl = new Uri("https://api-docs.beezup.com/#operation");
 
-            var appContext = new AppContext(appName, environment, version);
+         //  var appContext = new AppContext(appName, environment, version, sentryDsn,new Uri(docUrl));
 
-            WebAppBuilder.Create(appContext, configureServiceCollection:(services)=>
-                        {
-                            services.AddSingleton<IDataService, RessourceService>();
-                        })
+            WebAppBuilder.Create(
+                        version,
+                        sentryDsn,
+                        docUrl: docUrl,
+                        configureServiceCollection:(services)=>
+                            {
+                                services.AddSingleton<IDataService, RessourceService>();
+                            })
                          .Build()
                          .Run();
         }

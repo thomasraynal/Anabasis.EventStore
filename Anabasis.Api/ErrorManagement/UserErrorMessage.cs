@@ -9,7 +9,7 @@ namespace Anabasis.Api
     public partial class UserErrorMessage
     {
         [JsonConstructor]
-        public UserErrorMessage() { }
+        internal UserErrorMessage() { }
 
         public UserErrorMessage(
             string code,

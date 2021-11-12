@@ -15,12 +15,5 @@ namespace Anabasis.Api.Middleware
             app.UseMiddleware<IPAddressMiddleware>();
             return app;
         }
-
-        public static IApplicationBuilder WithApiVersion(this IApplicationBuilder app, int versionNumber)
-        {
-            app.UseMiddleware<ApiVersionMiddleware>(versionNumber);
-            return app;
-        }
-
     }
 }
