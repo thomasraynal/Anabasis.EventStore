@@ -7,6 +7,8 @@ namespace Anabasis.Api
 {
     public static class HttpHeaderConstants
     {
+        public const string HTTP_HEADER_REQUEST_LOGGING_URL = "x-request-logging-url";
+        public const string HTTP_HEADER_RESPONSE_LOGGING_URL = "x-response-logging-url";
         public const string HTTP_HEADER_CORRELATION_ID = "x-correlation-id";
         public const string HTTP_HEADER_REQUEST_ID = "x-request-id";
         public const string HTTP_HEADER_APP_NAME = "x-application-name";

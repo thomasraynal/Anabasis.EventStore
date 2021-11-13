@@ -1,6 +1,12 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using Anabasis.Api.Configuration;
+using Anabasis.Api.Converters;
+using Anabasis.Api.Middleware;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using PostSharp.Patterns.Caching;
+using PostSharp.Patterns.Caching.Backends;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,28 +24,31 @@ namespace Anabasis.Api
             var sentryDsn = "https://3abd2cfbe4fb457e86f8f17fca6e8260@o1067128.ingest.sentry.io/6060457";
             var docUrl = new Uri("https://api-docs.beezup.com/#operation");
 
-         //  var appContext = new AppContext(appName, environment, version, sentryDsn,new Uri(docUrl));
-
             WebAppBuilder.Create(
                         version,
                         sentryDsn,
                         docUrl: docUrl,
-                        configureServiceCollection:(services)=>
+                        configureServiceCollection: (services, configurationRoot) =>
+                             {
+                                 CachingServices.DefaultBackend = new MemoryCachingBackend();
+
+                             
+                                 services.AddSingleton<IDataService, RessourceService>();
+                                 services.ConfigureAndValidate<SomeOtherConfigurationOptions>(configurationRoot);
+
+                             },
+                        configureApplicationBuilder: (appBuilder) =>
+                        {
+
+
+                        },
+                        configureJson: (mvcNewtonsoftJsonOptions) =>
                             {
-                                services.AddSingleton<IDataService, RessourceService>();
+                                mvcNewtonsoftJsonOptions.SerializerSettings.Converters.Add(new RessourceJsonConverter());
                             })
                          .Build()
                          .Run();
         }
     }
-
-    //    public static IHostBuilder CreateHostBuilder(string[] args) =>
-    //        Host.CreateDefaultBuilder(args)
-    //            .ConfigureWebHostDefaults(webBuilder =>
-    //            {
-    //                webBuilder.UseStartup<Startup>();
-    //            });
-    //}
-
 
 }

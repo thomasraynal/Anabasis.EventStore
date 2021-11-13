@@ -3,6 +3,7 @@
     "groupName": "testGroup",
     "environment": "TEST"
   },
+
   "someOtherConfigurationOptions": {
     "someOtherValue": "testApp"
   }

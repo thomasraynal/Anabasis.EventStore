@@ -71,7 +71,6 @@ namespace Anabasis.Api
 
             foreach (var row in data)
             {
-
                 var tableRow = table.NewRow();
 
                 foreach (var column in row.Properties())

@@ -3,6 +3,7 @@ using Anabasis.Api.Filters;
 using Anabasis.Api.Middleware;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Diagnostics.HealthChecks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.HttpOverrides;
@@ -14,6 +15,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
+using PostSharp.Patterns.Caching;
+using PostSharp.Patterns.Caching.Backends;
 using Serilog;
 using Serilog.Events;
 using System;
@@ -25,17 +28,17 @@ namespace Anabasis.Api
 {
     public static class WebAppBuilder
     {
-        
+       
         public static IWebHostBuilder Create(
             Version apiVersion,
             string sentryDsn,
             int apiPort = 80,
-            Uri docUrl= null,
+            Uri docUrl = null,
             int? memoryCheckTresholdInMB = 200,
             Action<MvcNewtonsoftJsonOptions> configureJson = null,
             Action<KestrelServerOptions> configureKestrel = null,
             Action<IApplicationBuilder> configureApplicationBuilder = null,
-            Action<IServiceCollection> configureServiceCollection = null,
+            Action<IServiceCollection, IConfigurationRoot> configureServiceCollection = null,
             Action<ConfigurationBuilder> configureConfigurationBuilder = null,
             Action<LoggerConfiguration> configureLogging = null)
         {
@@ -102,34 +105,14 @@ namespace Anabasis.Api
 
                     ConfigureServices(services, appContext, configureJson);
 
-                    configureServiceCollection?.Invoke(services);
+                    configureServiceCollection?.Invoke(services, configurationRoot);
 
                 })
                 .Configure(appBuilder =>
                 {
-                    appBuilder.WithClientIPAddress();
-                    appBuilder.WithRequestContextHeaders();
-                    appBuilder.UseResponseCompression();
-                    appBuilder.UseResponseCaching();
-
-                    appBuilder.UseForwardedHeaders(new ForwardedHeadersOptions
-                    {
-                        ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
-                    });
-
-                    appBuilder.UseRouting();
-
-                    appBuilder.UseSerilogRequestLogging();
-
-                    appBuilder.UseSwagger();
-
-                    appBuilder.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{appContext.ApiVersion.Major}/swagger.json",
-                        $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
-
-                    appBuilder.UseEndpoints(endpoints => endpoints.MapControllers());
-
                     configureApplicationBuilder?.Invoke(appBuilder);
 
+                    ConfigureApplication(appBuilder, appContext);
 
                 });
 
@@ -137,8 +120,8 @@ namespace Anabasis.Api
         }
 
         private static void ConfigureServices(
-            IServiceCollection services, 
-            AppContext appContext, 
+            IServiceCollection services,
+            AppContext appContext,
             Action<MvcNewtonsoftJsonOptions> configureJson = null)
         {
 
@@ -148,7 +131,9 @@ namespace Anabasis.Api
                     .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * MBytes, "Working Set Degraded", HealthStatus.Degraded)
                     .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Working Set Unhealthy", HealthStatus.Unhealthy);
 
-            services.AddResponseCaching((options)=>
+            services.AddHostedService<HealthCheckHostedService>();
+
+            services.AddResponseCaching((options) =>
             {
                 options.SizeLimit = 10 * MBytes;
                 options.MaximumBodySize = 5 * MBytes;
@@ -160,7 +145,7 @@ namespace Anabasis.Api
                 apiVersioningOptions.ReportApiVersions = true;
                 apiVersioningOptions.AssumeDefaultVersionWhenUnspecified = true;
                 apiVersioningOptions.ApiVersionReader = new HeaderApiVersionReader(HttpHeaderConstants.HTTP_HEADER_API_VERSION);
-                apiVersioningOptions.DefaultApiVersion = new ApiVersion(appContext.ApiVersion.Major, appContext.ApiVersion.Minor); 
+                apiVersioningOptions.DefaultApiVersion = new ApiVersion(appContext.ApiVersion.Major, appContext.ApiVersion.Minor);
             });
 
             services
@@ -235,6 +220,47 @@ namespace Anabasis.Api
 
                 swaggerGenOptions.SwaggerDoc($"v{appContext.ApiVersion.Major}",
                     new OpenApiInfo { Title = appContext.ApplicationName, Version = $"v{appContext.ApiVersion.Major}" });
+            });
+
+        }
+
+        private static void ConfigureApplication(
+            IApplicationBuilder appBuilder,
+            AppContext appContext)
+        {
+            appBuilder.WithClientIPAddress();
+            appBuilder.WithRequestContextHeaders();
+            appBuilder.UseResponseCompression();
+            appBuilder.UseResponseCaching();
+
+            appBuilder.UseForwardedHeaders(new ForwardedHeadersOptions
+            {
+                ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+            });
+
+            appBuilder.UseRouting();
+
+            appBuilder.UseSerilogRequestLogging();
+
+            appBuilder.UseSwagger();
+
+            appBuilder.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{appContext.ApiVersion.Major}/swagger.json",
+                $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
+            
+
+            appBuilder.UseEndpoints(endpoints =>
+            {
+                endpoints.MapDefaultControllerRoute();
+
+                endpoints.MapHealthChecks("/health", new HealthCheckOptions()
+                {
+                    ResultStatusCodes =
+                    {
+                        [HealthStatus.Healthy] = StatusCodes.Status200OK,
+                        [HealthStatus.Degraded] = StatusCodes.Status200OK,
+                        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                    }
+                });
             });
 
         }

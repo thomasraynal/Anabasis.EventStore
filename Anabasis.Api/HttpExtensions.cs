@@ -6,7 +6,7 @@ namespace Anabasis.Api
     public static class HttpExtensions
     {
         public static Guid GetCorrelationId(this HttpRequest request) => request.HttpContext.GetCorrelationId();
-        
+
         public static Guid GetCorrelationId(this HttpContext context)
         {
             if (!context.Items.TryGetValue(HttpHeaderConstants.HTTP_HEADER_CORRELATION_ID, out var correlationId))
@@ -15,9 +15,9 @@ namespace Anabasis.Api
             }
             return (Guid)correlationId;
         }
-       
+
         public static void SetCorrelationId(this HttpRequest request, Guid guid) => request.HttpContext.SetCorrelationId(guid);
-      
+
         public static void SetCorrelationId(this HttpContext context, Guid guid)
         {
             context.Items[HttpHeaderConstants.HTTP_HEADER_CORRELATION_ID] = guid;
@@ -32,7 +32,5 @@ namespace Anabasis.Api
             }
             return (Guid)requestId;
         }
-
-
     }
 }

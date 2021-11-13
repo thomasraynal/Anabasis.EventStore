@@ -23,10 +23,8 @@ namespace Anabasis.Api.Filters
                             new Dictionary<string, object>()
                             {
                                 { modelState.Key, modelState.Value?.RawValue?.ToString() ?? ""}
-                            },
-                            null)
-                            )
-                            .ToArray();
+                            })
+                            ).ToArray();
 
                 var errorResponseMessage = new ErrorResponseMessage(errors);
 

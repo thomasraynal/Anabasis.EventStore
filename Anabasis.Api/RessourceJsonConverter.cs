@@ -37,7 +37,24 @@ namespace Anabasis.Api.Converters
 
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer)
         {
-            throw new NotImplementedException();
+            var ressource = (Ressource)value;
+
+            writer.WriteStartArray();
+
+            foreach (var ressourceObject in ressource.RessourceObjects)
+            {
+                writer.WriteStartObject();
+
+                foreach(var property in ressourceObject.Properties)
+                {
+                    writer.WritePropertyName(property.Key);
+                    writer.WriteValue(property.Value);
+                }
+                
+                writer.WriteEndObject();
+            }
+
+            writer.WriteEndArray();
         }
 
         private RessourceObject ReadObject(JsonReader reader)

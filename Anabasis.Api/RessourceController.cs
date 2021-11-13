@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.Annotations;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -31,14 +32,16 @@ namespace Anabasis.Api
     }
 
     [ApiVersion("1.0")]
-    [Route("api/{version:apiVersion}/data")]
+    [Route("api/v{version:apiVersion}/data")]
     public class RessourceController : BaseController
     {
         private readonly IDataService _dataService;
+        private readonly IOptions<SomeOtherConfigurationOptions> _someOtherConfigurationOptions;
 
-        public RessourceController(IDataService dataService)
+        public RessourceController(IDataService dataService, IOptions<SomeOtherConfigurationOptions> someOtherConfigurationOptions)
         {
             _dataService = dataService;
+            _someOtherConfigurationOptions = someOtherConfigurationOptions;
         }
 
         [HttpGet]

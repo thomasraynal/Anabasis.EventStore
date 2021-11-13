@@ -10,6 +10,12 @@ namespace Anabasis.Api.Middleware
             return app;
         }
 
+        public static IApplicationBuilder WithRequestResponseLogging(this IApplicationBuilder app)
+        {
+            app.UseMiddleware<RequestResponseLoggingMiddleware>();
+            return app;
+        }
+
         public static IApplicationBuilder WithClientIPAddress(this IApplicationBuilder app)
         {
             app.UseMiddleware<IPAddressMiddleware>();
