@@ -6,6 +6,7 @@ using System;
 //preconditions management
 //HateOAS
 //OpenTracing
+//explore sentry advanced usage
 //json - switch to ms json
 
 namespace Anabasis.Api

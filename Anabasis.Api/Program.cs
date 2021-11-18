@@ -24,7 +24,7 @@ namespace Anabasis.Api
             var sentryDsn = "https://3abd2cfbe4fb457e86f8f17fca6e8260@o1067128.ingest.sentry.io/6060457";
             var docUrl = new Uri("https://api-docs.beezup.com/#operation");
 
-            WebAppBuilder.Create(
+            WebAppBuilder.Create<Program>(
                         version,
                         sentryDsn,
                         docUrl: docUrl,
@@ -33,7 +33,7 @@ namespace Anabasis.Api
                                  CachingServices.DefaultBackend = new MemoryCachingBackend();
 
                              
-                                 services.AddSingleton<IDataService, RessourceService>();
+             
                                  services.ConfigureAndValidate<SomeOtherConfigurationOptions>(configurationRoot);
 
                              },
@@ -44,7 +44,7 @@ namespace Anabasis.Api
                         },
                         configureJson: (mvcNewtonsoftJsonOptions) =>
                             {
-                                mvcNewtonsoftJsonOptions.SerializerSettings.Converters.Add(new RessourceJsonConverter());
+                            
                             })
                          .Build()
                          .Run();

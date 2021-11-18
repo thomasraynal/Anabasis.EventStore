@@ -15,8 +15,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.OpenApi.Models;
-using PostSharp.Patterns.Caching;
-using PostSharp.Patterns.Caching.Backends;
 using Serilog;
 using Serilog.Events;
 using System;
@@ -29,12 +27,14 @@ namespace Anabasis.Api
     public static class WebAppBuilder
     {
        
-        public static IWebHostBuilder Create(
+        public static IWebHostBuilder Create<THost>(
             Version apiVersion,
             string sentryDsn,
             int apiPort = 80,
             Uri docUrl = null,
             int? memoryCheckTresholdInMB = 200,
+            Action<MvcOptions> configureMvcBuilder = null,
+            Action<IMvcBuilder> configureMvc = null,
             Action<MvcNewtonsoftJsonOptions> configureJson = null,
             Action<KestrelServerOptions> configureKestrel = null,
             Action<IApplicationBuilder> configureApplicationBuilder = null,
@@ -103,7 +103,7 @@ namespace Anabasis.Api
                 .ConfigureServices((context, services) =>
                 {
 
-                    ConfigureServices(services, appContext, configureJson);
+                    ConfigureServices<THost>(services, appContext, configureMvcBuilder, configureMvc, configureJson);
 
                     configureServiceCollection?.Invoke(services, configurationRoot);
 
@@ -119,9 +119,11 @@ namespace Anabasis.Api
             return webHostBuilder;
         }
 
-        private static void ConfigureServices(
+        private static void ConfigureServices<THost>(
             IServiceCollection services,
             AppContext appContext,
+            Action<MvcOptions> configureMvcBuilder = null,
+            Action<IMvcBuilder> configureMvc = null,
             Action<MvcNewtonsoftJsonOptions> configureJson = null)
         {
 
@@ -189,10 +191,12 @@ namespace Anabasis.Api
 
                     var actionName = actionContext.ActionDescriptor.GetActionName();
 
+                    var docUrl = actionName == null ? null : DocUrlHelper.GetDocUrl(actionName, appContext.DocUrl);
+
                     var messages = actionContext.ModelState
                         .Where(errors => errors.Value.Errors.Count > 0)
                         .SelectMany(errors => errors.Value.Errors)
-                        .Select(errors => new UserErrorMessage("BadRequest", errors.ErrorMessage, docUrl: appContext.DocUrl))
+                        .Select(errors => new UserErrorMessage("BadRequest", errors.ErrorMessage, docUrl: docUrl))
                         .ToArray();
 
                     var response = new ErrorResponseMessage(messages);
@@ -207,8 +211,6 @@ namespace Anabasis.Api
                         options.Providers.Add<GzipCompressionProvider>();
                     });
 
-            services.AddRouting();
-
             services.AddSwaggerGen(swaggerGenOptions =>
             {
                 swaggerGenOptions.DocInclusionPredicate((version, apiDesc) => !string.IsNullOrEmpty(apiDesc.HttpMethod));
@@ -222,6 +224,14 @@ namespace Anabasis.Api
                     new OpenApiInfo { Title = appContext.ApplicationName, Version = $"v{appContext.ApiVersion.Major}" });
             });
 
+            var mvcBuilder = services.AddMvc(mvcOptions =>
+             {
+                 configureMvcBuilder?.Invoke(mvcOptions);
+             });
+
+            mvcBuilder.AddApplicationPart(typeof(THost).Assembly);
+
+            configureMvc?.Invoke(mvcBuilder);
         }
 
         private static void ConfigureApplication(
@@ -246,7 +256,19 @@ namespace Anabasis.Api
 
             appBuilder.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{appContext.ApiVersion.Major}/swagger.json",
                 $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
-            
+
+            //appBuilder.UseHealthChecks("/health", new HealthCheckOptions()
+            //{
+            //    ResultStatusCodes =
+            //        {
+            //            [HealthStatus.Healthy] = StatusCodes.Status200OK,
+            //            [HealthStatus.Degraded] = StatusCodes.Status200OK,
+            //            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+            //        }
+            //});
+
+            //appBuilder.UseMvcWithDefaultRoute();
+
 
             appBuilder.UseEndpoints(endpoints =>
             {
