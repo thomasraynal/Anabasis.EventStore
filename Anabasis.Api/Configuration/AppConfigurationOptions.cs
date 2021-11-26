@@ -11,6 +11,11 @@ namespace Anabasis.Api
     {
         [Required]
         public string ApplicationName { get; set; }
+        [Required]
+        public string SentryDsn { get; set; }
+        [Required]
+        public Version ApiVersion { get; set; }
+        public Uri DocUrl { get; set; }
 
     }
 }

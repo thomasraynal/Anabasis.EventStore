@@ -10,8 +10,17 @@ namespace Anabasis.Api
 {
     public static class Json
     {
+        private static JsonSerializerSettings _jsonSerializerSettings;
+
+        public static void SetDefaultJsonSerializerSettings(JsonSerializerSettings jsonSerializerSettings)
+        {
+            _jsonSerializerSettings = jsonSerializerSettings;
+        }
+
         public static JsonSerializerSettings GetDefaultJsonSerializerSettings()
         {
+            if (null != _jsonSerializerSettings) return _jsonSerializerSettings;
+
             var jsonSerializerSettings = new JsonSerializerSettings
             {
                 ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
@@ -23,7 +32,6 @@ namespace Anabasis.Api
 
             jsonSerializerSettings.Converters.Add(new UriJsonConverter());
             jsonSerializerSettings.Converters.Add(new StringEnumConverter());
-            jsonSerializerSettings.Converters.Add(new ExpandoObjectConverter());
 
             jsonSerializerSettings.ContractResolver = new CamelCasePropertyNamesContractResolver();
             jsonSerializerSettings.StringEscapeHandling = StringEscapeHandling.EscapeNonAscii;

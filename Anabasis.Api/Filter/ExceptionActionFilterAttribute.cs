@@ -34,6 +34,7 @@ namespace Anabasis.Api.Filters
 
             var correlationId = context.HttpContext.GetCorrelationId();
             var requestId = context.HttpContext.GetRequestId();
+
             var url = UriHelper.GetDisplayUrl(context.HttpContext.Request);
 
             exception.SetData(ExceptionData.MachineName, _appContext.MachineName);

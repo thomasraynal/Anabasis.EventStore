@@ -14,6 +14,7 @@ using Microsoft.AspNetCore.Server.Kestrel.Core;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
@@ -26,12 +27,9 @@ namespace Anabasis.Api
 {
     public static class WebAppBuilder
     {
-       
+
         public static IWebHostBuilder Create<THost>(
-            Version apiVersion,
-            string sentryDsn,
             int apiPort = 80,
-            Uri docUrl = null,
             int? memoryCheckTresholdInMB = 200,
             Action<MvcOptions> configureMvcBuilder = null,
             Action<IMvcBuilder> configureMvc = null,
@@ -44,6 +42,8 @@ namespace Anabasis.Api
         {
 
             var configurationBuilder = new ConfigurationBuilder();
+
+            configurationBuilder.AddEnvironmentVariables();
 
             configurationBuilder.AddJsonFile(AppContext.AppConfigurationFile, false, false);
             configurationBuilder.AddJsonFile(AppContext.GroupConfigurationFile, true, false);
@@ -65,10 +65,10 @@ namespace Anabasis.Api
             var appContext = new AppContext(
                 appConfigurationOptions.ApplicationName,
                 groupConfigurationOptions.GroupName,
-                apiVersion,
-                sentryDsn,
+                appConfigurationOptions.ApiVersion,
+                appConfigurationOptions.SentryDsn,
                 groupConfigurationOptions.Environment,
-                docUrl,
+                appConfigurationOptions.DocUrl,
                 apiPort,
                 memoryCheckTresholdInMB.Value,
                 Environment.MachineName);
@@ -108,11 +108,12 @@ namespace Anabasis.Api
                     configureServiceCollection?.Invoke(services, configurationRoot);
 
                 })
-                .Configure(appBuilder =>
+                .Configure((context,appBuilder) =>
                 {
-                    configureApplicationBuilder?.Invoke(appBuilder);
 
-                    ConfigureApplication(appBuilder, appContext);
+                    ConfigureApplication(appBuilder, context.HostingEnvironment, appContext);
+
+                    configureApplicationBuilder?.Invoke(appBuilder);
 
                 });
 
@@ -126,6 +127,8 @@ namespace Anabasis.Api
             Action<IMvcBuilder> configureMvc = null,
             Action<MvcNewtonsoftJsonOptions> configureJson = null)
         {
+
+            services.AddOptions();
 
             const long MBytes = 1024L * 1024L;
 
@@ -178,6 +181,8 @@ namespace Anabasis.Api
 
                     configureJson?.Invoke(options);
 
+                    Json.SetDefaultJsonSerializerSettings(jsonSerializerSettings);
+
                 });
 
             services.Configure<ApiBehaviorOptions>(options =>
@@ -211,6 +216,19 @@ namespace Anabasis.Api
                         options.Providers.Add<GzipCompressionProvider>();
                     });
 
+#if DEBUG
+            services.AddCors(options =>
+            {
+                options.AddPolicy(name: "cors",
+                                  builder =>
+                                  {
+                                      builder.AllowAnyOrigin()
+                              .AllowAnyMethod()
+                              .AllowAnyHeader();
+                                  });
+            });
+#endif
+
             services.AddSwaggerGen(swaggerGenOptions =>
             {
                 swaggerGenOptions.DocInclusionPredicate((version, apiDesc) => !string.IsNullOrEmpty(apiDesc.HttpMethod));
@@ -236,6 +254,7 @@ namespace Anabasis.Api
 
         private static void ConfigureApplication(
             IApplicationBuilder appBuilder,
+            IWebHostEnvironment webHostEnvironment,
             AppContext appContext)
         {
             appBuilder.WithClientIPAddress();
@@ -254,21 +273,16 @@ namespace Anabasis.Api
 
             appBuilder.UseSwagger();
 
-            appBuilder.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{appContext.ApiVersion.Major}/swagger.json",
-                $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
 
-            //appBuilder.UseHealthChecks("/health", new HealthCheckOptions()
-            //{
-            //    ResultStatusCodes =
-            //        {
-            //            [HealthStatus.Healthy] = StatusCodes.Status200OK,
-            //            [HealthStatus.Degraded] = StatusCodes.Status200OK,
-            //            [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-            //        }
-            //});
+            if (webHostEnvironment.IsDevelopment())
+            {
+                appBuilder.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{appContext.ApiVersion.Major}/swagger.json",
+                     $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
+            }
 
-            //appBuilder.UseMvcWithDefaultRoute();
-
+#if DEBUG
+            appBuilder.UseCors("cors");
+#endif
 
             appBuilder.UseEndpoints(endpoints =>
             {
