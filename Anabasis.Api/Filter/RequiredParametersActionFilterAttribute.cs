@@ -31,10 +31,10 @@ namespace Anabasis.Api.Filters
                     hasNullParameter.Select(
                         parameter =>
                             new UserErrorMessage(
-                                "BadRequest",
+                                HttpStatusCode.BadRequest,
                                 $"The parameter '{parameter}' is required. Please check the specification.",
                                 new Dictionary<string, object>()
-                                {
+                                {   
                                     { "parameterName", parameter}
                                 },
                                null)).ToArray());

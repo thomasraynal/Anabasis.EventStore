@@ -1,9 +1,18 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <OutputType>Library</OutputType>
+    <LangVersion>Latest</LangVersion>
+    <Platforms>AnyCPU;x64</Platforms>
+    <PackageProjectUrl>https://github.com/thomasraynal/Anabasis.EventStore</PackageProjectUrl>
+    <Description>Bootstrap actor based applications with EventStore and DynamicData</Description>
+    <PackageTags>DynamicData;EventStore;EventSourcing;CQRS;Actors</PackageTags>
+    <Authors>Thomas Raynal</Authors>
+    <Company />
+    <Product />
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
@@ -20,10 +29,6 @@
     <PackageReference Include="Swashbuckle.AspNetCore.Annotations" Version="6.2.3" />
     <PackageReference Include="Swashbuckle.AspNetCore.Swagger" Version="6.2.3" />
     <PackageReference Include="System.Reactive" Version="5.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Shared\" />
   </ItemGroup>
 
   <ItemGroup>

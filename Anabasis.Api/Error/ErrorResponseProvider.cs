@@ -13,8 +13,11 @@ namespace Anabasis.Api.ErrorManagement
     {
         public IActionResult CreateResponse(ErrorResponseContext context)
         {
+
+            var statusCode = (HttpStatusCode)int.Parse(context.ErrorCode);
+
             return new ErrorResponseMessageActionResult(
-              new ErrorResponseMessage(new[] { new UserErrorMessage(context.ErrorCode, context.Message) }), HttpStatusCode.BadRequest);
+              new ErrorResponseMessage(new[] { new UserErrorMessage(statusCode, context.Message) }), HttpStatusCode.BadRequest);
         }
     }
 }

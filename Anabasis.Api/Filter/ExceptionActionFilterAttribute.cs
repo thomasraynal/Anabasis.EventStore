@@ -74,7 +74,7 @@ namespace Anabasis.Api.Filters
             var docUrl = actionName == null ? null : DocUrlHelper.GetDocUrl(actionName, _appContext.DocUrl);
 
             var userErrorMessages = new[] { new UserErrorMessage(
-                    exception.GetType().FullName,
+                    null,
                     customMessage ?? exception.Message,
                     docUrl: docUrl,
                     stackTrace: exception.StackTrace?.ToString()

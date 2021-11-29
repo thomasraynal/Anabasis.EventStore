@@ -18,7 +18,7 @@ namespace Anabasis.Api.Filters
                 var errors =
                     context.ModelState.Select(
                         modelState => new UserErrorMessage(
-                            "BadRequest",
+                            HttpStatusCode.BadRequest,
                              modelState.Value.Errors.Select(e => e.ErrorMessage).Aggregate((s1, s2) => $"{s1}{Environment.NewLine}{s2}"),
                             new Dictionary<string, object>()
                             {

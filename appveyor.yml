@@ -4,6 +4,7 @@ configuration: Release
 environment:
   matrix:
   - SOLUTION_NAME: Anabasis.EventStore
+  - SOLUTION_NAME: Anabasis.EventStore.Api
   - SOLUTION_NAME: Anabasis.EventStore.Standalone
   - SOLUTION_NAME: Anabasis.EventStore.Snapshot.InMemory
 branches:
