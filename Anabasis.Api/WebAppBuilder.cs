@@ -133,8 +133,8 @@ namespace Anabasis.Api
             const long MBytes = 1024L * 1024L;
 
             services.AddHealthChecks()
-                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * MBytes, "Working Set Degraded", HealthStatus.Degraded)
-                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Working Set Unhealthy", HealthStatus.Unhealthy);
+                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * MBytes, "Degraded working set", HealthStatus.Degraded)
+                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Unhealthy working set", HealthStatus.Unhealthy);
 
             services.AddHostedService<HealthCheckHostedService>();
 
@@ -201,7 +201,7 @@ namespace Anabasis.Api
                     var messages = actionContext.ModelState
                         .Where(errors => errors.Value.Errors.Count > 0)
                         .SelectMany(errors => errors.Value.Errors)
-                        .Select(errors => new UserErrorMessage("BadRequest", errors.ErrorMessage, docUrl: docUrl))
+                        .Select(errors => new UserErrorMessage(HttpStatusCode.BadRequest, errors.ErrorMessage, docUrl: docUrl))
                         .ToArray();
 
                     var response = new ErrorResponseMessage(messages);
