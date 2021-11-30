@@ -38,6 +38,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B527C126
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{A1D40EE1-515C-4DA7-A279-B2C805B15667}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.RabbitMQ", "Anabasis.RabbitMQ\Anabasis.RabbitMQ.csproj", "{74B39DAA-790E-4233-966F-F936E3D87C6C}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -142,6 +144,14 @@ Global
 		{63CE5E31-C1A5-42CB-9A33-CAC678582A20}.Release|Any CPU.Build.0 = Release|Any CPU
 		{63CE5E31-C1A5-42CB-9A33-CAC678582A20}.Release|x64.ActiveCfg = Release|Any CPU
 		{63CE5E31-C1A5-42CB-9A33-CAC678582A20}.Release|x64.Build.0 = Release|Any CPU
+		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Debug|x64.Build.0 = Debug|Any CPU
+		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Release|x64.ActiveCfg = Release|Any CPU
+		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

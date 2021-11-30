@@ -1,12 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
-namespace Anabasis.Common
+namespace Anabasis.Api.Configuration
 {
-    public class AppContext
+    public interface ICanValidate
     {
+        void Validate();
     }
 }
