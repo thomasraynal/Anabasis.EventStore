@@ -13,15 +13,18 @@ namespace Anabasis.RabbitMQ
     {
         public const int RABBIT_MQ_DEFAULT_PORT = 5672;
         public const int RABBIT_MQ_DEFAULT_MANAGER_PORT = 15672;
+        public const int DEFAULT_RABBITMQ_PREFETCH_COUNT = 100;
 
         [Required]
-        public string Host { get; set; }
+        public string HostName { get; set; }
 
         [Required]
-        public string User { get; set; }
+        public string UserName { get; set; }
 
         [Required]
         public string Password { get; set; }
+
+        public ushort PrefetchCount { get; set; } = DEFAULT_RABBITMQ_PREFETCH_COUNT;
 
         public int Port { get; set; } = RABBIT_MQ_DEFAULT_PORT;
 

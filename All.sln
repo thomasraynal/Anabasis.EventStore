@@ -38,7 +38,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B527C126
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Samples", "Samples", "{A1D40EE1-515C-4DA7-A279-B2C805B15667}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.RabbitMQ", "Anabasis.RabbitMQ\Anabasis.RabbitMQ.csproj", "{74B39DAA-790E-4233-966F-F936E3D87C6C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.RabbitMQ", "Anabasis.RabbitMQ\Anabasis.RabbitMQ.csproj", "{74B39DAA-790E-4233-966F-F936E3D87C6C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.SignalR", "Anabasis.SignalR\Anabasis.SignalR.csproj", "{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Deployment", "Anabasis.Deployment\Anabasis.Deployment.csproj", "{3173D664-12E3-436C-80BA-FC7D72FABFDC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -152,6 +156,22 @@ Global
 		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Release|x64.ActiveCfg = Release|Any CPU
 		{74B39DAA-790E-4233-966F-F936E3D87C6C}.Release|x64.Build.0 = Release|Any CPU
+		{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}.Debug|x64.Build.0 = Debug|Any CPU
+		{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}.Release|x64.ActiveCfg = Release|Any CPU
+		{89A9F8CD-37CD-45D2-8F71-2724D4B68A8D}.Release|x64.Build.0 = Release|Any CPU
+		{3173D664-12E3-436C-80BA-FC7D72FABFDC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3173D664-12E3-436C-80BA-FC7D72FABFDC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3173D664-12E3-436C-80BA-FC7D72FABFDC}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3173D664-12E3-436C-80BA-FC7D72FABFDC}.Debug|x64.Build.0 = Debug|Any CPU
+		{3173D664-12E3-436C-80BA-FC7D72FABFDC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3173D664-12E3-436C-80BA-FC7D72FABFDC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3173D664-12E3-436C-80BA-FC7D72FABFDC}.Release|x64.ActiveCfg = Release|Any CPU
+		{3173D664-12E3-436C-80BA-FC7D72FABFDC}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

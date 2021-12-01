@@ -45,7 +45,7 @@ namespace Anabasis.EventStore.Repository
                   });
         }
 
-        private async Task Save(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
+        private async Task Save(IEnumerable<IEvent> events, params KeyValuePair<string, string>[] extraHeaders)
         {
 
             foreach (var eventBatch in events.GroupBy(ev => ev.StreamId))
@@ -65,33 +65,35 @@ namespace Anabasis.EventStore.Repository
 
         }
 
-        protected async Task SaveEventBatch(string streamId, int expectedVersion, EventData[] eventsToSave)
+        protected async Task SaveEventBatch(string streamId, int expectedVersion, IEnumerable<EventData> eventsToSave)
         {
             WriteResult writeResult;
 
             var eventBatches = GetEventBatches(eventsToSave);
 
-            if (eventBatches.Count == 1)
+            foreach (var batch in eventBatches)
             {
-                writeResult = await _eventStoreConnection.AppendToStreamAsync(streamId, expectedVersion, eventBatches.Single());
-            }
-            else
-            {
-                using var transaction = await _eventStoreConnection.StartTransactionAsync(streamId, expectedVersion);
 
-                foreach (var batch in eventBatches)
+                if (batch.Length == 1)
                 {
+                    writeResult = await _eventStoreConnection.AppendToStreamAsync(streamId, expectedVersion, batch.Single());
+                }
+                else
+                {
+                    using var transaction = await _eventStoreConnection.StartTransactionAsync(streamId, expectedVersion);
+
                     await transaction.WriteAsync(batch);
+
+                    writeResult = await transaction.CommitAsync();
                 }
 
-                writeResult = await transaction.CommitAsync();
+              
             }
-
         }
 
-        protected List<EventData[]> GetEventBatches(IEnumerable<EventData> events)
+        protected IEnumerable<EventData[]> GetEventBatches(IEnumerable<EventData> events)
         {
-            return events.Batch(_eventStoreRepositoryConfiguration.WritePageSize).Select(batch => batch.ToArray()).ToList();
+            return events.Batch(_eventStoreRepositoryConfiguration.WritePageSize).Select(batch => batch.ToArray());
         }
 
         protected virtual IDictionary<string, string> GetCommitHeaders(object aggregate)
@@ -154,7 +156,7 @@ namespace Anabasis.EventStore.Repository
             await Save(new[] { @event }, extraHeaders);
         }
 
-        public async Task Emit(IEvent[] events, params KeyValuePair<string, string>[] extraHeaders)
+        public async Task Emit(IEnumerable<IEvent> events, params KeyValuePair<string, string>[] extraHeaders)
         {
             await Save(events, extraHeaders);
         }
