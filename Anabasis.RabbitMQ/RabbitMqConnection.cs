@@ -8,6 +8,10 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using Anabasis.EventStore.Shared;
+using Polly;
+using RabbitMQ.Client.Exceptions;
+using System.Net.Sockets;
+using System.IO;
 
 namespace Anabasis.RabbitMQ
 {
@@ -33,10 +37,23 @@ namespace Anabasis.RabbitMQ
         public RabbitMqConnection(RabbitMqConnectionOptions rabbitMqConnectionOptions,  
             AnabasisAppContext appContext,
             ILoggerFactory loggerFactory,
-            RetryPolicy retryPolicy)
+            RetryPolicy retryPolicy = null)
         {
             _rabbitMqConnectionOptions = rabbitMqConnectionOptions;
+
+            if (null == retryPolicy)
+            {
+                retryPolicy = Policy.Handle<OperationInterruptedException>()
+                                    .Or<SocketException>()
+                                    .Or<NotSupportedException>()
+                                    .Or<IOException>()
+                                    .Or<TimeoutException>()
+                                    .Or<AlreadyClosedException>()
+                                    .Retry();
+            }
+
             _retryPolicy = retryPolicy;
+
             _appContext = appContext;
 
             _logger = loggerFactory.CreateLogger<RabbitMqConnection>();
@@ -45,7 +62,7 @@ namespace Anabasis.RabbitMQ
             var connectionFactory = new ConnectionFactory()
             {
                 HostName = _rabbitMqConnectionOptions.HostName,
-                UserName = _rabbitMqConnectionOptions.UserName,
+                UserName = _rabbitMqConnectionOptions.Username,
                 Password = _rabbitMqConnectionOptions.Password,
                 Port = _rabbitMqConnectionOptions.Port,
                 AutomaticRecoveryEnabled = true,

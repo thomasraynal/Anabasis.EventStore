@@ -37,7 +37,7 @@ namespace Anabasis.RabbitMQ
             Name = queueName;
 
             _serializer = serializer;
-            _defaultPublishConfirmTimeout =TimeSpan.FromSeconds(10);
+            _defaultPublishConfirmTimeout = TimeSpan.FromSeconds(10);
             _logger = loggerFactory.CreateLogger<RabbitMqQueue>();
             _rabbitMqConnection = new RabbitMqConnection(settings, appContext, loggerFactory, retryPolicy);
 
@@ -45,7 +45,13 @@ namespace Anabasis.RabbitMQ
 
         public string Name { get; }
 
-        public void Push<T>(string queueName, IEnumerable<T> messages, TimeSpan? initialVisibilityDelay = default)
+        public void Push<T>(T message, TimeSpan? initialVisibilityDelay = default)
+            where T : class, IEvent
+        {
+            Push(new[] { message }, initialVisibilityDelay);
+        }
+
+        public void Push<T>(IEnumerable<T> messages, TimeSpan? initialVisibilityDelay = default)
             where T : class, IEvent
         {
             foreach (var message in messages)
@@ -67,7 +73,7 @@ namespace Anabasis.RabbitMQ
                     }
                     else
                     {
-                        channel.BasicPublish(exchange: queueName, routingKey: queueName, basicProperties: basicProperties, body: body, mandatory: true);
+                        channel.BasicPublish(exchange: Name, routingKey: Name, basicProperties: basicProperties, body: body, mandatory: true);
                     }
 
                     channel.WaitForConfirmsOrDie(_defaultPublishConfirmTimeout);
