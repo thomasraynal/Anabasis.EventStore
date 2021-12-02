@@ -15,7 +15,7 @@ using System.IO;
 
 namespace Anabasis.RabbitMQ
 {
-    public class RabbitMqConnection: IDisposable
+    public class RabbitMqConnection : IRabbitMqConnection
     {
         private readonly IModel _model;
         private readonly IAutorecoveringConnection _connection;
@@ -34,7 +34,7 @@ namespace Anabasis.RabbitMQ
 
         public bool IsBlocked => _blockedConnectionReason != null;
 
-        public RabbitMqConnection(RabbitMqConnectionOptions rabbitMqConnectionOptions,  
+        public RabbitMqConnection(RabbitMqConnectionOptions rabbitMqConnectionOptions,
             AnabasisAppContext appContext,
             ILoggerFactory loggerFactory,
             RetryPolicy retryPolicy = null)
@@ -77,7 +77,7 @@ namespace Anabasis.RabbitMQ
 
             _connection.RecoverySucceeded += RecoverySucceeded;
             _connection.ConnectionShutdown += ConnectionShutdown;
-           
+
 
             _model = _connection.CreateModel();
             _model.BasicReturn += (sender, args) => _returnQueue.Enqueue(args);
@@ -105,9 +105,9 @@ namespace Anabasis.RabbitMQ
         {
             return DoWithChannel(channel =>
             {
-                var props = channel.CreateBasicProperties();
-                props.Persistent = true;
-                return props;
+                var properties = channel.CreateBasicProperties();
+                properties.Persistent = true;
+                return properties;
             });
         }
 
@@ -136,7 +136,7 @@ namespace Anabasis.RabbitMQ
             {
                 var returnedValue = _retryPolicy.Execute(() =>
                 {
-                    while (_returnQueue.TryDequeue(out var ev));
+                    while (_returnQueue.TryDequeue(out var ev)) ;
 
                     var result = function(_model);
 
@@ -148,7 +148,7 @@ namespace Anabasis.RabbitMQ
                         {
                             basicReturnEventArgs.Add(arg);
                         }
-                           
+
                         if (basicReturnEventArgs.Count != 0)
                         {
                             if (basicReturnEventArgs.Count == 1)

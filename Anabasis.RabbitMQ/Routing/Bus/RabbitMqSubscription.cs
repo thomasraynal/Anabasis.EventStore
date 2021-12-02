@@ -5,12 +5,12 @@ using System.Text;
 
 namespace RabbitMQPlayground.Routing
 {
-    internal class EventSubscriberDescriptor
+    public class RabbitMqSubscription
     {
         private readonly string _exchange;
         private readonly string _routingKey;
 
-        public EventSubscriberDescriptor(string exchange, string routingKey, EventingBasicConsumer consumer, string queueName)
+        public RabbitMqSubscription(string exchange, string routingKey, EventingBasicConsumer consumer, string queueName)
         {
             _exchange = exchange;
             _routingKey = routingKey;

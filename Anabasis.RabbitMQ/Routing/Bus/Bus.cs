@@ -1,4 +1,6 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Anabasis.RabbitMQ;
+using Anabasis.RabbitMQ.Routing.Bus;
+using Microsoft.Extensions.Logging;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
@@ -13,152 +15,170 @@ namespace RabbitMQPlayground.Routing
     public class Bus : IBus
     {
 
-        public const string CommandsExchange = "commands";
-        public const string RejectedCommandsExchange = "commands-rejected";
-
-        private readonly IModel _channel;
-        private readonly string _commandsResultQueue;
-        private readonly List<EventSubscriberDescriptor> _eventSubscriberDescriptors;
-        private readonly List<CommandSubscriberDescriptor> _commandSubscriberDescriptors;
-        private readonly IConnection _connection;
-        private readonly Dictionary<string, TaskCompletionSource<ICommandResult>> _commandResults;
-        private readonly IEventSerializer _eventSerializer;
+        private readonly Dictionary<string,RabbitMqSubscription> _existingSubscriptions;
+        private readonly IRabbitMqConnection _rabbitMqConnection;
+        private readonly IRabbitMqEventSerializer _rabbitMqEventSerializer;
         private readonly IBusConfiguration _configuration;
         private readonly ILogger _logger;
+        private readonly TimeSpan _defaultPublishConfirmTimeout;
 
-        public Bus(IBusConfiguration configuration, IConnection connection, ILogger logger, IEventSerializer eventSerializer)
+        public const string XDelay = "x-delay";
+
+        public string Id { get; }
+
+        public Bus(IBusConfiguration configuration, 
+                   IRabbitMqConnection rabbitMqConnection, 
+                   ILoggerFactory loggerFactory, 
+                   IRabbitMqEventSerializer rabbitMqEventSerializer)
         {
-            Id = Guid.NewGuid();
+            Id = $"{nameof(Bus)}_{Guid.NewGuid()}";
 
-            _logger = logger;
-            _eventSerializer = eventSerializer;
+            _logger = loggerFactory.CreateLogger<Bus>();
+            _rabbitMqEventSerializer = rabbitMqEventSerializer;
             _configuration = configuration;
-            _eventSubscriberDescriptors = new List<EventSubscriberDescriptor>();
-            _commandSubscriberDescriptors = new List<CommandSubscriberDescriptor>();
+            _rabbitMqConnection = rabbitMqConnection;
+            _defaultPublishConfirmTimeout = TimeSpan.FromSeconds(10);
 
-            _connection = connection;
-            _channel = connection.CreateModel();
-
-            DeclareCommandsExchanges();
-
-            _commandsResultQueue = CreateCommandResultHandlingQueue();
-
-            _commandResults = new Dictionary<string, TaskCompletionSource<ICommandResult>>();
+            _existingSubscriptions = new Dictionary<string, RabbitMqSubscription>();
 
         }
 
-        public Guid Id { get; }
-
-        public void Dispose()
+        public void Emit(IEvent @event, string exchange, TimeSpan? initialVisibilityDelay = default)
         {
-            _channel.Dispose();
-            _connection.Dispose();
+            Emit(new[] { @event }, exchange, initialVisibilityDelay);
+        }
+        public void Emit(IEnumerable<IEvent> events, string exchange, TimeSpan? initialVisibilityDelay = default)
+        {
+
+            foreach (var @event in events)
+            {
+                var body = _rabbitMqEventSerializer.Serializer.Serialize(@event);
+                var routingKey = _rabbitMqEventSerializer.GetRoutingKey(@event);
+
+                var basicProperties = _rabbitMqConnection.GetBasicProperties();
+
+                basicProperties.ContentType = _rabbitMqEventSerializer.Serializer.ContentMIMEType;
+                basicProperties.ContentEncoding = _rabbitMqEventSerializer.Serializer.ContentEncoding;
+
+                basicProperties.CorrelationId = $"{@event.CorrelationID}";
+                basicProperties.MessageId = $"{@event.EventID}";
+                basicProperties.Type = @event.GetTypeReadableName();
+
+                _rabbitMqConnection.DoWithChannel(channel =>
+                {
+
+                    if (initialVisibilityDelay.HasValue && initialVisibilityDelay.Value > TimeSpan.Zero)
+                    {
+                        var delayInMilliseconds = Math.Max(1, (int)initialVisibilityDelay.Value.TotalSeconds);
+                        basicProperties.Headers.Add(XDelay, delayInMilliseconds);
+                    }
+                    else
+                    {
+                        channel.BasicPublish(exchange: exchange, routingKey: routingKey, basicProperties: basicProperties, body: body);
+                    }
+
+                    channel.WaitForConfirmsOrDie(_defaultPublishConfirmTimeout);
+
+                });
+            }
         }
 
-        public void Emit(IEvent @event, string exchange)
+        private RabbitMqSubscription GetOrCreateEventSubscriberDescriptor(IEventSubscription subscription)
         {
 
-            var body = _eventSerializer.Serializer.Serialize(@event);
-            var routingKey = _eventSerializer.GetRoutingKey(@event);
+            var doesSubscriptionExist = _existingSubscriptions.ContainsKey(subscription.SubscriptionId);
 
-            var properties = _channel.CreateBasicProperties();
+            if (doesSubscriptionExist) {
 
-            properties.Type = @event.GetType().ToString();
-            properties.ContentType = _eventSerializer.Serializer.ContentMIMEType;
-            properties.ContentEncoding = _eventSerializer.Serializer.ContentEncoding;
+                _rabbitMqConnection.DoWithChannel(channel =>
+                {
 
-            _channel.BasicPublish(exchange: exchange,
-                                 routingKey: routingKey,
-                                 basicProperties: properties,
-                                 body: body);
+                    if (!channel.DoesExchangeExist(subscription.Exchange))
+                    {
+                        channel.ExchangeDeclare(exchange: subscription.Exchange, type: "topic", durable: false, autoDelete: true);
+                    }
 
-        }
+                    var deadletterExchangeForThisSubscription = $"{subscription.Exchange}-rejected";
 
-   
-        private EventSubscriberDescriptor GetOrCreateEventSubscriberDescriptor(IEventSubscription subscription)
-        {
- 
-            var subscriberDescriptor = _eventSubscriberDescriptors.FirstOrDefault(sub => sub.SubscriptionId == subscription.SubscriptionId);
+                    if (!channel.DoesExchangeExist(deadletterExchangeForThisSubscription))
+                    {
+                        channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: false, autoDelete: true);
+                    }
 
-            if (null == subscriberDescriptor) {
-
-                //ensure event stream exchange is created, as well as it's dead letters counterpart
-                _channel.ExchangeDeclare(exchange: subscription.Exchange, type: "topic", durable: false, autoDelete: true);
-                _channel.ExchangeDeclare($"{subscription.Exchange}-rejected", "fanout", durable: false, autoDelete: true);
-
-                var queueName = _channel.QueueDeclare(exclusive: true, autoDelete: true, arguments: new Dictionary<string, object>
+                    var queueName = channel.QueueDeclare(exclusive: true, autoDelete: true, arguments: new Dictionary<string, object>
                     {
                         {"x-dead-letter-exchange", $"{subscription.Exchange}-rejected"},
 
                     }).QueueName;
 
-                var consumer = new EventingBasicConsumer(_channel);
+                    var consumer = new EventingBasicConsumer(channel);
 
-                _channel.QueueBind(queue: queueName,
-                                   exchange: subscription.Exchange,
-                                   routingKey: subscription.RoutingKey);
+                    channel.QueueBind(queue: queueName,
+                                       exchange: subscription.Exchange,
+                                       routingKey: subscription.RoutingKey);
 
-                _channel.BasicConsume(queue: queueName,
-                                     autoAck: false,
-                                     consumer: consumer);
+                    channel.BasicConsume(queue: queueName,
+                                         autoAck: false,
+                                         consumer: consumer);
 
-                consumer.Received += (model, arg) =>
-                {
-                    try
+                    var rabbitMqSubscription = new RabbitMqSubscription(subscription.Exchange, subscription.RoutingKey, consumer, queueName);
+
+                    consumer.Received += (model, arg) =>
                     {
-
-                        var body = arg.Body;
-                        var type = Type.GetType(arg.BasicProperties.Type);
-                        var message = (IEvent)_eventSerializer.Serializer.Deserialize(body, type);
-
-                        //if the message is correct, we ack it. Error during the subscriber handling process are their responsability.
-                        _channel.BasicAck(deliveryTag: arg.DeliveryTag, multiple: false);
-
-                        foreach (var subscriber in subscriberDescriptor.Subscriptions)
+                        try
                         {
-                            //we may have a faulty subscriber, but if the message is viable, all subscribers must process it
-                            try
+
+                            var body = arg.Body;
+                            var type = Type.GetType(arg.BasicProperties.Type);
+                            var message = (IEvent)_rabbitMqEventSerializer.Serializer.Deserialize(body.ToArray(), type);
+
+                            foreach (var subscriber in rabbitMqSubscription.Subscriptions)
                             {
-                                subscriber.OnEvent(message);
+                                //todo: use observables
+
+                                //if there is an exception in message in the consumer, we immediatly fail and nack the message
+                                //that would mean SOME subscriber may have to process twice but we want to ensure the consumer keep failing until the message is correctly processed
+                                subscriber.OnEvent(message).Wait();
                             }
-                            catch (Exception ex)
-                            {
-                                _logger.LogError($"Error while handling event {arg.BasicProperties.Type} by subscriber {subscriber.SubscriptionId}", ex);
-                            }
+
+                            channel.BasicAck(deliveryTag: arg.DeliveryTag, multiple: false);
+
+                        }
+                        catch (Exception ex)
+                        {
+                            channel.BasicNack(deliveryTag: arg.DeliveryTag, multiple: true, requeue: false);
+                            _logger.LogError($"Error while handling event {arg.BasicProperties.Type}", ex);
                         }
 
-                    }
-                    catch (Exception ex)
-                    {
-                        _channel.BasicReject(deliveryTag: arg.DeliveryTag, requeue: false);
-                        _logger.LogError($"Error while handling event {arg.BasicProperties.Type}", ex);
-                    }
+                    };
 
-                };
+                    _existingSubscriptions[rabbitMqSubscription.SubscriptionId] = rabbitMqSubscription;
 
-                subscriberDescriptor = new EventSubscriberDescriptor(subscription.Exchange, subscription.RoutingKey, consumer, queueName);
+                });
 
-                _eventSubscriberDescriptors.Add(subscriberDescriptor);
+
 
             }
 
-            return subscriberDescriptor;
+            var rabbitMqSubscription = _existingSubscriptions[subscription.SubscriptionId];
+
+            rabbitMqSubscription.Subscriptions.Add(subscription);
+
+            return _existingSubscriptions[subscription.SubscriptionId];
+
+        }
+        public RabbitMqSubscription Subscribe(IEventSubscription subscription)
+        {
+            return GetOrCreateEventSubscriberDescriptor(subscription);
         }
 
-    
-        public void Subscribe<TEvent>(IEventSubscription<TEvent> subscription)
+        public void Unsubscribe<TEvent>(IEventSubscription subscription)
         {
-            var subscriberDescriptor = GetOrCreateEventSubscriberDescriptor(subscription);
-            subscriberDescriptor.Subscriptions.Add(subscription);
-        }
 
-        public void Unsubscribe<TEvent>(IEventSubscription<TEvent> subscription)
-        {
-            var key = $"{subscription.Exchange}.{subscription.RoutingKey}";
+            if (!_existingSubscriptions.ContainsKey(subscription.SubscriptionId))
+                return;
 
-            var subscriberDescriptor = _eventSubscriberDescriptors.FirstOrDefault(s => s.SubscriptionId == key);
-
-            if (null == subscriberDescriptor) return;
+            var subscriberDescriptor = _existingSubscriptions[subscription.SubscriptionId];
 
             subscriberDescriptor.Subscriptions.Remove(subscription);
         }
@@ -185,7 +205,7 @@ namespace RabbitMQPlayground.Routing
                 {
                     var task = _commandResults[correlationId];
                     var type = Type.GetType(arg.BasicProperties.Type);
-                    var message = (ICommandResult)_eventSerializer.Serializer.Deserialize(body, type);
+                    var message = (ICommandResult)_rabbitMqEventSerializer.Serializer.Deserialize(body, type);
 
                     task.SetResult(message);
 
@@ -208,10 +228,10 @@ namespace RabbitMQPlayground.Routing
             var properties = _channel.CreateBasicProperties();
             var correlationId = Guid.NewGuid().ToString();
 
-            var body = _eventSerializer.Serializer.Serialize(command);
+            var body = _rabbitMqEventSerializer.Serializer.Serialize(command);
 
-            properties.ContentType = _eventSerializer.Serializer.ContentMIMEType;
-            properties.ContentEncoding = _eventSerializer.Serializer.ContentEncoding;
+            properties.ContentType = _rabbitMqEventSerializer.Serializer.ContentMIMEType;
+            properties.ContentEncoding = _rabbitMqEventSerializer.Serializer.ContentEncoding;
             properties.Type = command.GetType().ToString();
             properties.CorrelationId = correlationId;
             properties.ReplyTo = _commandsResultQueue;
@@ -277,13 +297,13 @@ namespace RabbitMQPlayground.Routing
 
                 var replyProperties = _channel.CreateBasicProperties();
                 replyProperties.CorrelationId = properties.CorrelationId;
-                replyProperties.ContentType = _eventSerializer.Serializer.ContentMIMEType;
-                replyProperties.ContentEncoding = _eventSerializer.Serializer.ContentEncoding;
+                replyProperties.ContentType = _rabbitMqEventSerializer.Serializer.ContentMIMEType;
+                replyProperties.ContentEncoding = _rabbitMqEventSerializer.Serializer.ContentEncoding;
 
                 try
                 {
                     var type = Type.GetType(properties.Type);
-                    var message = (ICommand)_eventSerializer.Serializer.Deserialize(body, type);
+                    var message = (ICommand)_rabbitMqEventSerializer.Serializer.Deserialize(body, type);
 
                     var descriptor = _commandSubscriberDescriptors.FirstOrDefault(subscriber => subscriber.SubscriptionId == $"{subscriber.ExchangeName}.{type}");
 
@@ -294,7 +314,7 @@ namespace RabbitMQPlayground.Routing
 
                     replyProperties.Type = typeof(TCommandResult).ToString();
 
-                    var replyMessage = _eventSerializer.Serializer.Serialize(commandResult);
+                    var replyMessage = _rabbitMqEventSerializer.Serializer.Serialize(commandResult);
 
                     _channel.BasicAck(deliveryTag: arg.DeliveryTag, multiple: false);
                     _channel.BasicPublish(exchange: string.Empty, routingKey: properties.ReplyTo, mandatory: true, basicProperties: replyProperties, body: replyMessage);
@@ -313,7 +333,7 @@ namespace RabbitMQPlayground.Routing
 
                     replyProperties.Type = typeof(CommandErrorResult).ToString();
 
-                    var replyMessage = _eventSerializer.Serializer.Serialize(error);
+                    var replyMessage = _rabbitMqEventSerializer.Serializer.Serialize(error);
 
                     _channel.BasicPublish(exchange: string.Empty, routingKey: properties.ReplyTo, mandatory: true, basicProperties: replyProperties, body: replyMessage);
 
@@ -337,6 +357,11 @@ namespace RabbitMQPlayground.Routing
             if (null == subscriberDescriptor) return;
 
             _commandSubscriberDescriptors.Remove(subscriberDescriptor);
+        }
+
+        public void Dispose()
+        {
+            _rabbitMqConnection.Dispose();
         }
     }
 }

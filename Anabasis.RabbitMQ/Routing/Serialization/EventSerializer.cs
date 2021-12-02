@@ -6,7 +6,7 @@ using System.Text;
 
 namespace RabbitMQPlayground.Routing
 {
-    public class EventSerializer : IEventSerializer
+    public class EventSerializer : IRabbitMqEventSerializer
     {
         public const string All = "*";
         public const char Separator = '.';

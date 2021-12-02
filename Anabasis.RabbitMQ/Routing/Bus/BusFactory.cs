@@ -16,7 +16,7 @@ namespace RabbitMQPlayground.Routing
                 configuration.For<IConnection>().Use(connection);
                 configuration.For<IBus>().Use<Bus>().Singleton();
                 configuration.For<IBusConfiguration>().Use(busConfiguration);
-                configuration.For<IEventSerializer>().Use<EventSerializer>();
+                configuration.For<IRabbitMqEventSerializer>().Use<EventSerializer>();
             });
 
         }

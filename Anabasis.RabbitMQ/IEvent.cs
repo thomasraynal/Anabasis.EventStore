@@ -6,5 +6,6 @@ namespace Anabasis.RabbitMQ
     {
         Guid EventID { get; }
         Guid CorrelationID { get; }
+        string Subject { get; }
     }
 }
