@@ -10,7 +10,7 @@ namespace Anabasis.RabbitMQ
         private readonly RabbitMqConnection _rabbitMqConnection;
         private readonly ulong _deliveryTag;
 
-        public RabbitMqQueueMessage(RabbitMqConnection rabbitMqConnection, IEvent content, bool redelivered, ulong deliveryTag)
+        public RabbitMqQueueMessage(RabbitMqConnection rabbitMqConnection, IRabbitMqEvent content, bool redelivered, ulong deliveryTag)
         {
             _rabbitMqConnection = rabbitMqConnection;
             _deliveryTag = deliveryTag;
@@ -19,7 +19,7 @@ namespace Anabasis.RabbitMQ
             DequeueCount = redelivered ? 1 : 0;
         }
 
-        public IEvent Content { get; private set; }
+        public IRabbitMqEvent Content { get; private set; }
         public int DequeueCount { get; private set; }
 
         public void Acknowledge()

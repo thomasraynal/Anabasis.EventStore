@@ -6,7 +6,7 @@ namespace Anabasis.RabbitMQ
     {
         string Id { get; }
         bool IsWiredUp { get; }
-        IObservable<IEvent> OnEvent();
+        IObservable<IRabbitMqEvent> OnEvent();
         void Connect();
     }
 }

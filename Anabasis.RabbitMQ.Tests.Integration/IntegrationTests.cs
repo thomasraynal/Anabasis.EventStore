@@ -11,7 +11,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
     [TestFixture, Category("Integration")]
     public class Integration
     {
-        class TestEvent : IEvent
+        class TestEvent : IRabbitMqEvent
         {
             public TestEvent()
             {

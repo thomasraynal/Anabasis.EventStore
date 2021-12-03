@@ -9,9 +9,7 @@ namespace RabbitMQPlayground.Routing
     {
         public BusConfiguration()
         {
-            CommandTimeout = TimeSpan.FromSeconds(1);
         }
 
-        public TimeSpan CommandTimeout { get; set; }
     }
 }

@@ -46,13 +46,13 @@ namespace Anabasis.RabbitMQ
         public string Name { get; }
 
         public void Push<T>(T message, TimeSpan? initialVisibilityDelay = default)
-            where T : class, IEvent
+            where T : class, IRabbitMqEvent
         {
             Push(new[] { message }, initialVisibilityDelay);
         }
 
         public void Push<T>(IEnumerable<T> messages, TimeSpan? initialVisibilityDelay = default)
-            where T : class, IEvent
+            where T : class, IRabbitMqEvent
         {
             foreach (var message in messages)
             {
@@ -104,7 +104,7 @@ namespace Anabasis.RabbitMQ
 
                     count++;
 
-                    var content = (IEvent)GetObjectContent(result.BasicProperties, result.Body.ToArray());
+                    var content = (IRabbitMqEvent)GetObjectContent(result.BasicProperties, result.Body.ToArray());
 
                     list.Add(new RabbitMqQueueMessage(_rabbitMqConnection, content, result.Redelivered, result.DeliveryTag));
                 }
@@ -124,7 +124,7 @@ namespace Anabasis.RabbitMQ
 
                 consumer.Received += (object sender, BasicDeliverEventArgs e) =>
                 {
-                    var content = (IEvent)GetObjectContent(e.BasicProperties, e.Body.ToArray());
+                    var content = (IRabbitMqEvent)GetObjectContent(e.BasicProperties, e.Body.ToArray());
 
                     _logger.LogDebug($"{nameof(RabbitMqQueue)}-{Name} Received eventId => {content.EventID}");
 

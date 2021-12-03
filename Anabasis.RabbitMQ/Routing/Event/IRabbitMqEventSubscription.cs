@@ -7,11 +7,11 @@ using System.Threading.Tasks;
 namespace RabbitMQPlayground.Routing
 {
 
-    public interface IEventSubscription
+    public interface IRabbitMqEventSubscription
     {
         string SubscriptionId { get; }
         string Exchange { get; }
         string RoutingKey { get; }
-        Func<IEvent, Task> OnEvent { get; }
+        Func<IRabbitMqEvent, Task> OnEvent { get; }
     }
 }

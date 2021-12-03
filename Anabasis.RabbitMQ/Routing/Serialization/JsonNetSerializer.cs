@@ -11,6 +11,7 @@ namespace RabbitMQPlayground.Routing
 
         public string ContentEncoding => string.Empty;
 
+        //todo: use registed serializer
         public T Deserialize<T>(byte[] bytes)
         {
             return JsonConvert.DeserializeObject<T>(Encoding.UTF8.GetString(bytes));

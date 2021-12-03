@@ -6,6 +6,5 @@ namespace RabbitMQPlayground.Routing
 {
     public interface IBusConfiguration
     {
-        TimeSpan CommandTimeout { get; set; }
     }
 }

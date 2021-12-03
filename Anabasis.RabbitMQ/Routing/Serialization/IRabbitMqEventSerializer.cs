@@ -5,6 +5,6 @@ namespace RabbitMQPlayground.Routing
     public interface IRabbitMqEventSerializer
     {
         ISerializer Serializer { get; }
-        string GetRoutingKey(IEvent @event);
+        string GetRoutingKey(IRabbitMqEvent @event);
     }
 }
