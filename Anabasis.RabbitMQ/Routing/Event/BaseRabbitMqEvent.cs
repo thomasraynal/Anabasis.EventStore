@@ -12,8 +12,6 @@ namespace RabbitMQPlayground.Routing.Event
             CorrelationID = correlationId;
         }
 
-        public string AggregateId { get; }
-
         public string Subject
         {
             get

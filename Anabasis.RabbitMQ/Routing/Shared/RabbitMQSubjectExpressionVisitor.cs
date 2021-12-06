@@ -15,8 +15,8 @@ namespace RabbitMQPlayground.Routing.Shared
 
     public class RabbitMQSubjectExpressionVisitor : ExpressionVisitor
     {
-        private const string All = "#";
-        private const string AllOfSubject = "*";
+        public const string SubscribeToAllEvents = "#";
+        public const string SubscribeToAllInASubject = "*";
 
         private readonly Type _declaringType;
         private readonly List<RabbitMQSubjectExpressionMember> _members = new List<RabbitMQSubjectExpressionMember>();
@@ -46,7 +46,7 @@ namespace RabbitMQPlayground.Routing.Shared
 
         public string Resolve()
         {
-            if (_members.Count == 0) return All;
+            if (_members.Count == 0) return SubscribeToAllEvents;
 
             var expectedRoutingAttributes = _declaringType.GetProperties().Where(property => property.IsDefined(typeof(RoutingPositionAttribute), false))
                                                                           .Count();
@@ -69,7 +69,7 @@ namespace RabbitMQPlayground.Routing.Shared
 
                 if (null== member && !isStarBounded)
                 {
-                    appendSubject(AllOfSubject);
+                    appendSubject(SubscribeToAllInASubject);
                     isStarBounded = true;
                 } 
                 else if ( null != member)

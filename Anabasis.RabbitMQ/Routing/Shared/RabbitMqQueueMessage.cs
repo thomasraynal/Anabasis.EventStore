@@ -5,16 +5,19 @@ using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ
 {
-    public class RabbitMqQueueMessage
+    public class RabbitMqQueueMessage : IRabbitMqQueueMessage
     {
-        private readonly RabbitMqConnection _rabbitMqConnection;
+        private readonly IRabbitMqConnection _rabbitMqConnection;
         private readonly ulong _deliveryTag;
 
-        public RabbitMqQueueMessage(RabbitMqConnection rabbitMqConnection, IRabbitMqEvent content, bool redelivered, ulong deliveryTag)
+        public Type Type { get; }
+
+        public RabbitMqQueueMessage(IRabbitMqConnection rabbitMqConnection, Type type, IRabbitMqEvent content, bool redelivered, ulong deliveryTag)
         {
             _rabbitMqConnection = rabbitMqConnection;
             _deliveryTag = deliveryTag;
 
+            Type = type;
             Content = content;
             DequeueCount = redelivered ? 1 : 0;
         }
@@ -26,7 +29,6 @@ namespace Anabasis.RabbitMQ
         {
             _rabbitMqConnection.DoWithChannel(channel => channel.BasicAck(_deliveryTag, multiple: false));
         }
-
         public void NotAcknowledge()
         {
             _rabbitMqConnection.DoWithChannel(channel => channel.BasicNack(_deliveryTag, multiple: false, requeue: true));

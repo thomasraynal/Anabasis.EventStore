@@ -1,4 +1,6 @@
-﻿using RabbitMQ.Client.Events;
+﻿using Anabasis.RabbitMQ;
+using Anabasis.RabbitMQ.Routing.Bus;
+using RabbitMQ.Client.Events;
 using System.Collections.Generic;
 
 namespace RabbitMQPlayground.Routing
@@ -8,6 +10,6 @@ namespace RabbitMQPlayground.Routing
         EventingBasicConsumer Consumer { get; }
         string QueueName { get; }
         string SubscriptionId { get; }
-        List<IRabbitMqEventSubscription> Subscriptions { get; }
+        List<IRabbitMqEventHandler> Subscriptions { get; }
     }
 }

@@ -1,5 +1,8 @@
-﻿using RabbitMQ.Client.Events;
+﻿using Anabasis.RabbitMQ;
+using Anabasis.RabbitMQ.Routing.Bus;
+using RabbitMQ.Client.Events;
 using System.Collections.Generic;
+using System.Reactive.Subjects;
 
 namespace RabbitMQPlayground.Routing
 {
@@ -13,14 +16,15 @@ namespace RabbitMQPlayground.Routing
             _exchange = exchange;
             _routingKey = routingKey;
 
-            Subscriptions = new List<IRabbitMqEventSubscription>();
+            Subscriptions = new List<IRabbitMqEventHandler>();
             Consumer = consumer;
             QueueName = queueName;
+
         }
 
         public string SubscriptionId => $"{_exchange}.{_routingKey}";
 
-        public List<IRabbitMqEventSubscription> Subscriptions { get; }
+        public List<IRabbitMqEventHandler> Subscriptions { get; }
         public EventingBasicConsumer Consumer { get; }
         public string QueueName { get; }
     }

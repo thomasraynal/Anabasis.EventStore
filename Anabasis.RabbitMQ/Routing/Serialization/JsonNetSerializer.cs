@@ -8,7 +8,6 @@ namespace RabbitMQPlayground.Routing
     public class JsonNetSerializer : ISerializer
     {
         public string ContentMIMEType => "application/json";
-
         public string ContentEncoding => string.Empty;
 
         //todo: use registed serializer

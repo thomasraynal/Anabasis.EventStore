@@ -1,14 +1,16 @@
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.RabbitMQ
+namespace RabbitMQPlayground.Routing
 {
     public interface ISerializer
     {
+        string ContentMIMEType { get; }
+        string ContentEncoding { get; }
 
-
-        byte[] SerializeObject(object obj);
-        object DeserializeObject(byte[] str, Type type);
+        T Deserialize<T>(byte[] bytes);
+        object Deserialize(byte[] bytes, Type type);
+        byte[] Serialize(object obj);
     }
 }

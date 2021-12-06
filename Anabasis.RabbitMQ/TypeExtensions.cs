@@ -8,7 +8,8 @@ namespace Anabasis.RabbitMQ
 {
     public static class TypeExtensions
     {
-        private static readonly ConcurrentDictionary<Type, string> _friendlyNamesCache = new ConcurrentDictionary<Type, string>();
+        private static readonly ConcurrentDictionary<Type, string> _typeToFriendlyNameCache = new ConcurrentDictionary<Type, string>();
+        private static readonly ConcurrentDictionary<string,Type> _friendlyNameToTypeCache = new ConcurrentDictionary<string,Type>();
 
         private static readonly Dictionary<Type, string> _typeToFriendlyName = new Dictionary<Type, string>
         {
@@ -30,15 +31,15 @@ namespace Anabasis.RabbitMQ
             {typeof(void), "void"}
         };
 
-        public static string GetTypeReadableName(this object @object)
+        public static string GetReadableNameFromType(this object @object)
         {
-            return @object.GetType().GetTypeReadableName();
+            return @object.GetType().GetReadableNameFromType();
         }
 
-        public static string GetTypeReadableName(this Type type)
+        public static string GetReadableNameFromType(this Type type)
         {
 
-            if (_friendlyNamesCache.TryGetValue(type, out string result))
+            if (_typeToFriendlyNameCache.TryGetValue(type, out string result))
                 return result;
 
             if (type.IsGenericType)
@@ -49,7 +50,7 @@ namespace Anabasis.RabbitMQ
                 {
                     friendlyName = friendlyName.Remove(iBacktick);
                 }
-                var genericNames = type.GetGenericArguments().Select(t => t.GetTypeReadableName());
+                var genericNames = type.GetGenericArguments().Select(t => t.GetReadableNameFromType());
                 result = $"{friendlyName}<{string.Join(", ", genericNames)}>";
             }
             else
@@ -59,8 +60,25 @@ namespace Anabasis.RabbitMQ
                     : type.Name;
             }
 
-            _friendlyNamesCache[type] = result;
+            _typeToFriendlyNameCache[type] = result;
             return result;
+        }
+
+        public static Type GetTypeFromReadableName(this string typeReadableName)
+        {
+            return _friendlyNameToTypeCache.GetOrAdd(typeReadableName, (readableName) =>
+            {
+                foreach (var assembly in AppDomain.CurrentDomain.GetAssemblies())
+                {
+                    var type = assembly.GetTypes().FirstOrDefault(candidateType => candidateType.GetReadableNameFromType() == readableName);
+                    if (type != null)
+                        return type;
+                }
+
+                throw new InvalidOperationException($"Could not resolve readable name => {readableName}");
+            });
+
+
         }
 
     }
