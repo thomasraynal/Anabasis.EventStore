@@ -1,7 +1,6 @@
-﻿using NUnit.Framework;
-using RabbitMQPlayground.Routing;
-using RabbitMQPlayground.Routing.Event;
-using RabbitMQPlayground.Routing.Shared;
+﻿using Anabasis.RabbitMQ.Event;
+using Anabasis.RabbitMQ.Shared;
+using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;

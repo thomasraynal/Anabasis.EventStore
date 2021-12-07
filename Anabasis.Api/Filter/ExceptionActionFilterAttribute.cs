@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Http.Extensions;
+﻿using Anabasis.Common;
+using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -13,9 +14,9 @@ namespace Anabasis.Api.Filters
     public class ExceptionActionFilterAttribute : ExceptionFilterAttribute
     {
         private readonly Dictionary<Type, HttpStatusCode> _defaultErrors;
-        private readonly AppContext _appContext;
+        private readonly AnabasisAppContext _appContext;
 
-        public ExceptionActionFilterAttribute(AppContext appContext)
+        public ExceptionActionFilterAttribute(AnabasisAppContext appContext)
         {
             _defaultErrors = new Dictionary<Type, HttpStatusCode>
                 {

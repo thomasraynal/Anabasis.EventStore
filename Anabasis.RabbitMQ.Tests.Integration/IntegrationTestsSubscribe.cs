@@ -1,9 +1,5 @@
 ﻿using NUnit.Framework;
-using RabbitMQPlayground.Routing;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
@@ -12,58 +8,90 @@ namespace Anabasis.RabbitMQ.Tests.Integration
     public class IntegrationTestsSubscribe
     {
         private RabbitMqBus _rabbitMqBus;
-        private int _counter;
+        private int _counterTestEventOneNoFilter;
+        private int _counterTestEventTwoNoFilter;
+        private int _counterTestEventOneFilterOnFilterOne;
+        private int _counterTestEventTwoFilterOnFilterTwo;
 
         [OneTimeSetUp]
         public void SetUp()
         {
             _rabbitMqBus = IntegrationTestsHelper.GetRabbitMqBus();
-            _counter = 0;
+
+            _counterTestEventOneNoFilter = 0;
+            _counterTestEventTwoNoFilter = 0;
+
+            _counterTestEventOneFilterOnFilterOne = 0;
+            _counterTestEventTwoFilterOnFilterTwo = 0;
         }
 
         [Test, Order(1)]
-        public async Task ShouldCreateSomeSubscriptions()
+        public void ShouldCreateSomeSubscriptions()
         {
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange",(ev)=>
+            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) =>
+             {
+                 _counterTestEventOneNoFilter++;
+                 return Task.CompletedTask;
+             }));
+
+            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) => ev.FilterOne == "filterOne", (ev) =>
             {
-                _counter++;
+                _counterTestEventOneFilterOnFilterOne++;
                 return Task.CompletedTask;
             }));
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) => ev.Data == "one", (ev) =>
+            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) =>
             {
-                _counter++;
+                _counterTestEventTwoNoFilter++;
                 return Task.CompletedTask;
             }));
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) => ev.Data2 == "data2", (ev) =>
+            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) => ev.FilterTwo == "filterTwo", (ev) =>
             {
-                _counter++;
+                _counterTestEventTwoFilterOnFilterTwo++;
                 return Task.CompletedTask;
             }));
         }
 
         [Test, Order(2)]
-        public async Task ShouldEmitEventAndConsumeIt()
+        public async Task ShouldEmitEventsAndConsumeThem()
         {
-            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { Data = "one" }, "testevent-exchange");
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "AnotherfilterOne" }, "testevent-exchange");
 
             await Task.Delay(500);
 
-            Assert.AreEqual(2, _counter);
-
-            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { Data = "one" }, "testevent-exchange");
-
-            await Task.Delay(500);
-
-            Assert.AreEqual(2, _counter);
-
-            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { Data2 = "data2" }, "testevent-exchange");
+            Assert.AreEqual(0, _counterTestEventTwoNoFilter);
+            Assert.AreEqual(0, _counterTestEventTwoFilterOnFilterTwo);
+            Assert.AreEqual(1, _counterTestEventOneNoFilter);
+            Assert.AreEqual(0, _counterTestEventOneFilterOnFilterOne);
+    
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange");
 
             await Task.Delay(500);
 
-            Assert.AreEqual(3, _counter);
+            Assert.AreEqual(0, _counterTestEventTwoNoFilter);
+            Assert.AreEqual(0, _counterTestEventTwoFilterOnFilterTwo);
+            Assert.AreEqual(2, _counterTestEventOneNoFilter);
+            Assert.AreEqual(1, _counterTestEventOneFilterOnFilterOne);
+
+            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange");
+
+            await Task.Delay(500);
+
+            Assert.AreEqual(1, _counterTestEventTwoNoFilter);
+            Assert.AreEqual(0, _counterTestEventTwoFilterOnFilterTwo);
+            Assert.AreEqual(2, _counterTestEventOneNoFilter);
+            Assert.AreEqual(1, _counterTestEventOneFilterOnFilterOne);
+
+            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterTwo = "filterTwo" }, "testevent-exchange");
+
+            await Task.Delay(500);
+
+            Assert.AreEqual(2, _counterTestEventTwoNoFilter);
+            Assert.AreEqual(1, _counterTestEventTwoFilterOnFilterTwo);
+            Assert.AreEqual(2, _counterTestEventOneNoFilter);
+            Assert.AreEqual(1, _counterTestEventOneFilterOnFilterOne);
         }
     }
 }

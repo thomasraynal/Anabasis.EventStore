@@ -1,8 +1,5 @@
-﻿using Anabasis.Api;
-using Microsoft.Extensions.Logging;
-using NUnit.Framework;
+﻿using NUnit.Framework;
 using RabbitMQ.Client;
-using RabbitMQPlayground.Routing;
 using System;
 using System.Threading.Tasks;
 
@@ -11,11 +8,6 @@ namespace Anabasis.RabbitMQ.Tests.Integration
     [TestFixture]
     public class IntegrationTestsPushPull
     {
-
-        [OneTimeSetUp]
-        public void SetUp()
-        {
-        }
 
         [Test, Order(1)]
         public async Task ShouldCreateAQueueAndPushMessageAndPullMessage()

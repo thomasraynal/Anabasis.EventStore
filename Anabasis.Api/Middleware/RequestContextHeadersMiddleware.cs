@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Builder;
+﻿using Anabasis.Common;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace Anabasis.Api.Middleware
         private readonly RequestDelegate _next;
         private readonly string _applicationName;
 
-        public RequestContextHeadersMiddleware(RequestDelegate next, AppContext appContext)
+        public RequestContextHeadersMiddleware(RequestDelegate next, AnabasisAppContext appContext)
         {
             _next = next;
             _applicationName = appContext.ApplicationName;

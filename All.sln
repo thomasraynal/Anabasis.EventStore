@@ -48,6 +48,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.RabbitMQ.Tests.Int
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.OAuth", "Anabasis.OAuth\Anabasis.OAuth.csproj", "{F142F7CA-8FE0-42FB-AFA2-E0B2E7978AD9}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EntityFramework", "Anabasis.EnityFramework\Anabasis.EntityFramework.csproj", "{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -192,6 +194,14 @@ Global
 		{F142F7CA-8FE0-42FB-AFA2-E0B2E7978AD9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{F142F7CA-8FE0-42FB-AFA2-E0B2E7978AD9}.Release|x64.ActiveCfg = Release|Any CPU
 		{F142F7CA-8FE0-42FB-AFA2-E0B2E7978AD9}.Release|x64.Build.0 = Release|Any CPU
+		{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}.Debug|x64.Build.0 = Debug|Any CPU
+		{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}.Release|x64.ActiveCfg = Release|Any CPU
+		{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

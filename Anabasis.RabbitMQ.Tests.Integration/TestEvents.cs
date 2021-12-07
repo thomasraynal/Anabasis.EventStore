@@ -1,10 +1,5 @@
-﻿using RabbitMQPlayground.Routing;
-using RabbitMQPlayground.Routing.Event;
+﻿using Anabasis.RabbitMQ.Event;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
 {
@@ -25,7 +20,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         public string Identity => "one";
 
         [RoutingPosition(1)]
-        public string Data { get; set; }
+        public string FilterOne { get; set; }
     }
 
     public class TestEventTwo : BaseRabbitMqEvent
@@ -38,10 +33,10 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         public string Identity => "two";
 
         [RoutingPosition(1)]
-        public string Data { get; set; }
+        public string FilterOne { get; set; }
 
         [RoutingPosition(2)]
-        public string Data2 { get; set; }
+        public string FilterTwo { get; set; }
     }
 
     public class TestEventTwoBis : BaseRabbitMqEvent
@@ -52,7 +47,6 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
         [RoutingPosition(0)]
         public string Identity => "two";
-
 
         [RoutingPosition(1)]
         public string SecondIdentity => "one";

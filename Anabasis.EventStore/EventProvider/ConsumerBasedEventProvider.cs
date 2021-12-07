@@ -6,85 +6,84 @@ using System.Linq;
 namespace Anabasis.EventStore.EventProvider
 {
     public class ConsumerBasedEventProvider<TConsumer> : IEventTypeProvider
-  {
-    private readonly Dictionary<string, Type> _eventTypeCache;
-
-    public ConsumerBasedEventProvider()
     {
-      _eventTypeCache = new Dictionary<string, Type>();
+        private readonly Dictionary<string, Type> _eventTypeCache;
 
-
-      var eventTypes = typeof(TConsumer).GetMethods().Where(method => method.Name == "Handle" && method.GetParameters().Length == 1)
-        .Select(method =>
+        public ConsumerBasedEventProvider()
         {
-          var parameterType = method.GetParameters().First().ParameterType;
+            _eventTypeCache = new Dictionary<string, Type>();
 
-          if (!parameterType.GetInterfaces().Contains(typeof(IEvent))) return null;
+            var eventTypes = typeof(TConsumer).GetMethods().Where(method => method.Name == "Handle" && method.GetParameters().Length == 1)
+              .Select(method =>
+              {
+                  var parameterType = method.GetParameters().First().ParameterType;
 
-          return parameterType;
+                  if (!parameterType.GetInterfaces().Contains(typeof(IEvent))) return null;
 
-        }).Where(type => null != type).ToArray();
+                  return parameterType;
 
-      foreach (var @event in eventTypes)
-      {
-        _eventTypeCache.Add(@event.FullName, @event);
-      }
-    }
+              }).Where(type => null != type).ToArray();
 
-    public Type[] GetAll()
-    {
-      return _eventTypeCache.Values.ToArray();
-    }
+            foreach (var @event in eventTypes)
+            {
+                _eventTypeCache.Add(@event.FullName, @event);
+            }
+        }
 
-    public Type GetEventTypeByName(string name)
-    {
-
-      if (!_eventTypeCache.ContainsKey(name)) return null;
-
-      return _eventTypeCache[name];
-
-    }
-  }
-
-
-  public class ConsumerBasedEventProvider<TKey, TAggregate, TConsumer> : IEventTypeProvider<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
-  {
-    private readonly Dictionary<string, Type> _eventTypeCache;
-
-    public ConsumerBasedEventProvider()
-    {
-      _eventTypeCache = new Dictionary<string, Type>();
-
-
-      var eventTypes = typeof(TConsumer).GetMethods().Where(method => method.Name == "Handle" && method.GetParameters().Length == 1)
-        .Select(method =>
+        public Type[] GetAll()
         {
-          var parameterType = method.GetParameters().First().ParameterType;
+            return _eventTypeCache.Values.ToArray();
+        }
 
-          if (!parameterType.GetInterfaces().Contains(typeof(IEvent))) return null;
+        public Type GetEventTypeByName(string name)
+        {
 
-          return parameterType;
+            if (!_eventTypeCache.ContainsKey(name)) return null;
 
-        }).Where(type => null != type).ToArray();
+            return _eventTypeCache[name];
 
-      foreach (var @event in eventTypes)
-      {
-        _eventTypeCache.Add(@event.FullName, @event);
-      }
+        }
     }
 
-    public Type[] GetAll()
+
+    public class ConsumerBasedEventProvider<TKey, TAggregate, TConsumer> : IEventTypeProvider<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
     {
-      return _eventTypeCache.Values.ToArray();
+        private readonly Dictionary<string, Type> _eventTypeCache;
+
+        public ConsumerBasedEventProvider()
+        {
+            _eventTypeCache = new Dictionary<string, Type>();
+
+
+            var eventTypes = typeof(TConsumer).GetMethods().Where(method => method.Name == "Handle" && method.GetParameters().Length == 1)
+              .Select(method =>
+              {
+                  var parameterType = method.GetParameters().First().ParameterType;
+
+                  if (!parameterType.GetInterfaces().Contains(typeof(IEvent))) return null;
+
+                  return parameterType;
+
+              }).Where(type => null != type).ToArray();
+
+            foreach (var @event in eventTypes)
+            {
+                _eventTypeCache.Add(@event.FullName, @event);
+            }
+        }
+
+        public Type[] GetAll()
+        {
+            return _eventTypeCache.Values.ToArray();
+        }
+
+        public Type GetEventTypeByName(string name)
+        {
+
+            if (!_eventTypeCache.ContainsKey(name)) return null;
+
+            return _eventTypeCache[name];
+
+        }
     }
-
-    public Type GetEventTypeByName(string name)
-    {
-
-      if (!_eventTypeCache.ContainsKey(name)) return null;
-
-      return _eventTypeCache[name];
-
-    }
-  }
 }

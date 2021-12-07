@@ -1,7 +1,7 @@
 using Anabasis.EventStore.Shared;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Serialization;
+using Anabasis.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;

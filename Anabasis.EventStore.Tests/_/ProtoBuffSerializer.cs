@@ -4,12 +4,16 @@ using System.Collections.Generic;
 using System.IO;
 using System.Text;
 using Anabasis.EventStore;
-using Anabasis.EventStore.Serialization;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests.Demo
 {
     public class ProtoBuffSerializer : ISerializer
     {
+        public string ContentMIMEType => throw new NotImplementedException();
+
+        public string ContentEncoding => throw new NotImplementedException();
+
         public object DeserializeObject(byte[] bytes, Type type)
         {
             using (var ms = new MemoryStream(bytes))

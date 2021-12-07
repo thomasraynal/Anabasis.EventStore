@@ -1,4 +1,4 @@
-using Anabasis.EventStore.Serialization;
+using Anabasis.Common;
 using EventStore.ClientAPI.SystemData;
 
 namespace Anabasis.EventStore.Stream

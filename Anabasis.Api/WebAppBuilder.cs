@@ -1,6 +1,7 @@
 ﻿using Anabasis.Api.ErrorManagement;
 using Anabasis.Api.Filters;
 using Anabasis.Api.Middleware;
+using Anabasis.Common;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -45,8 +46,8 @@ namespace Anabasis.Api
 
             configurationBuilder.AddEnvironmentVariables();
 
-            configurationBuilder.AddJsonFile(AppContext.AppConfigurationFile, false, false);
-            configurationBuilder.AddJsonFile(AppContext.GroupConfigurationFile, true, false);
+            configurationBuilder.AddJsonFile(AnabasisAppContext.AppConfigurationFile, false, false);
+            configurationBuilder.AddJsonFile(AnabasisAppContext.GroupConfigurationFile, true, false);
 
             configureConfigurationBuilder?.Invoke(configurationBuilder);
 
@@ -62,7 +63,7 @@ namespace Anabasis.Api
 
             groupConfigurationOptions.Validate();
 
-            var appContext = new AppContext(
+            var appContext = new AnabasisAppContext(
                 appConfigurationOptions.ApplicationName,
                 groupConfigurationOptions.GroupName,
                 appConfigurationOptions.ApiVersion,
@@ -122,7 +123,7 @@ namespace Anabasis.Api
 
         private static void ConfigureServices<THost>(
             IServiceCollection services,
-            AppContext appContext,
+            AnabasisAppContext appContext,
             Action<MvcOptions> configureMvcBuilder = null,
             Action<IMvcBuilder> configureMvc = null,
             Action<MvcNewtonsoftJsonOptions> configureJson = null)
@@ -255,7 +256,7 @@ namespace Anabasis.Api
         private static void ConfigureApplication(
             IApplicationBuilder appBuilder,
             IWebHostEnvironment webHostEnvironment,
-            AppContext appContext)
+            AnabasisAppContext appContext)
         {
             appBuilder.WithClientIPAddress();
             appBuilder.WithRequestContextHeaders();
