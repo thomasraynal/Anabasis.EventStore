@@ -13,6 +13,7 @@ using Lamar;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Standalone
 {

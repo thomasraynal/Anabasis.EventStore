@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Shared;
 using System.Collections.Generic;
 using System.Threading.Tasks;

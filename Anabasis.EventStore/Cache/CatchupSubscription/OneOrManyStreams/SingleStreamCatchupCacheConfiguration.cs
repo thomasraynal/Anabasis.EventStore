@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI.SystemData;
 

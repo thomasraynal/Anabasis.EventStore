@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System;

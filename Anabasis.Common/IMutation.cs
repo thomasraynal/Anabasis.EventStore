@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Shared
+namespace Anabasis.Common
 {
 
     public interface IMutation<TKey, TEntity> : IEntity<TKey> where TEntity : IAggregate<TKey>

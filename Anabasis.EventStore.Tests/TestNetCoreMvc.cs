@@ -24,6 +24,7 @@ using Anabasis.EventSore.Shared;
 using System.Reactive.Disposables;
 using System.Diagnostics;
 using EventStore.Core.Data;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests
 {

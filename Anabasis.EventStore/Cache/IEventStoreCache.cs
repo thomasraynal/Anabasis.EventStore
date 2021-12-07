@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Shared;
 using DynamicData;

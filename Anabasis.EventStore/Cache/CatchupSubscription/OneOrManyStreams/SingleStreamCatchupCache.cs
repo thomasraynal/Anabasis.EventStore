@@ -3,6 +3,7 @@ using Microsoft.Extensions.Logging;
 using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Cache
 {

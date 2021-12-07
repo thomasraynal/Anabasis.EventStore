@@ -16,6 +16,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests
 {

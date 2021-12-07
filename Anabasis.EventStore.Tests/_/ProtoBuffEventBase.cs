@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Text;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Shared;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests.Demo
 {

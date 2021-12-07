@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Actor
 {

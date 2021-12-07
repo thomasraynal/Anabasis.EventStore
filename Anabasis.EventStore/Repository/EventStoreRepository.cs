@@ -9,6 +9,7 @@ using System.Reactive.Linq;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.Logging;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Repository
 {

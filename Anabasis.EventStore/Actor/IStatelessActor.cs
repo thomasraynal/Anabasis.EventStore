@@ -4,6 +4,7 @@ using Anabasis.EventStore.Shared;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Actor
 {

@@ -1,6 +1,6 @@
 using System;
 
-namespace Anabasis.EventStore.Shared
+namespace Anabasis.Common
 {
     public interface IEvent : IHaveAStreamId
     {

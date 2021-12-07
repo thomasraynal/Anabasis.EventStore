@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Shared;
