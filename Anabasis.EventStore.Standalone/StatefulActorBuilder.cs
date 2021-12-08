@@ -4,7 +4,6 @@ using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -27,11 +26,11 @@ namespace Anabasis.EventStore.Standalone
         private ILoggerFactory LoggerFactory { get; set; }
         private ConnectionStatusMonitor ConnectionMonitor { get; set; }
 
-        private readonly List<IEventStoreStream> _streamsToRegisterTo;
+        private readonly List<IEventStream> _streamsToRegisterTo;
 
         private StatefulActorBuilder()
         {
-            _streamsToRegisterTo = new List<IEventStoreStream>();
+            _streamsToRegisterTo = new List<IEventStream>();
         }
 
         public TActor Build()

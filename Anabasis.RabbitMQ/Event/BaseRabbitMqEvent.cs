@@ -3,7 +3,7 @@ using System;
 
 namespace Anabasis.RabbitMQ.Event
 {
-    public class BaseRabbitMqEvent : IRabbitMqEvent
+    public class BaseRabbitMqEvent : IRabbitMqMessage
     {
 
         public BaseRabbitMqEvent(Guid eventID, Guid correlationId)
@@ -23,5 +23,9 @@ namespace Anabasis.RabbitMQ.Event
         public Guid EventID { get; }
 
         public Guid CorrelationID { get; }
+
+        public bool IsCommand => false;
+
+        public string StreamId => Subject;
     }
 }

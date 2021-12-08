@@ -36,11 +36,11 @@ namespace Anabasis.RabbitMQ
 
         }
 
-        public void Emit(IRabbitMqEvent @event, string exchange, TimeSpan? initialVisibilityDelay = default)
+        public void Emit(IRabbitMqMessage @event, string exchange, TimeSpan? initialVisibilityDelay = default)
         {
             Emit(new[] { @event }, exchange, initialVisibilityDelay);
         }
-        public void Emit(IEnumerable<IRabbitMqEvent> events, string exchange, TimeSpan? initialVisibilityDelay = default)
+        public void Emit(IEnumerable<IRabbitMqMessage> events, string exchange, TimeSpan? initialVisibilityDelay = default)
         {
 
             foreach (var @event in events)
@@ -118,13 +118,13 @@ namespace Anabasis.RabbitMQ
         private IRabbitMqQueueMessage DeserializeRabbitMqQueueMessage(IBasicProperties basicProperties, byte[] body, bool redelivered, ulong deliveryTag)
         {
             var type = basicProperties.Type.GetTypeFromReadableName();
-            var message = (IRabbitMqEvent)_serializer.DeserializeObject(body, type);
+            var message = (IRabbitMqMessage)_serializer.DeserializeObject(body, type);
 
             return new RabbitMqQueueMessage(RabbitMqConnection, type, message, redelivered, deliveryTag);
         }
 
         public void Subscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription)
-            where TEvent : class, IRabbitMqEvent
+            where TEvent : class, IRabbitMqMessage
         {
             var doesSubscriptionExist = _existingSubscriptions.ContainsKey(subscription.SubscriptionId);
 
@@ -201,7 +201,7 @@ namespace Anabasis.RabbitMQ
 
         }
         public void Unsubscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription)
-           where TEvent : class, IRabbitMqEvent
+           where TEvent : class, IRabbitMqMessage
         {
 
             if (!_existingSubscriptions.ContainsKey(subscription.SubscriptionId))

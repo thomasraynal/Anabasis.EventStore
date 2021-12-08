@@ -8,7 +8,7 @@ namespace Anabasis.RabbitMQ
 {
 
     public class RabbitMqEventSubscription<TEvent> : IRabbitMqEventSubscription<TEvent>
-        where TEvent: class, IRabbitMqEvent
+        where TEvent: class, IRabbitMqMessage
     {
         public string Exchange { get; }
         public string RoutingKey { get; protected set; }
@@ -38,7 +38,7 @@ namespace Anabasis.RabbitMQ
             return eventType == typeof(TEvent);
         }
 
-        public Task Handle(IRabbitMqEvent rabbitMqEvent)
+        public Task Handle(IRabbitMqMessage rabbitMqEvent)
         {
             var eventType = rabbitMqEvent.GetType();
 

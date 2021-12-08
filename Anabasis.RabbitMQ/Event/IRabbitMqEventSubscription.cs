@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ
 {
-    public interface IRabbitMqEventSubscription<TEvent> : IRabbitMqEventHandler where TEvent: IRabbitMqEvent
+    public interface IRabbitMqEventSubscription<TEvent> : IRabbitMqEventHandler where TEvent: IRabbitMqMessage
     {
         string SubscriptionId { get; }
         string Exchange { get; }

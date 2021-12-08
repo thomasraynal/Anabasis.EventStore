@@ -4,7 +4,7 @@ namespace Anabasis.RabbitMQ
 {
     public interface IRabbitMqQueueMessage
     {
-        IRabbitMqEvent Content { get; }
+        IRabbitMqMessage Content { get; }
         int DequeueCount { get; }
         Type Type { get; }
         void Acknowledge();

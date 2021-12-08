@@ -10,6 +10,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		appveyor.yml = appveyor.yml
 	EndProjectSection
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Common", "Anabasis.Common\Anabasis.Common.csproj", "{B5356813-CD42-4526-B630-1F2A3BAA4AA3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -26,6 +28,14 @@ Global
 		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Release|Any CPU.Build.0 = Release|Any CPU
 		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Release|x64.ActiveCfg = Release|Any CPU
 		{BDBC029E-D3DD-41C4-9EE7-4F5699224E99}.Release|x64.Build.0 = Release|Any CPU
+		{B5356813-CD42-4526-B630-1F2A3BAA4AA3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B5356813-CD42-4526-B630-1F2A3BAA4AA3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B5356813-CD42-4526-B630-1F2A3BAA4AA3}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{B5356813-CD42-4526-B630-1F2A3BAA4AA3}.Debug|x64.Build.0 = Debug|Any CPU
+		{B5356813-CD42-4526-B630-1F2A3BAA4AA3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B5356813-CD42-4526-B630-1F2A3BAA4AA3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B5356813-CD42-4526-B630-1F2A3BAA4AA3}.Release|x64.ActiveCfg = Release|Any CPU
+		{B5356813-CD42-4526-B630-1F2A3BAA4AA3}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -25,8 +25,8 @@ namespace Anabasis.RabbitMQ.Tests.Integration
                     ((Task)candidateHandler.Invoke(this, new object[] { ev })).Wait();
                 }
 
-
                 return Task.CompletedTask;
+
             }));
         }
 

@@ -12,7 +12,7 @@ namespace Anabasis.RabbitMQ
 
         public Type Type { get; }
 
-        public RabbitMqQueueMessage(IRabbitMqConnection rabbitMqConnection, Type type, IRabbitMqEvent content, bool redelivered, ulong deliveryTag)
+        public RabbitMqQueueMessage(IRabbitMqConnection rabbitMqConnection, Type type, IRabbitMqMessage content, bool redelivered, ulong deliveryTag)
         {
             _rabbitMqConnection = rabbitMqConnection;
             _deliveryTag = deliveryTag;
@@ -22,7 +22,7 @@ namespace Anabasis.RabbitMQ
             DequeueCount = redelivered ? 1 : 0;
         }
 
-        public IRabbitMqEvent Content { get; private set; }
+        public IRabbitMqMessage Content { get; private set; }
         public int DequeueCount { get; private set; }
 
         public void Acknowledge()

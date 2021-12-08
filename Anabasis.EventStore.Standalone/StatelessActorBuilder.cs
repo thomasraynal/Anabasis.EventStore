@@ -10,6 +10,7 @@ using Lamar;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Standalone
 {
@@ -21,11 +22,11 @@ namespace Anabasis.EventStore.Standalone
         private EventStoreRepository EventStoreRepository { get; set; }
         private ILoggerFactory LoggerFactory { get;  set; }
         private ConnectionStatusMonitor ConnectionMonitor { get; set; }
-        private readonly List<IEventStoreStream> _streamsToRegisterTo;
+        private readonly List<IEventStream> _streamsToRegisterTo;
 
         private StatelessActorBuilder()
         {
-            _streamsToRegisterTo = new List<IEventStoreStream>();
+            _streamsToRegisterTo = new List<IEventStream>();
         }
 
         public TActor Build()

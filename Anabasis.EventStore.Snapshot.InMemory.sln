@@ -14,6 +14,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Snapsho
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Standalone", "Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj", "{AE25A8EF-44F0-4CDC-B406-305A4706901E}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Common", "Anabasis.Common\Anabasis.Common.csproj", "{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -46,6 +48,14 @@ Global
 		{AE25A8EF-44F0-4CDC-B406-305A4706901E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{AE25A8EF-44F0-4CDC-B406-305A4706901E}.Release|x64.ActiveCfg = Release|Any CPU
 		{AE25A8EF-44F0-4CDC-B406-305A4706901E}.Release|x64.Build.0 = Release|Any CPU
+		{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}.Debug|x64.Build.0 = Debug|Any CPU
+		{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}.Release|Any CPU.Build.0 = Release|Any CPU
+		{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}.Release|x64.ActiveCfg = Release|Any CPU
+		{0EE07A78-1C35-4D7D-B697-F1AAF9C0A644}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

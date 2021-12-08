@@ -4,8 +4,8 @@ using System.Text;
 
 namespace Anabasis.Common
 {
-  public interface IHaveAStreamId
-  {
-    string StreamId { get;  }
-  }
+    public interface IHaveAStreamId
+    {
+        string StreamId { get; }
+    }
 }

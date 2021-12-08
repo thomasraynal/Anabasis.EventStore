@@ -94,7 +94,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             var subject = visitor.Resolve();
 
-            Assert.AreEqual("MySmallBusiness.Euronext.SGCIB.SmallCap", subject);
+            Assert.AreEqual("TestEvent.MySmallBusiness.Euronext.SGCIB.SmallCap", subject);
 
             validExpression = (ev) => true;
 
@@ -102,7 +102,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             subject = visitor.Resolve();
 
-            Assert.AreEqual("#", subject);
+            Assert.AreEqual("TestEvent.#", subject);
 
             validExpression = (ev) => ev.AggregateId == "MySmallBusiness";
 
@@ -110,7 +110,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             subject = visitor.Resolve();
 
-            Assert.AreEqual("MySmallBusiness.*", subject);
+            Assert.AreEqual("TestEvent.MySmallBusiness.*.*.*", subject);
 
             validExpression = (ev) => ev.Market == "Euronext";
 
@@ -118,7 +118,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             subject = visitor.Resolve();
 
-            Assert.AreEqual("*.Euronext.*", subject);
+            Assert.AreEqual("TestEvent.*.Euronext.*.*", subject);
 
         }
     }

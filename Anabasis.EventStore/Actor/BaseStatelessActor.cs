@@ -1,7 +1,5 @@
 using Anabasis.EventStore.Event;
-using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -18,7 +16,7 @@ namespace Anabasis.EventStore.Actor
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
         private readonly IEventStoreRepository _eventStoreRepository;
-        private readonly List<IEventStoreStream> _eventStoreStreams;
+        private readonly List<IEventStream> _eventStoreStreams;
         
         public ILogger Logger { get; }
 
@@ -30,7 +28,7 @@ namespace Anabasis.EventStore.Actor
             _eventStoreRepository = eventStoreRepository;
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
-            _eventStoreStreams = new List<IEventStoreStream>();
+            _eventStoreStreams = new List<IEventStream>();
             Logger = loggerFactory?.CreateLogger(GetType());
 
         }
@@ -38,9 +36,9 @@ namespace Anabasis.EventStore.Actor
         public string Id { get; }
 
         public bool IsConnected => _eventStoreRepository.IsConnected;
-        public IEventStoreStream[] Streams => _eventStoreStreams.ToArray();
+        public IEventStream[] Streams => _eventStoreStreams.ToArray();
 
-        public void SubscribeTo(IEventStoreStream eventStoreStream, bool closeSubscriptionOnDispose = false)
+        public void SubscribeTo(IEventStream eventStoreStream, bool closeSubscriptionOnDispose = false)
         {
             eventStoreStream.Connect();
 
@@ -171,5 +169,6 @@ namespace Anabasis.EventStore.Actor
 
             if (!IsConnected) throw new InvalidOperationException("Unable to connect");
         }
+
     }
 }
