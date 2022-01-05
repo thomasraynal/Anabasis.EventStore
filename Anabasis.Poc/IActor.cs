@@ -6,6 +6,7 @@ namespace Anabasis.Poc
 {
     public interface IBus
     {
+        BusType BusType { get; }
         Task<TCommandResult> Send<TCommand, TCommandResult>(TCommand command);
         void Emit<TEvent>();
         IObservable<TEvent> Subscribe<TEvent>();
@@ -13,6 +14,8 @@ namespace Anabasis.Poc
 
     public class EventStoreBus : IBus
     {
+        public BusType BusType => BusType.EventStore;
+
         public void Emit<TEvent>()
         {
             throw new NotImplementedException();
@@ -44,6 +47,8 @@ namespace Anabasis.Poc
         public bool IsCommand => false;
 
         public string StreamId => "StreamId";
+
+        public BusType BusType => throw new NotImplementedException();
     }
 
     public class OneRabbitMQEvent : IEvent
@@ -59,6 +64,8 @@ namespace Anabasis.Poc
         public Guid CorrelationID { get; }
 
         public bool IsCommand => false;
+
+        public BusType BusType => throw new NotImplementedException();
     }
 
     public class RabbitMQBus : IBus
@@ -94,6 +101,7 @@ namespace Anabasis.Poc
         Guid EventID { get; }
         Guid CorrelationID { get; }
         bool IsCommand { get; }
+        BusType BusType { get; }
     }
 
     public enum BusType
@@ -166,7 +174,6 @@ namespace Anabasis.Poc
 
             actor.SubscribeTo(eventStoreBus);
             actor.SubscribeTo(rabbitMQBus);
-
 
             actor.Emit(new OneEventStoreEvent());
         }
