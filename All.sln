@@ -50,7 +50,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.OAuth", "Anabasis.
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EntityFramework", "Anabasis.EntityFramework\Anabasis.EntityFramework.csproj", "{2FA17CC9-EBF7-478E-87CA-16AAEB832FB3}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EntityFramework.Tests.Integration", "Anabasis.EntityFramework.Tests.Integration\Anabasis.EntityFramework.Tests.Integration.csproj", "{600DBE8A-0B06-46E2-9453-971DCAE12646}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EntityFramework.Tests.Integration", "Anabasis.EntityFramework.Tests.Integration\Anabasis.EntityFramework.Tests.Integration.csproj", "{600DBE8A-0B06-46E2-9453-971DCAE12646}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Poc", "Anabasis.Poc\Anabasis.Poc.csproj", "{AEE49DD0-3003-4B58-8054-EDE83B3357A1}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -212,6 +214,14 @@ Global
 		{600DBE8A-0B06-46E2-9453-971DCAE12646}.Release|Any CPU.Build.0 = Release|Any CPU
 		{600DBE8A-0B06-46E2-9453-971DCAE12646}.Release|x64.ActiveCfg = Release|Any CPU
 		{600DBE8A-0B06-46E2-9453-971DCAE12646}.Release|x64.Build.0 = Release|Any CPU
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1}.Debug|x64.Build.0 = Debug|Any CPU
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1}.Release|x64.ActiveCfg = Release|Any CPU
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

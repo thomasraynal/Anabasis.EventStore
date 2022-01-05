@@ -1,5 +1,4 @@
-﻿using Anabasis.RabbitMQ;
-using System;
+﻿using System;
 using System.Collections.Generic;
 
 namespace Anabasis.RabbitMQ

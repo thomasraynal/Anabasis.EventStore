@@ -36,7 +36,6 @@ namespace Anabasis.EventStore.Actor
         public string Id { get; }
 
         public bool IsConnected => _eventStoreRepository.IsConnected;
-        public IEventStream[] Streams => _eventStoreStreams.ToArray();
 
         public void SubscribeTo(IEventStream eventStoreStream, bool closeSubscriptionOnDispose = false)
         {
