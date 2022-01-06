@@ -16,13 +16,13 @@ using Anabasis.Common;
 
 namespace Anabasis.EventStore.Standalone
 {
-    public class StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
-      where TActor : IStatefulActor<TKey, TAggregate>
-      where TAggregate : IAggregate<TKey>, new()
+    public class StatefulActorBuilder<TActor,  TAggregate, TRegistry>
+      where TActor : IStatefulActor< TAggregate>
+      where TAggregate : IAggregate, new()
       where TRegistry : ServiceRegistry, new()
     {
-        private IEventStoreCache<TKey, TAggregate> EventStoreCache { get; set; }
-        private IEventStoreAggregateRepository<TKey> EventStoreRepository { get; set; }
+        private IEventStoreCache< TAggregate> EventStoreCache { get; set; }
+        private IEventStoreAggregateRepository EventStoreRepository { get; set; }
         private ILoggerFactory LoggerFactory { get; set; }
         private ConnectionStatusMonitor ConnectionMonitor { get; set; }
 
@@ -40,8 +40,8 @@ namespace Anabasis.EventStore.Standalone
             var container = new Container(configuration =>
             {
                 configuration.For<ILoggerFactory>().Use(LoggerFactory);
-                configuration.For<IEventStoreCache<TKey, TAggregate>>().Use(EventStoreCache);
-                configuration.For<IEventStoreAggregateRepository<TKey>>().Use(EventStoreRepository);
+                configuration.For<IEventStoreCache< TAggregate>>().Use(EventStoreCache);
+                configuration.For<IEventStoreAggregateRepository>().Use(EventStoreRepository);
                 configuration.For<IConnectionStatusMonitor>().Use(ConnectionMonitor);
                 configuration.IncludeRegistry<TRegistry>();
 
@@ -58,7 +58,7 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(
+        public static StatefulActorBuilder<TActor,  TAggregate, TRegistry> Create(
         string eventStoreUrl,
         ConnectionSettings connectionSettings,
         ILoggerFactory loggerFactory = null,
@@ -71,7 +71,7 @@ namespace Anabasis.EventStore.Standalone
         }
 
 
-        public static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
+        public static StatefulActorBuilder<TActor,  TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
           ConnectionSettings connectionSettings,
           ILoggerFactory loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
@@ -83,13 +83,13 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        private static StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> CreateInternal(
+        private static StatefulActorBuilder<TActor,  TAggregate, TRegistry> CreateInternal(
           IEventStoreConnection eventStoreConnection,
           ILoggerFactory loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
         {
 
-            var builder = new StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry>
+            var builder = new StatefulActorBuilder<TActor,  TAggregate, TRegistry>
             {
                 LoggerFactory = loggerFactory?? new DummyLoggerFactory(),
                 ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, loggerFactory)
@@ -99,7 +99,7 @@ namespace Anabasis.EventStore.Standalone
 
             eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
 
-            builder.EventStoreRepository = new EventStoreAggregateRepository<TKey>(
+            builder.EventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
               eventStoreConnection,
               builder.ConnectionMonitor,
@@ -109,69 +109,69 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromStartCache(
-          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          Action<AllStreamsCatchupCacheConfiguration<TKey, TAggregate>> getCatchupEventStoreCacheConfigurationBuilder = null,
-          ISnapshotStore<TKey, TAggregate> snapshotStore = null,
-          ISnapshotStrategy<TKey> snapshotStrategy = null)
+        public StatefulActorBuilder<TActor,  TAggregate, TRegistry> WithReadAllFromStartCache(
+          IEventTypeProvider< TAggregate> eventTypeProvider,
+          Action<AllStreamsCatchupCacheConfiguration< TAggregate>> getCatchupEventStoreCacheConfigurationBuilder = null,
+          ISnapshotStore< TAggregate> snapshotStore = null,
+          ISnapshotStrategy snapshotStrategy = null)
         {
             if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
 
-            var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TKey, TAggregate>(Position.Start);
+            var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration< TAggregate>(Position.Start);
 
             getCatchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-            EventStoreCache = new AllStreamsCatchupCache<TKey, TAggregate>(ConnectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
+            EventStoreCache = new AllStreamsCatchupCache< TAggregate>(ConnectionMonitor, catchupEventStoreCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
 
             return this;
         }
 
-        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
+        public StatefulActorBuilder<TActor,  TAggregate, TRegistry> WithReadOneStreamFromStartCache(
           string streamId,
-          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          Action<MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
-          ISnapshotStore<TKey, TAggregate> snapshotStore = null,
-          ISnapshotStrategy<TKey> snapshotStrategy = null)
+          IEventTypeProvider< TAggregate> eventTypeProvider,
+          Action<MultipleStreamsCatchupCacheConfiguration< TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
+          ISnapshotStore< TAggregate> snapshotStore = null,
+          ISnapshotStrategy snapshotStrategy = null)
         {
             return WithReadManyStreamFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration, snapshotStore, snapshotStrategy);
         }
 
-        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadManyStreamFromStartCache(
+        public StatefulActorBuilder<TActor,  TAggregate, TRegistry> WithReadManyStreamFromStartCache(
           string[] streamIds,
-          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          Action<MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
-          ISnapshotStore<TKey, TAggregate> snapshotStore = null,
-          ISnapshotStrategy<TKey> snapshotStrategy = null)
+          IEventTypeProvider< TAggregate> eventTypeProvider,
+          Action<MultipleStreamsCatchupCacheConfiguration< TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
+          ISnapshotStore< TAggregate> snapshotStore = null,
+          ISnapshotStrategy snapshotStrategy = null)
         {
             if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
 
-            var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate>(streamIds);
+            var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration< TAggregate>(streamIds);
 
             getMultipleStreamsCatchupCacheConfiguration?.Invoke(multipleStreamsCatchupCacheConfiguration);
 
-            EventStoreCache = new MultipleStreamsCatchupCache<TKey, TAggregate>(ConnectionMonitor, multipleStreamsCatchupCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
+            EventStoreCache = new MultipleStreamsCatchupCache< TAggregate>(ConnectionMonitor, multipleStreamsCatchupCacheConfiguration, eventTypeProvider, LoggerFactory, snapshotStore, snapshotStrategy);
 
             return this;
         }
 
-        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithReadAllFromEndCache(
-          IEventTypeProvider<TKey, TAggregate> eventTypeProvider,
-          Action<AllStreamsCatchupCacheConfiguration<TKey, TAggregate>> getSubscribeFromEndCacheConfiguration = null)
+        public StatefulActorBuilder<TActor,  TAggregate, TRegistry> WithReadAllFromEndCache(
+          IEventTypeProvider< TAggregate> eventTypeProvider,
+          Action<AllStreamsCatchupCacheConfiguration< TAggregate>> getSubscribeFromEndCacheConfiguration = null)
         {
 
             if (null != EventStoreCache) throw new InvalidOperationException($"A cache has already been set => {EventStoreCache.GetType()}");
 
-            var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TKey, TAggregate>(Position.End);
+            var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration< TAggregate>(Position.End);
 
             getSubscribeFromEndCacheConfiguration?.Invoke(subscribeFromEndCacheConfiguration);
 
-            EventStoreCache = new AllStreamsCatchupCache<TKey, TAggregate>(ConnectionMonitor, subscribeFromEndCacheConfiguration, eventTypeProvider, LoggerFactory);
+            EventStoreCache = new AllStreamsCatchupCache< TAggregate>(ConnectionMonitor, subscribeFromEndCacheConfiguration, eventTypeProvider, LoggerFactory);
 
             return this;
 
         }
 
-        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithSubscribeFromEndToAllStream(
+        public StatefulActorBuilder<TActor,  TAggregate, TRegistry> WithSubscribeFromEndToAllStream(
             Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null)
         {
             var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
@@ -190,7 +190,7 @@ namespace Anabasis.EventStore.Standalone
             return this;
         }
 
-        public StatefulActorBuilder<TActor, TKey, TAggregate, TRegistry> WithPersistentSubscriptionStream(string streamId, string groupId)
+        public StatefulActorBuilder<TActor,  TAggregate, TRegistry> WithPersistentSubscriptionStream(string streamId, string groupId)
         {
             var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
 

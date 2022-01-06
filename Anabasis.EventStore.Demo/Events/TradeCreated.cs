@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class TradeCreated : BaseAggregateEvent<long, Trade>
+    public class TradeCreated : BaseAggregateEvent<Trade>
     {
-        public TradeCreated(long entityId, Guid correlationId) : base(entityId, correlationId)
+        public TradeCreated(string entityId, Guid correlationId) : base($"{entityId}", correlationId)
         {
         }
 

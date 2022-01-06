@@ -6,9 +6,9 @@ using System.Text;
 
 namespace Anabasis.EventStore.Shared
 {
-    public abstract class BaseAggregateEvent<TKey, TEntity> : IEvent, IMutation<TKey, TEntity> where TEntity : IAggregate<TKey>
+    public abstract class BaseAggregateEvent<TEntity> : IEvent, IMutation<TEntity> where TEntity : IAggregate
     {
-        public TKey EntityId { get; set; }
+        public string EntityId { get; set; }
         public Guid EventID { get; set; }
         public Guid CorrelationID { get; set; }
         public bool IsCommand => false;
@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Shared
         {
         }
 
-        protected BaseAggregateEvent(TKey entityId, Guid correlationId)
+        protected BaseAggregateEvent(string entityId, Guid correlationId)
         {
             EventID = Guid.NewGuid();
             CorrelationID = correlationId;
@@ -31,15 +31,6 @@ namespace Anabasis.EventStore.Shared
         {
             ApplyInternal(entity);
             entity.EntityId = EntityId;
-        }
-
-        public string StreamId
-        {
-            get
-            {
-                return EntityId.ToString();
-            }
-            set { }
         }
 
     }

@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Samples
 {
-    public class EventCountOne : BaseAggregateEvent<string, EventCountAggregate>
+    public class EventCountOne : BaseAggregateEvent<EventCountAggregate>
     {
         public EventCountOne(int position, string entityId, Guid correlationId) : base(entityId, correlationId)
         {
@@ -27,7 +27,7 @@ namespace Anabasis.EventStore.Samples
         }
     }
 
-    public class EventCountTwo : BaseAggregateEvent<string, EventCountAggregate>
+    public class EventCountTwo : BaseAggregateEvent<EventCountAggregate>
     {
         public EventCountTwo(int position, string entityId, Guid correlationId) : base(entityId, correlationId)
         {

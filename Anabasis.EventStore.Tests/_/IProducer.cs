@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Tests
 {
     public interface IProducer
     {
-        Guid Create();
+        string Create();
         void Mutate(Item item, string payload);
     }
 }

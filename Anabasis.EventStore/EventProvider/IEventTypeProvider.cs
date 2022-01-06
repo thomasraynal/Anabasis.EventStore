@@ -4,13 +4,13 @@ using System.Text;
 
 namespace Anabasis.EventStore.EventProvider
 {
-  public interface IEventTypeProvider
-  {
-    Type[] GetAll();
-    Type GetEventTypeByName(string name);
-  }
+    public interface IEventTypeProvider
+    {
+        Type[] GetAll();
+        Type GetEventTypeByName(string name);
+    }
 
-  public interface IEventTypeProvider<TKey, TAggregate> : IEventTypeProvider
-  {
-  }
+    public interface IEventTypeProvider<TAggregate> : IEventTypeProvider
+    {
+    }
 }

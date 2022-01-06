@@ -5,7 +5,7 @@ using System.Reactive.Subjects;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class Trade : BaseAggregate<long>
+    public class Trade : BaseAggregate
     {
         public Trade()
         {
@@ -26,7 +26,7 @@ namespace Anabasis.EventStore.Demo
 
         public Trade(long id, string bank, string ccyPair, TradeStatus status, BuyOrSell buySell, decimal tradePrice, int amount)
         {
-            EntityId = id;
+            EntityId = $"{id}";
             Customer = bank;
             CurrencyPair = ccyPair;
             Status = status;
@@ -37,7 +37,7 @@ namespace Anabasis.EventStore.Demo
 
         public Trade(long id, string bank, string ccyPair, TradeStatus status, BuyOrSell buySell, decimal tradePrice, int amount, DateTime timeStamp)
         {
-            EntityId = id;
+            EntityId = $"{id}";
             Customer = bank;
             CurrencyPair = ccyPair;
             Status = status;

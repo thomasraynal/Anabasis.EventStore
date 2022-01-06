@@ -7,11 +7,11 @@ namespace Anabasis.EventStore.Tests
 {
   public class Consumer : IConsumer
   {
-    public Consumer(AllStreamsCatchupCache<Guid, Item> catchupEventStoreCache)
+    public Consumer(AllStreamsCatchupCache<Item> catchupEventStoreCache)
     {
       OnChange = catchupEventStoreCache.AsObservableCache();
     }
 
-    public IObservableCache<Item, Guid> OnChange { get; }
+    public IObservableCache<Item, string> OnChange { get; }
   }
 }

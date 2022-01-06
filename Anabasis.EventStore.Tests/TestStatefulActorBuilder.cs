@@ -20,11 +20,11 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Tests
 {
 
-    public class TestStatefulActorOne : BaseStatefulActor<Guid, SomeDataAggregate<Guid>>
+    public class TestStatefulActorOne : BaseStatefulActor<SomeDataAggregate>
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestStatefulActorOne(IEventStoreAggregateRepository<Guid> eventStoreRepository, IEventStoreCache<Guid, SomeDataAggregate<Guid>> eventStoreCache, ISomeDependency _) : base(eventStoreRepository, eventStoreCache)
+        public TestStatefulActorOne(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ISomeDependency _) : base(eventStoreRepository, eventStoreCache)
         {
         }
 
@@ -44,17 +44,17 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class TestAggregatedActorTwo : BaseStatefulActor<Guid, SomeDataAggregate<Guid>>
+    public class TestAggregatedActorTwo : BaseStatefulActor<SomeDataAggregate>
     {
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestAggregatedActorTwo(IEventStoreAggregateRepository<Guid> eventStoreRepository, IEventStoreCache<Guid, SomeDataAggregate<Guid>> eventStoreCache, ISomeDependency _) : base(eventStoreRepository, eventStoreCache)
+        public TestAggregatedActorTwo(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ISomeDependency _) : base(eventStoreRepository, eventStoreCache)
         {
         }
         public async Task Handle(SomeCommand someCommand)
         {
-            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.StreamId));
+            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
         }
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)
@@ -150,20 +150,20 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldBuildFromActorBuilderAndRunActors()
         {
 
-            var defaultEventTypeProvider = new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) });
+            var defaultEventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
-            var testActorAutoBuildOne = StatefulActorBuilder<TestStatefulActorOne, Guid, SomeDataAggregate<Guid>, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
+            var testActorAutoBuildOne = StatefulActorBuilder<TestStatefulActorOne, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
-                                                                                            eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }))
+                                                                                            eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
                                                                                          .WithSubscribeFromEndToAllStream()
                                                                                          .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
                                                                                          .Build();
 
-            var testActorAutoBuildTwo = StatefulActorBuilder<TestAggregatedActorTwo, Guid, SomeDataAggregate<Guid>, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
+            var testActorAutoBuildTwo = StatefulActorBuilder<TestAggregatedActorTwo, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
-                                                                                            eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }))
+                                                                                            eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
                                                                                          .Build();
 
             await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
@@ -174,34 +174,34 @@ namespace Anabasis.EventStore.Tests
 
             await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId2));
 
-            await Task.Delay(750);
+            await Task.Delay(1000);
 
             Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
 
             var aggregateOne = Guid.NewGuid();
             var aggregateTwo = Guid.NewGuid();
 
-            await testActorAutoBuildOne.Emit(new SomeData<Guid>(aggregateOne, _correlationId));
-            await testActorAutoBuildOne.Emit(new SomeData<Guid>(aggregateTwo, _correlationId));
+            await testActorAutoBuildOne.Emit(new SomeData($"{aggregateOne}", _correlationId));
+            await testActorAutoBuildOne.Emit(new SomeData($"{aggregateTwo}", _correlationId));
 
             await Task.Delay(500);
 
             Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrents().Length);
             Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrents().Length);
 
-            Assert.AreEqual(1, testActorAutoBuildOne.State.GetCurrent(aggregateOne).AppliedEvents.Length);
-            Assert.AreEqual(1, testActorAutoBuildTwo.State.GetCurrent(aggregateTwo).AppliedEvents.Length);
+            Assert.AreEqual(1, testActorAutoBuildOne.State.GetCurrent($"{aggregateOne}").AppliedEvents.Length);
+            Assert.AreEqual(1, testActorAutoBuildTwo.State.GetCurrent($"{aggregateTwo}").AppliedEvents.Length);
 
-            await testActorAutoBuildOne.Emit(new SomeData<Guid>(aggregateOne, _correlationId));
-            await testActorAutoBuildOne.Emit(new SomeData<Guid>(aggregateTwo, _correlationId));
+            await testActorAutoBuildOne.Emit(new SomeData($"{aggregateOne}", _correlationId));
+            await testActorAutoBuildOne.Emit(new SomeData($"{aggregateTwo}", _correlationId));
 
             await Task.Delay(100);
 
             Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrents().Length);
             Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrents().Length);
 
-            Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrent(aggregateOne).AppliedEvents.Length);
-            Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrent(aggregateTwo).AppliedEvents.Length);
+            Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrent($"{aggregateOne}").AppliedEvents.Length);
+            Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrent($"{aggregateTwo}").AppliedEvents.Length);
         }
 
     }

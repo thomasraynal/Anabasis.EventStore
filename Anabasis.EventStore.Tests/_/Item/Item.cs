@@ -3,11 +3,11 @@ using System;
 
 namespace Anabasis.EventStore.Tests.Demo
 {
-    public class Item : BaseAggregate<Guid>
+    public class Item : BaseAggregate
     {
         public Item()
         {
-            EntityId = Guid.NewGuid();
+            EntityId = $"{Guid.NewGuid()}";
         }
 
         public override bool Equals(object obj)

@@ -4,7 +4,7 @@ using System;
 namespace Anabasis.EventStore.Demo
 {
     //https://github.com/RolandPheasant/Dynamic.Trader
-    public class MarketData : BaseAggregate<string>, IEquatable<MarketData>
+    public class MarketData : BaseAggregate, IEquatable<MarketData>
     {
         public MarketData(string instrument, decimal bid, decimal offer)
         {

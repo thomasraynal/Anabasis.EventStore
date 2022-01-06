@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Event
     {
         public BaseCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
         {
-            StreamId = streamId;
+            EntityId = streamId;
             IsCommand = true;
         }
 

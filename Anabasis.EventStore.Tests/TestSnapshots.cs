@@ -14,18 +14,18 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldCreateAndGetSnapshots()
         {
 
-            var snaphotRepository = new InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>>();
+            var snaphotRepository = new InMemorySnapshotStore<SomeDataAggregate>();
 
             var eventFilterOne = new[] { "a", "b", "c" };
-            var entityA = Guid.NewGuid();
-            var someDataAggregate = new SomeDataAggregate<Guid>(entityA);
+            var entityA = $"{Guid.NewGuid()}";
+            var someDataAggregate = new SomeDataAggregate(entityA);
 
             var snapshots = await snaphotRepository.GetByVersionOrLast(eventFilterOne);
 
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 0);
 
-            someDataAggregate.ApplyEvent(new SomeData<Guid>(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
+            someDataAggregate.ApplyEvent(new SomeData(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
 
             await snaphotRepository.Save(eventFilterOne, someDataAggregate);
 
@@ -46,7 +46,7 @@ namespace Anabasis.EventStore.Tests
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 0);
 
-            someDataAggregate.ApplyEvent(new SomeData<Guid>(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
+            someDataAggregate.ApplyEvent(new SomeData(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
 
             Assert.True(someDataAggregate.Version == 1);
 
@@ -63,22 +63,22 @@ namespace Anabasis.EventStore.Tests
         [Test]
         public async Task ShouldCreateAndGetSnapshotsFOrSeveralStreams()
         {
-            var snaphotRepository = new InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>>();
+            var snaphotRepository = new InMemorySnapshotStore<SomeDataAggregate>();
 
             var eventFilterOne = new[] { "d", "e", "f" };
             var eventFilterTwo = new[] { "g", "h", "i" };
 
-            var entityA = Guid.NewGuid();
-            var entityB = Guid.NewGuid();
-            var entityC = Guid.NewGuid();
+            var entityA = $"{Guid.NewGuid()}";
+            var entityB = $"{Guid.NewGuid()}";
+            var entityC = $"{Guid.NewGuid()}";
 
-            var someDataAggregateA = new SomeDataAggregate<Guid>(entityA);
-            var someDataAggregateB = new SomeDataAggregate<Guid>(entityA);
-            var someDataAggregateC = new SomeDataAggregate<Guid>(entityA);
+            var someDataAggregateA = new SomeDataAggregate(entityA);
+            var someDataAggregateB = new SomeDataAggregate(entityA);
+            var someDataAggregateC = new SomeDataAggregate(entityA);
 
-            someDataAggregateA.ApplyEvent(new SomeData<Guid>(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
-            someDataAggregateB.ApplyEvent(new SomeData<Guid>(entityB, Guid.NewGuid()), saveAsPendingEvent: false);
-            someDataAggregateC.ApplyEvent(new SomeData<Guid>(entityC, Guid.NewGuid()), saveAsPendingEvent: false);
+            someDataAggregateA.ApplyEvent(new SomeData(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
+            someDataAggregateB.ApplyEvent(new SomeData(entityB, Guid.NewGuid()), saveAsPendingEvent: false);
+            someDataAggregateC.ApplyEvent(new SomeData(entityC, Guid.NewGuid()), saveAsPendingEvent: false);
 
             await snaphotRepository.Save(eventFilterOne, someDataAggregateA);
             await snaphotRepository.Save(eventFilterOne, someDataAggregateB);

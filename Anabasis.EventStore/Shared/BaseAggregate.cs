@@ -6,79 +6,71 @@ using System.Collections.Generic;
 namespace Anabasis.EventStore.Shared
 {
 
-  public abstract class BaseAggregate<TKey> : IAggregate<TKey>
-  {
-    private readonly List<IEntity<TKey>> _pendingEvents = new();
-    private readonly List<IEntity<TKey>> _appliedEvents = new();
-
-    public TKey EntityId { get; set; }
-
-    public int Version { get; set; } = -1;
-
-    [JsonProperty]
-    public int VersionFromSnapshot { get; set; } = -1;
-
-    public void Mutate<TEntity>(IMutation<TKey, TEntity> @event) where TEntity : class, IAggregate<TKey>
+    public abstract class BaseAggregate : IAggregate
     {
-      @event.Apply(this as TEntity);
-      Version++;
-    }
+        private readonly List<IEntity> _pendingEvents = new();
+        private readonly List<IEntity> _appliedEvents = new();
 
-    public void ApplyEvent(IEntity<TKey> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true)
-    {
-      //we only save applied events
-      if (keepAppliedEventsOnAggregate && !saveAsPendingEvent)
-      {
-        _appliedEvents.Add(@event);
-      }
+        public string EntityId { get; set; }
 
-      if (saveAsPendingEvent)
-      {
-        _pendingEvents.Add(@event);
-        @event.EntityId = EntityId;
-        return;
-      }
+        public int Version { get; set; } = -1;
 
-        ((dynamic)this).Mutate((dynamic)@event);
+        [JsonProperty]
+        public int VersionFromSnapshot { get; set; } = -1;
 
-    }
+        public void Mutate<TEntity>(IMutation<TEntity> @event) where TEntity : class, IAggregate
+        {
+            @event.Apply(this as TEntity);
+            Version++;
+        }
 
-    public ICollection<IEntity<TKey>> GetPendingEvents()
-    {
-      return _pendingEvents;
-    }
+        public void ApplyEvent(IEntity @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true)
+        {
+            //we only save applied events
+            if (keepAppliedEventsOnAggregate && !saveAsPendingEvent)
+            {
+                _appliedEvents.Add(@event);
+            }
 
-    public void ClearPendingEvents()
-    {
-      _pendingEvents.Clear();
-    }
+            if (saveAsPendingEvent)
+            {
+                _pendingEvents.Add(@event);
+                @event.EntityId = EntityId;
+                return;
+            }
 
-    public string StreamId
-    {
-      get
-      {
-        return $"{EntityId}";
-      }
-      set { }
-    }
+            ((dynamic)this).Mutate((dynamic)@event);
 
-    public IEntity<TKey>[] PendingEvents
-    {
-      get
-      {
-        return _pendingEvents.ToArray();
-      }
+        }
 
-    }
+        public ICollection<IEntity> GetPendingEvents()
+        {
+            return _pendingEvents;
+        }
 
-    public IEntity<TKey>[] AppliedEvents
-    {
-      get
-      {
-        return _appliedEvents.ToArray();
-      }
+        public void ClearPendingEvents()
+        {
+            _pendingEvents.Clear();
+        }
+
+
+        public IEntity[] PendingEvents
+        {
+            get
+            {
+                return _pendingEvents.ToArray();
+            }
+
+        }
+
+        public IEntity[] AppliedEvents
+        {
+            get
+            {
+                return _appliedEvents.ToArray();
+            }
+
+        }
 
     }
-
-  }
 }

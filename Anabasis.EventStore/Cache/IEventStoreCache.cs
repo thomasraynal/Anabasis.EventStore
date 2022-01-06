@@ -6,7 +6,7 @@ using System;
 
 namespace Anabasis.EventStore.Cache
 {
-    public interface IEventStoreCache<TKey, TAggregate> : IDisposable where TAggregate : IAggregate<TKey>, new()
+    public interface IEventStoreCache<TAggregate> : IDisposable where TAggregate : IAggregate, new()
     {
         string Id { get; }
         bool IsStale { get; }
@@ -16,10 +16,10 @@ namespace Anabasis.EventStore.Cache
         IObservable<bool> OnConnected { get; }
         IObservable<bool> OnCaughtUp { get; }
         IObservable<bool> OnStale { get; }
-        TAggregate GetCurrent(TKey key);
+        TAggregate GetCurrent(string key);
         TAggregate[] GetCurrents();
-        IObservableCache<TAggregate, TKey> AsObservableCache();
-        IEventTypeProvider<TKey, TAggregate> EventTypeProvider { get; }
+        IObservableCache<TAggregate, string> AsObservableCache();
+        IEventTypeProvider<TAggregate> EventTypeProvider { get; }
         void Connect();
     }
 }

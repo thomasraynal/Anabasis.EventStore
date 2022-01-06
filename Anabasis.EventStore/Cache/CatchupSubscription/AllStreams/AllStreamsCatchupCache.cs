@@ -10,18 +10,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class AllStreamsCatchupCache<TKey, TAggregate> : BaseAllStreamsCatchupCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+    public class AllStreamsCatchupCache<TAggregate> : BaseAllStreamsCatchupCache<TAggregate> where TAggregate : IAggregate, new()
     {
 
-        private readonly AllStreamsCatchupCacheConfiguration<TKey, TAggregate> _catchupCacheConfiguration;
+        private readonly AllStreamsCatchupCacheConfiguration<TAggregate> _catchupCacheConfiguration;
 
-        public AllStreamsCatchupCache(IConnectionStatusMonitor connectionMonitor, AllStreamsCatchupCacheConfiguration<TKey, TAggregate> catchupCacheConfiguration, IEventTypeProvider<TKey, TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<TKey, TAggregate> snapshotStore = null, ISnapshotStrategy<TKey> snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public AllStreamsCatchupCache(IConnectionStatusMonitor connectionMonitor, AllStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, IEventTypeProvider<TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<TAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
             _catchupCacheConfiguration = catchupCacheConfiguration;
         }
 
         protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(
-            CatchupCacheSubscriptionHolder<TKey, TAggregate> catchupCacheSubscriptionHolder,
+            CatchupCacheSubscriptionHolder<TAggregate> catchupCacheSubscriptionHolder,
             IEventStoreConnection connection,
             Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent,
             Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)
@@ -49,7 +49,7 @@ namespace Anabasis.EventStore.Cache
             return subscription;
         }
 
-        protected override Task OnLoadSnapshot(CatchupCacheSubscriptionHolder<TKey, TAggregate>[] catchupCacheSubscriptionHolders, ISnapshotStrategy<TKey> snapshotStrategy, ISnapshotStore<TKey, TAggregate> snapshotStore)
+        protected override Task OnLoadSnapshot(CatchupCacheSubscriptionHolder<TAggregate>[] catchupCacheSubscriptionHolders, ISnapshotStrategy snapshotStrategy, ISnapshotStore<TAggregate> snapshotStore)
         {
             return Task.CompletedTask;
         }

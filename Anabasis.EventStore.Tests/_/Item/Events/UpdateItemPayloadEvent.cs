@@ -4,7 +4,7 @@ using System;
 namespace Anabasis.EventStore.Tests.Demo
 {
     [ProtoContract]
-    public class UpdateItemPayloadEvent : ProtoBuffEventBase<Guid, Item>
+    public class UpdateItemPayloadEvent : ProtoBuffEventBase<Item>
     {
         [ProtoMember(3)]
         public string Payload { get; set; }

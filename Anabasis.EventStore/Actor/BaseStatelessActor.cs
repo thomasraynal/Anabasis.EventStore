@@ -60,26 +60,18 @@ namespace Anabasis.EventStore.Actor
             return Task.CompletedTask;
         }
 
-        public async Task Emit<TKey,TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity<TKey>
-        {
-            Logger?.LogDebug($"{Id} => Emiting entity event {@event.StreamId} - {@event.GetType()}");
-
-            if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
-
-            await _eventStoreRepository.Emit<TEvent,TKey>(@event, extraHeaders);
-        }
         public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent: IEvent
         {
             if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
 
-            Logger?.LogDebug($"{Id} => Emitting {@event.StreamId} - {@event.GetType()}");
+            Logger?.LogDebug($"{Id} => Emitting {@event.EntityId} - {@event.GetType()}");
 
             await _eventStoreRepository.Emit(@event, extraHeaders);
         }
 
         public Task<TCommandResult> Send<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
         {
-            Logger?.LogDebug($"{Id} => Sending command {command.StreamId} - {command.GetType()}");
+            Logger?.LogDebug($"{Id} => Sending command {command.EntityId} - {command.GetType()}");
 
             var taskSource = new TaskCompletionSource<ICommandResponse>();
 
@@ -106,7 +98,7 @@ namespace Anabasis.EventStore.Actor
         {
             try
             {
-                Logger?.LogDebug($"{Id} => Receiving event {@event.StreamId} - {@event.GetType()}");
+                Logger?.LogDebug($"{Id} => Receiving event {@event.EntityId} - {@event.GetType()}");
 
                 var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
 

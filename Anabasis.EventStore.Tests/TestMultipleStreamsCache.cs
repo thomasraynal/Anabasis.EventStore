@@ -34,8 +34,8 @@ namespace Anabasis.EventStore.Tests
         private string _streamIdTwo = "streamIdTwo";
         private string _streamIdThree = "streamIdThree";
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, MultipleStreamsCatchupCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) _multipleStreamsCatchupCache;
-        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) _eventStoreRepository;
+        private (ConnectionStatusMonitor connectionStatusMonitor, MultipleStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _multipleStreamsCatchupCache;
+        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) _eventStoreRepository;
 
         [OneTimeSetUp]
         public async Task Setup()
@@ -68,13 +68,13 @@ namespace Anabasis.EventStore.Tests
             await _clusterVNode.StopAsync();
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) CreateEventRepository()
+        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
         {
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var eventStoreRepository = new EventStoreAggregateRepository<Guid>(
+            var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
               connection,
               connectionMonitor,
@@ -83,27 +83,27 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, MultipleStreamsCatchupCache<string, SomeDataAggregate<string>> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate<string>> someDataAggregates) CreateCatchupEventStoreCache(params string[] streamIds)
+        private (ConnectionStatusMonitor connectionStatusMonitor, MultipleStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache(params string[] streamIds)
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var cacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<string, SomeDataAggregate<string>>(streamIds)
+            var cacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(streamIds)
             {
                 KeepAppliedEventsOnAggregate = true,
                 IsStaleTimeSpan = TimeSpan.FromSeconds(1)
             };
 
-            var catchUpCache = new MultipleStreamsCatchupCache<string, SomeDataAggregate<string>>(
+            var catchUpCache = new MultipleStreamsCatchupCache<SomeDataAggregate>(
               connectionMonitor,
               cacheConfiguration,
-              new DefaultEventTypeProvider<string, SomeDataAggregate<string>>(() => new[] { typeof(SomeData<string>) }),
+              new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }),
               _loggerFactory);
 
             catchUpCache.Connect();
 
-            var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<string>>();
+            var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
             catchUpCache.AsObservableCache()
                            .Connect()
@@ -132,7 +132,7 @@ namespace Anabasis.EventStore.Tests
         {
             _eventStoreRepository = CreateEventRepository();
 
-            await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdOne, Guid.NewGuid()));
+            await _eventStoreRepository.eventStoreRepository.Emit(new SomeData(_streamIdOne, Guid.NewGuid()));
 
             await Task.Delay(500);
 
@@ -140,7 +140,7 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
             Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[0].AppliedEvents.Length);
 
-            await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdTwo, Guid.NewGuid()));
+            await _eventStoreRepository.eventStoreRepository.Emit(new SomeData(_streamIdTwo, Guid.NewGuid()));
 
             await Task.Delay(500);
 
@@ -161,7 +161,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(500);
 
-            await _eventStoreRepository.eventStoreRepository.Emit(new SomeData<string>(_streamIdThree, Guid.NewGuid()));
+            await _eventStoreRepository.eventStoreRepository.Emit(new SomeData(_streamIdThree, Guid.NewGuid()));
 
             await Task.Delay(500);
 

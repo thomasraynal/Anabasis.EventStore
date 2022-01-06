@@ -7,8 +7,8 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Actor
 {
-    public interface IStatefulActor<TKey, TAggregate> : IStatelessActor where TAggregate : IAggregate<TKey>, new()
+    public interface IStatefulActor<TAggregate> : IStatelessActor where TAggregate : IAggregate, new()
     {
-        IEventStoreCache<TKey, TAggregate> State { get; }
+        IEventStoreCache<TAggregate> State { get; }
     }
 }

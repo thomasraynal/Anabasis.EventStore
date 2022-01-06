@@ -1,9 +1,7 @@
-﻿using Anabasis.EventStore.Shared;
-using Anabasis.EventStore.Snapshot;
+﻿using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Snapshot.InMemory;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Anabasis.Common;
@@ -11,9 +9,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Samples
 {
-    public class FileSystemSnapshotProvider<TKey, TAggregate> : ISnapshotStore<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+    public class FileSystemSnapshotProvider<TAggregate> : ISnapshotStore<TAggregate> where TAggregate : IAggregate, new()
     {
-   
+
         public Task<TAggregate[]> GetAll()
         {
             throw new NotImplementedException();
@@ -29,7 +27,7 @@ namespace Anabasis.EventStore.Samples
             var snapshots = Directory.EnumerateFiles(Directory.GetCurrentDirectory())
                                 .Where(file => file.Contains("snapshot_"))
                                 .ToArray();
-                           
+
             if (snapshots.Length == 0) return Task.FromResult<TAggregate>(default);
 
 
@@ -46,7 +44,7 @@ namespace Anabasis.EventStore.Samples
 
             var aggregateSnapshot = new AggregateSnapshot
             {
-                StreamId = aggregate.StreamId,
+                StreamId = aggregate.EntityId,
                 Version = aggregate.Version,
                 EventFilter = string.Concat(eventFilters),
                 SerializedAggregate = aggregate.ToJson(),

@@ -6,6 +6,6 @@ namespace Anabasis.EventStore.Tests
 {
     public interface IConsumer
     {
-        IObservableCache<Item, Guid> OnChange { get; }
+        IObservableCache<Item, string> OnChange { get; }
     }
 }

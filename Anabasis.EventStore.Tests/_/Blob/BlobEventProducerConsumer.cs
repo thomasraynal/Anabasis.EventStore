@@ -19,8 +19,8 @@ namespace Anabasis.EventStore.Tests.Demo
         private Random _rand;
         private CompositeDisposable _cleanup;
         private ILogger<BlobEventProducerConsumer> _logger;
-        private IEventStoreAggregateRepository<Guid> _repository;
-        private IEventStoreCache<Guid, Blob> _cache;
+        private IEventStoreAggregateRepository _repository;
+        private IEventStoreCache<Blob> _cache;
 
         private string RandomString(int length)
         {
@@ -29,7 +29,7 @@ namespace Anabasis.EventStore.Tests.Demo
               .Select(s => s[_rand.Next(s.Length)]).ToArray());
         }
 
-        public BlobEventProducerConsumer(IEventStoreAggregateRepository<Guid> repository, IEventStoreCache<Guid, Blob> cache, ILogger<BlobEventProducerConsumer> logger)
+        public BlobEventProducerConsumer(IEventStoreAggregateRepository repository, IEventStoreCache<Blob> cache, ILogger<BlobEventProducerConsumer> logger)
         {
             _repository = repository;
             _cache = cache;
@@ -73,7 +73,7 @@ namespace Anabasis.EventStore.Tests.Demo
 
                              var blobBurstedEvent = new BurstedBlobEvent();
 
-                              _repository.Apply(blob.Current, blobBurstedEvent);
+                             await _repository.Apply(blob.Current, blobBurstedEvent);
 
                          });
                      }

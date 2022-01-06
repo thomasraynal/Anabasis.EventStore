@@ -6,17 +6,17 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class MarketDataSink : BaseStatefulActor<string, MarketData>
+    public class MarketDataSink : BaseStatefulActor<MarketData>
     {
-        public MarketDataSink(IEventStoreAggregateRepository<string> eventStoreRepository, IEventStoreCache<string, MarketData> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
+        public MarketDataSink(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<MarketData> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
         {
         }
 
-        public MarketDataSink(IEventStoreAggregateRepository<string> eventStoreRepository, IEventStoreCache<string, MarketData> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
+        public MarketDataSink(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<MarketData> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public MarketDataSink(IEventStoreAggregateRepository<string> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public MarketDataSink(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
         {
         }
     }

@@ -63,7 +63,7 @@ namespace Anabasis.EventStore.Samples
             }
         }
 
-        public static void Run(params IStatefulActor<string, EventCountAggregate>[] statefulActors)
+        public static void Run(params IStatefulActor<EventCountAggregate>[] statefulActors)
         {
             foreach(var statefulActor in statefulActors)
             {

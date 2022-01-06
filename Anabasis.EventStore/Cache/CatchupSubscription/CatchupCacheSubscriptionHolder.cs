@@ -4,7 +4,7 @@ using System.Reactive.Subjects;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class CatchupCacheSubscriptionHolder<TKey, TAggregate> : IDisposable, ICatchupCacheSubscriptionHolder
+    public class CatchupCacheSubscriptionHolder< TAggregate> : IDisposable, ICatchupCacheSubscriptionHolder
     {
 
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;

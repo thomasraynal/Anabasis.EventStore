@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Snapshot.InMemory
 {
-  public class InMemorySnapshotStore<TKey, TAggregate> : ISnapshotStore<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+  public class InMemorySnapshotStore< TAggregate> : ISnapshotStore< TAggregate> where TAggregate : IAggregate, new()
   {
     private readonly DbContextOptions<AggregateSnapshotContext> _entityFrameworkOptions;
 
@@ -132,7 +132,7 @@ namespace Anabasis.EventStore.Snapshot.InMemory
 
       var aggregateSnapshot = new AggregateSnapshot
       {
-        StreamId = aggregate.StreamId,
+        StreamId = aggregate.EntityId,
         Version = aggregate.Version,
         EventFilter = string.Concat(eventFilters),
         SerializedAggregate = aggregate.ToJson(),

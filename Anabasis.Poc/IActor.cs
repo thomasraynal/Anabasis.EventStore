@@ -70,6 +70,8 @@ namespace Anabasis.Poc
 
     public class RabbitMQBus : IBus
     {
+        public BusType BusType => throw new NotImplementedException();
+
         public void Emit<TEvent>()
         {
             throw new NotImplementedException();

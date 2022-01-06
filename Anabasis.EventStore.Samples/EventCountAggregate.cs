@@ -14,10 +14,10 @@ namespace Anabasis.EventStore.Samples
 {
    
 
-    public class EventCountAggregate : BaseAggregate<string>
+    public class EventCountAggregate : BaseAggregate
     {
 
-        private static object _locker = new object();
+        private static object _locker = new();
 
         public EventCountAggregate()
         {
@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Samples
             lock (_locker)
             {
 
-                var header = $"{nameof(EventCountAggregate)} - {StreamId} - {HitCounter}";
+                var header = $"{nameof(EventCountAggregate)} - {EntityId} - {HitCounter}";
 
                 Console.WriteLine(header);
 

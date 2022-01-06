@@ -14,13 +14,13 @@ namespace Anabasis.EventStore.Samples
 
         public static void Run()
         {
-            var eventTypeProvider = new DefaultEventTypeProvider<string, EventCountAggregate>(() => new[] { typeof(EventCountOne), typeof(EventCountTwo) }); ;
+            var eventTypeProvider = new DefaultEventTypeProvider<EventCountAggregate>(() => new[] { typeof(EventCountOne), typeof(EventCountTwo) }); ;
 
-            var fileSystemSnapshotProvider = new FileSystemSnapshotProvider<string, EventCountAggregate>();
+            var fileSystemSnapshotProvider = new FileSystemSnapshotProvider<EventCountAggregate>();
 
-            var defaultSnapshotStrategy = new DefaultSnapshotStrategy<string>(5);
+            var defaultSnapshotStrategy = new DefaultSnapshotStrategy(5);
 
-            var eventCountActorWithSnapshot = StatefulActorBuilder<EventCountStatefulActor, string, EventCountAggregate, DemoSystemRegistry>
+            var eventCountActorWithSnapshot = StatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
                                        .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings())
                                        .WithReadOneStreamFromStartCache(StaticData.EntityOne,
                                             eventTypeProvider: eventTypeProvider,
@@ -33,7 +33,7 @@ namespace Anabasis.EventStore.Samples
                                            snapshotStrategy: defaultSnapshotStrategy)
                                        .Build();
 
-            var eventCountActor = StatefulActorBuilder<EventCountStatefulActor, string, EventCountAggregate, DemoSystemRegistry>
+            var eventCountActor = StatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
                            .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings())
                            .WithReadOneStreamFromStartCache(StaticData.EntityOne,
                                 eventTypeProvider: eventTypeProvider,

@@ -11,9 +11,9 @@ namespace Anabasis.EventStore.Tests.Demo
   public class ItemCreatedEventProducer : IHostedService
     {
         private IDisposable _cleanup;
-        private readonly IEventStoreAggregateRepository<Guid> _repository;
+        private readonly IEventStoreAggregateRepository _repository;
 
-        public ItemCreatedEventProducer(IEventStoreAggregateRepository<Guid> repository)
+        public ItemCreatedEventProducer(IEventStoreAggregateRepository repository)
         {
             _repository = repository;
         }

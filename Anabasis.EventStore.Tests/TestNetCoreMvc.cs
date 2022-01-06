@@ -54,24 +54,24 @@ namespace Anabasis.EventStore.Tests
 
     public class TestStatefulActorOneMvc : TestStatefulActorTwoMvc
     {
-        public TestStatefulActorOneMvc(IEventStoreAggregateRepository<Guid> eventStoreRepository, IEventStoreCache<Guid, SomeDataAggregate<Guid>> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
+        public TestStatefulActorOneMvc(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActorOneMvc(IEventStoreAggregateRepository<Guid> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public TestStatefulActorOneMvc(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
         {
         }
     }
 
-    public class TestStatefulActorTwoMvc : BaseStatefulActor<Guid, SomeDataAggregate<Guid>>
+    public class TestStatefulActorTwoMvc : BaseStatefulActor<SomeDataAggregate>
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestStatefulActorTwoMvc(IEventStoreAggregateRepository<Guid> eventStoreRepository, IEventStoreCache<Guid, SomeDataAggregate<Guid>> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
+        public TestStatefulActorTwoMvc(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActorTwoMvc(IEventStoreAggregateRepository<Guid> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public TestStatefulActorTwoMvc(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
         {
         }
 
@@ -134,18 +134,18 @@ namespace Anabasis.EventStore.Tests
         public void ConfigureServices(IServiceCollection services)
         {
 
-            var eventTypeProvider = new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) });
+            var eventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
             services.AddWorld(TestBed.ClusterVNode, TestBed.ConnectionSettings)
 
-                    .AddStatefulActor<TestStatefulActorOneMvc, Guid, SomeDataAggregate<Guid>>()
+                    .AddStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>()
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                   .AddStatefulActor<TestStatefulActorTwoMvc, Guid, SomeDataAggregate<Guid>>()
+                   .AddStatefulActor<TestStatefulActorTwoMvc, SomeDataAggregate>()
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
@@ -240,9 +240,9 @@ namespace Anabasis.EventStore.Tests
 
             var aggregateIdOne = Guid.NewGuid();
 
-            await testStatelessActorOneMvc.Emit<Guid, SomeData<Guid>>(new SomeData<Guid>(aggregateIdOne, Guid.NewGuid()));
-            await testStatelessActorOneMvc.Emit<Guid, SomeData<Guid>>(new SomeData<Guid>(aggregateIdOne, Guid.NewGuid()));
-            await testStatelessActorOneMvc.Emit<Guid, SomeData<Guid>>(new SomeData<Guid>(Guid.NewGuid(), Guid.NewGuid()));
+            await testStatelessActorOneMvc.Emit(new SomeData($"{aggregateIdOne}", Guid.NewGuid()));
+            await testStatelessActorOneMvc.Emit(new SomeData($"{aggregateIdOne}", Guid.NewGuid()));
+            await testStatelessActorOneMvc.Emit(new SomeData($"{Guid.NewGuid()}", Guid.NewGuid()));
 
             await Task.Delay(200);
 

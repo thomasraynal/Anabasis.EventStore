@@ -10,18 +10,18 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class TradePriceUpdateService : BaseStatefulActor<long, Trade>
+    public class TradePriceUpdateService : BaseStatefulActor<Trade>
     {
 
-        public TradePriceUpdateService(IEventStoreAggregateRepository<long> eventStoreRepository, IEventStoreCache<long, Trade> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
+        public TradePriceUpdateService(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<Trade> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
         {
         }
 
-        public TradePriceUpdateService(IEventStoreAggregateRepository<long> eventStoreRepository, IEventStoreCache<long, Trade> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
+        public TradePriceUpdateService(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<Trade> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public TradePriceUpdateService(IEventStoreAggregateRepository<long> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public TradePriceUpdateService(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
         {
         }
 

@@ -4,7 +4,7 @@ using System;
 namespace Anabasis.EventStore.Tests.Demo
 {
     [ProtoContract]
-    public class FillBlobEvent : ProtoBuffEventBase<Guid, Blob>
+    public class FillBlobEvent : ProtoBuffEventBase<Blob>
     {
         protected override void ApplyInternal(Blob entity)
         {

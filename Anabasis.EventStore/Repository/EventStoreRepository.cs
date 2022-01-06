@@ -49,13 +49,13 @@ namespace Anabasis.EventStore.Repository
         private async Task Save(IEnumerable<IEvent> events, params KeyValuePair<string, string>[] extraHeaders)
         {
 
-            foreach (var eventBatch in events.GroupBy(ev => ev.StreamId))
+            foreach (var eventBatch in events.GroupBy(ev => ev.EntityId))
             {
                 var eventsToSave = eventBatch.Select(ev =>
                 {
                     var commitHeaders = CreateCommitHeaders(ev, extraHeaders);
 
-                    Logger?.LogDebug($"{Id} => Emitting event: {ev.EventID} {ev.StreamId} {ev.GetType()}");
+                    Logger?.LogDebug($"{Id} => Emitting event: {ev.EventID} {ev.EntityId} {ev.GetType()}");
 
                     return ToEventData(ev.EventID, ev, commitHeaders);
 
@@ -140,8 +140,8 @@ namespace Anabasis.EventStore.Repository
         }
 
 
-        public async Task Emit<TEvent,TKey>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-            where TEvent : IEntity<TKey>
+        public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+            where TEvent : IEntity
         {
             Logger?.LogDebug($"{Id} => Emitting event: {@event.EntityId} {@event.GetType()}");
 
@@ -149,7 +149,7 @@ namespace Anabasis.EventStore.Repository
 
             var eventsToSave = new[] { ToEventData(Guid.NewGuid(), @event, commitHeaders) };
 
-            await SaveEventBatch(@event.StreamId, ExpectedVersion.Any, eventsToSave);
+            await SaveEventBatch(@event.EntityId, ExpectedVersion.Any, eventsToSave);
         }
 
         public async Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)

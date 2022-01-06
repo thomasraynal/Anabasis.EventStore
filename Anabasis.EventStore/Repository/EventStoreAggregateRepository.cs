@@ -12,7 +12,7 @@ using Anabasis.Common;
 
 namespace Anabasis.EventStore.Repository
 {
-    public class EventStoreAggregateRepository<TKey> : EventStoreRepository, IEventStoreAggregateRepository<TKey>
+    public class EventStoreAggregateRepository : EventStoreRepository, IEventStoreAggregateRepository
     {
         public EventStoreAggregateRepository(IEventStoreRepositoryConfiguration eventStoreRepositoryConfiguration,
           IEventStoreConnection eventStoreConnection,
@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Repository
         {
         }
 
-        public async Task<TAggregate> GetById<TAggregate>(TKey id, IEventTypeProvider eventTypeProvider, bool loadEvents = false) where TAggregate : IAggregate<TKey>, new()
+        public async Task<TAggregate> GetById<TAggregate>(string id, IEventTypeProvider eventTypeProvider, bool loadEvents = false) where TAggregate : IAggregate, new()
         {
             if (!IsConnected) throw new InvalidOperationException("Client is not connected to EventStore");
 
@@ -65,8 +65,8 @@ namespace Anabasis.EventStore.Repository
 
 
         public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-            where TEntity : IAggregate<TKey>
-            where TEvent : IEntity<TKey>, IMutation<TKey, TEntity>
+            where TEntity : IAggregate
+            where TEvent : IEntity, IMutation< TEntity>
         {
 
             Logger?.LogDebug($"{Id} => Applying event: {@event.EntityId} {@event.GetType()}");
@@ -79,21 +79,21 @@ namespace Anabasis.EventStore.Repository
 
             var eventsToSave = aggregate.PendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders)).ToArray();
 
-            await SaveEventBatch(aggregate.StreamId, afterApplyAggregateVersion, eventsToSave);
+            await SaveEventBatch(aggregate.EntityId, afterApplyAggregateVersion, eventsToSave);
 
             aggregate.ClearPendingEvents();
 
         }
 
 
-        private IEntity<TKey> DeserializeEvent(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
+        private IEntity DeserializeEvent(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
         {
             var targetType = eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
             if (null == targetType && throwIfNotHandled) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
             if (null == targetType) return null;
 
-            return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEntity<TKey>;
+            return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEntity;
         }
     }
 }

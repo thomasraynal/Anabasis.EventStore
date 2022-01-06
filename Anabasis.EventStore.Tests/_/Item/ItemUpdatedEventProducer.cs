@@ -18,12 +18,12 @@ namespace Anabasis.EventStore.Tests.Demo
     {
         private Random _rand;
         private CompositeDisposable _cleanUp;
-        private IEventStoreAggregateRepository<Guid> _repository;
-        private IEventStoreCache<Guid, Item> _cache;
+        private IEventStoreAggregateRepository _repository;
+        private IEventStoreCache<Item> _cache;
         private ILogger<ItemUpdatedEventProducer> _logger;
         private bool _isConnected;
 
-        public ItemUpdatedEventProducer(IConnectionStatusMonitor monitor, IEventStoreAggregateRepository<Guid> repository, IEventStoreCache<Guid, Item> cache, ILogger<ItemUpdatedEventProducer> logger)
+        public ItemUpdatedEventProducer(IConnectionStatusMonitor monitor, IEventStoreAggregateRepository repository, IEventStoreCache<Item> cache, ILogger<ItemUpdatedEventProducer> logger)
         {
             _repository = repository;
             _cache = cache;
@@ -69,7 +69,7 @@ namespace Anabasis.EventStore.Tests.Demo
 
                                              var itemDeletedEvent = new DeleteItemEvent();
 
-                                              _repository.Apply(item.Current, itemDeletedEvent);
+                                             await _repository.Apply(item.Current, itemDeletedEvent);
 
                                          });
 
@@ -102,8 +102,7 @@ namespace Anabasis.EventStore.Tests.Demo
                                      //refacto: disconnected repository cache
                                      if (!_isConnected) return;
 
-                                      _repository.Apply(item.Current, itemUpdatedEvent);
-
+                                     await _repository.Apply(item.Current, itemUpdatedEvent);
 
                                  });
                              }

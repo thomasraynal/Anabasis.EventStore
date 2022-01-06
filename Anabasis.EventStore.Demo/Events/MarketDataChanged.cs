@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class MarketDataChanged : BaseAggregateEvent<string, MarketData>
+    public class MarketDataChanged : BaseAggregateEvent<MarketData>
     {
         public decimal Bid { get; set; }
         public decimal Offer { get; set; }

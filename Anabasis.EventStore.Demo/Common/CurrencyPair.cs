@@ -4,7 +4,7 @@ using System;
 namespace Anabasis.EventStore.Demo
 {
     //https://github.com/RolandPheasant/Dynamic.Trader
-    public class CurrencyPair : BaseAggregate<string>
+    public class CurrencyPair : BaseAggregate
     {
         public CurrencyPair(string code, decimal startingPrice, int decimalPlaces, decimal tickFrequency, int defaultSpread = 8)
         {

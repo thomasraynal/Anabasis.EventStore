@@ -3,7 +3,7 @@ using Anabasis.EventStore.Shared;
 
 namespace Anabasis.EventStore.Integration.Tests
 {
-  public class CurrencyPair : BaseAggregate<string>
+  public class CurrencyPair : BaseAggregate
     {
 
         public CcyPairState State { get; set; }

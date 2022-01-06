@@ -8,9 +8,9 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseAllStreamsCatchupCache<TKey, TAggregate> : BaseCatchupCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+    public abstract class BaseAllStreamsCatchupCache< TAggregate> : BaseCatchupCache< TAggregate> where TAggregate : IAggregate, new()
     {
-        public BaseAllStreamsCatchupCache(IConnectionStatusMonitor connectionMonitor, AllStreamsCatchupCacheConfiguration<TKey, TAggregate> catchupCacheConfiguration, IEventTypeProvider<TKey, TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<TKey, TAggregate> snapshotStore = null, ISnapshotStrategy<TKey> snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public BaseAllStreamsCatchupCache(IConnectionStatusMonitor connectionMonitor, AllStreamsCatchupCacheConfiguration< TAggregate> catchupCacheConfiguration, IEventTypeProvider< TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore< TAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
             Initialize();
         }

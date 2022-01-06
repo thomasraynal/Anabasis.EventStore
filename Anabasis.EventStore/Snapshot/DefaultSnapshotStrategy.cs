@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Snapshot
 {
-    public class DefaultSnapshotStrategy<TKey> : ISnapshotStrategy<TKey>
+    public class DefaultSnapshotStrategy : ISnapshotStrategy
     {
         public DefaultSnapshotStrategy(int snapshotIntervalInEvents = 10)
         {
@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Snapshot
 
         public int SnapshotIntervalInEvents { get; }
 
-        public bool IsSnapShotRequired(IAggregate<TKey> aggregate)
+        public bool IsSnapShotRequired(IAggregate aggregate)
         {
             return aggregate.Version - aggregate.VersionFromSnapshot >= SnapshotIntervalInEvents;
         }

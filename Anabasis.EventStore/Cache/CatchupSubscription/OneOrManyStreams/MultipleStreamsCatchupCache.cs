@@ -12,24 +12,24 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Cache
 {
 
-    public class MultipleStreamsCatchupCache<TKey, TAggregate> : BaseOneOrManyStreamCatchupCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+    public class MultipleStreamsCatchupCache< TAggregate> : BaseOneOrManyStreamCatchupCache< TAggregate> where TAggregate : IAggregate, new()
     {
-        private MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate> _multipleStreamsCatchupCacheConfiguration;
+        private MultipleStreamsCatchupCacheConfiguration< TAggregate> _multipleStreamsCatchupCacheConfiguration;
 
         public MultipleStreamsCatchupCache(IConnectionStatusMonitor connectionMonitor, 
-            MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate> catchupCacheConfiguration, 
-            IEventTypeProvider<TKey, TAggregate> eventTypeProvider, 
+            MultipleStreamsCatchupCacheConfiguration< TAggregate> catchupCacheConfiguration, 
+            IEventTypeProvider< TAggregate> eventTypeProvider, 
             ILoggerFactory loggerFactory, 
-            ISnapshotStore<TKey, TAggregate> snapshotStore = null, 
-            ISnapshotStrategy<TKey> snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+            ISnapshotStore< TAggregate> snapshotStore = null, 
+            ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
             _multipleStreamsCatchupCacheConfiguration = catchupCacheConfiguration;
         }
 
         protected override async Task OnLoadSnapshot(
-            CatchupCacheSubscriptionHolder<TKey, TAggregate>[] catchupCacheSubscriptionHolders,
-            ISnapshotStrategy<TKey> snapshotStrategy, 
-            ISnapshotStore<TKey,TAggregate> snapshotStore)
+            CatchupCacheSubscriptionHolder< TAggregate>[] catchupCacheSubscriptionHolders,
+            ISnapshotStrategy snapshotStrategy, 
+            ISnapshotStore<TAggregate> snapshotStore)
         {
             if (UseSnapshot)
             {
@@ -45,7 +45,7 @@ namespace Anabasis.EventStore.Cache
                     catchupCacheSubscriptionHolder.LastProcessedEventSequenceNumber = snapshot.VersionFromSnapshot;
                     catchupCacheSubscriptionHolder.LastProcessedEventUtcTimestamp = DateTime.UtcNow;
 
-                    Logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.StreamId}");
+                    Logger?.LogInformation($"{Id} => OnLoadSnapshot - EntityId: {snapshot.EntityId} StreamId: {snapshot.EntityId}");
 
                     CurrentCache.AddOrUpdate(snapshot);
 
@@ -54,7 +54,7 @@ namespace Anabasis.EventStore.Cache
         }
 
         protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(
-            CatchupCacheSubscriptionHolder<TKey, TAggregate> catchupCacheSubscriptionHolder,
+            CatchupCacheSubscriptionHolder< TAggregate> catchupCacheSubscriptionHolder,
             IEventStoreConnection connection,
             Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent,
             Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped)

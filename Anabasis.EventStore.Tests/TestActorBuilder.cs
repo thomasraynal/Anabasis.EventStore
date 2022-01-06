@@ -71,7 +71,7 @@ namespace Anabasis.EventStore.Tests
         }
         public async Task Handle(SomeCommand someCommand)
         {
-            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.StreamId));
+            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
         }
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)

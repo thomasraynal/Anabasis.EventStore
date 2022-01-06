@@ -7,14 +7,14 @@ namespace Anabasis.EventStore.Tests
 {
     public class Producer : IProducer
     {
-        private readonly IEventStoreAggregateRepository<Guid> _repository;
+        private readonly IEventStoreAggregateRepository _repository;
 
-        public Producer(IEventStoreAggregateRepository<Guid> repository)
+        public Producer(IEventStoreAggregateRepository repository)
         {
             _repository = repository;
         }
 
-        public Guid Create()
+        public string Create()
         {
             var item = new Item();
             _repository.Apply(item, new CreateItemEvent());

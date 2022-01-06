@@ -26,6 +26,6 @@ namespace Anabasis.RabbitMQ.Event
 
         public bool IsCommand => false;
 
-        public string StreamId => Subject;
+        public string EntityId => Subject;
     }
 }

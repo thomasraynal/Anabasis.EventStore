@@ -13,7 +13,7 @@ namespace Anabasis.EventStore.Event
             EventID = Guid.NewGuid();
 
             CorrelationID = correlationId;
-            StreamId = streamId;
+            EntityId = streamId;
         }
 
         [JsonProperty]
@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Event
         [JsonProperty]
         public Guid CorrelationID { get; internal set; }
         [JsonProperty]
-        public string StreamId { get; internal set; }
+        public string EntityId { get; internal set; }
         [JsonProperty]
         public bool IsCommand { get; internal set; }
 

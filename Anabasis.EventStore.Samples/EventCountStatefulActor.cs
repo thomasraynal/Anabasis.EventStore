@@ -12,13 +12,13 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Samples
 {
-    public class EventCountStatefulActor : BaseStatefulActor<string, EventCountAggregate>
+    public class EventCountStatefulActor : BaseStatefulActor<EventCountAggregate>
     {
-        public EventCountStatefulActor(IEventStoreAggregateRepository<string> eventStoreRepository, IEventStoreCache<string, EventCountAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
+        public EventCountStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<EventCountAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public EventCountStatefulActor(IEventStoreAggregateRepository<string> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public EventCountStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
         {
         }
 

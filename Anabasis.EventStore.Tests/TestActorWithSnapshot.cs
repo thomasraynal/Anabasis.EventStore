@@ -56,10 +56,10 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestStatefulActorWithSnapshot : BaseStatefulActor<Guid, SomeDataAggregate<Guid>>
+    public class TestStatefulActorWithSnapshot : BaseStatefulActor<SomeDataAggregate>
     {
-        public TestStatefulActorWithSnapshot(SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
-          IEventStoreAggregateRepository<Guid> eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
+        public TestStatefulActorWithSnapshot(SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache,
+          IEventStoreAggregateRepository eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
         {
             Events = new List<SomeRandomEvent>();
         }
@@ -87,17 +87,17 @@ namespace Anabasis.EventStore.Tests
         private UserCredentials _userCredentials;
         private ConnectionSettings _connectionSettings;
         private ClusterVNode _clusterVNode;
-        private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository<Guid> eventStoreRepository) _eventRepository;
+        private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository eventStoreRepository) _eventRepository;
 
         private (ConnectionStatusMonitor connectionStatusMonitor,
-          SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache,
-          InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>> inMemorySnapshotStore,
-          DefaultSnapshotStrategy<Guid> defaultSnapshotStrategy,
-          ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _cache;
+          SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache,
+          InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore,
+          DefaultSnapshotStrategy defaultSnapshotStrategy,
+          ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cache;
 
         private Guid _correlationId = Guid.NewGuid();
         private Guid _firstAggregateId = Guid.NewGuid();
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>> inMemorySnapshotStore, DefaultSnapshotStrategy<Guid> defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) _secondCache;
+        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _secondCache;
         private ILoggerFactory _loggerFactory;
 
         [OneTimeSetUp]
@@ -132,13 +132,13 @@ namespace Anabasis.EventStore.Tests
             await _clusterVNode.StopAsync();
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository<Guid> eventStoreRepository) CreateEventRepository()
+        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
         {
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var eventStoreRepository = new EventStoreAggregateRepository<Guid>(
+            var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
               connection,
               connectionMonitor,
@@ -147,13 +147,13 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>> catchupEventStoreCache, InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>> inMemorySnapshotStore, DefaultSnapshotStrategy<Guid> defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate<Guid>> someDataAggregates) CreateCatchupEventStoreCache()
+        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
             var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
 
-            var cacheConfiguration = new SingleStreamCatchupCacheConfiguration<Guid, SomeDataAggregate<Guid>>($"{_firstAggregateId}", _userCredentials)
+            var cacheConfiguration = new SingleStreamCatchupCacheConfiguration<SomeDataAggregate>($"{_firstAggregateId}", _userCredentials)
             {
                 UserCredentials = _userCredentials,
                 KeepAppliedEventsOnAggregate = true,
@@ -161,18 +161,18 @@ namespace Anabasis.EventStore.Tests
                 UseSnapshot = true
             };
 
-            var defaultSnapshotStrategy = new DefaultSnapshotStrategy<Guid>();
-            var inMemorySnapshotStore = new InMemorySnapshotStore<Guid, SomeDataAggregate<Guid>>();
+            var defaultSnapshotStrategy = new DefaultSnapshotStrategy();
+            var inMemorySnapshotStore = new InMemorySnapshotStore<SomeDataAggregate>();
 
-            var singleStreamCatchupEventStoreCache = new SingleStreamCatchupCache<Guid, SomeDataAggregate<Guid>>(
+            var singleStreamCatchupEventStoreCache = new SingleStreamCatchupCache<SomeDataAggregate>(
               connectionMonitor,
               cacheConfiguration,
               loggerFactory: _loggerFactory,
               snapshotStore: inMemorySnapshotStore,
               snapshotStrategy: defaultSnapshotStrategy,
-              eventTypeProvider: new DefaultEventTypeProvider<Guid, SomeDataAggregate<Guid>>(() => new[] { typeof(SomeData<Guid>) }));
+              eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }));
 
-            var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate<Guid>>();
+            var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
             singleStreamCatchupEventStoreCache.AsObservableCache()
                            .Connect()
@@ -189,7 +189,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldCreateAnActor()
         {
 
-            var emitedEvents = new List<SomeData<Guid>>();
+            var emitedEvents = new List<SomeData>();
 
             _eventRepository = CreateEventRepository();
             _cache = CreateCatchupEventStoreCache();
@@ -198,7 +198,7 @@ namespace Anabasis.EventStore.Tests
 
             for (var i = 0; i < _cache.defaultSnapshotStrategy.SnapshotIntervalInEvents; i++)
             {
-                var @event = new SomeData<Guid>(_firstAggregateId, _correlationId);
+                var @event = new SomeData($"{_firstAggregateId}", _correlationId);
 
                 emitedEvents.Add(@event);
 
@@ -217,7 +217,7 @@ namespace Anabasis.EventStore.Tests
 
             for (var i = 0; i < _cache.defaultSnapshotStrategy.SnapshotIntervalInEvents; i++)
             {
-                var @event = new SomeData<Guid>(_firstAggregateId, _correlationId);
+                var @event = new SomeData($"{_firstAggregateId}", _correlationId);
 
                 emitedEvents.Add(@event);
 
@@ -237,15 +237,15 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).Version);
-            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).VersionFromSnapshot);
+            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent($"{_firstAggregateId}").Version);
+            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent($"{_firstAggregateId}").VersionFromSnapshot);
 
-            await _eventRepository.eventStoreRepository.Emit(new SomeData<Guid>(_firstAggregateId, _correlationId));
+            await _eventRepository.eventStoreRepository.Emit(new SomeData($"{_firstAggregateId}", _correlationId));
 
             await Task.Delay(100);
 
-            Assert.AreEqual(20, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).Version);
-            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent(_firstAggregateId).VersionFromSnapshot);
+            Assert.AreEqual(20, _secondCache.catchupEventStoreCache.GetCurrent($"{_firstAggregateId}").Version);
+            Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent($"{_firstAggregateId}").VersionFromSnapshot);
 
         }
 

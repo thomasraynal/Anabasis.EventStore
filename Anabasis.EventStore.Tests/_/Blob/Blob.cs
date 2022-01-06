@@ -6,11 +6,11 @@ using System.Text;
 
 namespace Anabasis.EventStore.Tests.Demo
 {
-    public class Blob : BaseAggregate<Guid>
+    public class Blob : BaseAggregate
     {
         public Blob()
         {
-            EntityId = Guid.NewGuid();
+            EntityId = $"{Guid.NewGuid()}";
         }
 
         public override bool Equals(object obj)

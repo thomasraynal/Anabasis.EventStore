@@ -6,7 +6,7 @@ using System.Text;
 namespace Anabasis.EventStore.Tests.Demo
 {
     [ProtoContract]
-    public class DeleteItemEvent : ProtoBuffEventBase<Guid, Item>
+    public class DeleteItemEvent : ProtoBuffEventBase<Item>
     {
         protected override void ApplyInternal(Item entity)
         {

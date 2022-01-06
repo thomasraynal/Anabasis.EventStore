@@ -10,22 +10,22 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Actor
 {
-    public abstract class BaseStatefulActor<TKey, TAggregate> : BaseStatelessActor, IDisposable, IStatefulActor<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+    public abstract class BaseStatefulActor< TAggregate> : BaseStatelessActor, IDisposable, IStatefulActor<TAggregate> where TAggregate : IAggregate, new()
     {
 
-        public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IEventStoreCache<TKey, TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public BaseStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
             Setup(eventStoreCache);
         }
 
-        public BaseStatefulActor(IEventStoreAggregateRepository<TKey> eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory =null) : base(eventStoreRepository, loggerFactory)
+        public BaseStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory =null) : base(eventStoreRepository, loggerFactory)
         {
-            var getEventStoreCache = eventStoreCacheFactory.Get<TKey, TAggregate>(GetType());
+            var getEventStoreCache = eventStoreCacheFactory.Get< TAggregate>(GetType());
 
             Setup(getEventStoreCache(connectionStatusMonitor, loggerFactory));
         }
 
-        private void Setup(IEventStoreCache<TKey, TAggregate> eventStoreCache)
+        private void Setup(IEventStoreCache<TAggregate> eventStoreCache)
         {
 
             State = eventStoreCache;
@@ -33,7 +33,7 @@ namespace Anabasis.EventStore.Actor
             eventStoreCache.Connect();
         }
 
-        public IEventStoreCache<TKey, TAggregate> State { get; internal set; }
+        public IEventStoreCache<TAggregate> State { get; internal set; }
 
 
     }

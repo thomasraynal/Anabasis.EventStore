@@ -6,9 +6,9 @@ using System.Text;
 
 namespace Anabasis.EventStore.Snapshot
 {
-    public interface ISnapshotStrategy<TKey>
+    public interface ISnapshotStrategy
     {
         int SnapshotIntervalInEvents { get; }
-        bool IsSnapShotRequired(IAggregate<TKey> aggregate);
+        bool IsSnapShotRequired(IAggregate aggregate);
     }
 }

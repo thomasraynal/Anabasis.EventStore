@@ -41,9 +41,9 @@ namespace Anabasis.EventStore.Integration.Tests
                             .KeepRetrying()
                             .Build();
 
-            var defaultEventTypeProvider = new DefaultEventTypeProvider<string, CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged) });
+            var defaultEventTypeProvider = new DefaultEventTypeProvider<CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged) });
 
-            var traderOne = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, connectionSettings)
+            var traderOne = StatefulActorBuilder<Trader, CurrencyPair, TestRegistry>.Create(url, connectionSettings)
                                                                                               .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                                 getCatchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                               .Build();
@@ -51,7 +51,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
             Assert.IsTrue(traderOne.State.IsConnected);
 
-            var traderTwo = StatefulActorBuilder<Trader, string, CurrencyPair, TestRegistry>.Create(url, connectionSettings)
+            var traderTwo = StatefulActorBuilder<Trader, CurrencyPair, TestRegistry>.Create(url, connectionSettings)
                                                                                             .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                                getCatchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                             .Build();

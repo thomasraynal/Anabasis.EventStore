@@ -4,7 +4,7 @@ using System;
 
 namespace Anabasis.EventStore.Integration.Tests
 {
-  public class CurrencyPairPriceChanged : BaseAggregateEvent<string, CurrencyPair>
+  public class CurrencyPairPriceChanged : BaseAggregateEvent<CurrencyPair>
   {
     public CurrencyPairPriceChanged(string ccyPairId, string traderId, double ask, double bid, double mid, double spread) : base(ccyPairId, Guid.NewGuid())
     {

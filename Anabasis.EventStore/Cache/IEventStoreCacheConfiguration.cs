@@ -5,7 +5,7 @@ using System;
 
 namespace Anabasis.EventStore.Cache
 {
-    public interface IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
+    public interface IEventStoreCacheConfiguration< TAggregate> where TAggregate : IAggregate
     {
         TimeSpan IsStaleTimeSpan { get; }
         bool KeepAppliedEventsOnAggregate { get; }

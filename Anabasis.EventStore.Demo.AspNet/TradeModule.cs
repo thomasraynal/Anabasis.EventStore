@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Demo
 
             this.Get("/trades/{id:long}", async (ctx) =>
             {
-                var trade = tradeSink.State.GetCurrents().FirstOrDefault(t => t.EntityId == ctx.Request.RouteValues.As<long>("id"));
+                var trade = tradeSink.State.GetCurrents().FirstOrDefault(t => t.EntityId == ctx.Request.RouteValues.As<string>("id"));
                 await ctx.Response.Negotiate(trade);
             });
         }

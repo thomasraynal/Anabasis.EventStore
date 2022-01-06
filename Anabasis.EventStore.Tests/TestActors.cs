@@ -43,7 +43,7 @@ namespace Anabasis.EventStore.Tests
 
         public async Task Handle(SomeCommand someCommand)
         {
-            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.StreamId));
+            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
         }
 
         public override void Dispose()

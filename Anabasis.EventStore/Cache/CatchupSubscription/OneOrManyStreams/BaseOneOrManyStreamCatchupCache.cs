@@ -9,11 +9,11 @@ using System.Reactive.Linq;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseOneOrManyStreamCatchupCache<TKey, TAggregate> : BaseCatchupCache<TKey, TAggregate> where TAggregate : IAggregate<TKey>, new()
+    public abstract class BaseOneOrManyStreamCatchupCache< TAggregate> : BaseCatchupCache< TAggregate> where TAggregate : IAggregate, new()
     {
-        protected BaseOneOrManyStreamCatchupCache(IConnectionStatusMonitor connectionMonitor, MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate> catchupCacheConfiguration, IEventTypeProvider<TKey, TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<TKey, TAggregate> snapshotStore = null, ISnapshotStrategy<TKey> snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        protected BaseOneOrManyStreamCatchupCache(IConnectionStatusMonitor connectionMonitor, MultipleStreamsCatchupCacheConfiguration< TAggregate> catchupCacheConfiguration, IEventTypeProvider< TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore< TAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
-            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TKey, TAggregate>(streamId)).ToArray();
+            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder< TAggregate>(streamId)).ToArray();
 
             Initialize(catchupCacheSubscriptionHolders);
 

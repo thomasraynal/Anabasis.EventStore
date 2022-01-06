@@ -20,23 +20,23 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class SomeData<TKey> : BaseAggregateEvent<TKey, SomeDataAggregate<TKey>>
+    public class SomeData : BaseAggregateEvent< SomeDataAggregate>
     {
 
-        public SomeData(TKey entityId, Guid correlationId) : base(entityId, correlationId)
+        public SomeData(string entityId, Guid correlationId) : base(entityId, correlationId)
         {
             EntityId = entityId;
         }
 
-        protected override void ApplyInternal(SomeDataAggregate<TKey> entity)
+        protected override void ApplyInternal(SomeDataAggregate entity)
         {
         }
     }
 
-    public class SomeDataAggregate<TKey> : BaseAggregate<TKey>
+    public class SomeDataAggregate : BaseAggregate
     {
 
-        public SomeDataAggregate(TKey entityId)
+        public SomeDataAggregate(string entityId)
         {
             EntityId = entityId;
         }

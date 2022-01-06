@@ -9,7 +9,7 @@ using Anabasis.EventStore.Repository;
 namespace Anabasis.EventStore.Integration.Tests
 {
 
-  public class Trader : BaseStatefulActor<string, CurrencyPair>, IDisposable
+  public class Trader : BaseStatefulActor<CurrencyPair>, IDisposable
   {
 
     private static readonly string[] CcyPairs = { "EUR/USD", "EUR/GBP" };
@@ -21,8 +21,8 @@ namespace Anabasis.EventStore.Integration.Tests
     private readonly TraderConfiguration _configuration;
 
     public Trader(TraderConfiguration traderConfiguration,
-      IEventStoreAggregateRepository<string> eventStoreRepository,
-      IEventStoreCache<string, CurrencyPair> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
+      IEventStoreAggregateRepository eventStoreRepository,
+      IEventStoreCache<CurrencyPair> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
     {
 
       _cancel = new CancellationTokenSource();

@@ -2,15 +2,15 @@ using System.Text.Json.Serialization;
 
 namespace Anabasis.Common
 {
-  public interface IAggregate<TKey> : IEntity<TKey>
+  public interface IAggregate : IEntity
   {
     int Version { get; }
     int VersionFromSnapshot { get; set; }
-    void ApplyEvent(IEntity<TKey> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = false);
+    void ApplyEvent(IEntity @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = false);
     [JsonIgnore]
-    IEntity<TKey>[] PendingEvents { get; }
+    IEntity[] PendingEvents { get; }
     [JsonIgnore]
-    IEntity<TKey>[] AppliedEvents { get; }
+    IEntity[] AppliedEvents { get; }
     void ClearPendingEvents();
   }
 }

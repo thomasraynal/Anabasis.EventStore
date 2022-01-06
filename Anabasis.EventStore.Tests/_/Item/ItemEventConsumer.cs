@@ -23,11 +23,11 @@ namespace Anabasis.EventStore.Tests.Demo
     public class ItemEventConsumer : IHostedService
     {
         private CompositeDisposable _cleanup;
-        private IEventStoreCache<Guid, Item> _cache;
+        private IEventStoreCache<Item> _cache;
         private ILogger<ItemEventConsumer> _logger;
      
 
-        public ItemEventConsumer(IEventStoreCache<Guid, Item> cache, ILogger<ItemEventConsumer> logger)
+        public ItemEventConsumer(IEventStoreCache<Item> cache, ILogger<ItemEventConsumer> logger)
         {
             _cache = cache;
             _logger = logger;

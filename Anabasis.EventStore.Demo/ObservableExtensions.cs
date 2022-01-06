@@ -55,7 +55,7 @@ namespace Anabasis.EventStore.Demo
                                         });
         }
 
-        public static IDisposable PrintTradeChanges(this IObservable<IChangeSet<Trade, long>> observable)
+        public static IDisposable PrintTradeChanges(this IObservable<IChangeSet<Trade, string>> observable)
         {
 
             return observable.Subscribe(trades =>

@@ -27,8 +27,8 @@ namespace Anabasis.EventStore.Demo
                     .SetDefaultUserCredentials(StaticData.UserCredentials)
                     .Build();
 
-            var tradeDataEventProvider = new DefaultEventTypeProvider<long, Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
-            var marketDataEventProvider = new DefaultEventTypeProvider<string, MarketData>(() => new[] { typeof(MarketDataChanged) });
+            var tradeDataEventProvider = new DefaultEventTypeProvider<Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
+            var marketDataEventProvider = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
 
             services.AddWorld(StaticData.ClusterVNode, connectionSettings)
 
@@ -39,16 +39,16 @@ namespace Anabasis.EventStore.Demo
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                    .AddStatefulActor<TradePriceUpdateService, long, Trade>()
+                    .AddStatefulActor<TradePriceUpdateService, Trade>()
                     .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                    .AddStatefulActor<TradeSink, long, Trade>()
+                    .AddStatefulActor<TradeSink, Trade>()
                     .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                     .CreateActor()
 
-                    .AddStatefulActor<MarketDataSink, string, MarketData>()
+                    .AddStatefulActor<MarketDataSink, MarketData>()
                     .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
                     .CreateActor();
 

@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Tests.Demo
     [ProtoInclude(12, typeof(UpdateItemPayloadEvent))]
     [ProtoInclude(13, typeof(BurstedBlobEvent))]
     [ProtoInclude(14, typeof(FillBlobEvent))]
-    public abstract class ProtoBuffEventBase<TKey, TEntity> : IMutation<TKey, TEntity> where TEntity : IAggregate<TKey>
+    public abstract class ProtoBuffEventBase< TEntity> : IMutation< TEntity> where TEntity : IAggregate
     {
         protected ProtoBuffEventBase()
         {
@@ -24,23 +24,13 @@ namespace Anabasis.EventStore.Tests.Demo
         public string Name { get; set; }
 
         [ProtoMember(2, IsRequired = true)]
-        public TKey EntityId { get; set; }
+        public string EntityId { get; set; }
 
         protected abstract void ApplyInternal(TEntity entity);
 
         public void Apply(TEntity entity)
         {
             ApplyInternal(entity);
-            entity.EntityId = EntityId;
-        }
-
-        public string StreamId
-        {
-            get
-            {
-                return EntityId.ToString();
-            }
-            set { }
         }
 
         public bool IsCommand => false;

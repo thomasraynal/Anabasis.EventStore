@@ -7,7 +7,7 @@ using Anabasis.EventStore;
 namespace Anabasis.EventStore.Tests.Demo
 {
     [ProtoContract]
-    public class BurstedBlobEvent : ProtoBuffEventBase<Guid, Blob>
+    public class BurstedBlobEvent : ProtoBuffEventBase<Blob>
     {
         protected override void ApplyInternal(Blob entity)
         {

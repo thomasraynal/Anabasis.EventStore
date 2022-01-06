@@ -8,7 +8,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class MultipleStreamsCatchupCacheConfiguration<TKey, TAggregate> : IEventStoreCacheConfiguration<TKey, TAggregate> where TAggregate : IAggregate<TKey>
+    public class MultipleStreamsCatchupCacheConfiguration< TAggregate> : IEventStoreCacheConfiguration< TAggregate> where TAggregate : IAggregate
     {
         public MultipleStreamsCatchupCacheConfiguration(params string[] streamIds)
         {

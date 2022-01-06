@@ -5,7 +5,7 @@ using System.Text;
 namespace Anabasis.Common
 {
 
-    public interface IMutation<TKey, TEntity> : IEntity<TKey> where TEntity : IAggregate<TKey>
+    public interface IMutation< TEntity> : IEntity where TEntity : IAggregate
     {
         bool IsCommand { get; }
         void Apply(TEntity entity);

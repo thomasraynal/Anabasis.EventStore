@@ -77,10 +77,10 @@ namespace Anabasis.EventStore.Demo
             return buyOrSell == BuyOrSell.Sell ? price + adjustment : price - adjustment;
         }
 
-        private IObservable<IChangeSet<Trade, long>> GenerateTradesAndMaintainCache()
+        private IObservable<IChangeSet<Trade, string>> GenerateTradesAndMaintainCache()
         {
 
-            return ObservableChangeSet.Create<Trade, long>(async cache =>
+            return ObservableChangeSet.Create<Trade, string>(async cache =>
             {
 
                 var random = new Random();

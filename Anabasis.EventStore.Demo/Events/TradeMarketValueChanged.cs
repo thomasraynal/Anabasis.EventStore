@@ -5,11 +5,11 @@ using System.Text;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class TradeMarketValueChanged : BaseAggregateEvent<long, Trade>
+    public class TradeMarketValueChanged : BaseAggregateEvent<Trade>
     {
         public decimal MarketPrice { get; set; }
 
-        public TradeMarketValueChanged(long entityId, Guid correlationId) : base(entityId, correlationId)
+        public TradeMarketValueChanged(long entityId, Guid correlationId) : base($"{entityId}", correlationId)
         {
         }
 
