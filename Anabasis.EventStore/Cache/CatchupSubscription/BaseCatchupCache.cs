@@ -383,6 +383,7 @@ namespace Anabasis.EventStore.Cache
                 Logger?.LogDebug($"{Id} => Creating aggregate: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
 
                 entity = new TAggregate();
+                entity.SetEntityId(@event.EntityId);
             }
 
             Logger?.LogDebug($"{Id} => Updating aggregate: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");

@@ -1,5 +1,4 @@
 using Anabasis.Common;
-using Anabasis.EventStore.Shared;
 using Newtonsoft.Json;
 using System;
 

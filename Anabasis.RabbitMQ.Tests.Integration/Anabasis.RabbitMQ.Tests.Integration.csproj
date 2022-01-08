@@ -18,6 +18,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
     <ProjectReference Include="..\Anabasis.RabbitMQ\Anabasis.RabbitMQ.csproj" />
   </ItemGroup>
 

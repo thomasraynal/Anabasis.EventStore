@@ -2,11 +2,8 @@ using Anabasis.Common;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Actor
 {

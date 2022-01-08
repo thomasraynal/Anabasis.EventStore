@@ -38,7 +38,7 @@ namespace Anabasis.EventStore.Demo
 
                observer.OnNext(initial);
 
-               await Emit(new MarketDataChanged((string)currentPrice.EntityId, Guid.NewGuid())
+               await EmitEventStore(new MarketDataChanged((string)currentPrice.EntityId, Guid.NewGuid())
                {
                    Bid = currentPrice.Bid,
                    Offer = currentPrice.Offer
@@ -60,7 +60,7 @@ namespace Anabasis.EventStore.Demo
 
                      observer.OnNext(currentPrice);
 
-                     await Emit(new MarketDataChanged((string)currentPrice.EntityId, Guid.NewGuid())
+                     await EmitEventStore(new MarketDataChanged((string)currentPrice.EntityId, Guid.NewGuid())
                      {
                          Bid = currentPrice.Bid,
                          Offer = currentPrice.Offer

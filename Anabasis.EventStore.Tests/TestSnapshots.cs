@@ -73,8 +73,8 @@ namespace Anabasis.EventStore.Tests
             var entityC = $"{Guid.NewGuid()}";
 
             var someDataAggregateA = new SomeDataAggregate(entityA);
-            var someDataAggregateB = new SomeDataAggregate(entityA);
-            var someDataAggregateC = new SomeDataAggregate(entityA);
+            var someDataAggregateB = new SomeDataAggregate(entityB);
+            var someDataAggregateC = new SomeDataAggregate(entityC);
 
             someDataAggregateA.ApplyEvent(new SomeData(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
             someDataAggregateB.ApplyEvent(new SomeData(entityB, Guid.NewGuid()), saveAsPendingEvent: false);

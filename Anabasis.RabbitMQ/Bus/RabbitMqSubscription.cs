@@ -19,9 +19,7 @@ namespace Anabasis.RabbitMQ
             QueueName = queueName;
 
         }
-
         public string SubscriptionId => $"{Exchange}.{RoutingKey}";
-
         public string Exchange { get; }
         public string RoutingKey { get; }
         public List<IRabbitMqEventHandler> Subscriptions { get; }

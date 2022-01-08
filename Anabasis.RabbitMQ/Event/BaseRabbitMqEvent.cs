@@ -1,4 +1,5 @@
-﻿using Anabasis.RabbitMQ;
+﻿using Anabasis.Common;
+using Anabasis.RabbitMQ;
 using System;
 
 namespace Anabasis.RabbitMQ.Event
@@ -27,5 +28,6 @@ namespace Anabasis.RabbitMQ.Event
         public bool IsCommand => false;
 
         public string EntityId => Subject;
+
     }
 }

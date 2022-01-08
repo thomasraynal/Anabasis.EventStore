@@ -68,7 +68,7 @@ namespace Anabasis.EventStore.Samples
                 Console.ReadLine();
 
                 Console.WriteLine($"Generating {nameof(EventCountOne)} for stream {StaticData.PersistentStreamOne}");
-                eventCountActorOne.Emit(new EventCountOne(position++, StaticData.PersistentStreamOne, Guid.NewGuid())).Wait();
+                eventCountActorOne.EmitEventStore(new EventCountOne(position++, StaticData.PersistentStreamOne, Guid.NewGuid())).Wait();
             }
 
          

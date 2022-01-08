@@ -225,9 +225,9 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(200);
 
-            await testStatelessActorOneMvc.Emit(new SomeMoreData(Guid.NewGuid(), streamOne));
-            await testStatelessActorOneMvc.Emit(new AgainSomeMoreData(Guid.NewGuid(), streamOne));
-            await testStatelessActorOneMvc.Emit(new AgainSomeMoreData(Guid.NewGuid(), streamTwo));
+            await testStatelessActorOneMvc.EmitEventStore(new SomeMoreData(Guid.NewGuid(), streamOne));
+            await testStatelessActorOneMvc.EmitEventStore(new AgainSomeMoreData(Guid.NewGuid(), streamOne));
+            await testStatelessActorOneMvc.EmitEventStore(new AgainSomeMoreData(Guid.NewGuid(), streamTwo));
 
             await Task.Delay(200);
 
@@ -240,9 +240,9 @@ namespace Anabasis.EventStore.Tests
 
             var aggregateIdOne = Guid.NewGuid();
 
-            await testStatelessActorOneMvc.Emit(new SomeData($"{aggregateIdOne}", Guid.NewGuid()));
-            await testStatelessActorOneMvc.Emit(new SomeData($"{aggregateIdOne}", Guid.NewGuid()));
-            await testStatelessActorOneMvc.Emit(new SomeData($"{Guid.NewGuid()}", Guid.NewGuid()));
+            await testStatelessActorOneMvc.EmitEventStore(new SomeData($"{aggregateIdOne}", Guid.NewGuid()));
+            await testStatelessActorOneMvc.EmitEventStore(new SomeData($"{aggregateIdOne}", Guid.NewGuid()));
+            await testStatelessActorOneMvc.EmitEventStore(new SomeData($"{Guid.NewGuid()}", Guid.NewGuid()));
 
             await Task.Delay(200);
 

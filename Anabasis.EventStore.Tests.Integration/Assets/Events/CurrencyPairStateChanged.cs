@@ -17,7 +17,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
     public string TraderId { get; set; }
 
-    protected override void ApplyInternal(CurrencyPair entity)
+    public override void Apply(CurrencyPair entity)
     {
       entity.State = State;
     }

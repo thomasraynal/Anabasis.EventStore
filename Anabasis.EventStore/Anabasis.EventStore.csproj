@@ -11,6 +11,11 @@
     <Product />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Serialization\**" />
+    <EmbeddedResource Remove="Serialization\**" />
+    <None Remove="Serialization\**" />
+  </ItemGroup>
   
   <ItemGroup>
     <PackageReference Include="DynamicData" Version="7.3.1" />
@@ -22,10 +27,6 @@
   
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <Folder Include="Serialization\" />
   </ItemGroup>
 
 </Project>

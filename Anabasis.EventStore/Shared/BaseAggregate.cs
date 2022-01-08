@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 
 
@@ -11,7 +12,8 @@ namespace Anabasis.EventStore.Shared
         private readonly List<IEntity> _pendingEvents = new();
         private readonly List<IEntity> _appliedEvents = new();
 
-        public string EntityId { get; set; }
+        [JsonProperty]
+        public string EntityId { get; protected set; }
 
         public int Version { get; set; } = -1;
 
@@ -35,7 +37,6 @@ namespace Anabasis.EventStore.Shared
             if (saveAsPendingEvent)
             {
                 _pendingEvents.Add(@event);
-                @event.EntityId = EntityId;
                 return;
             }
 
@@ -53,6 +54,13 @@ namespace Anabasis.EventStore.Shared
             _pendingEvents.Clear();
         }
 
+        public void SetEntityId(string entityId)
+        {
+            if (null != EntityId)
+                throw new InvalidOperationException($"EntityId is already set - current=[{EntityId}]  new=[{entityId}]");
+
+            EntityId = entityId;
+        }
 
         public IEntity[] PendingEvents
         {
@@ -60,7 +68,6 @@ namespace Anabasis.EventStore.Shared
             {
                 return _pendingEvents.ToArray();
             }
-
         }
 
         public IEntity[] AppliedEvents
@@ -69,7 +76,6 @@ namespace Anabasis.EventStore.Shared
             {
                 return _appliedEvents.ToArray();
             }
-
         }
 
     }

@@ -205,7 +205,7 @@ namespace Anabasis.EventStore.Tests
                 await _eventRepository.eventStoreRepository.Emit(@event);
             }
 
-            await Task.Delay(500);
+            await Task.Delay(1000);
 
             var snapShots = await _cache.inMemorySnapshotStore.GetAll();
 

@@ -15,13 +15,12 @@ namespace Anabasis.RabbitMQ
         public string SubscriptionId { get; }
         public Func<TEvent,Task> OnEvent { get; }
 
-        public RabbitMqEventSubscription(string exchange, Func<TEvent, Task> onEvent) : this(exchange, (_) => true, onEvent)
-        {
-       
-        }
 
-        public RabbitMqEventSubscription(string exchange, Expression<Func<TEvent, bool>> routingStrategy, Func<TEvent, Task> onEvent)
+        public RabbitMqEventSubscription(string exchange, Func<TEvent, Task> onEvent, Expression<Func<TEvent, bool>> routingStrategy = null)
         {
+            if (null == routingStrategy)
+                routingStrategy = (_) => true;
+
             var rabbitMQSubjectExpressionVisitor = new RabbitMQSubjectExpressionVisitor(typeof(TEvent));
 
             rabbitMQSubjectExpressionVisitor.Visit(routingStrategy);
@@ -29,6 +28,7 @@ namespace Anabasis.RabbitMQ
             OnEvent = onEvent;
             RoutingKey = rabbitMQSubjectExpressionVisitor.Resolve();
             Exchange = exchange;
+
             SubscriptionId = $"{Exchange}.{RoutingKey}";
 
         }

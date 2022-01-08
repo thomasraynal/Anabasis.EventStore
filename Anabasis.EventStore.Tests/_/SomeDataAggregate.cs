@@ -28,7 +28,7 @@ namespace Anabasis.EventStore.Tests
             EntityId = entityId;
         }
 
-        protected override void ApplyInternal(SomeDataAggregate entity)
+        public override void Apply(SomeDataAggregate entity)
         {
         }
     }

@@ -1,10 +1,12 @@
+﻿using Anabasis.Common.Shared;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public interface IEntity: IHaveEntityId
+    public interface IBus : IDisposable
     {
     }
 }

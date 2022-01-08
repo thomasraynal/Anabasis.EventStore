@@ -1,22 +1,36 @@
-﻿using NUnit.Framework;
+﻿using Anabasis.Common;
+using Anabasis.Common.Shared;
+using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Anabasis.Poc
 {
-    public interface IBus
-    {
-        BusType BusType { get; }
-        Task<TCommandResult> Send<TCommand, TCommandResult>(TCommand command);
-        void Emit<TEvent>();
-        IObservable<TEvent> Subscribe<TEvent>();
-    }
 
     public class EventStoreBus : IBus
     {
-        public BusType BusType => BusType.EventStore;
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
 
         public void Emit<TEvent>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Emit(IEnumerable<IEvent> events, params KeyValuePair<string, string>[] extraHeaders)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity
         {
             throw new NotImplementedException();
         }
@@ -46,12 +60,12 @@ namespace Anabasis.Poc
 
         public bool IsCommand => false;
 
-        public string StreamId => "StreamId";
-
         public BusType BusType => throw new NotImplementedException();
+
+        public string EntityId => throw new NotImplementedException();
     }
 
-    public class OneRabbitMQEvent : IEvent
+    public class OneRabbitMQEvent : IRabbitMQEvent
     {
         public OneRabbitMQEvent()
         {
@@ -66,13 +80,37 @@ namespace Anabasis.Poc
         public bool IsCommand => false;
 
         public BusType BusType => throw new NotImplementedException();
+
+        public string EntityId => Subject;
+
+        public string Subject => throw new NotImplementedException();
     }
 
     public class RabbitMQBus : IBus
     {
         public BusType BusType => throw new NotImplementedException();
 
+        public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
         public void Emit<TEvent>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Emit(IEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Emit(IEnumerable<IEvent> events, params KeyValuePair<string, string>[] extraHeaders)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity
         {
             throw new NotImplementedException();
         }
@@ -88,67 +126,48 @@ namespace Anabasis.Poc
         }
     }
 
-    public interface IHaveAStreamId
+    public interface IRabbitMQEvent : IEvent
     {
-        string StreamId { get; }
+        string Subject { get; }
     }
 
-    public interface IEventStoreEvent : IEvent, IHaveAStreamId
+    public interface IEventStoreEvent : IEvent
     {
-
     }
 
-    public interface IEvent
-    {
-        Guid EventID { get; }
-        Guid CorrelationID { get; }
-        bool IsCommand { get; }
-        BusType BusType { get; }
-    }
-
-    public enum BusType
-    {
-        EventStore,
-        RabbitMQ,
-        InMemory
-    }
-
-    public interface IActor
-    {
-        string Id { get; }
-        bool IsConnected { get; }
-        Task WaitUntilConnected(TimeSpan? timeout = null);
-        Task<TCommandResult> Send<TCommand, TCommandResult>(TCommand command);
-        void Emit<TEvent>(TEvent @event) where TEvent : IEvent;
-        void SubscribeTo(IBus bus, bool closeSubscriptionOnDispose = false);
-    }
 
     public class Actor : IActor
     {
-        public Actor()
-        {
-        }
-
         public string Id => throw new NotImplementedException();
 
         public bool IsConnected => throw new NotImplementedException();
 
-        public void Emit<TEvent>(TEvent @event) where TEvent : IEvent
+        public Task EmitEventStore<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
         {
             throw new NotImplementedException();
         }
 
-        public Task<TCommandResult> Send<TCommand, TCommandResult>(TCommand command)
+        public Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
         {
             throw new NotImplementedException();
         }
 
-        public void SubscribeTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
+        public void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
         {
             throw new NotImplementedException();
         }
 
         public Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public TBus GetConnectedBus<TBus>()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void SubscribeToEventStream(IEventStream eventStoreStream, bool closeUnderlyingSubscriptionOnDispose = false)
         {
             throw new NotImplementedException();
         }
@@ -169,15 +188,15 @@ namespace Anabasis.Poc
         [Test]
         public async Task ShouldTestBusRegistration()
         {
-            var actor = new Actor();
+            //var actor = new Actor();
 
-            var rabbitMQBus = new RabbitMQBus();
-            var eventStoreBus = new EventStoreBus();
+            //var rabbitMQBus = new RabbitMQBus();
+            //var eventStoreBus = new EventStoreBus();
 
-            actor.SubscribeTo(eventStoreBus);
-            actor.SubscribeTo(rabbitMQBus);
+            //actor.ConnectTo(eventStoreBus);
+            //actor.ConnectTo(rabbitMQBus);
 
-            actor.Emit(new OneEventStoreEvent());
+            //await actor.EmitEventStore(new OneEventStoreEvent());
         }
     }
 

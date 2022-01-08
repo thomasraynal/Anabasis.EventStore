@@ -38,11 +38,6 @@ namespace Anabasis.EventStore.Tests
             return Task.CompletedTask;
         }
 
-        public override void Dispose()
-        {
-            base.Dispose();
-        }
-
     }
 
     [TestFixture]
@@ -151,7 +146,7 @@ namespace Anabasis.EventStore.Tests
 
             _testActorOne = new TestStatefulActor(_cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
 
-            _testActorOne.SubscribeTo(subscribeToAllStream);
+            _testActorOne.SubscribeToEventStream(subscribeToAllStream);
 
             Assert.NotNull(_testActorOne);
         }
@@ -160,7 +155,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldEmitEventsAndUpdateCache()
         {
 
-            await _testActorOne.Emit(new SomeData($"{_firstAggregateId}", Guid.NewGuid()));
+            await _testActorOne.EmitEventStore(new SomeData($"{_firstAggregateId}", Guid.NewGuid()));
 
             await Task.Delay(500);
 
@@ -169,7 +164,7 @@ namespace Anabasis.EventStore.Tests
             Assert.NotNull(current);
             Assert.AreEqual(1, current.AppliedEvents.Length);
 
-            await _testActorOne.Emit(new SomeRandomEvent(Guid.NewGuid()));
+            await _testActorOne.EmitEventStore(new SomeRandomEvent(Guid.NewGuid()));
 
             await Task.Delay(500);
 

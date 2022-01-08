@@ -43,7 +43,7 @@ namespace Anabasis.EventStore.Tests
 
         public async Task Handle(SomeCommand someCommand)
         {
-            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
+            await EmitEventStore(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
         }
 
         public override void Dispose()
@@ -222,9 +222,9 @@ namespace Anabasis.EventStore.Tests
 
             _streamOne = CreatePersistentEventStoreStream(_streamId, _groupIdOne);
 
-            _testActorOne.SubscribeTo(_streamOne.persistentEventStoreStream);
+            _testActorOne.SubscribeToEventStream(_streamOne.persistentEventStoreStream);
 
-            await _testActorOne.Emit(new SomeRandomEvent(_correlationId, _streamId));
+            await _testActorOne.EmitEventStore(new SomeRandomEvent(_correlationId, _streamId));
 
             await Task.Delay(100);
 
@@ -242,7 +242,7 @@ namespace Anabasis.EventStore.Tests
 
             _streamTwo = CreatePersistentEventStoreStream(_streamId, _groupIdOne);
 
-            _testActorTwo.SubscribeTo(_streamTwo.persistentEventStoreStream);
+            _testActorTwo.SubscribeToEventStream(_streamTwo.persistentEventStoreStream);
 
             var events = Enumerable.Range(0, 10).Select(_ => new SomeRandomEvent(_correlationId, _streamId)).ToArray();
 
@@ -268,12 +268,12 @@ namespace Anabasis.EventStore.Tests
             var (_, volatileEventStoreStream) = CreateVolatileEventStoreStream();
 
             var sender = new TestActor(_eventRepository.eventStoreRepository, _loggerFactory);
-            sender.SubscribeTo(volatileEventStoreStream);
+            sender.SubscribeToEventStream(volatileEventStoreStream);
 
             var receiver = new TestActorReceiver(_eventRepository.eventStoreRepository, _loggerFactory);
-            receiver.SubscribeTo(volatileEventStoreStream);
+            receiver.SubscribeToEventStream(volatileEventStoreStream);
 
-            var someCommandResponse = await sender.Send<SomeCommandResponse>(new SomeCommand(Guid.NewGuid(), "some-stream"), TimeSpan.FromSeconds(3));
+            var someCommandResponse = await sender.SendEventStore<SomeCommandResponse>(new SomeCommand(Guid.NewGuid(), "some-stream"), TimeSpan.FromSeconds(3));
 
             Assert.NotNull(someCommandResponse);
         }

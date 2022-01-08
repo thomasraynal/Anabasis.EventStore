@@ -71,7 +71,7 @@ namespace Anabasis.EventStore.Tests
         }
         public async Task Handle(SomeCommand someCommand)
         {
-            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
+            await EmitEventStore(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
         }
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)
@@ -200,16 +200,16 @@ namespace Anabasis.EventStore.Tests
             var testActorAutoBuildOne = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency(), _loggerFactory);
             var testActorAutoBuildTwo = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency(), _loggerFactory);
 
-            testActorAutoBuildOne.SubscribeTo(persistentSubscriptionEventStoreStream);
-            testActorAutoBuildOne.SubscribeTo(volatileEventStoreStream);
+            testActorAutoBuildOne.SubscribeToEventStream(persistentSubscriptionEventStoreStream);
+            testActorAutoBuildOne.SubscribeToEventStream(volatileEventStoreStream);
 
-            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
+            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
 
             await Task.Delay(100);
 
             Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
 
-            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId));
+            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, _streamId));
 
             await Task.Delay(100);
 
@@ -229,13 +229,13 @@ namespace Anabasis.EventStore.Tests
             var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
                                                                                          .Build();
 
-            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
+            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
 
             await Task.Delay(500);
 
             Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
 
-            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId2));
+            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, _streamId2));
 
             await Task.Delay(1000);
 

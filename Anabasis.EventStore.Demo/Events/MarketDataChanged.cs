@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Demo
         {
         }
 
-        protected override void ApplyInternal(MarketData entity)
+        public override void Apply(MarketData entity)
         {
             entity.Bid = Bid;
             entity.Offer = Offer;

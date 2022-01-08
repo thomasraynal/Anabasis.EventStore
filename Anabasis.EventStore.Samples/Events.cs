@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Samples
 
         public int Position { get; set; }
 
-        protected override void ApplyInternal(EventCountAggregate entity)
+        public override void Apply(EventCountAggregate entity)
         {
             entity.HitCounter += 1;
         }
@@ -36,7 +36,7 @@ namespace Anabasis.EventStore.Samples
 
         public int Position { get; set; }
 
-        protected override void ApplyInternal(EventCountAggregate entity)
+        public override void Apply(EventCountAggregate entity)
         {
             entity.HitCounter += 1;
         }

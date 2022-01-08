@@ -12,7 +12,7 @@ using ResolvedEvent = EventStore.ClientAPI.ResolvedEvent;
 namespace Anabasis.EventStore.Integration.Tests
 {
 
-    [TestFixture, Category("Integration")]
+    [TestFixture, Category("Integration"), Ignore("Integration")]
     public class ProjectionIntegrationTests
     {
         private DockerEventStoreFixture _dockerEventStoreFixture;
@@ -27,7 +27,6 @@ namespace Anabasis.EventStore.Integration.Tests
 
             await _dockerEventStoreFixture.Initialize();
         }
-
 
         [Test, Order(0)]
         public async Task ShouldCreateAndRunAndDeleteAProjection()

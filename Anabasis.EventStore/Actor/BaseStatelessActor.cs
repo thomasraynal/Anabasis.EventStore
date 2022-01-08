@@ -7,6 +7,7 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common;
+using System.Linq;
 
 namespace Anabasis.EventStore.Actor
 {
@@ -16,8 +17,11 @@ namespace Anabasis.EventStore.Actor
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
         private readonly IEventStoreRepository _eventStoreRepository;
+
         private readonly List<IEventStream> _eventStoreStreams;
-        
+        private readonly List<IBus> _connectedBus;
+
+
         public ILogger Logger { get; }
 
         protected BaseStatelessActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null)
@@ -29,6 +33,8 @@ namespace Anabasis.EventStore.Actor
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
             _eventStoreStreams = new List<IEventStream>();
+            _connectedBus = new List<IBus>();
+
             Logger = loggerFactory?.CreateLogger(GetType());
 
         }
@@ -37,7 +43,7 @@ namespace Anabasis.EventStore.Actor
 
         public bool IsConnected => _eventStoreRepository.IsConnected;
 
-        public void SubscribeTo(IEventStream eventStoreStream, bool closeSubscriptionOnDispose = false)
+        public void SubscribeToEventStream(IEventStream eventStoreStream, bool closeSubscriptionOnDispose = false)
         {
             eventStoreStream.Connect();
 
@@ -60,7 +66,7 @@ namespace Anabasis.EventStore.Actor
             return Task.CompletedTask;
         }
 
-        public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent: IEvent
+        public async Task EmitEventStore<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent: IEvent
         {
             if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
 
@@ -69,7 +75,7 @@ namespace Anabasis.EventStore.Actor
             await _eventStoreRepository.Emit(@event, extraHeaders);
         }
 
-        public Task<TCommandResult> Send<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
+        public Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
         {
             Logger?.LogDebug($"{Id} => Sending command {command.EntityId} - {command.GetType()}");
 
@@ -161,5 +167,24 @@ namespace Anabasis.EventStore.Actor
             if (!IsConnected) throw new InvalidOperationException("Unable to connect");
         }
 
+        public TBus GetConnectedBus<TBus>()
+        {
+            var bus = _connectedBus.FirstOrDefault(bus => bus is TBus);
+
+            if (null == bus)
+                return default;
+
+            return (TBus)bus;
+        }
+
+        public void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
+        {
+            _connectedBus.Add(bus);
+
+            if (closeUnderlyingSubscriptionOnDispose)
+            {
+                _cleanUp.Add(bus);
+            }
+        }
     }
 }

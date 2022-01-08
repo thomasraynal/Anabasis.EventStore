@@ -16,7 +16,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             _rabbitMqBus = IntegrationTestsHelper.GetRabbitMqBus();
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) => ev.FilterOne == "filterOne", (ev) =>
+            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) =>
             {
                 var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), typeof(TestEventOne));
 
@@ -27,7 +27,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
                 return Task.CompletedTask;
 
-            }));
+            }, (ev) => ev.FilterOne == "filterOne"));
         }
 
         public Task Handle(TestEventOne testEventOne)

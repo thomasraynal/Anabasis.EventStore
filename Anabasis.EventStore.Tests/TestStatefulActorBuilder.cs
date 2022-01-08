@@ -54,7 +54,7 @@ namespace Anabasis.EventStore.Tests
         }
         public async Task Handle(SomeCommand someCommand)
         {
-            await Emit(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
+            await EmitEventStore(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
         }
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)
@@ -166,23 +166,23 @@ namespace Anabasis.EventStore.Tests
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
                                                                                          .Build();
 
-            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, "some-stream"));
+            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
 
             await Task.Delay(100);
 
             Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
 
-            await testActorAutoBuildTwo.Emit(new SomeMoreData(_correlationId, _streamId2));
+            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, _streamId2));
 
-            await Task.Delay(1000);
+            await Task.Delay(1500);
 
             Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
 
             var aggregateOne = Guid.NewGuid();
             var aggregateTwo = Guid.NewGuid();
 
-            await testActorAutoBuildOne.Emit(new SomeData($"{aggregateOne}", _correlationId));
-            await testActorAutoBuildOne.Emit(new SomeData($"{aggregateTwo}", _correlationId));
+            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateOne}", _correlationId));
+            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateTwo}", _correlationId));
 
             await Task.Delay(500);
 
@@ -192,8 +192,8 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(1, testActorAutoBuildOne.State.GetCurrent($"{aggregateOne}").AppliedEvents.Length);
             Assert.AreEqual(1, testActorAutoBuildTwo.State.GetCurrent($"{aggregateTwo}").AppliedEvents.Length);
 
-            await testActorAutoBuildOne.Emit(new SomeData($"{aggregateOne}", _correlationId));
-            await testActorAutoBuildOne.Emit(new SomeData($"{aggregateTwo}", _correlationId));
+            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateOne}", _correlationId));
+            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateTwo}", _correlationId));
 
             await Task.Delay(100);
 

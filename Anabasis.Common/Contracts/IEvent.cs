@@ -2,11 +2,10 @@ using System;
 
 namespace Anabasis.Common
 {
-    public interface IEvent
+    public interface IEvent: IHaveEntityId
     {
         Guid EventID { get; }
         Guid CorrelationID { get; }
         bool IsCommand { get; }
-        string EntityId { get; }
     }
 }

@@ -91,7 +91,7 @@ namespace Anabasis.EventStore.Demo
 
                 foreach (var trade in initialTrades)
                 {
-                    await Emit(new TradeCreated(trade.EntityId, Guid.NewGuid())
+                    await EmitEventStore(new TradeCreated(trade.EntityId, Guid.NewGuid())
                     {
                         Amount = trade.Amount,
                         BuyOrSell = trade.BuyOrSell,
@@ -117,7 +117,7 @@ namespace Anabasis.EventStore.Demo
 
                       foreach (var trade in trades)
                       {
-                          await Emit(new TradeCreated(trade.EntityId, Guid.NewGuid())
+                          await EmitEventStore(new TradeCreated(trade.EntityId, Guid.NewGuid())
                           {
                               Amount = trade.Amount,
                               BuyOrSell = trade.BuyOrSell,
@@ -151,7 +151,7 @@ namespace Anabasis.EventStore.Demo
 
                         foreach (var trade in toClose)
                         {
-                            Emit(new TradeStatusChanged(trade.EntityId, Guid.NewGuid())
+                            EmitEventStore(new TradeStatusChanged(trade.EntityId, Guid.NewGuid())
                             {
                                 Status = trade.Status
                             }).Wait();

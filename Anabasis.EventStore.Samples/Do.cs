@@ -52,13 +52,13 @@ namespace Anabasis.EventStore.Samples
                 if (rand.Next(0, 2) == 1)
                 {
                     Console.WriteLine($"Generating {nameof(EventCountOne)} for stream {target}");
-                    statelessActor.Emit(new EventCountOne(position++, target, Guid.NewGuid())).Wait();
+                    statelessActor.EmitEventStore(new EventCountOne(position++, target, Guid.NewGuid())).Wait();
                 }
 
                 else
                 {
                     Console.WriteLine($"Generating {nameof(EventCountTwo)} for stream {target}");
-                    statelessActor.Emit(new EventCountTwo(position++, target, Guid.NewGuid())).Wait();
+                    statelessActor.EmitEventStore(new EventCountTwo(position++, target, Guid.NewGuid())).Wait();
                 }
             }
         }

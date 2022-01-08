@@ -47,7 +47,7 @@ namespace Anabasis.EventStore.EventProvider
     }
 
 
-    public class ConsumerBasedEventProvider< TAggregate, TConsumer> : IEventTypeProvider< TAggregate> where TAggregate : IAggregate, new()
+    public class ConsumerBasedEventProvider<TAggregate, TConsumer> : IEventTypeProvider<TAggregate> where TAggregate : IAggregate, new()
     {
         private readonly Dictionary<string, Type> _eventTypeCache;
 

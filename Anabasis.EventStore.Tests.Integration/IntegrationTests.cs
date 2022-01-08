@@ -12,7 +12,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
 
 
-    [TestFixture, Category("Integration")]
+    [TestFixture, Category("Integration"), Ignore("Integration")]
     public class IntegrationTests
     {
         private DockerEventStoreFixture _dockerEventStoreFixture;

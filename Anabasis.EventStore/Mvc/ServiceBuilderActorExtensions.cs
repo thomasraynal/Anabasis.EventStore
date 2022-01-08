@@ -26,7 +26,7 @@ namespace Anabasis.EventStore
 
                  foreach (var getStream in builder.GetStreamFactories())
                  {
-                     actor.SubscribeTo(getStream(connectionStatusMonitor, loggerFactory), closeSubscriptionOnDispose: true);
+                     actor.SubscribeToEventStream(getStream(connectionStatusMonitor, loggerFactory), closeUnderlyingSubscriptionOnDispose: true);
                  } 
 
              });

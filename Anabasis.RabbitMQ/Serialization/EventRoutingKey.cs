@@ -27,6 +27,8 @@ namespace Anabasis.RabbitMQ
 
             var tokens = GetTokens(eventType);
 
+            if(tokens.Length ==0) return $"{eventType.GetReadableNameFromType()}";
+
             var segments = tokens.Select(token => @event.GetType().GetProperty(token.PropertyInfo.Name).GetValue(@event, null))
                                  .Select(obj => null == obj ? All : obj.ToString())
                                  .Aggregate((token1, token2) => $"{token1}{Separator}{token2}");

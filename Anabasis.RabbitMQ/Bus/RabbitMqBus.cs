@@ -1,5 +1,4 @@
 ﻿using Anabasis.Common;
-using Anabasis.RabbitMQ;
 using Microsoft.Extensions.Logging;
 using Polly.Retry;
 using RabbitMQ.Client;
@@ -72,7 +71,7 @@ namespace Anabasis.RabbitMQ
                     }
 
                     channel.BasicPublish(exchange: exchange, routingKey: routingKey, basicProperties: basicProperties, body: body);
-                    
+
                     channel.WaitForConfirmsOrDie(_defaultPublishConfirmTimeout);
 
                 });

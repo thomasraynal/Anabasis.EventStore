@@ -52,7 +52,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EntityFramework", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EntityFramework.Tests.Integration", "Anabasis.EntityFramework.Tests.Integration\Anabasis.EntityFramework.Tests.Integration.csproj", "{600DBE8A-0B06-46E2-9453-971DCAE12646}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Poc", "Anabasis.Poc\Anabasis.Poc.csproj", "{AEE49DD0-3003-4B58-8054-EDE83B3357A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Poc", "Anabasis.Poc\Anabasis.Poc.csproj", "{AEE49DD0-3003-4B58-8054-EDE83B3357A1}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Poc", "Poc", "{EDF7A985-E9C3-42D3-90EE-803A6888A429}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -236,6 +238,7 @@ Global
 		{63CE5E31-C1A5-42CB-9A33-CAC678582A20} = {B527C126-4A06-44F1-B15B-6DF04DF91A0A}
 		{701E9868-F460-478B-8144-858797ED1D73} = {B527C126-4A06-44F1-B15B-6DF04DF91A0A}
 		{600DBE8A-0B06-46E2-9453-971DCAE12646} = {B527C126-4A06-44F1-B15B-6DF04DF91A0A}
+		{AEE49DD0-3003-4B58-8054-EDE83B3357A1} = {EDF7A985-E9C3-42D3-90EE-803A6888A429}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0228CEE5-162D-4901-8721-2CDCAC4DB6F2}

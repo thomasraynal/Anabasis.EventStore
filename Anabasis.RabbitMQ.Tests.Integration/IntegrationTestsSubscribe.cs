@@ -35,23 +35,26 @@ namespace Anabasis.RabbitMQ.Tests.Integration
                  return Task.CompletedTask;
              }));
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) => ev.FilterOne == "filterOne", (ev) =>
+            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) =>
             {
                 _counterTestEventOneFilterOnFilterOne++;
                 return Task.CompletedTask;
-            }));
+
+            }, (ev) => ev.FilterOne == "filterOne"));
 
             _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) =>
             {
                 _counterTestEventTwoNoFilter++;
                 return Task.CompletedTask;
+
             }));
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) => ev.FilterTwo == "filterTwo", (ev) =>
+            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) =>
             {
                 _counterTestEventTwoFilterOnFilterTwo++;
                 return Task.CompletedTask;
-            }));
+
+            }, (ev) => ev.FilterTwo == "filterTwo"));
         }
 
         [Test, Order(2)]

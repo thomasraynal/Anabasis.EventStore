@@ -1,8 +1,6 @@
-using Anabasis.Common;
-using Anabasis.EventStore.Shared;
 using System;
 
-namespace Anabasis.EventStore.Event
+namespace Anabasis.Common
 {
   public interface ICommandResponse : IEvent
   {

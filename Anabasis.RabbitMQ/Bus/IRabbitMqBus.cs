@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Anabasis.Common;
+using System;
 using System.Collections.Generic;
 
 namespace Anabasis.RabbitMQ
 {
-    public interface IRabbitMqBus: IDisposable
+    public interface IRabbitMqBus: IBus, IDisposable
     {
         string BusId { get; }
         IRabbitMqConnection RabbitMqConnection { get; }

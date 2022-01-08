@@ -13,8 +13,6 @@ namespace Anabasis.EventStore.Shared
         public Guid CorrelationID { get; set; }
         public bool IsCommand => false;
 
-        protected abstract void ApplyInternal(TEntity entity);
-
         [JsonConstructor]
         private protected BaseAggregateEvent()
         {
@@ -27,11 +25,7 @@ namespace Anabasis.EventStore.Shared
             EntityId = entityId;
         }
 
-        public void Apply(TEntity entity)
-        {
-            ApplyInternal(entity);
-            entity.EntityId = EntityId;
-        }
+        public abstract void Apply(TEntity entity);
 
     }
 }

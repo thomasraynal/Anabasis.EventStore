@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -11,8 +12,6 @@ namespace Anabasis.EventStore.Event
     {
       CommandId = commandId;
     }
-
-
 
     [JsonProperty]
     public Guid CommandId { get; internal set; }

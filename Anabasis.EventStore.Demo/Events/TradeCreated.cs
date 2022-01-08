@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Demo
         public TradeStatus Status { get; set; }
         public DateTime Timestamp { get; set; }
 
-        protected override void ApplyInternal(Trade entity)
+        public override void Apply(Trade entity)
         {
             entity.CurrencyPair = CurrencyPair;
             entity.Customer = Customer;

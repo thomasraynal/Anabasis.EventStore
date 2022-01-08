@@ -13,7 +13,7 @@ namespace Anabasis.EventStore.Demo
         {
         }
 
-        protected override void ApplyInternal(Trade entity)
+        public override void Apply(Trade entity)
         {
             entity.Status = Status;
         }
