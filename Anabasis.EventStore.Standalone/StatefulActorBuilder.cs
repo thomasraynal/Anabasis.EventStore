@@ -26,11 +26,11 @@ namespace Anabasis.EventStore.Standalone
         private ILoggerFactory LoggerFactory { get; set; }
         private ConnectionStatusMonitor ConnectionMonitor { get; set; }
 
-        private readonly List<IEventStream> _streamsToRegisterTo;
+        private readonly List<IEventStoreStream> _streamsToRegisterTo;
 
         private StatefulActorBuilder()
         {
-            _streamsToRegisterTo = new List<IEventStream>();
+            _streamsToRegisterTo = new List<IEventStoreStream>();
         }
 
         public TActor Build()

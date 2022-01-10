@@ -11,7 +11,7 @@ using ILogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace Anabasis.EventStore.Stream
 {
-    public abstract class BaseEventStoreStream : IEventStream
+    public abstract class BaseEventStoreStream : IEventStoreStream
     {
         protected readonly IEventStoreStreamConfiguration _eventStoreStreamConfiguration;
         protected readonly IEventTypeProvider _eventTypeProvider;

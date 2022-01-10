@@ -13,12 +13,12 @@ namespace Anabasis.EventStore
         where TActor : IStatelessActor
     {
         private readonly World _world;
-        private readonly List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>> _streamsToRegisterTo;
+        private readonly List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>> _streamsToRegisterTo;
 
         public StatelessActorBuilder(World world)
         {
             _world = world;
-            _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>>();
+            _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>>();
         }
 
 
@@ -26,7 +26,7 @@ namespace Anabasis.EventStore
             Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null,  
             IEventTypeProvider eventTypeProvider = null)
         {
-            var getSubscribeFromEndEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
             {
                 var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
 
@@ -54,7 +54,7 @@ namespace Anabasis.EventStore
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
-            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
             {
 
                 var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
@@ -84,7 +84,7 @@ namespace Anabasis.EventStore
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
-            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
             {
 
                 var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
@@ -113,7 +113,7 @@ namespace Anabasis.EventStore
             string groupId,
             Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
         {
-            var getPersistentSubscriptionEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>((connectionMonitor, loggerFactory) =>
+            var getPersistentSubscriptionEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
             {
                 var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
 
@@ -143,7 +143,7 @@ namespace Anabasis.EventStore
             return _world;
         }
 
-        public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>[] GetStreamFactories()
+        public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>[] GetStreamFactories()
         {
             return _streamsToRegisterTo.ToArray();
         }

@@ -21,13 +21,13 @@ namespace Anabasis.EventStore
         where TAggregate : IAggregate, new()
     {
         private readonly World _world;
-        private readonly List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>> _streamsToRegisterTo;
+        private readonly List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>> _streamsToRegisterTo;
         private readonly IEventStoreCacheFactory _eventStoreCacheFactory;
         private Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TAggregate>> _cacheToRegisterTo;
 
         public StatefulActorBuilder(World world, IEventStoreCacheFactory eventStoreCacheFactory)
         {
-            _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>>();
+            _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>>();
             _eventStoreCacheFactory = eventStoreCacheFactory;
             _world = world;
         }
@@ -141,7 +141,7 @@ namespace Anabasis.EventStore
             IEventTypeProvider eventTypeProvider = null)
         {
 
-            var getSubscribeFromEndEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
             {
                 var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
 
@@ -168,7 +168,7 @@ namespace Anabasis.EventStore
             string groupId,
             Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
         {
-            var getPersistentSubscriptionEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>((connectionMonitor, loggerFactory) =>
+            var getPersistentSubscriptionEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
             {
                 var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
 
@@ -196,7 +196,7 @@ namespace Anabasis.EventStore
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
-            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>((connectionMonitor,loggerFactory) =>
+            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>((connectionMonitor,loggerFactory) =>
             {
 
                 var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
@@ -225,7 +225,7 @@ namespace Anabasis.EventStore
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
-            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
             {
 
                 var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
@@ -250,7 +250,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>[] GetStreamFactories()
+        public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>[] GetStreamFactories()
         {
             return _streamsToRegisterTo.ToArray();
         }

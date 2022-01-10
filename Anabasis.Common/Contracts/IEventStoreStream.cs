@@ -5,7 +5,7 @@ using System.Text;
 
 namespace Anabasis.Common
 {
-    public interface IEventStream : IMessageQueue
+    public interface IEventStoreStream : IMessageQueue
     {
         IObservable<IEvent> OnEvent();
     }

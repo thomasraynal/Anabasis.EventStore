@@ -10,11 +10,15 @@ namespace Anabasis.Common
     {
         string Id { get; }
         bool IsConnected { get; }
-        TBus GetConnectedBus<TBus>();
+        TBus GetConnectedBus<TBus>() where TBus : class;
         Task WaitUntilConnected(TimeSpan? timeout = null);
+        Task OnEventReceived(IEvent @event);
+        void AddDisposable(IDisposable disposable);
+        void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false);
+
         Task EmitEventStore<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent;
         Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse;
-        void SubscribeToEventStream(IEventStream eventStoreStream, bool closeUnderlyingSubscriptionOnDispose = false);
-        void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false);
+        void SubscribeToEventStream(IEventStoreStream eventStoreStream, bool closeUnderlyingSubscriptionOnDispose = false);
+     
     }
 }

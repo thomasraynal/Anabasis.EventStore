@@ -38,11 +38,27 @@ namespace Anabasis.RabbitMQ
                               .ToArray();
         }
 
-
-        public static IObservable<TEvent> SubscribeRabbitMq<TEvent>(this IActor actor, string exchange, Expression<Func<TEvent, bool>> routingStrategy = null)
-        where TEvent : class, IRabbitMqMessage
+        public static void SubscribeRabbitMq<TEvent>(this IActor actor, string exchange, Expression<Func<TEvent, bool>> routingStrategy = null)
+            where TEvent : class, IRabbitMqMessage
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
+
+            var rabbitMqSubscription = new RabbitMqEventSubscription<TEvent>(exchange, (@event) =>
+            {
+                return actor.OnEventReceived(@event);
+
+            }, routingStrategy);
+
+            rabbitMqBus.Subscribe(rabbitMqSubscription);
+
+            var disposable = Disposable.Create(() => rabbitMqBus.Unsubscribe(rabbitMqSubscription));
+
+            actor.AddDisposable(disposable);
+        }
+
+        public static IObservable<TEvent> SubscribeRabbitMq<TEvent>(this IRabbitMqBus rabbitMqBus, string exchange, Expression<Func<TEvent, bool>> routingStrategy = null)
+        where TEvent : class, IRabbitMqMessage
+        {
 
             var observable = Observable.Create<TEvent>((observer) =>
             {
@@ -56,7 +72,7 @@ namespace Anabasis.RabbitMQ
 
                 rabbitMqBus.Subscribe(rabbitMqSubscription);
 
-                return Disposable.Create(()=> rabbitMqBus.Unsubscribe(rabbitMqSubscription));
+                return Disposable.Create(() => rabbitMqBus.Unsubscribe(rabbitMqSubscription));
             });
 
             return observable;

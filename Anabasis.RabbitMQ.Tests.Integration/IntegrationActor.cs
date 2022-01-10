@@ -11,10 +11,31 @@ using NUnit.Framework;
 using System.Threading.Tasks;
 using System;
 using System.Reactive.Linq;
-using RabbitMQ.Client;
+using Anabasis.EventStore.Actor;
+using System.Collections.Generic;
+using Anabasis.Common;
+using Anabasis.EventStore.Repository;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
 {
+    public class TestRabbitMqActor : BaseStatelessActor
+    {
+        public List<IEvent> Events { get; } = new();
+
+        public TestRabbitMqActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        {
+        }
+
+        public Task Handle(TestEventOne testEventOne)
+        {
+            Events.Add(testEventOne);
+
+            return Task.CompletedTask;
+        }
+
+
+    }
+
     [TestFixture]
     public class IntegrationActor
     {
@@ -24,6 +45,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         private ConnectionSettings _connectionSettings;
         private LoggerFactory _loggerFactory;
         private ClusterVNode _clusterVNode;
+        private TestRabbitMqActor _testRabbitMqActor;
 
         [OneTimeSetUp]
         public async Task SetUp()
@@ -54,25 +76,17 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         public async Task ShouldCreateSusbscriptionAndConsumeAnEvent()
         {
 
-            var defaultEventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
+             _testRabbitMqActor = StatelessActorBuilder<TestRabbitMqActor, SomeRegistry>
+                                            .Create(_clusterVNode, _connectionSettings, _loggerFactory)
+                                            .Build();
 
-            var testActorAutoBuildOne = StatefulActorBuilder<TestStatefulActorOne, SomeDataAggregate, SomeRegistry>
-                                                                                         .Create(_clusterVNode, _connectionSettings, _loggerFactory)
-                                                                                         .WithReadAllFromStartCache(
-                                                                                            getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
-                                                                                            eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
-                                                                                         .WithSubscribeFromEndToAllStream()
-                                                                                         .Build();
-
-
-
-            testActorAutoBuildOne.ConnectTo(_rabbitMqBus, true);
-
-            var onEvent = testActorAutoBuildOne.SubscribeRabbitMq<TestEventZero>(_integrationActorExchange);
+            _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);
+        
+            var onEvent = _rabbitMqBus.SubscribeRabbitMq<TestEventZero>(_integrationActorExchange);
 
             TestEventZero testEventZero = null;
 
-            onEvent.Subscribe((ev) =>
+            var disposable = onEvent.Subscribe((ev) =>
             {
                 testEventZero = ev;
             });
@@ -80,13 +94,35 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             var eventZero = new TestEventZero(Guid.NewGuid(), Guid.NewGuid());
             var eventOne = new TestEventOne(Guid.NewGuid(), Guid.NewGuid());
 
-            testActorAutoBuildOne.EmitRabbitMq(eventOne, _integrationActorExchange);
-            testActorAutoBuildOne.EmitRabbitMq(eventZero, _integrationActorExchange);
+            _testRabbitMqActor.EmitRabbitMq(eventOne, _integrationActorExchange);
+            _testRabbitMqActor.EmitRabbitMq(eventZero, _integrationActorExchange);
 
             await Task.Delay(500);
 
             Assert.IsNotNull(testEventZero);
             Assert.AreEqual(eventZero.EventID, testEventZero.EventID);
+
+            disposable.Dispose();
+
+        }
+
+        [Test, Order(2)]
+        public async Task ShouldSubscribeAndHandleWithConsumer()
+        {
+
+
+            _testRabbitMqActor.SubscribeRabbitMq<TestEventOne>(_integrationActorExchange);
+
+            var eventOne = new TestEventOne(Guid.NewGuid(), Guid.NewGuid());
+
+            _testRabbitMqActor.EmitRabbitMq(eventOne, _integrationActorExchange);
+
+
+            await Task.Delay(500);
+
+            Assert.IsNotNull(_testRabbitMqActor.Events.Count > 0);
+
+
         }
 
     }

@@ -167,7 +167,22 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public void SubscribeToEventStream(IEventStream eventStoreStream, bool closeUnderlyingSubscriptionOnDispose = false)
+        public void SubscribeToEventStream(IEventStoreStream eventStoreStream, bool closeUnderlyingSubscriptionOnDispose = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task OnEventReceived(IEvent @event)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void AddDisposable(IDisposable disposable)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void ConnectTo<TInterface>(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
         {
             throw new NotImplementedException();
         }

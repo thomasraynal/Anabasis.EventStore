@@ -18,9 +18,9 @@ namespace Anabasis.EventStore.Actor
         private readonly CompositeDisposable _cleanUp;
         private readonly IEventStoreRepository _eventStoreRepository;
 
-        private readonly List<IEventStream> _eventStoreStreams;
-        private readonly List<IBus> _connectedBus;
+        private readonly List<IEventStoreStream> _eventStoreStreams;
 
+        private readonly Dictionary<Type, IBus> _connectedBus;
 
         public ILogger Logger { get; }
 
@@ -32,8 +32,8 @@ namespace Anabasis.EventStore.Actor
             _eventStoreRepository = eventStoreRepository;
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
-            _eventStoreStreams = new List<IEventStream>();
-            _connectedBus = new List<IBus>();
+            _eventStoreStreams = new List<IEventStoreStream>();
+            _connectedBus = new Dictionary<Type, IBus>();
 
             Logger = loggerFactory?.CreateLogger(GetType());
 
@@ -43,7 +43,7 @@ namespace Anabasis.EventStore.Actor
 
         public bool IsConnected => _eventStoreRepository.IsConnected;
 
-        public void SubscribeToEventStream(IEventStream eventStoreStream, bool closeSubscriptionOnDispose = false)
+        public void SubscribeToEventStream(IEventStoreStream eventStoreStream, bool closeSubscriptionOnDispose = false)
         {
             eventStoreStream.Connect();
 
@@ -100,7 +100,7 @@ namespace Anabasis.EventStore.Actor
 
         }
 
-        private async Task OnEventReceived(IEvent @event)
+        public async Task OnEventReceived(IEvent @event)
         {
             try
             {
@@ -167,24 +167,46 @@ namespace Anabasis.EventStore.Actor
             if (!IsConnected) throw new InvalidOperationException("Unable to connect");
         }
 
-        public TBus GetConnectedBus<TBus>()
+        public TBus GetConnectedBus<TBus>() where TBus: class
         {
-            var bus = _connectedBus.FirstOrDefault(bus => bus is TBus);
+            var busType = typeof(TBus);
 
-            if (null == bus)
-                return default;
+            if (!_connectedBus.ContainsKey(busType))
+            {
 
-            return (TBus)bus;
+                var candidate = _connectedBus.Values.FirstOrDefault(bus => (bus as TBus) != null);
+
+                if (null == candidate)
+                {
+                    throw new InvalidOperationException($"Bus of type {busType} is already registered");
+                }
+
+                _connectedBus[busType] = candidate;
+            }
+
+            return (TBus)_connectedBus[busType];
         }
 
         public void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
         {
-            _connectedBus.Add(bus);
+            var busType = bus.GetType();
+
+            if (_connectedBus.ContainsKey(busType))
+            {
+                throw new InvalidOperationException($"Bus of type {busType} is already registered");
+            }
+
+            _connectedBus[busType] = bus;
 
             if (closeUnderlyingSubscriptionOnDispose)
             {
                 _cleanUp.Add(bus);
             }
+        }
+
+        public void AddDisposable(IDisposable disposable)
+        {
+            _cleanUp.Add(disposable);
         }
     }
 }

@@ -8,6 +8,6 @@ namespace Anabasis.EventStore
 {
     public interface IStatelessActorBuilder
     {
-        Func<IConnectionStatusMonitor, ILoggerFactory, IEventStream>[] GetStreamFactories();
+        Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>[] GetStreamFactories();
     }
 }
