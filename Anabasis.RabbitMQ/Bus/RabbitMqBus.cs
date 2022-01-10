@@ -5,6 +5,7 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ
 {
@@ -209,6 +210,19 @@ namespace Anabasis.RabbitMQ
             var subscriberDescriptor = _existingSubscriptions[subscription.SubscriptionId];
 
             subscriberDescriptor.Subscriptions.Remove(subscription);
+        }
+
+        public void DoHealthCheck()
+        {
+            RabbitMqConnection.DoWithChannel(model =>
+            {
+                if (!model.IsOpen)
+                {
+                    throw new InvalidOperationException("RabbitMq connection not opened");
+                }
+                  
+            });
+
         }
 
         public void Dispose()

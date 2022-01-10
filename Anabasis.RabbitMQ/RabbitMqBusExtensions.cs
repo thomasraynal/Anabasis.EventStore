@@ -11,7 +11,6 @@ namespace Anabasis.RabbitMQ
 {
     public static class RabbitMqBusExtensions
     {
-
         public static void EmitRabbitMq<TEvent>(this IActor actor, IEnumerable<TEvent> events, string exchange, TimeSpan? initialVisibilityDelay = null)
               where TEvent : class, IRabbitMqMessage
         {
