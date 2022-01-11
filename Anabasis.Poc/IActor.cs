@@ -162,7 +162,7 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public TBus GetConnectedBus<TBus>()
+        public TBus GetConnectedBus<TBus>() where TBus: class
         {
             throw new NotImplementedException();
         }
