@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 
 namespace Anabasis.EntityFramework.Tests.Integration
@@ -17,7 +18,8 @@ namespace Anabasis.EntityFramework.Tests.Integration
 
         protected override void OnModelCreatingInternal(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Currency>().HasKey(currency => new { currency.Name, currency.Code });
+            modelBuilder.Entity<Currency>().HasKey(currency => currency.Code);
+            modelBuilder.Entity<Currency>().HasIndex(currency => new { currency.Name, currency.Code }).IsUnique();
 
             modelBuilder.Entity<Currency>().HasData(new Currency("United States dollar", "USD"));
             modelBuilder.Entity<Currency>().HasData(new Currency("Euro", "EUR"));
@@ -55,8 +57,30 @@ namespace Anabasis.EntityFramework.Tests.Integration
             modelBuilder.Entity<Currency>().HasData(new Currency("Malaysian ringgit", "MYR"));
             modelBuilder.Entity<Currency>().HasData(new Currency("Romanian leu", "RON"));
 
+            modelBuilder.Entity<CurrencyPair>().HasKey(currencyPair => new { currencyPair.Code });
+            modelBuilder.Entity<CurrencyPair>().HasIndex(currencyPair => new { currencyPair.Currency1Code, currencyPair.Currency2Code }).IsUnique();
+
+            modelBuilder.Entity<CurrencyPair>().HasData(new CurrencyPair("EUR/USD", "EUR", "USD", 4, 3M));
+            modelBuilder.Entity<CurrencyPair>().HasData(new CurrencyPair("EUR/GBP", "EUR", "GBP", 4, 3M));
+            modelBuilder.Entity<CurrencyPair>().HasData(new CurrencyPair("EUR/JPY", "EUR", "JPY", 4, 3M));
+            modelBuilder.Entity<CurrencyPair>().HasData(new CurrencyPair("USD/GBP", "USD", "GBP", 4, 3M));
+            modelBuilder.Entity<CurrencyPair>().HasData(new CurrencyPair("USD/JPY", "USD", "JPY", 4, 3M));
+            modelBuilder.Entity<CurrencyPair>().HasData(new CurrencyPair("GBP/JPY", "GBP", "JPY", 4, 3M));
+
+            modelBuilder.Entity<Counterparty>().HasKey(counterparty => new { counterparty.Name });
+            modelBuilder.Entity<Counterparty>().HasData(new Counterparty("Bank Of America"));
+            modelBuilder.Entity<Counterparty>().HasData(new Counterparty("Nomura"));
+            modelBuilder.Entity<Counterparty>().HasData(new Counterparty("HSBC"));
+            modelBuilder.Entity<Counterparty>().HasData(new Counterparty("SGCIB"));
+
+            modelBuilder.Entity<Trade>().HasKey(trade => trade.TradeId);
+            modelBuilder.Entity<Trade>().Property(trade => trade.BuyOrSell).HasConversion(new EnumToStringConverter<BuyOrSell>());
+
         }
 
+        public DbSet<Counterparty> Counterparties { get; set; }
         public DbSet<Currency> Currencies { get; set; }
+        public DbSet<CurrencyPair> CurrencyPairs { get; set; }
+        public DbSet<Trade> Trades { get; set; }
     }
 }

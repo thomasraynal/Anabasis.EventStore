@@ -9,7 +9,10 @@ namespace Anabasis.EntityFramework.Tests.Integration
 {
     public class Currency
     {
- 
+        private Currency()
+        {
+        }
+
         public Currency(string name, string code)
         {
             Name = name;
@@ -18,6 +21,5 @@ namespace Anabasis.EntityFramework.Tests.Integration
 
         public string Name { get;  internal set; }
         public string Code { get; internal set; }
-
     }
 }

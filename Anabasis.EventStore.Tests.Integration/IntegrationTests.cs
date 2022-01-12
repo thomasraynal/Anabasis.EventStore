@@ -10,8 +10,6 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Integration.Tests
 {
 
-
-
     [TestFixture, Category("Integration"), Ignore("Integration")]
     public class IntegrationTests
     {
