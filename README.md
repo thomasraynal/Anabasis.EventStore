@@ -14,10 +14,10 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.EventStore.Snapshot.InMemory.svg)](https://www.nuget.org/packages/Anabasis.EventStore.Snapshot.InMemory)
 
-**Anabasis.Anabasis.RabbitMQ**
+**Anabasis.RabbitMQ**
 
-[![NuGet](https://img.shields.io/nuget/v/Anabasis.Anabasis.RabbitMQ.svg)](https://www.nuget.org/packages/Anabasis.Anabasis.RabbitMQ)
+[![NuGet](https://img.shields.io/nuget/v/Anabasis.RabbitMQ.svg)](https://www.nuget.org/packages/Anabasis.RabbitMQ)
 
-**Anabasis.Anabasis.EntityFramework**
+**Anabasis.EntityFramework**
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.EntityFramework.svg)](https://www.nuget.org/packages/Anabasis.EntityFramework)
