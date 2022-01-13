@@ -1,0 +1,23 @@
+﻿apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: test
+    release: 1.0.0.5555
+    group: testgroup
+  name: svc-test
+  namespace: namespace-testgroup
+spec:
+  ports:
+  - name: http
+    port: 80
+    protocol: TCP
+    targetPort: http
+  - name: health
+    port: 1337
+    protocol: TCP
+    targetPort: 1337
+  selector:
+    app: test
+    release: 1.0.0.5555
+  type: ClusterIP

@@ -1,0 +1,67 @@
+﻿apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: test
+    release: 1.0.0.5555
+    group: testgroup
+  name: test
+  namespace: testgroup
+spec:
+  selector:
+    matchLabels:
+      app: test
+      release: unknown-release
+      group: testgroup
+  template:
+    metadata:
+      labels:
+        app: test
+        release: 1.0.0.5555
+    spec:
+      containers:
+      - env:
+        - name: config
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: dockerhub.com/master-test:5555
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 1337
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        name: test
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 1337
+          name: health
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 1337
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 15
+        volumeMounts:
+        - mountPath: /app/config.group.yaml
+          name: config-group
+          subPath: config.group.yaml
+        - mountPath: /app/config.app.yaml
+          name: config-app
+          subPath: config.app.yaml
+      imagePullSecrets:
+      - name: registrysecret
+      volumes:
+      - configMap:
+          name: config-group-testgroup
+        name: config-group
+      - configMap:
+          name: config-group-test
+        name: config-app

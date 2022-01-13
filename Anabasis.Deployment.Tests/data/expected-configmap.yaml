@@ -1,0 +1,20 @@
+﻿apiVersion: v1
+data:
+  config.app.yaml: |-
+    appConfig:
+        MyAppConfig:
+            foo: bar
+            bar: foo
+  config.group.yaml: |-
+    groupConfig:
+        MyGroupConfig:
+            foo: bargroup
+            bar: foogroup
+kind: ConfigMap
+metadata:
+  labels:
+    app: test
+    release: 1.0.0.5555
+    group: testgroup
+  name: test
+  namespace: testgroup

@@ -1,0 +1,4 @@
+groupConfig:
+    MyGroupConfig:
+        foo: bargroup
+        bar: foogroup
