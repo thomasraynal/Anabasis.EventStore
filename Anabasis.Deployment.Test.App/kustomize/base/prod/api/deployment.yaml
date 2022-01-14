@@ -1,0 +1,67 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: Anabasis-Deployment-Test-App
+    release: 
+    group: Anabasis-Deployment-Test-App
+  name: Anabasis-Deployment-Test-App
+  namespace: test-group
+spec:
+  selector:
+    matchLabels:
+      app: Anabasis-Deployment-Test-App
+      release: unknown-release
+      group: test-group
+  template:
+    metadata:
+      labels:
+        app: Anabasis-Deployment-Test-App
+        release: 
+    spec:
+      containers:
+      - env:
+        - name: config
+          valueFrom:
+            fieldRef:
+              fieldPath: status.podIP
+        image: '/Anabasis-Deployment-Test-App/NO_GIT_REPOS_DETECTED:'
+        imagePullPolicy: IfNotPresent
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 1337
+          initialDelaySeconds: 30
+          periodSeconds: 60
+          timeoutSeconds: 30
+        name: Anabasis-Deployment-Test-App
+        ports:
+        - containerPort: 80
+          name: http
+          protocol: TCP
+        - containerPort: 1337
+          name: health
+          protocol: TCP
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 1337
+          initialDelaySeconds: 30
+          periodSeconds: 20
+          timeoutSeconds: 15
+        volumeMounts:
+        - mountPath: /app/config.group.yaml
+          name: config-group
+          subPath: config.group.yaml
+        - mountPath: /app/config.app.yaml
+          name: config-app
+          subPath: config.app.yaml
+      imagePullSecrets:
+      - name: registrysecret
+      volumes:
+      - configMap:
+          name: config-group-test-group
+        name: config-group
+      - configMap:
+          name: config-app-Anabasis-Deployment-Test-App
+        name: config-app

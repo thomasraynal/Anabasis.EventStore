@@ -11,11 +11,54 @@ using Nuke.Common.Tools.Docker;
 using Nuke.Common.Tools.Kubernetes;
 using k8s;
 using Serilog;
+using System.Collections.Generic;
 
 namespace Anabasis.Deployment
 {
+    public enum AnabasisBuildEnvironment
+    {
+        Prod
+    }
+
+    public static class BuildConst
+    {
+        public const string Kustomize = "kustomize";
+        public const string Base = "base";
+        public const string Templates = "templates";
+        public const string Overlays = "overlays";
+        public static readonly DirectoryInfo BuildKustomizeTemplatesDirectory = new(Templates);
+        public static readonly string Production = AnabasisBuildEnvironment.Prod.ToString().ToLower();
+    }
+
+    public class AppDescriptor
+    {
+        public AppDescriptor(DirectoryInfo appSourceDirectory, string app, string appRelease, string appGroup, string appLongName, string appShortName)
+        {
+            AppSourceDirectory = appSourceDirectory;
+            App = app;
+            AppRelease = appRelease;
+            AppGroup = appGroup;
+            AppLongName = appLongName;
+            AppShortName = appShortName;
+        }
+
+        public DirectoryInfo AppSourceDirectory { get;  }
+
+        public DirectoryInfo AppSourceKustomizeDirectory => new(Path.Combine(AppSourceDirectory.FullName, BuildConst.Kustomize));
+        public DirectoryInfo AppSourceKustomizeBaseDirectory => new(Path.Combine(AppSourceKustomizeDirectory.FullName, BuildConst.Base));
+        public DirectoryInfo AppSourceKustomizeOverlaysDirectory => new(Path.Combine(AppSourceKustomizeDirectory.FullName, BuildConst.Overlays));
+
+        public string App { get; }
+        public string AppRelease { get;  }
+        public string AppGroup { get;  }
+        public string AppLongName { get;  }
+        public string AppShortName { get;  }
+
+    }
+
     public abstract class BaseAnabasisBuild : NukeBuild
     {
+
         [GitRepository]
         private readonly GitRepository GitRepository;
 
@@ -46,21 +89,31 @@ namespace Anabasis.Deployment
         [Parameter("Set the applications to be deployed")]
         public string[] ApplicationsToBeDeployed;
 
+        [Parameter("Solution source directory")]
+        public AbsolutePath SourceDirectory = RootDirectory / "src";
+
         private AbsolutePath BuildDirectory => RootDirectory / "build";
-        private AbsolutePath SourceDirectory => RootDirectory / "src";
+   
         private AbsolutePath TestsDirectory => RootDirectory / "tests";
         private AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
         private AbsolutePath DeploymentsDirectory => RootDirectory / "deployments";
         private string Branch => GitRepository?.Branch ?? "NO_GIT_REPOS_DETECTED";
         private AbsolutePath OneForAllDockerFile => BuildDirectory / "docker" / "build.nuke.app.dockerfile";
-        private AbsolutePath KustomizeDirectory => BuildProjectDirectory / "kustomize";
-        private AbsolutePath KustomizeTemplateDirectory => KustomizeDirectory / "templates";
-        private AbsolutePath KustomizeOverlaysDirectory => KustomizeDirectory / "overlays";
-        private AbsolutePath KustomizeBaseDirectory => KustomizeDirectory / "base";
-
-        private string GeneratedFolderName = "generated";
+        public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
+        private AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
 
         private Kubernetes _client;
+
+        protected BaseAnabasisBuild()
+        {
+            //unit tests
+            if(null != BuildProjectDirectory)
+            {
+                BuildProjectKustomizeDirectory = BuildProjectDirectory / "kustomize";
+            }
+
+        }
+
         public Kubernetes GetKubernetesClient()
         {
             if (null == _client)
@@ -144,35 +197,122 @@ namespace Anabasis.Deployment
 
             });
 
+        public Target GenerateKubernetesYaml => _ => _
+           // .DependsOn(Package)
+           .Executes(async () =>
+           {
+
+           });
+
+
+        public void DeleteIfExist(DirectoryInfo directoryInfo)
+        {
+            if (Directory.Exists(directoryInfo.FullName))
+            {
+                Directory.Delete(directoryInfo.FullName, true);
+            }
+        }
+
+        //https://stackoverflow.com/a/3822913
+        private static void CopyFilesRecursively(string sourcePath, string targetPath)
+        {
+            //Now Create all of the directories
+            foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
+            {
+                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
+            }
+
+            //Copy all the files & Replaces any files with the same name
+            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
+            {
+                File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
+            }
+        }
+
+        public void SetupKustomize(AppDescriptor appDescriptor)
+        {
+            //clean kustomize directories structure
+            DeleteIfExist(appDescriptor.AppSourceKustomizeBaseDirectory);
+
+            //create kustomize directories structure
+            Directory.CreateDirectory(appDescriptor.AppSourceKustomizeDirectory.FullName);
+            Directory.CreateDirectory(appDescriptor.AppSourceKustomizeBaseDirectory.FullName);
+            Directory.CreateDirectory(appDescriptor.AppSourceKustomizeOverlaysDirectory.FullName);
+  
+            foreach(var env in Enum.GetValues(typeof(AnabasisBuildEnvironment)).Cast<AnabasisBuildEnvironment>())
+            {
+                var overlaysDirectory = Directory.CreateDirectory(Path.Combine(appDescriptor.AppSourceKustomizeOverlaysDirectory.FullName, $"{env}".ToLower()));
+                var baseDirectory = Directory.CreateDirectory(Path.Combine(appDescriptor.AppSourceKustomizeOverlaysDirectory.FullName, $"{env}".ToLower()));
+
+                Directory.CreateDirectory(baseDirectory.FullName);
+                Directory.CreateDirectory(overlaysDirectory.FullName);
+            }
+        }
+
+        public async Task GenerateBaseKustomize(AppDescriptor appDescriptor)
+        {
+
+            foreach (var env in Enum.GetValues(typeof(AnabasisBuildEnvironment)).Cast<AnabasisBuildEnvironment>())
+            {
+                await GenerateKubernetesYamlNamespace(appDescriptor, env);
+                await GenerateKubernetesYamlGroupConfigMap(appDescriptor, env);
+                await GenerateKubernetesYamlService(appDescriptor, env);
+                await GenerateKubernetesYamlDeployment(appDescriptor, env);
+                await GenerateKubernetesYamlAppConfigMap(appDescriptor, env);
+            }
+
+        }
+
         public Target Deploy => _ => _
             // .DependsOn(Package)
             .Executes(async () =>
             {
                 var appGroup = SanitizeForKubernetesConfig(GroupToBeDeployed.ToLower());
 
-                await GenerateNamespace(appGroup);
-                await GenerateGroupConfigMap(appGroup, BuildId);
-
                 var appsToBeDeployed = GetAppsToBeDeployed();
 
-                foreach (var (app, appName, appShortName) in appsToBeDeployed)
+                //for each projects
+                    //=> delete kustomize/templates/*
+                    //=> create kustomize/templates/*
+                    //=> create kustomize/overlay/*
+                    //=> delete
+                    //=> create kustomize/base/*
+
+                //=>generate kustomize/base/* from template
+
+                foreach (var appToBeDeployed in appsToBeDeployed)
                 {
-                    await GenerateService(appName, appGroup, BuildId);
-                    await GenerateDeployment(appName, appGroup, BuildId);
-                    await GenerateAppConfigMap(appName, appGroup, BuildId);
+                    await GenerateBaseKustomize(appToBeDeployed);
                 }
 
             });
 
 
-        private (string app, string appName, string appShortName)[] GetAppsToBeDeployed()
+        public AppDescriptor[] GetAppsToBeDeployed()
         {
+            var appDescriptors = new List<AppDescriptor>();
 
             var lowerCaseAppGroup = SanitizeForKubernetesConfig(GroupToBeDeployed.ToLower());
 
-            var apps = GetApplicationProjects().Select(project => SanitizeForKubernetesConfig(Path.GetFileName(project).Replace(".csproj", "")));
+            var applicationProjectFiles = GetApplicationProjects();
 
-            return apps.Select(appName => ($"{lowerCaseAppGroup}.{appName.ToLower()}", $"{appName.ToLower()}", $"{GroupToBeDeployed}.{appName.ToLower()}")).ToArray();
+            foreach(var applicationProjectFile in applicationProjectFiles)
+            {
+                var appName = SanitizeForKubernetesConfig(Path.GetFileName(applicationProjectFile).Replace(".csproj", ""));
+                var appSourceDirectory = new FileInfo(applicationProjectFile).Directory;
+
+                var appDescriptor = new AppDescriptor(
+                    appSourceDirectory,
+                    appName,
+                    BuildId,
+                    GroupToBeDeployed,
+                    appLongName: $"{lowerCaseAppGroup}-{appName.ToLower()}",
+                    appShortName: $"{appName.ToLower()}");
+
+                appDescriptors.Add(appDescriptor);
+            }
+
+            return appDescriptors.ToArray();
 
         }
 
@@ -339,125 +479,118 @@ namespace Anabasis.Deployment
             return $"config-app-{appName}";
         }
 
-        private async Task GenerateNamespace(string appGroup)
+        private async Task GenerateKubernetesYamlNamespace(AppDescriptor appDescriptor, AnabasisBuildEnvironment anabasisBuildEnvironment)
         {
-            var @namespace = (await Yaml.LoadAllFromFileAsync(TemplateDirectory / "namespace" / "namespace.yaml")).First() as k8s.Models.V1Namespace;
-            @namespace.Metadata.Name = appGroup;
-            @namespace.Metadata.Labels["group"] = appGroup;
+            var @namespace = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / $"{anabasisBuildEnvironment}".ToLower() / "namespace" / "namespace.yaml")).First() as k8s.Models.V1Namespace;
+
+            @namespace.Metadata.Name = appDescriptor.AppGroup;
+            @namespace.Metadata.Labels["group"] = appDescriptor.AppGroup;
 
             var namespaceYaml = Yaml.SaveToString(@namespace);
-            var namespaceYamlPath = GetGeneratedGroupYamlPath(appGroup, "namespace", "namespace.yaml");
+
+            var namespaceYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, $"{anabasisBuildEnvironment}".ToLower(), "namespace", "namespace.yaml");
 
             WriteFile(namespaceYamlPath, namespaceYaml);
 
         }
 
-        private async Task GenerateGroupConfigMap(string appGroup, string release)
+        private async Task GenerateKubernetesYamlGroupConfigMap(AppDescriptor appDescriptor, AnabasisBuildEnvironment anabasisBuildEnvironment)
         {
 
-            var groupConfigMap = (await Yaml.LoadAllFromFileAsync(TemplateDirectory / "group" / "group.yaml")).First() as k8s.Models.V1ConfigMap;
+            var groupConfigMap = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / $"{anabasisBuildEnvironment}".ToLower() / "group" / "config.group.yaml")).First() as k8s.Models.V1ConfigMap;
 
-            var configGroupYaml = File.ReadAllText($"{ConfigsDirectory}/{appGroup}/config.group.yaml");
+           // var configGroupYaml = File.ReadAllText($"{KustomizeDirectory}/{appDescriptor}/config.group.yaml");
 
-            groupConfigMap.Metadata.NamespaceProperty = appGroup;
-            groupConfigMap.Metadata.Name = $"config.group.{appGroup}";
+            groupConfigMap.Metadata.NamespaceProperty = appDescriptor.AppGroup;
+            groupConfigMap.Metadata.Name = $"config.group.{appDescriptor.AppGroup}";
 
-            groupConfigMap.Metadata.Labels["release"] = release;
-            groupConfigMap.Metadata.Labels["group"] = appGroup;
+            groupConfigMap.Metadata.Labels["release"] = appDescriptor.AppRelease;
+            groupConfigMap.Metadata.Labels["group"] = appDescriptor.AppGroup;
 
-            groupConfigMap.Data["config.group.yaml"] = configGroupYaml;
+            //groupConfigMap.Data["config.group.yaml"] = configGroupYaml;
 
             var groupConfigMapYaml = Yaml.SaveToString(groupConfigMap);
-            var groupConfigMapYamlPath = GetGeneratedGroupYamlPath(appGroup, "group", "config.group.yaml");
+
+            var groupConfigMapYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, $"{anabasisBuildEnvironment}".ToLower(), "group", "config.group.yaml");
 
             WriteFile(groupConfigMapYamlPath, groupConfigMapYaml);
 
         }
 
-        private async Task GenerateDeployment(string appName, string appGroup, string release)
+        private async Task GenerateKubernetesYamlDeployment(AppDescriptor appDescriptor, AnabasisBuildEnvironment anabasisBuildEnvironment)
         {
-            var deployment = (await Yaml.LoadAllFromFileAsync(TemplateDirectory / "api" / "deployment.yaml")).First() as k8s.Models.V1Deployment;
+            var deployment = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / $"{anabasisBuildEnvironment}".ToLower() / "api" / "deployment.yaml")).First() as k8s.Models.V1Deployment;
 
-            deployment.Metadata.NamespaceProperty = appGroup;
-            deployment.Metadata.Name = appName;
+            deployment.Metadata.NamespaceProperty = appDescriptor.AppGroup;
+            deployment.Metadata.Name = appDescriptor.App;
 
-            deployment.Metadata.Labels["app"] = appName;
-            deployment.Metadata.Labels["release"] = release;
-            deployment.Metadata.Labels["group"] = appGroup;
+            deployment.Metadata.Labels["app"] = appDescriptor.App;
+            deployment.Metadata.Labels["release"] = appDescriptor.AppRelease;
+            deployment.Metadata.Labels["group"] = appDescriptor.App;
 
-            deployment.Spec.Selector.MatchLabels["app"] = appName;
-            deployment.Spec.Selector.MatchLabels["group"] = appGroup;
+            deployment.Spec.Selector.MatchLabels["app"] = appDescriptor.App;
+            deployment.Spec.Selector.MatchLabels["group"] = appDescriptor.AppGroup;
 
-            deployment.Spec.Template.Metadata.Labels["app"] = appName;
-            deployment.Spec.Template.Metadata.Labels["release"] = release;
+            deployment.Spec.Template.Metadata.Labels["app"] = appDescriptor.App;
+            deployment.Spec.Template.Metadata.Labels["release"] = appDescriptor.AppRelease;
 
             var container = deployment.Spec.Template.Spec.Containers.First();
 
-            container.Name = appName;
-            container.Image = $"{DockerRegistryServer}/{appName}/{Branch}:{release}";
+            container.Name = appDescriptor.App;
+            container.Image = $"{DockerRegistryServer}/{appDescriptor.App}/{Branch}:{appDescriptor.AppRelease}";
 
             var configMapGroupVolume = deployment.Spec.Template.Spec.Volumes[0];
-            configMapGroupVolume.ConfigMap.Name = $"config-group-{appGroup}";
+            configMapGroupVolume.ConfigMap.Name = $"config-group-{appDescriptor.AppGroup}";
 
             var configMapAppVolume = deployment.Spec.Template.Spec.Volumes[1];
-            configMapAppVolume.ConfigMap.Name = $"config-app-{appName}";
+            configMapAppVolume.ConfigMap.Name = $"config-app-{appDescriptor.App}";
 
             var deploymentYaml = Yaml.SaveToString(deployment);
-            var deploymentYamlPath = GetGeneratedAppYamlPath(appName, appGroup, "api", "deployment.yaml");
+            var deploymentYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, $"{anabasisBuildEnvironment}".ToLower(), "api", "deployment.yaml");
 
             WriteFile(deploymentYamlPath, deploymentYaml);
 
         }
 
-        private async Task GenerateService(string appName, string appGroup, string release)
+        private async Task GenerateKubernetesYamlService(AppDescriptor appDescriptor, AnabasisBuildEnvironment anabasisBuildEnvironment)
         {
-            var service = (await Yaml.LoadAllFromFileAsync(TemplateDirectory / "api" / "service.yaml")).First() as k8s.Models.V1Service;
+            var service = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / $"{anabasisBuildEnvironment}".ToLower() / "api" / "service.yaml")).First() as k8s.Models.V1Service;
 
-            service.Metadata.NamespaceProperty = appGroup;
-            service.Metadata.Name = GetServiceName(appGroup);
+            service.Metadata.NamespaceProperty = appDescriptor.AppGroup;
+            service.Metadata.Name = GetServiceName(appDescriptor.AppGroup);
 
-            service.Metadata.Labels["app"] = appName;
-            service.Metadata.Labels["release"] = release;
-            service.Metadata.Labels["group"] = appGroup;
-            service.Spec.Selector["release"] = release;
-            service.Spec.Selector["app"] = appName;
+            service.Metadata.Labels["app"] = appDescriptor.App;
+            service.Metadata.Labels["release"] = appDescriptor.AppRelease;
+            service.Metadata.Labels["group"] = appDescriptor.AppGroup;
+            service.Spec.Selector["release"] = appDescriptor.AppRelease;
+            service.Spec.Selector["app"] = appDescriptor.App;
 
             var serviceYaml = Yaml.SaveToString(service);
-            var serviceYamlPath = GetGeneratedAppYamlPath(appName, appGroup, "api", "service.yaml");
+            var serviceYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, $"{anabasisBuildEnvironment}".ToLower(), "api", "service.yaml");
 
             WriteFile(serviceYamlPath, serviceYaml);
 
         }
 
-        private async Task GenerateAppConfigMap(string appName, string appGroup, string release)
+        private async Task GenerateKubernetesYamlAppConfigMap(AppDescriptor appDescriptor, AnabasisBuildEnvironment anabasisBuildEnvironment)
         {
-            var appConfigMap = (await Yaml.LoadAllFromFileAsync(TemplateDirectory / "api" / "app.yaml")).First() as k8s.Models.V1ConfigMap;
+            var appConfigMap = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / $"{anabasisBuildEnvironment}".ToLower() / "api" / "config.app.yaml")).First() as k8s.Models.V1ConfigMap;
 
-            var configAppYaml = File.ReadAllText($"{ConfigsDirectory}/{appGroup}/{appName}/config.app.yaml");
+           // var configAppYaml = File.ReadAllText($"{BuildProjectKustomizeDirectory}/{appGroup}/{appName}/config.app.yaml");
 
-            appConfigMap.Metadata.NamespaceProperty = appGroup;
-            appConfigMap.Metadata.Name = $"config.app.{appName}";
+            appConfigMap.Metadata.NamespaceProperty = appDescriptor.AppGroup;
+            appConfigMap.Metadata.Name = $"config.app.{appDescriptor.App}";
 
-            appConfigMap.Metadata.Labels["release"] = release;
-            appConfigMap.Metadata.Labels["group"] = appGroup;
+            appConfigMap.Metadata.Labels["release"] = appDescriptor.AppRelease;
+            appConfigMap.Metadata.Labels["group"] = appDescriptor.AppGroup;
 
-            appConfigMap.Data["config.app.yaml"] = configAppYaml;
+            //   appConfigMap.Data["config.app.yaml"] = configAppYaml;
 
             var appConfigMapYaml = Yaml.SaveToString(appConfigMap);
-            var appConfigMapYamlPath = GetGeneratedAppYamlPath(appName, appGroup, "api", "config.app.yaml");
+            var appConfigMapYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, $"{anabasisBuildEnvironment}".ToLower(), "api", "config.app.yaml");
 
             WriteFile(appConfigMapYamlPath, appConfigMapYaml);
 
-        }
-
-        private string GetGeneratedGroupYamlPath(string appGroup, string ressource, string yamlName)
-        {
-            return DeploymentsDirectory / GeneratedFolderName / appGroup / ressource / yamlName;
-        }
-
-        private string GetGeneratedAppYamlPath(string appName, string appGroup, string ressource, string yamlName)
-        {
-            return DeploymentsDirectory / GeneratedFolderName / appGroup / appName / ressource / yamlName;
         }
 
         private void WriteFile(string filePath, string fileContent)

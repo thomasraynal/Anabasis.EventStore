@@ -1,0 +1,11 @@
+apiVersion: v1
+data:
+  config.app.yaml: unknown-config-app-yaml
+kind: ConfigMap
+metadata:
+  labels:
+    app: unknown-name
+    release: 
+    group: test-group
+  name: config.app.Anabasis-Deployment-Test-App
+  namespace: test-group

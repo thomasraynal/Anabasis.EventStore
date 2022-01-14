@@ -14,7 +14,9 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Tests", "Tests", "{B527C126
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Deployment", "Anabasis.Deployment\Anabasis.Deployment.csproj", "{ADBA98EC-5097-4647-96E1-E75D2E16FD07}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Deployment.Tests", "Anabasis.Deployment.Tests\Anabasis.Deployment.Tests.csproj", "{CACB8BFF-F138-426B-9189-DCED25AF491B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Deployment.Tests", "Anabasis.Deployment.Tests\Anabasis.Deployment.Tests.csproj", "{CACB8BFF-F138-426B-9189-DCED25AF491B}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Deployment.Test.App", "Anabasis.Deployment.Test.App\Anabasis.Deployment.Test.App.csproj", "{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -30,12 +32,17 @@ Global
 		{CACB8BFF-F138-426B-9189-DCED25AF491B}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{CACB8BFF-F138-426B-9189-DCED25AF491B}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{CACB8BFF-F138-426B-9189-DCED25AF491B}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{CACB8BFF-F138-426B-9189-DCED25AF491B} = {B527C126-4A06-44F1-B15B-6DF04DF91A0A}
+		{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E} = {B527C126-4A06-44F1-B15B-6DF04DF91A0A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0228CEE5-162D-4901-8721-2CDCAC4DB6F2}

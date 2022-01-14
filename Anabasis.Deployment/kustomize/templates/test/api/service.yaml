@@ -1,14 +1,14 @@
 apiVersion: v1
 kind: Service
 metadata:
-  namespace: dummy-namespace
-  name: svc-dummy-api-name
+  namespace: unknown-namespace
+  name: svc-unknown-name
   labels:
-    app: dummy-app
-    release: dummy-name
-    group: dummy-group
+    app: unknown-app
+    release: unknown-release
+    group: unknown-group
 spec:
-  type: dummy-service-type
+  type: ClusterIP
   ports:
     - port: 80
       targetPort: http
@@ -19,5 +19,5 @@ spec:
       protocol: TCP
       name: health
   selector:
-    app: dummy-api-name
-    release: dummy-release.Name
+    app: unknown-name
+    release: unknown-release

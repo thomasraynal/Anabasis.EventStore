@@ -44,7 +44,7 @@ namespace Anabasis.Deployment.Tests
         [Test]
         public async Task ShouldGenerateNamespace()
         {
-            var @namespace = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/base/namespace/namespace.yaml")).First() as k8s.Models.V1Namespace;
+            var @namespace = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/base/prod/namespace/namespace.yaml")).First() as k8s.Models.V1Namespace;
             @namespace.Metadata.Name = _namespaceName;
             @namespace.Metadata.Labels["group"] = _appGroup;
 
@@ -57,7 +57,7 @@ namespace Anabasis.Deployment.Tests
         public async Task ShouldGenerateService()
         {
 
-            var service = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/base/api/service.yaml")).First() as k8s.Models.V1Service;
+            var service = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/base/prod/api/service.yaml")).First() as k8s.Models.V1Service;
 
             service.Metadata.NamespaceProperty = _namespaceName;
             service.Metadata.Name = _serviceName;
@@ -77,7 +77,7 @@ namespace Anabasis.Deployment.Tests
         public async Task ShouldGenerateDeployment()
         {
 
-            var deployment = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/base/api/deployment.yaml")).First() as k8s.Models.V1Deployment;
+            var deployment = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/base/prod/api/deployment.yaml")).First() as k8s.Models.V1Deployment;
 
             deployment.Metadata.NamespaceProperty = _appGroup;
             deployment.Metadata.Name = _appName;
@@ -112,7 +112,7 @@ namespace Anabasis.Deployment.Tests
         public async Task ShouldGenerateConfigMap()
         {
 
-            var configMap = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/base/api/config.app.yaml")).First() as k8s.Models.V1ConfigMap;
+            var configMap = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/base/prod/api/config.app.yaml")).First() as k8s.Models.V1ConfigMap;
 
             var configAppYaml = File.ReadAllText("config.app.yaml");
             var configGroupYaml = File.ReadAllText("config.group.yaml");

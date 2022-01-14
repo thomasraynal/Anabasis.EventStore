@@ -9,6 +9,7 @@
     <PackageReference Include="nunit" Version="3.13.2" />
     <PackageReference Include="NUnit3TestAdapter" Version="4.0.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.11.0" />
+    <PackageReference Include="Nuke.Common" Version="6.0.1" />
   </ItemGroup>
 
   <ItemGroup>
@@ -30,32 +31,33 @@
     <None Update="data\expected-namespace.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\base\api\config.app.yaml">
+    <None Update="kustomize\templates\base\prod\api\config.app.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\base\api\deployment.yaml">
+    <None Update="kustomize\templates\base\prod\api\deployment.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\base\api\service.yaml">
+    <None Update="kustomize\templates\base\prod\api\service.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\base\group\config.group.yaml">
+    <None Update="kustomize\templates\base\prod\group\config.group.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\base\namespace\namespace.yaml">
+    <None Update="kustomize\templates\base\prod\namespace\namespace.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\base\namespace\secret-docker-registry.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="kustomize\templates\base\service.yaml">
+    <None Update="kustomize\templates\base\prod\namespace\secret-docker-registry.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="kustomize\base\" />
-    <Folder Include="kustomize\overlay\production\" />
+    <Folder Include="kustomize\base\prod\" />
+    <Folder Include="kustomize\overlays\prod\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Deployment\Anabasis.Deployment.csproj" />
   </ItemGroup>
 
 </Project>

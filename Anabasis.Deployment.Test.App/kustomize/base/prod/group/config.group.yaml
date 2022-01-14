@@ -1,0 +1,10 @@
+apiVersion: v1
+data:
+  config.group.yaml: unknown-config-group-yaml
+kind: ConfigMap
+metadata:
+  labels:
+    release: 
+    group: test-group
+  name: config.group.test-group
+  namespace: test-group
