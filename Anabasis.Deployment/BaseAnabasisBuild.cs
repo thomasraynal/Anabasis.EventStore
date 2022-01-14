@@ -522,28 +522,29 @@ namespace Anabasis.Deployment
             var deployment = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / $"{anabasisBuildEnvironment}".ToLower() / "api" / "deployment.yaml")).First() as k8s.Models.V1Deployment;
 
             deployment.Metadata.NamespaceProperty = appDescriptor.AppGroup;
-            deployment.Metadata.Name = appDescriptor.App;
+            deployment.Metadata.Name = appDescriptor.AppShortName;
 
-            deployment.Metadata.Labels["app"] = appDescriptor.App;
+            deployment.Metadata.Labels["app"] = appDescriptor.AppShortName;
             deployment.Metadata.Labels["release"] = appDescriptor.AppRelease;
-            deployment.Metadata.Labels["group"] = appDescriptor.App;
+            deployment.Metadata.Labels["group"] = appDescriptor.AppGroup;
 
-            deployment.Spec.Selector.MatchLabels["app"] = appDescriptor.App;
+            deployment.Spec.Selector.MatchLabels["app"] = appDescriptor.AppShortName;
+            deployment.Spec.Selector.MatchLabels["release"] = appDescriptor.AppRelease;
             deployment.Spec.Selector.MatchLabels["group"] = appDescriptor.AppGroup;
 
-            deployment.Spec.Template.Metadata.Labels["app"] = appDescriptor.App;
+            deployment.Spec.Template.Metadata.Labels["app"] = appDescriptor.AppShortName;
             deployment.Spec.Template.Metadata.Labels["release"] = appDescriptor.AppRelease;
 
             var container = deployment.Spec.Template.Spec.Containers.First();
 
-            container.Name = appDescriptor.App;
-            container.Image = $"{DockerRegistryServer}/{appDescriptor.App}/{Branch}:{appDescriptor.AppRelease}";
+            container.Name = appDescriptor.AppShortName;
+            container.Image = $"{DockerRegistryServer}/{appDescriptor.AppShortName}/{Branch}:{appDescriptor.AppRelease}";
 
             var configMapGroupVolume = deployment.Spec.Template.Spec.Volumes[0];
             configMapGroupVolume.ConfigMap.Name = $"config-group-{appDescriptor.AppGroup}";
 
             var configMapAppVolume = deployment.Spec.Template.Spec.Volumes[1];
-            configMapAppVolume.ConfigMap.Name = $"config-app-{appDescriptor.App}";
+            configMapAppVolume.ConfigMap.Name = $"config-app-{appDescriptor.AppShortName}";
 
             var deploymentYaml = Yaml.SaveToString(deployment);
             var deploymentYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, $"{anabasisBuildEnvironment}".ToLower(), "api", "deployment.yaml");
@@ -559,11 +560,11 @@ namespace Anabasis.Deployment
             service.Metadata.NamespaceProperty = appDescriptor.AppGroup;
             service.Metadata.Name = GetServiceName(appDescriptor.AppGroup);
 
-            service.Metadata.Labels["app"] = appDescriptor.App;
+            service.Metadata.Labels["app"] = appDescriptor.AppShortName;
             service.Metadata.Labels["release"] = appDescriptor.AppRelease;
             service.Metadata.Labels["group"] = appDescriptor.AppGroup;
             service.Spec.Selector["release"] = appDescriptor.AppRelease;
-            service.Spec.Selector["app"] = appDescriptor.App;
+            service.Spec.Selector["app"] = appDescriptor.AppShortName;
 
             var serviceYaml = Yaml.SaveToString(service);
             var serviceYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, $"{anabasisBuildEnvironment}".ToLower(), "api", "service.yaml");
@@ -579,12 +580,13 @@ namespace Anabasis.Deployment
            // var configAppYaml = File.ReadAllText($"{BuildProjectKustomizeDirectory}/{appGroup}/{appName}/config.app.yaml");
 
             appConfigMap.Metadata.NamespaceProperty = appDescriptor.AppGroup;
-            appConfigMap.Metadata.Name = $"config.app.{appDescriptor.App}";
+            appConfigMap.Metadata.Name = $"config.app";
 
+            appConfigMap.Metadata.Labels["app"] = appDescriptor.AppShortName;
             appConfigMap.Metadata.Labels["release"] = appDescriptor.AppRelease;
             appConfigMap.Metadata.Labels["group"] = appDescriptor.AppGroup;
 
-            //   appConfigMap.Data["config.app.yaml"] = configAppYaml;
+             appConfigMap.Data["config.app.yaml"] = "data";
 
             var appConfigMapYaml = Yaml.SaveToString(appConfigMap);
             var appConfigMapYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, $"{anabasisBuildEnvironment}".ToLower(), "api", "config.app.yaml");

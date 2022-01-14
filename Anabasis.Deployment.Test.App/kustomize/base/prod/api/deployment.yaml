@@ -2,22 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: Anabasis-Deployment-Test-App
-    release: 
-    group: Anabasis-Deployment-Test-App
-  name: Anabasis-Deployment-Test-App
-  namespace: test-group
+    app: anabasis-deployment-test-app
+    release: 1.0.67
+    group: anabasis-test-group
+  name: anabasis-deployment-test-app
+  namespace: anabasis-test-group
 spec:
   selector:
     matchLabels:
-      app: Anabasis-Deployment-Test-App
-      release: unknown-release
-      group: test-group
+      app: anabasis-deployment-test-app
+      release: 1.0.67
+      group: anabasis-test-group
   template:
     metadata:
       labels:
-        app: Anabasis-Deployment-Test-App
-        release: 
+        app: anabasis-deployment-test-app
+        release: 1.0.67
     spec:
       containers:
       - env:
@@ -25,7 +25,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: '/Anabasis-Deployment-Test-App/NO_GIT_REPOS_DETECTED:'
+        image: https://hub.docker.com/anabasis-deployment-test-app/NO_GIT_REPOS_DETECTED:1.0.67
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -34,7 +34,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
-        name: Anabasis-Deployment-Test-App
+        name: anabasis-deployment-test-app
         ports:
         - containerPort: 80
           name: http
@@ -60,8 +60,8 @@ spec:
       - name: registrysecret
       volumes:
       - configMap:
-          name: config-group-test-group
+          name: config-group-anabasis-test-group
         name: config-group
       - configMap:
-          name: config-app-Anabasis-Deployment-Test-App
+          name: config-app-anabasis-deployment-test-app
         name: config-app

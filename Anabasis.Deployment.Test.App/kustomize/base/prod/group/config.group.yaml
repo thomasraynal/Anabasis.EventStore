@@ -4,7 +4,7 @@ data:
 kind: ConfigMap
 metadata:
   labels:
-    release: 
-    group: test-group
-  name: config.group.test-group
-  namespace: test-group
+    release: 1.0.67
+    group: anabasis-test-group
+  name: config.group.anabasis-test-group
+  namespace: anabasis-test-group
