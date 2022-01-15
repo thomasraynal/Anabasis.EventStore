@@ -45,9 +45,9 @@ namespace Anabasis.Deployment.Tests
         [Test, Order(2)]
         public void ShouldSetupKustomize()
         {
-            if (Directory.Exists(_testApp.AppSourceKustomizeDirectory.FullName))
+            if (Directory.Exists(_testApp.AppSourceKustomizeBaseDirectory.FullName))
             {
-                Directory.Delete(_testApp.AppSourceKustomizeDirectory.FullName, true);
+                Directory.Delete(_testApp.AppSourceKustomizeBaseDirectory.FullName, true);
             }
 
             _testAnabasisBuild.SetupKustomize(_testApp);
@@ -66,6 +66,12 @@ namespace Anabasis.Deployment.Tests
             Assert.Greater(Directory.GetFiles(Path.Combine(_testApp.AppSourceKustomizeBaseDirectory.FullName, "prod", "api")).Length, 0);
             Assert.Greater(Directory.GetFiles(Path.Combine(_testApp.AppSourceKustomizeBaseDirectory.FullName, "prod", "group")).Length, 0);
             Assert.Greater(Directory.GetFiles(Path.Combine(_testApp.AppSourceKustomizeBaseDirectory.FullName, "prod", "namespace")).Length, 0);
+
+        }
+
+        [Test, Order(4)]
+        public async Task ShouldCopyKustomizationFiles()
+        {
 
         }
 

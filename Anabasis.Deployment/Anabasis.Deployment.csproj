@@ -9,4 +9,34 @@
     <PackageReference Include="KubernetesClient" Version="6.0.1" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="kustomize\templates\prod\api\config.app.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="kustomize\templates\prod\api\deployment.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="kustomize\templates\prod\api\kustomize.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="kustomize\templates\prod\api\service.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="kustomize\templates\prod\group\config.group.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="kustomize\templates\prod\group\kustomize.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="kustomize\templates\prod\namespace\kustomize.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="kustomize\templates\prod\namespace\namespace.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="kustomize\templates\prod\namespace\secret-docker-registry.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
