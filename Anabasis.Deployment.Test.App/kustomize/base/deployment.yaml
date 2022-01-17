@@ -18,6 +18,7 @@ spec:
       labels:
         app: anabasis-deployment-test-app
         release: 1.0.67
+        group: anabasis-test-group
     spec:
       containers:
       - env:

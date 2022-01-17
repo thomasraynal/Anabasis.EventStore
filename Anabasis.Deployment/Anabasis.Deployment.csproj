@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
@@ -10,31 +10,16 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="kustomize\templates\prod\api\config.app.yaml">
+    <None Update="kustomize\templates\deployment.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\prod\api\deployment.yaml">
+    <None Update="kustomize\templates\kustomization.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\prod\api\kustomize.yaml">
+    <None Update="kustomize\templates\namespace.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="kustomize\templates\prod\api\service.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="kustomize\templates\prod\group\config.group.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="kustomize\templates\prod\group\kustomize.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="kustomize\templates\prod\namespace\kustomize.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="kustomize\templates\prod\namespace\namespace.yaml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="kustomize\templates\prod\namespace\secret-docker-registry.yaml">
+    <None Update="kustomize\templates\service.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

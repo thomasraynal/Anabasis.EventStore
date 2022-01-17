@@ -49,19 +49,5 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 20
           timeoutSeconds: 15
-        volumeMounts:
-        - mountPath: /app/config.group.yaml
-          name: config-group
-          subPath: config.group.yaml
-        - mountPath: /app/config.app.yaml
-          name: config-app
-          subPath: config.app.yaml
       imagePullSecrets:
       - name: registrysecret
-      volumes:
-      - configMap:
-          name: config-group-testgroup
-        name: config-group
-      - configMap:
-          name: config-group-test
-        name: config-app

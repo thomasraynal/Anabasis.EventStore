@@ -22,7 +22,7 @@ namespace Anabasis.Deployment.Tests
         {
             _testAnabasisBuild = new TestAnabasisBuild
             {
-                GroupToBeDeployed = "anabasis-test-group",
+                ApplicationGroup = "anabasis-test-group",
                 SourceDirectory = Nuke.Common.NukeBuild.RootDirectory,
                 BuildId = "1.0.67",
                 DockerRegistryServer = "https://hub.docker.com",
@@ -33,7 +33,7 @@ namespace Anabasis.Deployment.Tests
         [Test, Order(1)]
         public void ShouldGetAppsToBeDeployed()
         {
-            var appToBeDeployed = _testAnabasisBuild.GetAppsToBeDeployed();
+            var appToBeDeployed = _testAnabasisBuild.GetAppsToDeploy();
 
             Assert.AreEqual(1, appToBeDeployed.Length);
 
@@ -54,7 +54,6 @@ namespace Anabasis.Deployment.Tests
 
             Assert.IsTrue(Directory.Exists(_testApp.AppSourceKustomizeDirectory.FullName));
             Assert.IsTrue(Directory.Exists(_testApp.AppSourceKustomizeBaseDirectory.FullName));
-            Assert.IsTrue(Directory.Exists(_testApp.AppSourceKustomizeOverlaysDirectory.FullName));
 
         }
 
@@ -63,10 +62,8 @@ namespace Anabasis.Deployment.Tests
         {
             await _testAnabasisBuild.GenerateBaseKustomize(_testApp);
 
-            Assert.Greater(Directory.GetFiles(Path.Combine(_testApp.AppSourceKustomizeBaseDirectory.FullName, "prod", "api")).Length, 0);
-            Assert.Greater(Directory.GetFiles(Path.Combine(_testApp.AppSourceKustomizeBaseDirectory.FullName, "prod", "group")).Length, 0);
-            Assert.Greater(Directory.GetFiles(Path.Combine(_testApp.AppSourceKustomizeBaseDirectory.FullName, "prod", "namespace")).Length, 0);
-
+            Assert.Greater(Directory.GetFiles(_testApp.AppSourceKustomizeBaseDirectory.FullName).Length, 0);
+            Assert.Greater(Directory.GetFiles(Path.Combine(_testApp.AppSourceKustomizeDirectory.FullName, "prod")).Length, 0);
         }
 
         [Test, Order(4)]

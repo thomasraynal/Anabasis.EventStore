@@ -13,6 +13,7 @@ spec:
     matchLabels:
       app: unknown-name
       release: unknown-release
+      group: unknown-groug
   template:
     metadata:
       labels:
@@ -49,19 +50,5 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
-          volumeMounts:
-            - name: config-group
-              mountPath: /app/config.group.yaml
-              subPath: config.group.yaml
-            - name: config-app
-              mountPath: /app/config.app.yaml
-              subPath: config.app.yaml
-      volumes:
-        - name: config-group
-          configMap:
-            name: unknown-config-group
-        - name: config-app
-          configMap:
-            name: unknown-config-app
       imagePullSecrets:
       - name: registrysecret

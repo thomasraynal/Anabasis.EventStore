@@ -18,36 +18,10 @@ spec:
       labels:
         app: anabasis-deployment-test-app
         release: 1.0.67
+        group: anabasis-test-group
     spec:
       containers:
       - env:
-        - name: config
-          valueFrom:
-            fieldRef:
-              fieldPath: status.podIP
         image: busybox:1.28
         imagePullPolicy: IfNotPresent
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 1337
-          initialDelaySeconds: 30
-          periodSeconds: 60
-          timeoutSeconds: 30
         name: anabasis-deployment-test-app
-        ports:
-        - containerPort: 80
-          name: http
-          protocol: TCP
-        - containerPort: 1337
-          name: health
-          protocol: TCP
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 1337
-          initialDelaySeconds: 30
-          periodSeconds: 20
-          timeoutSeconds: 15
-      imagePullSecrets:
-      - name: registrysecret

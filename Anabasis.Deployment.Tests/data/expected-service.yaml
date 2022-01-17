@@ -2,8 +2,8 @@
 kind: Service
 metadata:
   labels:
-    app: test
     release: 1.0.0.5555
+    app: test
     group: testgroup
   name: svc-test
   namespace: namespace-testgroup
