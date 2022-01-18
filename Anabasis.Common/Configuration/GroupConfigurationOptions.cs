@@ -1,7 +1,7 @@
 ﻿using Anabasis.Common;
 using System.ComponentModel.DataAnnotations;
 
-namespace Anabasis.Api
+namespace Anabasis.Common
 {
     public class GroupConfigurationOptions : BaseConfiguration
     {

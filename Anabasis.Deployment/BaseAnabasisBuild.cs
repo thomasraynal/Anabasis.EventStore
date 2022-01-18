@@ -19,9 +19,6 @@ namespace Anabasis.Deployment
     public abstract class BaseAnabasisBuild : NukeBuild
     {
 
-        [GitRepository]
-        private readonly GitRepository GitRepository;
-
         private readonly string Configuration = "Release";
 
         public string RuntimeDockerImage { get; set; } = "microsoft/dotnet:5.0-aspnetcore-runtime";
@@ -42,38 +39,36 @@ namespace Anabasis.Deployment
         [Parameter("Set the build Id.")]
         public string BuildId;
 
-        //todo: get on config file
-        [Required]
-        [Parameter("Set the domain to be deployed")]
-        public string ApplicationGroup;
-
         [Required]
         [Parameter("Set the build environment")]
         public string AnabasisBuildEnvironment;
 
         [Parameter("Solution source directory")]
         public AbsolutePath SourceDirectory = RootDirectory;
-        
+
         [Parameter("Solution test directory")]
         public AbsolutePath TestsDirectory => RootDirectory;
 
         [Parameter]
         public readonly AbsolutePath KubeConfigPath = RootDirectory / ".kube" / "kubeconfig";
-        
+
         private AbsolutePath BuildDirectory => RootDirectory / "build";
-     
+
         private AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
 
+        [GitRepository]
+        private readonly GitRepository GitRepository;
         private string Branch => GitRepository?.Branch ?? "NO_GIT_REPOS_DETECTED";
 
         private AbsolutePath OneForAllDockerFile => BuildDirectory / "docker" / "build.nuke.app.dockerfile";
         public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
         private AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
+        private AbsolutePath DefaultKustomizationFile => BuildProjectKustomizeDirectory / "kustomization.yaml";
 
         protected BaseAnabasisBuild()
         {
             //for unit tests
-            if(null != BuildProjectDirectory)
+            if (null != BuildProjectDirectory)
             {
                 BuildProjectKustomizeDirectory = BuildProjectDirectory / "kustomize";
             }
@@ -114,12 +109,12 @@ namespace Anabasis.Deployment
 
             foreach (var env in Enum.GetValues(typeof(AnabasisBuildEnvironment)).Cast<AnabasisBuildEnvironment>())
             {
-
                 var envDirectory = Path.Combine(appDescriptor.AppSourceKustomizeDirectory.FullName, $"{env}".ToLower());
 
                 if (!Directory.Exists(envDirectory))
                 {
-                    Directory.CreateDirectory(Path.Combine(appDescriptor.AppSourceKustomizeDirectory.FullName, $"{env}".ToLower()));
+                    Directory.CreateDirectory(envDirectory);
+                    File.Copy(DefaultKustomizationFile, Path.Combine(envDirectory, "kustomization.yaml"));
                 }
 
             }
@@ -132,7 +127,14 @@ namespace Anabasis.Deployment
             await GenerateKubernetesYamlDeployment(appDescriptor);
         }
 
+        public Target PreBuildChecks => _ => _
+        .Executes(() =>
+        {
+            Assert.FileExists(KubeConfigPath);
+        });
+
         public Target Clean => _ => _
+            .DependsOn(PreBuildChecks)
             .Executes(() =>
             {
 
@@ -168,11 +170,25 @@ namespace Anabasis.Deployment
            .DependsOn(Restore)
            .Executes(() =>
            {
-                    // var applications = GetAllProjects();
+               // var applications = GetAllProjects();
 
-                    //PublishApplications(applications);
+               //PublishApplications(applications);
 
-                });
+           });
+
+        public Target PostBuildChecks => _ => _
+        .DependsOn(Publish)
+        .Executes(() =>
+        {
+            var applications = GetApplicationProjects();
+
+            foreach (var app in applications)
+            {
+
+            }
+
+        });
+
         public Target Test => _ => _
            .DependsOn(Publish)
            .Executes(() =>
@@ -204,13 +220,10 @@ namespace Anabasis.Deployment
             .DependsOn(GenerateKubernetesYaml)
             .Executes(async () =>
             {
-                Assert.FileExists(KubeConfigPath);
 
                 //$"--kubeconfig={ValidateKubeConfigPath()}" : "";
 
-               // KubernetesTasks.Kubernetes($"apply -k  {KubeConfigArgument}");
-
-                var appGroup = SanitizeForKubernetesConfig(ApplicationGroup.ToLower());
+                // KubernetesTasks.Kubernetes($"apply -k  {KubeConfigArgument}");
 
                 var appsToBeDeployed = GetAppsToDeploy();
 
@@ -222,26 +235,25 @@ namespace Anabasis.Deployment
             });
 
 
+
         public AppDescriptor[] GetAppsToDeploy()
         {
             var appDescriptors = new List<AppDescriptor>();
 
-            var lowerCaseAppGroup = SanitizeForKubernetesConfig(ApplicationGroup.ToLower());
-
             var applicationProjectFiles = GetApplicationProjects();
 
-            foreach(var applicationProjectFile in applicationProjectFiles)
+            foreach (var applicationProjectFile in applicationProjectFiles)
             {
+
+
                 var appName = SanitizeForKubernetesConfig(Path.GetFileName(applicationProjectFile).Replace(".csproj", ""));
                 var appSourceDirectory = new FileInfo(applicationProjectFile).Directory;
+
 
                 var appDescriptor = new AppDescriptor(
                     appSourceDirectory,
                     appName,
-                    BuildId,
-                    ApplicationGroup,
-                    appLongName: $"{lowerCaseAppGroup}-{appName.ToLower()}",
-                    appShortName: $"{appName.ToLower()}");
+                    BuildId);
 
                 appDescriptors.Add(appDescriptor);
             }

@@ -22,7 +22,6 @@ namespace Anabasis.Deployment.Tests
         {
             _testAnabasisBuild = new TestAnabasisBuild
             {
-                ApplicationGroup = "anabasis-test-group",
                 SourceDirectory = Nuke.Common.NukeBuild.RootDirectory,
                 BuildId = "1.0.67",
                 DockerRegistryServer = "https://hub.docker.com",
@@ -39,7 +38,7 @@ namespace Anabasis.Deployment.Tests
 
             _testApp = appToBeDeployed.First();
 
-            Assert.AreEqual("anabasis-test-group-anabasis-deployment-test-app", _testApp.AppLongName);
+            Assert.AreEqual("appgroup-anabasis-deployment-test-app", _testApp.AppLongName);
         }
 
         [Test, Order(2)]

@@ -1,0 +1,6 @@
+{
+  "groupConfigurationOptions": {
+    "groupName": "AppGroup",
+    "environment": "PROD"
+  }
+}

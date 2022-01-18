@@ -2,7 +2,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 
-namespace Anabasis.Api
+namespace Anabasis.Common
 {
     public class AppConfigurationOptions: BaseConfiguration
     {

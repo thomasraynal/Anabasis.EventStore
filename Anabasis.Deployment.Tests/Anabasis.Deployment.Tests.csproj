@@ -13,10 +13,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Update="config.app.yaml">
+    <None Update="config.app.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-    <None Update="config.group.yaml">
+    <None Update="config.group.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="data\expected-service.yaml">

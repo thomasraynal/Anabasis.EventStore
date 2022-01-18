@@ -16,7 +16,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Deployment", "Anab
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Deployment.Tests", "Anabasis.Deployment.Tests\Anabasis.Deployment.Tests.csproj", "{CACB8BFF-F138-426B-9189-DCED25AF491B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Deployment.Test.App", "Anabasis.Deployment.Test.App\Anabasis.Deployment.Test.App.csproj", "{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Deployment.Test.App", "Anabasis.Deployment.Test.App\Anabasis.Deployment.Test.App.csproj", "{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Common", "Anabasis.Common\Anabasis.Common.csproj", "{7E883CC6-D94A-488C-8336-DB3F25A53C07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -36,6 +38,10 @@ Global
 		{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DC0C2AEF-4030-4379-ADF8-E4D1CF84255E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7E883CC6-D94A-488C-8336-DB3F25A53C07}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7E883CC6-D94A-488C-8336-DB3F25A53C07}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7E883CC6-D94A-488C-8336-DB3F25A53C07}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7E883CC6-D94A-488C-8336-DB3F25A53C07}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

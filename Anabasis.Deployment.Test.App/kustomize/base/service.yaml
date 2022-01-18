@@ -4,9 +4,9 @@ metadata:
   labels:
     release: 1.0.67
     app: anabasis-deployment-test-app
-    group: anabasis-test-group
-  name: svc-anabasis-test-group
-  namespace: anabasis-test-group
+    group: AppGroup
+  name: svc-AppGroup
+  namespace: AppGroup
 spec:
   ports:
   - name: http

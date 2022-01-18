@@ -10,17 +10,29 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="kustomize\kustomization.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
+    </None>
     <None Update="kustomize\templates\deployment.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
     </None>
     <None Update="kustomize\templates\kustomization.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
     </None>
     <None Update="kustomize\templates\namespace.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
     </None>
     <None Update="kustomize\templates\service.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      <PackageCopyToOutput>true</PackageCopyToOutput>
     </None>
   </ItemGroup>
 

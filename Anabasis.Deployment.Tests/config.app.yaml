@@ -1,4 +1,0 @@
-appConfig:
-    MyAppConfig:
-        foo: bar
-        bar: foo
