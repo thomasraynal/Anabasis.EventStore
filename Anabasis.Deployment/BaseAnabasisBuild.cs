@@ -15,13 +15,15 @@ using System.Collections.Generic;
 
 namespace Anabasis.Deployment
 {
+    //todo: fetch the config in the build folder (artefact)
+    //todo: inject build directory in app constructor
+    //todo: parallelisation option for tests
 
-    public abstract class BaseAnabasisBuild : NukeBuild
+    public abstract partial class BaseAnabasisBuild : NukeBuild
     {
 
         private readonly string Configuration = "Release";
-
-        public string RuntimeDockerImage { get; set; } = "microsoft/dotnet:5.0-aspnetcore-runtime";
+        private readonly string RuntimeDockerImage = "microsoft/dotnet:5.0-aspnetcore-runtime";
 
         [Required]
         [Parameter("Docker registry")]
@@ -41,7 +43,7 @@ namespace Anabasis.Deployment
 
         [Required]
         [Parameter("Set the build environment")]
-        public string AnabasisBuildEnvironment;
+        public AnabasisBuildEnvironment AnabasisBuildEnvironment;
 
         [Parameter("Solution source directory")]
         public AbsolutePath SourceDirectory = RootDirectory;
@@ -49,24 +51,27 @@ namespace Anabasis.Deployment
         [Parameter("Solution test directory")]
         public AbsolutePath TestsDirectory => RootDirectory;
 
-        [Parameter]
+        [Parameter("Kubernetes cluster configuration file")]
         public readonly AbsolutePath KubeConfigPath = RootDirectory / ".kube" / "kubeconfig";
 
         private AbsolutePath BuildDirectory => RootDirectory / "build";
 
         private AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
 
+        [Required]
         [GitRepository]
-        private readonly GitRepository GitRepository;
+        public readonly GitRepository GitRepository;
+
         private string Branch => GitRepository?.Branch ?? "NO_GIT_REPOS_DETECTED";
 
-        private AbsolutePath OneForAllDockerFile => BuildDirectory / "docker" / "build.nuke.app.dockerfile";
+        private AbsolutePath DockerFile => BuildDirectory / "docker" / "build.nuke.app.dockerfile";
         public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
         private AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
         private AbsolutePath DefaultKustomizationFile => BuildProjectKustomizeDirectory / "kustomization.yaml";
 
         protected BaseAnabasisBuild()
         {
+
             //for unit tests
             if (null != BuildProjectDirectory)
             {
@@ -139,9 +144,12 @@ namespace Anabasis.Deployment
             {
 
                 foreach (var directory in SourceDirectory.GlobDirectories("**/bin", "**/obj")
-                             .Concat(TestsDirectory.GlobDirectories("**/bin", "**/obj")))
+                                   .Concat(TestsDirectory.GlobDirectories("**/bin", "**/obj")))
                     try
                     {
+                        if ($"{directory}".Contains(new FileInfo(BuildProjectFile).Directory.FullName))
+                            continue;
+
                         if (!FileSystemTasks.DirectoryExists(directory))
                         {
                             Log.Warning($"Not existing directory : {directory}");
@@ -156,54 +164,47 @@ namespace Anabasis.Deployment
 
                 FileSystemTasks.EnsureCleanDirectory(ArtifactsDirectory);
             });
+
         public Target Restore => _ => _
             .DependsOn(Clean)
             .Executes(() =>
             {
-                foreach (var project in GetAllProjects())
+                foreach (var projectFilePath in GetAllProjects())
                 {
-                    DotNetTasks.DotNetRestore(dotNetRestoreSettings => dotNetRestoreSettings.SetProjectFile(project));
+                    DotNetTasks.DotNetRestore(dotNetRestoreSettings => dotNetRestoreSettings.SetProjectFile(projectFilePath.FullName));
                 }
 
             });
+
         public Target Publish => _ => _
            .DependsOn(Restore)
            .Executes(() =>
            {
-               // var applications = GetAllProjects();
-
-               //PublishApplications(applications);
-
+               foreach(var projectFilePath in GetAllProjects())
+               {
+                   PublishApplication(projectFilePath.FullName);
+               }
            });
-
-        public Target PostBuildChecks => _ => _
-        .DependsOn(Publish)
-        .Executes(() =>
-        {
-            var applications = GetApplicationProjects();
-
-            foreach (var app in applications)
-            {
-
-            }
-
-        });
 
         public Target Test => _ => _
            .DependsOn(Publish)
            .Executes(() =>
            {
-               ExecuteTests(GetTestsProjects());
+               foreach (var testProjectPath in GetTestsProjects())
+               {
+                   ExecuteTests(testProjectPath.FullName);
+               }
            });
+
         public Target Package => _ => _
             .DependsOn(Test)
             .Executes(() =>
             {
-                var applications = GetApplicationProjects();
+                foreach (var appDescriptor in GetAppsToDeploy())
+                {
+                  //  CreateDockerImage(appDescriptor);
+                }
 
-                //BuildContainers(applications);
-
-                //PushContainers(applications);
             });
         public Target GenerateKubernetesYaml => _ => _
             .DependsOn(Package)
@@ -229,7 +230,7 @@ namespace Anabasis.Deployment
 
                 foreach (var appToBeDeployed in appsToBeDeployed)
                 {
-                    await GenerateBaseKustomize(appToBeDeployed);
+                    //  await GenerateBaseKustomize(appToBeDeployed);
                 }
 
             });
@@ -244,14 +245,14 @@ namespace Anabasis.Deployment
 
             foreach (var applicationProjectFile in applicationProjectFiles)
             {
+                var appName = Path.GetFileNameWithoutExtension(applicationProjectFile.FullName);
 
-
-                var appName = SanitizeForKubernetesConfig(Path.GetFileName(applicationProjectFile).Replace(".csproj", ""));
-                var appSourceDirectory = new FileInfo(applicationProjectFile).Directory;
+                var projectBuildDirectory = new DirectoryInfo(ArtifactsDirectory / appName);
 
 
                 var appDescriptor = new AppDescriptor(
-                    appSourceDirectory,
+                    applicationProjectFile,
+                    projectBuildDirectory,
                     appName,
                     BuildId);
 
@@ -262,114 +263,99 @@ namespace Anabasis.Deployment
 
         }
 
-        protected virtual string[] GetTestsProjects()
+        protected virtual FileInfo[] GetTestsProjects()
         {
             return PathConstruction.GlobFiles(TestsDirectory, $"**/*.Tests.csproj")
-                .Select(path => $"{path}")
-                .OrderBy(path => path)
+                .OrderBy(path => $"{path}")
+                .Select(path => new FileInfo($"{path}"))
                 .ToArray();
         }
 
-        protected virtual string[] GetAllProjects()
+        protected virtual FileInfo[] GetAllProjects()
         {
             var projects = GetApplicationProjects()
                 .Concat(GetTestsProjects())
                 .Concat(GetNugetPackageProjects())
                 .Distinct()
-                .OrderBy(s => s)
+                .OrderBy(s => s.FullName)
+                .Where(s=> s.FullName != BuildProjectFile)
                 .ToArray();
 
             return projects;
         }
 
-        protected virtual string[] GetApplicationProjects(AbsolutePath directory = null)
+        protected virtual FileInfo[] GetApplicationProjects(AbsolutePath directory = null)
         {
             directory ??= SourceDirectory;
 
-            return PathConstruction.GlobFiles(directory, "**/*.App.csproj").Select(path => path.ToString()).OrderBy(path => path).ToArray();
+            return PathConstruction.GlobFiles(directory, "**/*.App.csproj").OrderBy(path => $"{path}")
+                                                                           .Select(path => new FileInfo($"{path}"))
+                                                                           .ToArray();
         }
 
-        protected virtual string[] GetNugetPackageProjects()
+        protected virtual FileInfo[] GetNugetPackageProjects()
         {
-            return PathConstruction.GlobFiles(SourceDirectory, "**/*.csproj").Select(path => path.ToString()).OrderBy(path => path).ToArray();
+            return PathConstruction.GlobFiles(SourceDirectory, "**/*.csproj")
+                                                                             .OrderBy(path => $"{path}")
+                                                                             .Select(path => new FileInfo($"{path}"))
+                                                                             .ToArray();
         }
 
-        protected void BuildContainers(params string[] projects)
+        protected void CreateDockerImage(AppDescriptor appDescriptor)
         {
-            var dockerFile = ArtifactsDirectory / Path.GetFileName(OneForAllDockerFile);
-            FileSystemTasks.CopyFile(OneForAllDockerFile, dockerFile, FileExistsPolicy.OverwriteIfNewer);
+            var dockerFile = ArtifactsDirectory / Path.GetFileName(DockerFile);
+            FileSystemTasks.CopyFile(DockerFile, dockerFile, FileExistsPolicy.OverwriteIfNewer);
 
-            foreach (var proj in projects)
-            {
-                var projectName = Path.GetFileNameWithoutExtension(proj);
-                var publishedPath = ArtifactsDirectory / projectName;
+            var projectName = Path.GetFileNameWithoutExtension(appDescriptor.ProjectFilePath.FullName);
+            var publishedPath = ArtifactsDirectory / projectName;
+            var dockerImageName = GetProjectDockerImageName(appDescriptor.ProjectFilePath.FullName);
 
-                DockerTasks.DockerBuild(s => s
-                    .SetFile(OneForAllDockerFile)
-                    .AddBuildArg($"RUNTIME_IMAGE={RuntimeDockerImage}")
-                    .AddBuildArg($"PROJECT_NAME={projectName}")
-                    .AddBuildArg($"BUILD_ID={BuildId}")
-                    .SetTag($"{GetProjectDockerImageName(proj)}:{BuildId.ToLower()}")
-                    .SetPath(publishedPath)
-                    .EnableForceRm());
-
-            }
+            DockerTasks.DockerBuild(s => s
+                .SetFile(DockerFile)
+                .AddBuildArg($"RUNTIME_IMAGE={RuntimeDockerImage}")
+                .AddBuildArg($"PROJECT_NAME={projectName}")
+                .AddBuildArg($"BUILD_ID={BuildId}")
+                .SetTag($"{GetProjectDockerImageName(appDescriptor.ProjectFilePath.FullName)}:{BuildId.ToLower()}")
+                .SetPath(publishedPath)
+                .EnableForceRm());
         }
 
-        protected void ExecuteTests(string[] projects, bool nobuild = false)
+        protected void ExecuteTests(string testProjectPath, bool nobuild = false)
         {
             var exceptions = new ConcurrentBag<Exception>();
 
-            Parallel.ForEach(
-                projects,
-                proj =>
-                {
-                    try
-                    {
-                        var projectName = Path.GetFileNameWithoutExtension(proj);
-                        DotNetTasks.DotNetTest(dotNetTestSettings =>
-                        {
-                            dotNetTestSettings = dotNetTestSettings
-                                .SetConfiguration(Configuration)
-                                .SetProjectFile(proj);
-
-                            if (nobuild)
-                                dotNetTestSettings = dotNetTestSettings.EnableNoBuild();
-
-                            return dotNetTestSettings;
-                        });
-                    }
-                    catch (Exception ex)
-                    {
-                        exceptions.Add(ex);
-                    }
-                });
 
 
-            if (exceptions.Count != 0)
-                throw new AggregateException(exceptions);
+            DotNetTasks.DotNetTest(dotNetTestSettings =>
+            {
+                dotNetTestSettings = dotNetTestSettings
+                    .SetConfiguration(Configuration)
+                    .SetProjectFile(testProjectPath);
+
+                if (nobuild)
+                    dotNetTestSettings = dotNetTestSettings.EnableNoBuild();
+
+                return dotNetTestSettings;
+            });
 
         }
 
-        protected void PublishApplications(params string[] projects)
+        protected void PublishApplication(string projectPath)
         {
-            foreach (var proj in projects)
-            {
-                var projectName = Path.GetFileNameWithoutExtension(proj);
-                var outputPath = ArtifactsDirectory / projectName;
 
-                Log.Information($"Publishing {projectName} in {outputPath}");
+            var projectName = Path.GetFileNameWithoutExtension(projectPath);
+            var outputPath = ArtifactsDirectory / projectName;
 
-                DotNetTasks.DotNetRestore(s => s.SetProjectFile(proj));
+            Log.Information($"Publishing {projectName} in {outputPath}");
 
-                DotNetTasks.DotNetPublish(s => s
-                    .SetConfiguration(Configuration)
-                    .EnableNoRestore()
-                    .SetProject(proj)
-                    .SetOutput(outputPath)
-                    );
+            DotNetTasks.DotNetRestore(s => s.SetProjectFile(projectPath));
 
-            }
+            DotNetTasks.DotNetPublish(s => s
+                .SetConfiguration(Configuration)
+                .EnableNoRestore()
+                .SetProject(projectPath)
+                .SetOutput(outputPath)
+                );
         }
 
         protected string GetProjectDockerImageName(string project)

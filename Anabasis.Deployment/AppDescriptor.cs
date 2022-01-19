@@ -10,23 +10,27 @@ namespace Anabasis.Deployment
 {
     public class AppDescriptor
     {
-        public AppDescriptor(DirectoryInfo appSourceDirectory, string appName, string appRelease)
+        public AppDescriptor(FileInfo projectFilePath, DirectoryInfo projectBuildDirectory, string appName, string appRelease)
         {
-            AppSourceDirectory = appSourceDirectory;
+            ProjectFilePath = projectFilePath;
+            AppBuildDirectory = projectBuildDirectory;
+            AppSourceDirectory = projectFilePath.Directory;
             AppName = appName;
             AppRelease = appRelease;
 
-            var (appConfigurationOptions, groupConfigurationOptions) = GetConfigurations(appSourceDirectory);
+            var (appConfigurationOptions, groupConfigurationOptions) = GetConfigurations(projectBuildDirectory);
 
             AppConfiguration = appConfigurationOptions;
             GroupConfiguration = groupConfigurationOptions;
 
-            AppGroup = GroupConfiguration.GroupName;
+            AppGroup = SanitizeForKubernetesConfig(GroupConfiguration.GroupName);
 
             AppLongName = SanitizeForKubernetesConfig($"{AppGroup}-{AppName}");
             AppShortName = SanitizeForKubernetesConfig(appName);
         }
 
+        public FileInfo ProjectFilePath { get; }
+        public DirectoryInfo AppBuildDirectory { get; }
         public DirectoryInfo AppSourceDirectory { get; }
         public DirectoryInfo AppSourceKustomizeDirectory => new(Path.Combine(AppSourceDirectory.FullName, BuildConst.KustomizeFolderName));
         public DirectoryInfo AppSourceKustomizeBaseDirectory => new(Path.Combine(AppSourceKustomizeDirectory.FullName, BuildConst.Base));
@@ -45,16 +49,16 @@ namespace Anabasis.Deployment
             return str.Replace(".", "-").ToLower();
         }
 
-        private (AppConfigurationOptions appConfigurationOptions, GroupConfigurationOptions groupConfigurationOptions) GetConfigurations(DirectoryInfo appSourceDirectory)
+        private (AppConfigurationOptions appConfigurationOptions, GroupConfigurationOptions groupConfigurationOptions) GetConfigurations(DirectoryInfo appBuildDirectory)
         {
-            var configGroupFile = appSourceDirectory.EnumerateFiles(BuildConst.GroupConfigurationFileName, SearchOption.AllDirectories).FirstOrDefault();
-            var configAppFile = appSourceDirectory.EnumerateFiles(BuildConst.AppConfigurationFileName, SearchOption.AllDirectories).FirstOrDefault();
+            var configGroupFile = appBuildDirectory.EnumerateFiles(BuildConst.GroupConfigurationFileName, SearchOption.AllDirectories).FirstOrDefault();
+            var configAppFile = appBuildDirectory.EnumerateFiles(BuildConst.AppConfigurationFileName, SearchOption.AllDirectories).FirstOrDefault();
 
             if (null == configGroupFile)
-                throw new InvalidOperationException($"Unable to find a {BuildConst.GroupConfigurationFileName} file in the project {appSourceDirectory.FullName} and its subdirectories");
+                throw new InvalidOperationException($"Unable to find a {BuildConst.GroupConfigurationFileName} file in the project {appBuildDirectory.FullName} and its subdirectories");
 
             if (null == configAppFile)
-                throw new InvalidOperationException($"Unable to find a {BuildConst.AppConfigurationFileName} file in the project {appSourceDirectory.FullName} and its subdirectories");
+                throw new InvalidOperationException($"Unable to find a {BuildConst.AppConfigurationFileName} file in the project {appBuildDirectory.FullName} and its subdirectories");
 
             var configurationBuilder = new ConfigurationBuilder();
 

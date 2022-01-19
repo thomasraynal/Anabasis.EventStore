@@ -7,6 +7,10 @@
   <ItemGroup>
     <PackageReference Include="Nuke.Common" Version="6.0.1" />
     <PackageReference Include="KubernetesClient" Version="6.0.1" />
+    <PackageReference Include="GitVersion.CommandLine.DotNetCore" Version="5.0.1">
+      <PrivateAssets>all</PrivateAssets>
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+    </PackageReference>
   </ItemGroup>
 
   <ItemGroup>
