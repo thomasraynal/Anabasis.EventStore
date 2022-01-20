@@ -29,6 +29,10 @@
       <PackageCopyToOutput>true</PackageCopyToOutput>
     </Content>
   </ItemGroup>
+
+  <ItemGroup>
+    <Content Remove="kustomize\templates\secret-docker-registry.yaml" />
+  </ItemGroup>
   <ItemGroup>
     <None Update="kustomize\kustomization.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
@@ -45,6 +49,9 @@
     <None Update="kustomize\templates\namespace.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       <PackageCopyToOutput>true</PackageCopyToOutput>
+    </None>
+    <None Update="kustomize\templates\secret-docker-registry.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="kustomize\templates\service.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>

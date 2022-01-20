@@ -5,3 +5,4 @@ resources:
   - service.yaml
   - namespace.yaml
   - deployment.yaml
+  - secret-docker-registry.yaml

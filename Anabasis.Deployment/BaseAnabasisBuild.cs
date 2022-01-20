@@ -12,6 +12,7 @@ using Nuke.Common.Tools.Kubernetes;
 using k8s;
 using Serilog;
 using System.Collections.Generic;
+using System.Text;
 
 namespace Anabasis.Deployment
 {
@@ -117,11 +118,28 @@ namespace Anabasis.Deployment
             await GenerateKubernetesYamlNamespace(appDescriptor);
             await GenerateKubernetesYamlService(appDescriptor);
             await GenerateKubernetesYamlDeployment(appDescriptor);
+            await GenerateKubernetesYamlDockerSecret(appDescriptor);
 
             var buildProjetBaseKustomizationFile = $"{KustomizationFileForBase}";
             var appBaseKustomizationFile = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "kustomization.yaml");
 
             CopyFile(buildProjetBaseKustomizationFile, appBaseKustomizationFile);
+        }
+
+        private async Task GenerateKubernetesYamlDockerSecret(AppDescriptor appDescriptor)
+        {
+            var secret = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "secret-docker-registry.yaml")).First() as k8s.Models.V1Secret;
+
+            var dockerConfigToJson = GetBase64DockerConfiguration();
+
+            secret.Metadata.NamespaceProperty = appDescriptor.AppGroup;
+            secret.Data[".dockerconfigjson"] = Encoding.UTF8.GetBytes(Convert.ToBase64String(Encoding.UTF8.GetBytes(dockerConfigToJson)));
+
+            var secretYaml = Yaml.SaveToString(secret);
+            var secretYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "secret-docker-registry.yaml");
+
+            WriteFile(secretYamlPath, secretYaml);
+
         }
 
         public virtual Target PreBuildChecks => _ => _
@@ -280,6 +298,18 @@ namespace Anabasis.Deployment
                 .OrderBy(path => $"{path}")
                 .Select(path => new FileInfo($"{path}"))
                 .ToArray();
+        }
+
+        public string GetBase64DockerConfiguration()
+        {
+            return "{\"auths\":" +
+                "       {\"registry.hub.docker.com\":" +
+                "             {\"username\":\"" + DockerRegistryUserName + "\"," +
+                "              \"password\":\"" + DockerRegistryPassword + "\"," +
+                "              \"auth\":\"" + DockerRegistryUserName + ":" + DockerRegistryPassword + "\"" +
+                "             }" +
+                "       }" +
+                "   }";
         }
 
         protected virtual FileInfo[] GetAllProjects()
