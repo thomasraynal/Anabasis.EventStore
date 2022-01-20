@@ -145,7 +145,7 @@ namespace Anabasis.EventStore.Tests
                  _userCredentials);
         }
 
-
+        [Ignore("Non deterministic")]
         [Test, Order(1)]
         public async Task ShouldBuildFromActorBuilderAndRunActors()
         {
