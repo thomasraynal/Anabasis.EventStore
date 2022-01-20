@@ -205,7 +205,7 @@ namespace Anabasis.Deployment
                 }
             });
 
-        public Target GenerateKubernetesYaml => _ => _
+        public virtual Target GenerateKubernetesYaml => _ => _
            // .DependsOn(DockerPackage)
             .Executes(async () =>
             {
@@ -216,9 +216,10 @@ namespace Anabasis.Deployment
                 }
 
             });
-        public Target Deploy => _ => _
+
+        public virtual Target Deploy => _ => _
             .DependsOn(GenerateKubernetesYaml)
-            .Executes(async () =>
+            .Executes(() =>
             {
 
                 //$"--kubeconfig={ValidateKubeConfigPath()}" : "";
