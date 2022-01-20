@@ -8,6 +8,7 @@ environment:
   - SOLUTION_NAME: Anabasis.EventStore.Standalone
   - SOLUTION_NAME: Anabasis.EventStore.Snapshot.InMemory
   - SOLUTION_NAME: Anabasis.RabbitMQ
+  - SOLUTION_NAME: Anabasis.Common
   - SOLUTION_NAME: Anabasis.EntityFramework
 branches:
   only:

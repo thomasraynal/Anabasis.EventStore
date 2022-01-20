@@ -168,7 +168,7 @@ namespace Anabasis.EventStore.Tests
 
             await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
 
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
 
@@ -195,7 +195,7 @@ namespace Anabasis.EventStore.Tests
             await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateOne}", _correlationId));
             await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateTwo}", _correlationId));
 
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrents().Length);
             Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrents().Length);
