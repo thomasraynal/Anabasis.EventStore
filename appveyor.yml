@@ -10,6 +10,7 @@ environment:
   - SOLUTION_NAME: Anabasis.RabbitMQ
   - SOLUTION_NAME: Anabasis.Common
   - SOLUTION_NAME: Anabasis.EntityFramework
+  - SOLUTION_NAME: Anabasis.Deployment
 branches:
   only:
     - master

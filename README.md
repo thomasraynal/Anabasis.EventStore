@@ -25,3 +25,7 @@
 **Anabasis.Common**
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.Common.svg)](https://www.nuget.org/packages/Anabasis.Common)
+
+**Anabasis.Deployment**
+
+[![NuGet](https://img.shields.io/nuget/v/Anabasis.Deployment.svg)](https://www.nuget.org/packages/Anabasis.Deployment)
