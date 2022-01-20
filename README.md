@@ -21,3 +21,7 @@
 **Anabasis.EntityFramework**
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.EntityFramework.svg)](https://www.nuget.org/packages/Anabasis.EntityFramework)
+
+**Anabasis.Common**
+
+[![NuGet](https://img.shields.io/nuget/v/Anabasis.Common.svg)](https://www.nuget.org/packages/Anabasis.Common)
