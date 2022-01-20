@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Deployment.Tests
 {
-    public class TestAnabasisBuild: BaseAnabasisBuild
+    public class TestAnabasisBuild : BaseAnabasisBuild
     {
-
+        public override bool DeployOnKubernetes => false;
     }
 
     [TestFixture]
