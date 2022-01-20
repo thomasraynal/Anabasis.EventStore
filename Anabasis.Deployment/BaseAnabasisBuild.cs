@@ -15,10 +15,10 @@ using System.Collections.Generic;
 
 namespace Anabasis.Deployment
 {
-    //todo: fetch the config in the build folder (artefact)
-    //todo: inject build directory in app constructor
+
     //todo: parallelisation option for tests
     //todo: kube service by app
+    //todo: secrets for docker pull for deployment
 
     public abstract partial class BaseAnabasisBuild : NukeBuild
     {
@@ -70,11 +70,11 @@ namespace Anabasis.Deployment
         private AbsolutePath DockerFile => BuildDirectory / "docker" / "build.dockerfile";
         public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
         private AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
-        private AbsolutePath DefaultKustomizationFile => BuildProjectKustomizeDirectory / "kustomization.yaml";
+        private AbsolutePath KustomizationFileForOverride => BuildProjectKustomizeDirectory / "kustomization.yaml";
+        private AbsolutePath KustomizationFileForBase => BuildProjectKustomizeTemplateDirectory / "kustomization.yaml";
 
         protected BaseAnabasisBuild()
         {
-
             //for unit tests
             if (null != BuildProjectDirectory)
             {
@@ -106,7 +106,7 @@ namespace Anabasis.Deployment
                 if (!Directory.Exists(envDirectory))
                 {
                     Directory.CreateDirectory(envDirectory);
-                    File.Copy(DefaultKustomizationFile, Path.Combine(envDirectory, "kustomization.yaml"));
+                    File.Copy(KustomizationFileForOverride, Path.Combine(envDirectory, "kustomization.yaml"));
                 }
 
             }
@@ -117,6 +117,11 @@ namespace Anabasis.Deployment
             await GenerateKubernetesYamlNamespace(appDescriptor);
             await GenerateKubernetesYamlService(appDescriptor);
             await GenerateKubernetesYamlDeployment(appDescriptor);
+
+            var buildProjetBaseKustomizationFile = $"{KustomizationFileForBase}";
+            var appBaseKustomizationFile = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "kustomization.yaml");
+
+            CopyFile(buildProjetBaseKustomizationFile, appBaseKustomizationFile);
         }
 
         public virtual Target PreBuildChecks => _ => _
@@ -221,6 +226,12 @@ namespace Anabasis.Deployment
             .DependsOn(GenerateKubernetesYaml)
             .Executes(() =>
             {
+
+                //kustomize build prod
+                //kubectl apply -k prod
+
+
+
 
                 //$"--kubeconfig={ValidateKubeConfigPath()}" : "";
 
@@ -449,6 +460,13 @@ namespace Anabasis.Deployment
 
             WriteFile(serviceYamlPath, serviceYaml);
 
+        }
+
+        private void CopyFile(string fromPath, string toPath)
+        {
+            (new FileInfo(toPath)).Directory.Create();
+
+            File.Copy(fromPath, toPath,true);
         }
 
         private void WriteFile(string filePath, string fileContent)
