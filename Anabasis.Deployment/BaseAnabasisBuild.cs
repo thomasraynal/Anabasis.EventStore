@@ -18,12 +18,15 @@ namespace Anabasis.Deployment
     //todo: fetch the config in the build folder (artefact)
     //todo: inject build directory in app constructor
     //todo: parallelisation option for tests
+    //todo: kube service by app
 
     public abstract partial class BaseAnabasisBuild : NukeBuild
     {
 
         private readonly string Configuration = "Release";
-        private readonly string RuntimeDockerImage = "microsoft/dotnet:5.0-aspnetcore-runtime";
+        private readonly string RuntimeDockerImage = "mcr.microsoft.com/dotnet/aspnet:5.0";
+
+        public abstract bool DeployOnKubernetes { get; }
 
         [Required]
         [Parameter("Docker registry")]
@@ -46,10 +49,10 @@ namespace Anabasis.Deployment
         public AnabasisBuildEnvironment AnabasisBuildEnvironment;
 
         [Parameter("Solution source directory")]
-        public AbsolutePath SourceDirectory = RootDirectory;
+        public AbsolutePath SourceDirectory = RootDirectory / "src";
 
         [Parameter("Solution test directory")]
-        public AbsolutePath TestsDirectory => RootDirectory;
+        public AbsolutePath TestsDirectory = RootDirectory / "tests";
 
         [Parameter("Kubernetes cluster configuration file")]
         public readonly AbsolutePath KubeConfigPath = RootDirectory / ".kube" / "kubeconfig";
@@ -64,7 +67,7 @@ namespace Anabasis.Deployment
 
         private string Branch => GitRepository?.Branch ?? "NO_GIT_REPOS_DETECTED";
 
-        private AbsolutePath DockerFile => BuildDirectory / "docker" / "build.nuke.app.dockerfile";
+        private AbsolutePath DockerFile => BuildDirectory / "docker" / "build.dockerfile";
         public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
         private AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
         private AbsolutePath DefaultKustomizationFile => BuildProjectKustomizeDirectory / "kustomization.yaml";
@@ -84,22 +87,6 @@ namespace Anabasis.Deployment
             if (Directory.Exists(directoryInfo.FullName))
             {
                 Directory.Delete(directoryInfo.FullName, true);
-            }
-        }
-
-        //https://stackoverflow.com/a/3822913
-        private void CopyFilesRecursively(string sourcePath, string targetPath)
-        {
-            //Now Create all of the directories
-            foreach (string dirPath in Directory.GetDirectories(sourcePath, "*", SearchOption.AllDirectories))
-            {
-                Directory.CreateDirectory(dirPath.Replace(sourcePath, targetPath));
-            }
-
-            //Copy all the files & Replaces any files with the same name
-            foreach (string newPath in Directory.GetFiles(sourcePath, "*.*", SearchOption.AllDirectories))
-            {
-                File.Copy(newPath, newPath.Replace(sourcePath, targetPath), true);
             }
         }
 
@@ -132,13 +119,14 @@ namespace Anabasis.Deployment
             await GenerateKubernetesYamlDeployment(appDescriptor);
         }
 
-        public Target PreBuildChecks => _ => _
+        public virtual Target PreBuildChecks => _ => _
         .Executes(() =>
         {
-            Assert.FileExists(KubeConfigPath);
+            if(DeployOnKubernetes) 
+                Assert.FileExists(KubeConfigPath);
         });
 
-        public Target Clean => _ => _
+        public virtual Target Clean => _ => _
             .DependsOn(PreBuildChecks)
             .Executes(() =>
             {
@@ -165,7 +153,7 @@ namespace Anabasis.Deployment
                 FileSystemTasks.EnsureCleanDirectory(ArtifactsDirectory);
             });
 
-        public Target Restore => _ => _
+        public virtual Target Restore => _ => _
             .DependsOn(Clean)
             .Executes(() =>
             {
@@ -176,7 +164,7 @@ namespace Anabasis.Deployment
 
             });
 
-        public Target Publish => _ => _
+        public virtual Target Publish => _ => _
            .DependsOn(Restore)
            .Executes(() =>
            {
@@ -186,7 +174,7 @@ namespace Anabasis.Deployment
                }
            });
 
-        public Target Test => _ => _
+        public virtual Target Test => _ => _
            .DependsOn(Publish)
            .Executes(() =>
            {
@@ -196,18 +184,29 @@ namespace Anabasis.Deployment
                }
            });
 
-        public Target Package => _ => _
-            .DependsOn(Test)
+        public virtual Target DockerPackage => _ => _
+           // .DependsOn(Test)
             .Executes(() =>
             {
                 foreach (var appDescriptor in GetAppsToDeploy())
                 {
-                  //  CreateDockerImage(appDescriptor);
+                   CreateDockerImage(appDescriptor);
                 }
 
             });
+
+        public virtual Target DockerPush => _ => _
+            .DependsOn(DockerPackage)
+            .Executes(() =>
+            {
+                foreach (var appDescriptor in GetAppsToDeploy())
+                {
+                    PushDockerImage(appDescriptor);
+                }
+            });
+
         public Target GenerateKubernetesYaml => _ => _
-            .DependsOn(Package)
+           // .DependsOn(DockerPackage)
             .Executes(async () =>
             {
                 foreach (var app in GetAppsToDeploy())
@@ -317,14 +316,12 @@ namespace Anabasis.Deployment
                 .AddBuildArg($"BUILD_ID={BuildId}")
                 .SetTag($"{GetProjectDockerImageName(appDescriptor.ProjectFilePath.FullName)}:{BuildId.ToLower()}")
                 .SetPath(publishedPath)
+                .EnableQuiet()
                 .EnableForceRm());
         }
 
         protected void ExecuteTests(string testProjectPath, bool nobuild = false)
         {
-            var exceptions = new ConcurrentBag<Exception>();
-
-
 
             DotNetTasks.DotNetTest(dotNetTestSettings =>
             {
@@ -364,7 +361,7 @@ namespace Anabasis.Deployment
             return $"{prefix}-{GitRepository.Branch.Replace("/", "")}".ToLower();
         }
 
-        private void PushContainers(string[] projects)
+        private void PushDockerImage(AppDescriptor appDescriptor)
         {
 
             DockerTasks.DockerLogin(dockerLoginSettings => dockerLoginSettings
@@ -373,31 +370,18 @@ namespace Anabasis.Deployment
                 .SetPassword(DockerRegistryPassword)
             );
 
-            foreach (var project in projects)
-            {
+            var imageNameAndTag = $"{GetProjectDockerImageName(appDescriptor.ProjectFilePath.FullName)}:{BuildId.ToLower()}";
+            var imageNameAndTagOnRegistry = $"{DockerRegistryServer}/{DockerRegistryUserName}/{imageNameAndTag}";
 
-                var imageNameAndTag = $"{GetProjectDockerImageName(project)}:{BuildId.ToLower()}";
-                var imageNameAndTagOnRegistry = $"{DockerRegistryServer}/{DockerRegistryUserName}/{imageNameAndTag}";
+            DockerTasks.DockerTag(settings => settings
+                .SetSourceImage(imageNameAndTag)
+                .SetTargetImage(imageNameAndTagOnRegistry)
+            );
 
-                DockerTasks.DockerTag(settings => settings
-                    .SetSourceImage(imageNameAndTag)
-                    .SetTargetImage(imageNameAndTagOnRegistry)
-                );
-                DockerTasks.DockerPush(settings => settings
-                    .SetName(imageNameAndTagOnRegistry)
-                );
+            DockerTasks.DockerPush(settings =>
+                settings.SetName(imageNameAndTagOnRegistry)
+           );
 
-            }
-        }
-
-        private string SanitizeForKubernetesConfig(string str)
-        {
-            return str.Replace(".", "-");
-        }
-
-        private string GetServiceName(string group)
-        {
-            return $"svc-{group}";
         }
 
         private async Task GenerateKubernetesYamlNamespace(AppDescriptor appDescriptor)
@@ -420,24 +404,24 @@ namespace Anabasis.Deployment
             var deployment = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "deployment.yaml")).First() as k8s.Models.V1Deployment;
 
             deployment.Metadata.NamespaceProperty = appDescriptor.AppGroup;
-            deployment.Metadata.Name = appDescriptor.AppShortName;
+            deployment.Metadata.Name = appDescriptor.AppLongName;
 
-            deployment.Metadata.Labels["app"] = appDescriptor.AppShortName;
+            deployment.Metadata.Labels["app"] = appDescriptor.AppLongName;
             deployment.Metadata.Labels["release"] = appDescriptor.AppRelease;
             deployment.Metadata.Labels["group"] = appDescriptor.AppGroup;
 
-            deployment.Spec.Selector.MatchLabels["app"] = appDescriptor.AppShortName;
+            deployment.Spec.Selector.MatchLabels["app"] = appDescriptor.AppLongName;
             deployment.Spec.Selector.MatchLabels["release"] = appDescriptor.AppRelease;
             deployment.Spec.Selector.MatchLabels["group"] = appDescriptor.AppGroup;
 
-            deployment.Spec.Template.Metadata.Labels["app"] = appDescriptor.AppShortName;
+            deployment.Spec.Template.Metadata.Labels["app"] = appDescriptor.AppLongName;
             deployment.Spec.Template.Metadata.Labels["release"] = appDescriptor.AppRelease;
             deployment.Spec.Template.Metadata.Labels["group"] = appDescriptor.AppGroup;
 
             var container = deployment.Spec.Template.Spec.Containers.First();
 
-            container.Name = appDescriptor.AppShortName;
-            container.Image = $"{DockerRegistryServer}/{appDescriptor.AppShortName}/{Branch}:{appDescriptor.AppRelease}";
+            container.Name = appDescriptor.AppLongName;
+            container.Image = $"{DockerRegistryServer}/{appDescriptor.AppLongName}/{Branch}:{appDescriptor.AppRelease}";
 
             var deploymentYaml = Yaml.SaveToString(deployment);
             var deploymentYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "deployment.yaml");
@@ -451,13 +435,13 @@ namespace Anabasis.Deployment
             var service = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "service.yaml")).First() as k8s.Models.V1Service;
 
             service.Metadata.NamespaceProperty = appDescriptor.AppGroup;
-            service.Metadata.Name = GetServiceName(appDescriptor.AppGroup);
+            service.Metadata.Name = $"svc-{appDescriptor.AppLongName}";
 
-            service.Metadata.Labels["app"] = appDescriptor.AppShortName;
+            service.Metadata.Labels["app"] = appDescriptor.AppLongName;
             service.Metadata.Labels["release"] = appDescriptor.AppRelease;
             service.Metadata.Labels["group"] = appDescriptor.AppGroup;
             service.Spec.Selector["release"] = appDescriptor.AppRelease;
-            service.Spec.Selector["app"] = appDescriptor.AppShortName;
+            service.Spec.Selector["app"] = appDescriptor.AppLongName;
 
             var serviceYaml = Yaml.SaveToString(service);
             var serviceYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "service.yaml");
