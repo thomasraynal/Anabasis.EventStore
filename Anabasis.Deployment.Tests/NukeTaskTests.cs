@@ -8,7 +8,7 @@ namespace Anabasis.Deployment.Tests
 {
     public class TestAnabasisBuild : BaseAnabasisBuild
     {
-        public override bool DeployOnKubernetes => false;
+        public override bool IsDeployOnKubernetes => false;
     }
 
     [TestFixture]

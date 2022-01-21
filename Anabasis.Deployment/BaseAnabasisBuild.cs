@@ -17,19 +17,13 @@ using System.Text;
 namespace Anabasis.Deployment
 {
 
-    //todo: parallelisation option for tests
-    //todo: target config specifically in the build folder
-    //todo:  inject by constructor:
-        //SourceDirectory = Nuke.Common.NukeBuild.RootDirectory,
-        //ArtifactsDirectory = Nuke.Common.NukeBuild.RootDirectory,
-
     public abstract partial class BaseAnabasisBuild : NukeBuild
     {
 
         private readonly string Configuration = "Release";
         private readonly string RuntimeDockerImage = "mcr.microsoft.com/dotnet/aspnet:5.0";
 
-        public abstract bool DeployOnKubernetes { get; }
+        public abstract bool IsDeployOnKubernetes { get; }
 
         [Required]
         [Parameter("Docker registry")]
@@ -59,23 +53,18 @@ namespace Anabasis.Deployment
 
         [Parameter("Kubernetes cluster configuration file")]
         public readonly AbsolutePath KubeConfigPath = RootDirectory / ".kube" / "kubeconfig";
-
-        private AbsolutePath BuildDirectory => RootDirectory / "build";
-
-        //for unit tests
+        public AbsolutePath BuildDirectory => RootDirectory / "build";
         public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
 
         [Required]
         [GitRepository]
         public readonly GitRepository GitRepository;
 
-        private string Branch => GitRepository?.Branch ?? "NO_GIT_REPOS_DETECTED";
-
         private AbsolutePath DockerFile => BuildDirectory / "docker" / "build.dockerfile";
         public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
-        private AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
-        private AbsolutePath KustomizationFileForOverride => BuildProjectKustomizeDirectory / "kustomization.yaml";
-        private AbsolutePath KustomizationFileForBase => BuildProjectKustomizeTemplateDirectory / "kustomization.yaml";
+        public AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
+        public AbsolutePath KustomizationFileForOverride => BuildProjectKustomizeDirectory / "kustomization.yaml";
+        public AbsolutePath KustomizationFileForBase => BuildProjectKustomizeTemplateDirectory / "kustomization.yaml";
 
         protected BaseAnabasisBuild()
         {
@@ -148,7 +137,7 @@ namespace Anabasis.Deployment
         public virtual Target PreBuildChecks => _ => _
         .Executes(() =>
         {
-            if(DeployOnKubernetes) 
+            if(IsDeployOnKubernetes) 
                 Assert.FileExists(KubeConfigPath);
         });
 
@@ -243,23 +232,16 @@ namespace Anabasis.Deployment
 
             });
 
-        public virtual Target Deploy => _ => _
+        public virtual Target DeployToKubernetes => _ => _
             .DependsOn(GenerateKubernetesYaml)
-            .Executes(() =>
+            .Executes(async() =>
             {
-
-                //kustomize build prod
-                //kubectl apply -k prod --force
-
-                //$"--kubeconfig={ValidateKubeConfigPath()}" : "";
-
-                // KubernetesTasks.Kubernetes($"apply -k  {KubeConfigArgument}");
 
                 var appsToBeDeployed = GetAppsToDeploy();
 
                 foreach (var appToBeDeployed in appsToBeDeployed)
                 {
-                    //  await GenerateBaseKustomize(appToBeDeployed);
+                     await DeployAppToKubernetes(appToBeDeployed);
                 }
 
             });
@@ -430,6 +412,15 @@ namespace Anabasis.Deployment
                 settings.SetName(imageNameAndTagOnRegistry)
            );
 
+        }
+
+        private Task DeployAppToKubernetes(AppDescriptor appDescriptor)
+        {
+            var kustomizeOverridePath = Path.Combine(appDescriptor.AppSourceKustomizeDirectory.FullName, $"{AnabasisBuildEnvironment}".ToLower());
+
+            KubernetesTasks.Kubernetes($"apply -k { kustomizeOverridePath} --force --kubeconfig {KubeConfigPath}", logOutput: true, logInvocation: true);
+
+            return Task.CompletedTask;
         }
 
         private async Task GenerateKubernetesYamlNamespace(AppDescriptor appDescriptor)
