@@ -2,23 +2,23 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: anabasis-deployment-test-app
+    app: appgroup-anabasis-deployment-test-app
     release: 1.0.67
-    group: AppGroup
-  name: anabasis-deployment-test-app
-  namespace: AppGroup
+    group: appgroup
+  name: appgroup-anabasis-deployment-test-app
+  namespace: appgroup
 spec:
   selector:
     matchLabels:
-      app: anabasis-deployment-test-app
+      app: appgroup-anabasis-deployment-test-app
       release: 1.0.67
-      group: AppGroup
+      group: appgroup
   template:
     metadata:
       labels:
-        app: anabasis-deployment-test-app
+        app: appgroup-anabasis-deployment-test-app
         release: 1.0.67
-        group: AppGroup
+        group: appgroup
     spec:
       containers:
       - env:
@@ -26,7 +26,7 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: https://hub.docker.com/anabasis-deployment-test-app/NO_GIT_REPOS_DETECTED:1.0.67
+        image: https://hub.docker.com/appgroup-anabasis-deployment-test-app/NO_GIT_REPOS_DETECTED:1.0.67
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
@@ -35,7 +35,7 @@ spec:
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
-        name: anabasis-deployment-test-app
+        name: appgroup-anabasis-deployment-test-app
         ports:
         - containerPort: 80
           name: http

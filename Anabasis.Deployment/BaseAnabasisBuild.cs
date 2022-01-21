@@ -18,8 +18,10 @@ namespace Anabasis.Deployment
 {
 
     //todo: parallelisation option for tests
-    //todo: kube service by app
-    //todo: secrets for docker pull for deployment
+    //todo: target config specifically in the build folder
+    //todo:  inject by constructor:
+        //SourceDirectory = Nuke.Common.NukeBuild.RootDirectory,
+        //ArtifactsDirectory = Nuke.Common.NukeBuild.RootDirectory,
 
     public abstract partial class BaseAnabasisBuild : NukeBuild
     {
@@ -60,7 +62,8 @@ namespace Anabasis.Deployment
 
         private AbsolutePath BuildDirectory => RootDirectory / "build";
 
-        private AbsolutePath ArtifactsDirectory => RootDirectory / "artifacts";
+        //for unit tests
+        public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
 
         [Required]
         [GitRepository]
@@ -79,7 +82,7 @@ namespace Anabasis.Deployment
             //for unit tests
             if (null != BuildProjectDirectory)
             {
-                BuildProjectKustomizeDirectory = BuildProjectDirectory / "kustomize";
+                BuildProjectKustomizeDirectory = BuildAssemblyDirectory / "kustomize";
             }
         }
 
@@ -208,7 +211,7 @@ namespace Anabasis.Deployment
            });
 
         public virtual Target DockerPackage => _ => _
-           // .DependsOn(Test)
+            .DependsOn(Test)
             .Executes(() =>
             {
                 foreach (var appDescriptor in GetAppsToDeploy())
@@ -229,7 +232,7 @@ namespace Anabasis.Deployment
             });
 
         public virtual Target GenerateKubernetesYaml => _ => _
-           // .DependsOn(DockerPackage)
+            .DependsOn(DockerPush)
             .Executes(async () =>
             {
                 foreach (var app in GetAppsToDeploy())
@@ -246,10 +249,7 @@ namespace Anabasis.Deployment
             {
 
                 //kustomize build prod
-                //kubectl apply -k prod
-
-
-
+                //kubectl apply -k prod --force
 
                 //$"--kubeconfig={ValidateKubeConfigPath()}" : "";
 
@@ -349,14 +349,14 @@ namespace Anabasis.Deployment
 
             var projectName = Path.GetFileNameWithoutExtension(appDescriptor.ProjectFilePath.FullName);
             var publishedPath = ArtifactsDirectory / projectName;
-            var dockerImageName = GetProjectDockerImageName(appDescriptor.ProjectFilePath.FullName);
+            var dockerImageName = GetDockerImageName(appDescriptor);
 
-            DockerTasks.DockerBuild(s => s
+            DockerTasks.DockerBuild(dockerBuildSettings => dockerBuildSettings
                 .SetFile(DockerFile)
                 .AddBuildArg($"RUNTIME_IMAGE={RuntimeDockerImage}")
                 .AddBuildArg($"PROJECT_NAME={projectName}")
                 .AddBuildArg($"BUILD_ID={BuildId}")
-                .SetTag($"{GetProjectDockerImageName(appDescriptor.ProjectFilePath.FullName)}:{BuildId.ToLower()}")
+                .SetTag(dockerImageName)
                 .SetPath(publishedPath)
                 .EnableQuiet()
                 .EnableForceRm());
@@ -397,10 +397,16 @@ namespace Anabasis.Deployment
                 );
         }
 
-        protected string GetProjectDockerImageName(string project)
+        protected string GetDockerImageName(AppDescriptor appDescriptor)
         {
-            var prefix = Path.GetFileNameWithoutExtension(project).ToLower();
+            var prefix = $"{appDescriptor.AppLongName}:{appDescriptor.AppRelease.ToLower()}";
             return $"{prefix}-{GitRepository.Branch.Replace("/", "")}".ToLower();
+        }
+
+        protected string GetDockerImageNameWithDockerRegistry(AppDescriptor appDescriptor)
+        {
+            var dockerImageName = GetDockerImageName(appDescriptor);
+            return $"{DockerRegistryServer}/{DockerRegistryUserName}/{dockerImageName}";
         }
 
         private void PushDockerImage(AppDescriptor appDescriptor)
@@ -412,11 +418,11 @@ namespace Anabasis.Deployment
                 .SetPassword(DockerRegistryPassword)
             );
 
-            var imageNameAndTag = $"{GetProjectDockerImageName(appDescriptor.ProjectFilePath.FullName)}:{BuildId.ToLower()}";
-            var imageNameAndTagOnRegistry = $"{DockerRegistryServer}/{DockerRegistryUserName}/{imageNameAndTag}";
+            var dockerImageName = GetDockerImageName(appDescriptor);
+            var imageNameAndTagOnRegistry = GetDockerImageNameWithDockerRegistry(appDescriptor);
 
             DockerTasks.DockerTag(settings => settings
-                .SetSourceImage(imageNameAndTag)
+                .SetSourceImage(dockerImageName)
                 .SetTargetImage(imageNameAndTagOnRegistry)
             );
 
@@ -463,7 +469,7 @@ namespace Anabasis.Deployment
             var container = deployment.Spec.Template.Spec.Containers.First();
 
             container.Name = appDescriptor.AppLongName;
-            container.Image = $"{DockerRegistryServer}/{appDescriptor.AppLongName}/{Branch}:{appDescriptor.AppRelease}";
+            container.Image = GetDockerImageNameWithDockerRegistry(appDescriptor);
 
             var deploymentYaml = Yaml.SaveToString(deployment);
             var deploymentYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "deployment.yaml");

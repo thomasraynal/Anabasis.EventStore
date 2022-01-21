@@ -23,6 +23,7 @@ namespace Anabasis.Deployment.Tests
             _testAnabasisBuild = new TestAnabasisBuild
             {
                 SourceDirectory = Nuke.Common.NukeBuild.RootDirectory,
+                ArtifactsDirectory = Nuke.Common.NukeBuild.RootDirectory,
                 BuildId = "1.0.67",
                 DockerRegistryServer = "https://hub.docker.com",
                 BuildProjectKustomizeDirectory = Nuke.Common.NukeBuild.RootDirectory / "Anabasis.Deployment" / "kustomize"

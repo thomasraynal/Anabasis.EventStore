@@ -3,10 +3,10 @@ kind: Service
 metadata:
   labels:
     release: 1.0.67
-    app: anabasis-deployment-test-app
-    group: AppGroup
-  name: svc-AppGroup
-  namespace: AppGroup
+    app: appgroup-anabasis-deployment-test-app
+    group: appgroup
+  name: svc-appgroup-anabasis-deployment-test-app
+  namespace: appgroup
 spec:
   ports:
   - name: http
@@ -18,6 +18,6 @@ spec:
     protocol: TCP
     targetPort: 1337
   selector:
-    app: anabasis-deployment-test-app
+    app: appgroup-anabasis-deployment-test-app
     release: 1.0.67
   type: ClusterIP

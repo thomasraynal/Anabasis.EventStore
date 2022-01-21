@@ -51,8 +51,8 @@ namespace Anabasis.Deployment
 
         private (AppConfigurationOptions appConfigurationOptions, GroupConfigurationOptions groupConfigurationOptions) GetConfigurations(DirectoryInfo appBuildDirectory)
         {
-            var configGroupFile = appBuildDirectory.EnumerateFiles(BuildConst.GroupConfigurationFileName, SearchOption.AllDirectories).FirstOrDefault();
-            var configAppFile = appBuildDirectory.EnumerateFiles(BuildConst.AppConfigurationFileName, SearchOption.AllDirectories).FirstOrDefault();
+            var configGroupFile = appBuildDirectory.EnumerateFiles(BuildConst.GroupConfigurationFileName, SearchOption.TopDirectoryOnly).FirstOrDefault();
+            var configAppFile = appBuildDirectory.EnumerateFiles(BuildConst.AppConfigurationFileName, SearchOption.TopDirectoryOnly).FirstOrDefault();
 
             if (null == configGroupFile)
                 throw new InvalidOperationException($"Unable to find a {BuildConst.GroupConfigurationFileName} file in the project {appBuildDirectory.FullName} and its subdirectories");
