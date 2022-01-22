@@ -24,6 +24,7 @@ namespace Anabasis.Deployment
         private readonly string RuntimeDockerImage = "mcr.microsoft.com/dotnet/aspnet:5.0";
 
         public abstract bool IsDeployOnKubernetes { get; }
+        public bool IsTestRunParallelized { get; set; } = true;
 
         [Required]
         [Parameter("Docker registry")]
@@ -60,7 +61,7 @@ namespace Anabasis.Deployment
         [GitRepository]
         public readonly GitRepository GitRepository;
 
-        private AbsolutePath DockerFile => BuildDirectory / "docker" / "build.dockerfile";
+        public AbsolutePath DockerFile => BuildDirectory / "docker" / "build.dockerfile";
         public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
         public AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
         public AbsolutePath KustomizationFileForOverride => BuildProjectKustomizeDirectory / "kustomization.yaml";
@@ -193,10 +194,41 @@ namespace Anabasis.Deployment
            .DependsOn(Publish)
            .Executes(() =>
            {
-               foreach (var testProjectPath in GetTestsProjects())
+           
+               var testProjectFiles = GetTestsProjects();
+
+               if (IsTestRunParallelized)
                {
-                   ExecuteTests(testProjectPath.FullName);
+
+                   var exceptions = new ConcurrentBag<Exception>();
+
+                   Parallel.ForEach(
+                   testProjectFiles,
+                       testProjectFile =>
+                       {
+                           try
+                           {
+                               ExecuteTests(testProjectFile.FullName);
+                           }
+                           catch (Exception ex)
+                           {
+                               exceptions.Add(ex);
+                           }
+                       });
+
+
+                   if (!exceptions.IsEmpty)
+                       throw new AggregateException(exceptions);
+
                }
+               else
+               {
+                   foreach (var testProjectPath in GetTestsProjects())
+                   {
+                       ExecuteTests(testProjectPath.FullName);
+                   }
+               }
+
            });
 
         public virtual Target DockerPackage => _ => _
@@ -248,7 +280,7 @@ namespace Anabasis.Deployment
 
 
 
-        public AppDescriptor[] GetAppsToDeploy()
+        public virtual AppDescriptor[] GetAppsToDeploy()
         {
             var appDescriptors = new List<AppDescriptor>();
 
@@ -294,7 +326,7 @@ namespace Anabasis.Deployment
                 "   }";
         }
 
-        protected virtual FileInfo[] GetAllProjects()
+        public virtual FileInfo[] GetAllProjects()
         {
             var projects = GetApplicationProjects()
                 .Concat(GetTestsProjects())
@@ -346,7 +378,6 @@ namespace Anabasis.Deployment
 
         protected void ExecuteTests(string testProjectPath, bool nobuild = false)
         {
-
             DotNetTasks.DotNetTest(dotNetTestSettings =>
             {
                 dotNetTestSettings = dotNetTestSettings
@@ -358,7 +389,6 @@ namespace Anabasis.Deployment
 
                 return dotNetTestSettings;
             });
-
         }
 
         protected void PublishApplication(string projectPath)
