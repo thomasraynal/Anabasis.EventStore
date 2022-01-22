@@ -86,8 +86,6 @@ namespace Anabasis.EventStore.Repository
 
                     writeResult = await transaction.CommitAsync();
                 }
-
-              
             }
         }
 
