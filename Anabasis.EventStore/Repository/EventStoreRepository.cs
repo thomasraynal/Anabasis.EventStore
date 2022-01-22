@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
-using MoreLinq;
 using System.Reactive.Linq;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Shared;
