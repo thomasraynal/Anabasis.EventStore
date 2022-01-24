@@ -1,9 +1,9 @@
-using Anabasis.EventStore.Event;
+using Anabasis.Common;
 using System;
 
 namespace Anabasis.EventStore.Tests.Components
 {
-  public class SomeRandomEvent : BaseEvent
+    public class SomeRandomEvent : BaseEvent
   {
     public SomeRandomEvent(Guid correlationId, string streamId = "SomeRandomEvent") : base(correlationId, streamId)
     {

@@ -1,7 +1,7 @@
 using Anabasis.Common;
 using System;
 
-namespace Anabasis.EventStore.Event
+namespace Anabasis.Common
 {
     public abstract class BaseCommand : BaseEvent, ICommand
     {

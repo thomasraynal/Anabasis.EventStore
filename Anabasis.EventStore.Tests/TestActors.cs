@@ -1,6 +1,5 @@
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Event;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
@@ -16,6 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests
 {

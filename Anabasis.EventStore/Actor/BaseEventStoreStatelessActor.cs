@@ -1,14 +1,10 @@
-using Anabasis.EventStore.Event;
 using Anabasis.EventStore.Repository;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common;
-using System.Linq;
-using System.Runtime.ExceptionServices;
 
 namespace Anabasis.EventStore.Actor
 {
