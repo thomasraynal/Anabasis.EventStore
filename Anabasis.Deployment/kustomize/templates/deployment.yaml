@@ -13,7 +13,7 @@ spec:
     matchLabels:
       app: unknown-name
       release: unknown-release
-      group: unknown-groug
+      group: unknown-group
   template:
     metadata:
       labels:

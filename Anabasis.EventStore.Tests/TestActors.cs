@@ -34,7 +34,7 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestActorReceiver : BaseStatelessActor
+    public class TestActorReceiver : BaseEventStoreStatelessActor
     {
         public TestActorReceiver(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
@@ -53,7 +53,7 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class TestActor : BaseStatelessActor
+    public class TestActor : BaseEventStoreStatelessActor
     {
         public TestActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
@@ -273,7 +273,7 @@ namespace Anabasis.EventStore.Tests
             var receiver = new TestActorReceiver(_eventRepository.eventStoreRepository, _loggerFactory);
             receiver.SubscribeToEventStream(volatileEventStoreStream);
 
-            var someCommandResponse = await sender.SendEventStore<SomeCommandResponse>(new SomeCommand(Guid.NewGuid(), "some-stream"), TimeSpan.FromSeconds(3));
+            var someCommandResponse = await sender.SendEventStore<SomeCommandResponse>(new SomeCommand(Guid.NewGuid(), "some-stream"), TimeSpan.FromSeconds(5));
 
             Assert.NotNull(someCommandResponse);
         }

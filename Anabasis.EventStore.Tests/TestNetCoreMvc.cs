@@ -29,7 +29,7 @@ using Anabasis.Common;
 namespace Anabasis.EventStore.Tests
 {
 
-    public class TestStatelessActorOneMvc : BaseStatelessActor
+    public class TestStatelessActorOneMvc : BaseEventStoreStatelessActor
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
@@ -63,7 +63,7 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestStatefulActorTwoMvc : BaseStatefulActor<SomeDataAggregate>
+    public class TestStatefulActorTwoMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 

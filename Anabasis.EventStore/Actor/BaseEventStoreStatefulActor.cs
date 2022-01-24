@@ -7,15 +7,15 @@ using System;
 
 namespace Anabasis.EventStore.Actor
 {
-    public abstract class BaseStatefulActor< TAggregate> : BaseStatelessActor, IDisposable, IStatefulActor<TAggregate> where TAggregate : IAggregate, new()
+    public abstract class BaseEventStoreStatefulActor< TAggregate> : BaseEventStoreStatelessActor, IEventStoreStatefulActor<TAggregate> where TAggregate : IAggregate, new()
     {
 
-        public BaseStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public BaseEventStoreStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
             Setup(eventStoreCache);
         }
 
-        public BaseStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory =null) : base(eventStoreRepository, loggerFactory)
+        public BaseEventStoreStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory =null) : base(eventStoreRepository, loggerFactory)
         {
             var getEventStoreCache = eventStoreCacheFactory.Get< TAggregate>(GetType());
 

@@ -18,7 +18,7 @@ using Anabasis.EventStore.Repository;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
 {
-    public class TestRabbitMqActor : BaseStatelessActor
+    public class TestRabbitMqActor : BaseEventStoreStatelessActor
     {
         public List<IEvent> Events { get; } = new();
 

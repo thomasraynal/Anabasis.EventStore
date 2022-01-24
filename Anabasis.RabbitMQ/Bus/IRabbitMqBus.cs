@@ -13,6 +13,5 @@ namespace Anabasis.RabbitMQ
         IRabbitMqQueueMessage[] Pull(string queueName, int? chunkSize = null);
         void Subscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription) where TEvent : class, IRabbitMqMessage;
         void Unsubscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription) where TEvent : class, IRabbitMqMessage;
-        void DoHealthCheck();
     }
 }

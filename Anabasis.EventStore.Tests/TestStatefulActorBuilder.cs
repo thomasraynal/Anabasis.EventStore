@@ -20,7 +20,7 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Tests
 {
 
-    public class TestStatefulActorOne : BaseStatefulActor<SomeDataAggregate>
+    public class TestStatefulActorOne : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
@@ -44,7 +44,7 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class TestAggregatedActorTwo : BaseStatefulActor<SomeDataAggregate>
+    public class TestAggregatedActorTwo : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
 
         public List<IEvent> Events { get; } = new List<IEvent>();

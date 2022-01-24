@@ -17,7 +17,7 @@ namespace Anabasis.EventStore
 {
 
     public class StatefulActorBuilder<TActor, TAggregate> : IStatefulActorBuilder
-        where TActor : class, IStatefulActor<TAggregate>
+        where TActor : class, IEventStoreStatefulActor<TAggregate>
         where TAggregate : IAggregate, new()
     {
         private readonly World _world;

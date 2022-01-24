@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Mvc
         }
 
         public void Add<TActor,  TAggregate>(Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache< TAggregate>> getEventStoreCache)
-            where TActor : IStatefulActor< TAggregate>
+            where TActor : IEventStoreStatefulActor< TAggregate>
             where TAggregate : IAggregate, new()
         {
             _eventStoreCaches.Add(typeof(TActor), getEventStoreCache);

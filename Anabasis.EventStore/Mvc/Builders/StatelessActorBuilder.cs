@@ -10,7 +10,7 @@ using Anabasis.Common;
 namespace Anabasis.EventStore
 {
     public class StatelessActorBuilder<TActor> : IStatelessActorBuilder
-        where TActor : IStatelessActor
+        where TActor : IEventStoreStatelessActor
     {
         private readonly World _world;
         private readonly List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>> _streamsToRegisterTo;

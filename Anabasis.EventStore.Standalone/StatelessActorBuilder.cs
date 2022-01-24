@@ -15,7 +15,7 @@ using Anabasis.Common;
 namespace Anabasis.EventStore.Standalone
 {
     public class StatelessActorBuilder<TActor, TRegistry>
-      where TActor : IStatelessActor
+      where TActor : IEventStoreStatelessActor
       where TRegistry : ServiceRegistry, new()
     {
 

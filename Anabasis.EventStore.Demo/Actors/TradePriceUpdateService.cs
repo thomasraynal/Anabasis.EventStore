@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class TradePriceUpdateService : BaseStatefulActor<Trade>
+    public class TradePriceUpdateService : BaseEventStoreStatefulActor<Trade>
     {
 
         public TradePriceUpdateService(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<Trade> eventStoreCache) : base(eventStoreRepository, eventStoreCache)

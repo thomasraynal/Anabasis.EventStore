@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class TradeSink : BaseStatefulActor<Trade>
+    public class TradeSink : BaseEventStoreStatefulActor<Trade>
     {
         public TradeSink(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<Trade> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
         {

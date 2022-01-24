@@ -37,7 +37,7 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestActorAutoBuildOne : BaseStatelessActor
+    public class TestActorAutoBuildOne : BaseEventStoreStatelessActor
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
@@ -61,7 +61,7 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class TestActorAutoBuildTwo : BaseStatelessActor
+    public class TestActorAutoBuildTwo : BaseEventStoreStatelessActor
     {
 
         public List<IEvent> Events { get; } = new List<IEvent>();

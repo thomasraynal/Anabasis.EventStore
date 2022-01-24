@@ -10,7 +10,14 @@ namespace Anabasis.Poc
 
     public class EventStoreBus : IBus
     {
+        public bool IsConnected => throw new NotImplementedException();
+
         public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DoHealthCheck(bool shouldThrow = false)
         {
             throw new NotImplementedException();
         }
@@ -90,7 +97,14 @@ namespace Anabasis.Poc
     {
         public BusType BusType => throw new NotImplementedException();
 
+        public bool IsConnected => throw new NotImplementedException();
+
         public void Dispose()
+        {
+            throw new NotImplementedException();
+        }
+
+        public void DoHealthCheck(bool shouldThrow = false)
         {
             throw new NotImplementedException();
         }
@@ -134,7 +148,6 @@ namespace Anabasis.Poc
     public interface IEventStoreEvent : IEvent
     {
     }
-
 
     public class Actor : IActor
     {
@@ -183,6 +196,11 @@ namespace Anabasis.Poc
         }
 
         public void ConnectTo<TInterface>(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public void Dispose()
         {
             throw new NotImplementedException();
         }

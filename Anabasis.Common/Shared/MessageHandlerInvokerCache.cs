@@ -45,6 +45,11 @@ namespace Anabasis.Common
 
                 var methodInfo = handlerType.GetMethod("Handle", new[] { cacheKey.MessageHandlerType });
 
+                if (null == methodInfo)
+                {
+                    methodInfo = messageHandlerType.GetMethods().Where(method => null != method.GetCustomAttribute<EventSink>()).FirstOrDefault();
+                }
+
                 return methodInfo;
 
             });

@@ -35,7 +35,7 @@ namespace Anabasis.EventStore
         }
 
         public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IEventTypeProvider eventTypeProvider = null)
-            where TActor : class, IStatelessActor
+            where TActor : class, IEventStoreStatelessActor
         {
             if (StatefulActorBuilders.Any(statefulActorBuilder => statefulActorBuilder.actorType == typeof(TActor)))
                 throw new InvalidOperationException($"Actors are registered as singleton in the AspNetCore.Builder context : only one instance of each actor type is authorized." +
@@ -54,7 +54,7 @@ namespace Anabasis.EventStore
         }
 
         public StatefulActorBuilder<TActor,  TAggregate> AddStatefulActor<TActor,  TAggregate>()
-            where TActor : class, IStatefulActor< TAggregate>
+            where TActor : class, IEventStoreStatefulActor< TAggregate>
             where TAggregate : IAggregate, new()
         {
 

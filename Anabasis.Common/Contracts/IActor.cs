@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public interface IActor
+    public interface IActor : IDisposable
     {
         string Id { get; }
         bool IsConnected { get; }
@@ -15,10 +15,5 @@ namespace Anabasis.Common
         Task OnEventReceived(IEvent @event);
         void AddDisposable(IDisposable disposable);
         void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false);
-
-        Task EmitEventStore<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent;
-        Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse;
-        void SubscribeToEventStream(IEventStoreStream eventStoreStream, bool closeUnderlyingSubscriptionOnDispose = false);
-     
     }
 }

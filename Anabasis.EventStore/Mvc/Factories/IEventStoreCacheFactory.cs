@@ -10,7 +10,7 @@ namespace Anabasis.EventStore.Actor
     public interface IEventStoreCacheFactory
     {
         void Add<TActor,  TAggregate>(Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache< TAggregate>> getEventStoreCache)
-            where TActor : IStatefulActor< TAggregate>
+            where TActor : IEventStoreStatefulActor< TAggregate>
             where TAggregate : IAggregate, new();
 
         Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache< TAggregate>> Get< TAggregate>(Type type)

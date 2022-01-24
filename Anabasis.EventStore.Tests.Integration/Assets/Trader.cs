@@ -9,7 +9,7 @@ using Anabasis.EventStore.Repository;
 namespace Anabasis.EventStore.Integration.Tests
 {
 
-  public class Trader : BaseStatefulActor<CurrencyPair>, IDisposable
+  public class Trader : BaseEventStoreStatefulActor<CurrencyPair>
   {
 
     private static readonly string[] CcyPairs = { "EUR/USD", "EUR/GBP" };

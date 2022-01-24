@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class MarketDataSink : BaseStatefulActor<MarketData>
+    public class MarketDataSink : BaseEventStoreStatefulActor<MarketData>
     {
         public MarketDataSink(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<MarketData> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
         {

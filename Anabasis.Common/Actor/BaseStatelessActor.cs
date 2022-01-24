@@ -1,38 +1,34 @@
-using Anabasis.EventStore.Event;
-using Anabasis.EventStore.Repository;
+﻿using Anabasis.Common;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
+using System.Runtime.ExceptionServices;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Anabasis.Common;
-using System.Linq;
 
-namespace Anabasis.EventStore.Actor
+namespace Anabasis.Common
 {
-    public abstract class BaseStatelessActor : IDisposable, IStatelessActor
+    public abstract class BaseStatelessActor :  IActor
     {
-        private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
+        protected readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
-        private readonly IEventStoreRepository _eventStoreRepository;
-
-        private readonly List<IEventStoreStream> _eventStoreStreams;
-
         private readonly Dictionary<Type, IBus> _connectedBus;
+
+        private readonly ManualResetEventSlim _manualResetEvent = new(true);
 
         public ILogger Logger { get; }
 
-        protected BaseStatelessActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null)
+        protected BaseStatelessActor(ILoggerFactory loggerFactory = null)
         {
             Id = $"{GetType()}-{Guid.NewGuid()}";
 
             _cleanUp = new CompositeDisposable();
-            _eventStoreRepository = eventStoreRepository;
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
-            _eventStoreStreams = new List<IEventStoreStream>();
             _connectedBus = new Dictionary<Type, IBus>();
 
             Logger = loggerFactory?.CreateLogger(GetType());
@@ -41,69 +37,23 @@ namespace Anabasis.EventStore.Actor
 
         public string Id { get; }
 
-        public bool IsConnected => _eventStoreRepository.IsConnected;
-
-        public void SubscribeToEventStream(IEventStoreStream eventStoreStream, bool closeSubscriptionOnDispose = false)
-        {
-            eventStoreStream.Connect();
-
-            Logger?.LogDebug($"{Id} => Subscribing to {eventStoreStream.Id}");
-
-            _eventStoreStreams.Add(eventStoreStream);
-
-            var disposable = eventStoreStream.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
-
-            if (closeSubscriptionOnDispose)
-            {
-                _cleanUp.Add(eventStoreStream);
-            }
-
-            _cleanUp.Add(disposable);
-        }
+        public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.IsConnected);
 
         public virtual Task OnError(IEvent source, Exception exception)
         {
+            ExceptionDispatchInfo.Capture(exception).Throw();
+
             return Task.CompletedTask;
-        }
-
-        public async Task EmitEventStore<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent: IEvent
-        {
-            if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
-
-            Logger?.LogDebug($"{Id} => Emitting {@event.EntityId} - {@event.GetType()}");
-
-            await _eventStoreRepository.Emit(@event, extraHeaders);
-        }
-
-        public Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
-        {
-            Logger?.LogDebug($"{Id} => Sending command {command.EntityId} - {command.GetType()}");
-
-            var taskSource = new TaskCompletionSource<ICommandResponse>();
-
-            var cancellationTokenSource = null != timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
-
-            cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
-
-            _pendingCommands[command.EventID] = taskSource;
-
-            _eventStoreRepository.Emit(command);
-
-            return taskSource.Task.ContinueWith(task =>
-            {
-                if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
-                if (task.IsCanceled) throw new Exception("Command went in timeout");
-
-                throw task.Exception;
-
-            }, cancellationTokenSource.Token);
-
         }
 
         public async Task OnEventReceived(IEvent @event)
         {
+            _manualResetEvent.Wait();
+  
+
             try
             {
+
                 Logger?.LogDebug($"{Id} => Receiving event {@event.EntityId} - {@event.GetType()}");
 
                 var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
@@ -124,10 +74,12 @@ namespace Anabasis.EventStore.Actor
                     }
 
                 }
-
-                if (null != candidateHandler)
+                else
                 {
-                    ((Task)candidateHandler.Invoke(this, new object[] { @event })).Wait();
+                    if (null != candidateHandler)
+                    {
+                        ((Task)candidateHandler.Invoke(this, new object[] { @event })).Wait();
+                    }
                 }
 
             }
@@ -135,6 +87,11 @@ namespace Anabasis.EventStore.Actor
             {
                 await OnError(@event, exception);
             }
+            finally
+            {
+                _manualResetEvent.Set();
+            }
+
         }
 
         public override bool Equals(object obj)
@@ -159,7 +116,7 @@ namespace Anabasis.EventStore.Actor
 
             var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
 
-            while(!IsConnected ||  DateTime.UtcNow > waitUntilMax)
+            while (!IsConnected || DateTime.UtcNow > waitUntilMax)
             {
                 await Task.Delay(100);
             }
@@ -167,7 +124,7 @@ namespace Anabasis.EventStore.Actor
             if (!IsConnected) throw new InvalidOperationException("Unable to connect");
         }
 
-        public TBus GetConnectedBus<TBus>() where TBus: class
+        public TBus GetConnectedBus<TBus>() where TBus : class
         {
             var busType = typeof(TBus);
 

@@ -109,7 +109,7 @@ namespace Anabasis.Api
                     configureServiceCollection?.Invoke(services, configurationRoot);
 
                 })
-                .Configure((context,appBuilder) =>
+                .Configure((context, appBuilder) =>
                 {
 
                     ConfigureApplication(appBuilder, context.HostingEnvironment, appContext);

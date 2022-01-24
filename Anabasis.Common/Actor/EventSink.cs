@@ -1,6 +1,6 @@
 using System;
 
-namespace Anabasis.EventStore.Actor
+namespace Anabasis.Common
 {
     public class EventSink : Attribute
     {

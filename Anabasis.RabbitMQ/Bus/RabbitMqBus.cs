@@ -5,7 +5,8 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
 
 namespace Anabasis.RabbitMQ
 {
@@ -17,8 +18,13 @@ namespace Anabasis.RabbitMQ
         private readonly ILogger _logger;
         private readonly TimeSpan _defaultPublishConfirmTimeout;
 
+        private readonly BehaviorSubject<bool> _connectionStatusSubject;
+        private readonly IDisposable _isConnectedDisposable;
+
         public string BusId { get; }
         public IRabbitMqConnection RabbitMqConnection { get; }
+
+        public bool IsConnected => _connectionStatusSubject.Value;
 
         public RabbitMqBus(RabbitMqConnectionOptions settings,
                    AnabasisAppContext appContext,
@@ -33,6 +39,12 @@ namespace Anabasis.RabbitMQ
             _serializer = serializer;
             _defaultPublishConfirmTimeout = TimeSpan.FromSeconds(10);
             _existingSubscriptions = new Dictionary<string, IRabbitMqSubscription>();
+
+            _connectionStatusSubject = new BehaviorSubject<bool>(false);
+
+            DoHealthCheck();
+
+            _isConnectedDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(_ => DoHealthCheck());
 
         }
 
@@ -212,21 +224,29 @@ namespace Anabasis.RabbitMQ
             subscriberDescriptor.Subscriptions.Remove(subscription);
         }
 
-        public void DoHealthCheck()
+        public void DoHealthCheck(bool shouldThrow = false)
         {
             RabbitMqConnection.DoWithChannel(model =>
             {
                 if (!model.IsOpen)
                 {
-                    throw new InvalidOperationException("RabbitMq connection not opened");
+                    _connectionStatusSubject.OnNext(false);
+
+                    if (shouldThrow)
+                        throw new InvalidOperationException("RabbitMq connection not opened");
                 }
-                  
+
+               if(!IsConnected)
+                    _connectionStatusSubject.OnNext(true);
+
             });
 
         }
 
         public void Dispose()
         {
+            _isConnectedDisposable.Dispose();
+            _connectionStatusSubject.Dispose();
             RabbitMqConnection.Dispose();
         }
     }

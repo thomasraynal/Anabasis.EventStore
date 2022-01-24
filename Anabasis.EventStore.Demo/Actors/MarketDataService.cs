@@ -8,7 +8,7 @@ using System.Reactive.Linq;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class MarketDataService : BaseStatelessActor
+    public class MarketDataService : BaseEventStoreStatelessActor
     {
         private readonly Dictionary<string, IObservable<MarketData>> _prices = new();
 

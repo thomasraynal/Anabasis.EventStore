@@ -56,7 +56,7 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestStatefulActorWithSnapshot : BaseStatefulActor<SomeDataAggregate>
+    public class TestStatefulActorWithSnapshot : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
         public TestStatefulActorWithSnapshot(SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache,
           IEventStoreAggregateRepository eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)

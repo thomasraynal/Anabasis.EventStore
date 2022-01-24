@@ -21,7 +21,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
-    public class TestStatefulActor : BaseStatefulActor<SomeDataAggregate>
+    public class TestStatefulActor : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
         public TestStatefulActor(AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache,
           IEventStoreAggregateRepository eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)

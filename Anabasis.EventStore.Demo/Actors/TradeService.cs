@@ -13,20 +13,21 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class TradeService : BaseStatelessActor, IDisposable
+    public class TradeService : BaseEventStoreStatelessActor, IDisposable
     {
         private readonly Random _random = new();
         private readonly IDictionary<string, MarketData> _latestPrices = new Dictionary<string, MarketData>();
         private readonly object _locker = new();
         private int _counter = 0;
-        private IDisposable _cleanup;
 
         public TradeService(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
         {
 
             var tradesData = GenerateTradesAndMaintainCache().Publish();
 
-            _cleanup = tradesData.Connect();
+            var cleanup = tradesData.Connect();
+
+            AddDisposable(cleanup);
         }
 
         public Task Handle(MarketDataChanged marketDataChanged)
@@ -170,9 +171,5 @@ namespace Anabasis.EventStore.Demo
             }, trade => trade.EntityId);
         }
 
-        public override void Dispose()
-        {
-            _cleanup.Dispose();
-        }
     }
 }

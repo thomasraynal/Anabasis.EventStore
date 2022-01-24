@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Samples
                 .Build();
         }
 
-        public static void Run(IStatelessActor statelessActor)
+        public static void Run(IEventStoreStatelessActor statelessActor)
         {
             var rand = new Random();
             var position = 0;
@@ -63,7 +63,7 @@ namespace Anabasis.EventStore.Samples
             }
         }
 
-        public static void Run(params IStatefulActor<EventCountAggregate>[] statefulActors)
+        public static void Run(params IEventStoreStatefulActor<EventCountAggregate>[] statefulActors)
         {
             foreach(var statefulActor in statefulActors)
             {
@@ -76,7 +76,7 @@ namespace Anabasis.EventStore.Samples
                 });
             }
 
-            Run(statefulActors.First() as IStatelessActor);
+            Run(statefulActors.First() as IEventStoreStatelessActor);
 
         }
     }

@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Event
+namespace Anabasis.Common
 {
   public abstract class BaseCommandResponse : BaseEvent, ICommandResponse
   {

@@ -2,7 +2,7 @@ using Anabasis.Common;
 
 namespace Anabasis.EventStore.Actor
 {
-    public interface IStatelessActor: IActor
+    public interface IEventStoreStatelessActor: IEventStoreActor
     {
     }
 }
