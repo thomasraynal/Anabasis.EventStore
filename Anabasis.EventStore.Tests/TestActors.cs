@@ -36,7 +36,7 @@ namespace Anabasis.EventStore.Tests
 
     public class TestActorReceiver : BaseEventStoreStatelessActor
     {
-        public TestActorReceiver(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public TestActorReceiver(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration,eventStoreRepository, loggerFactory)
         {
 
         }
@@ -55,7 +55,7 @@ namespace Anabasis.EventStore.Tests
 
     public class TestActor : BaseEventStoreStatelessActor
     {
-        public TestActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public TestActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
             Events = new List<SomeRandomEvent>();
         }
@@ -83,6 +83,9 @@ namespace Anabasis.EventStore.Tests
         private UserCredentials _userCredentials;
         private ConnectionSettings _connectionSettings;
         private ClusterVNode _clusterVNode;
+
+        private IActorConfiguration _actorConfiguration = new ActorConfiguration();
+
         private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreRepository eventStoreRepository) _eventRepository;
         private TestActor _testActorOne;
         private (ConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamOne;
@@ -203,7 +206,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            _testActorOne = new TestActor(_eventRepository.eventStoreRepository, _loggerFactory);
+            _testActorOne = new TestActor(_actorConfiguration,_eventRepository.eventStoreRepository, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -216,7 +219,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            _testActorOne = new TestActor(_eventRepository.eventStoreRepository, _loggerFactory);
+            _testActorOne = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -236,7 +239,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldCreateASecondAndLoadBalanceEvents()
         {
 
-            _testActorTwo = new TestActor(_eventRepository.eventStoreRepository, _loggerFactory);
+            _testActorTwo = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -267,10 +270,10 @@ namespace Anabasis.EventStore.Tests
         {
             var (_, volatileEventStoreStream) = CreateVolatileEventStoreStream();
 
-            var sender = new TestActor(_eventRepository.eventStoreRepository, _loggerFactory);
+            var sender = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
             sender.SubscribeToEventStream(volatileEventStoreStream);
 
-            var receiver = new TestActorReceiver(_eventRepository.eventStoreRepository, _loggerFactory);
+            var receiver = new TestActorReceiver(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
             receiver.SubscribeToEventStream(volatileEventStoreStream);
 
             var someCommandResponse = await sender.SendEventStore<SomeCommandResponse>(new SomeCommand(Guid.NewGuid(), "some-stream"), TimeSpan.FromSeconds(5));

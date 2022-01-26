@@ -1,4 +1,5 @@
-﻿using Anabasis.EventStore.Demo.AspNet;
+﻿using Anabasis.Common;
+using Anabasis.EventStore.Demo.AspNet;
 using Anabasis.EventStore.EventProvider;
 using Carter;
 using EventStore.ClientAPI;
@@ -32,23 +33,23 @@ namespace Anabasis.EventStore.Demo
 
             services.AddWorld(StaticData.ClusterVNode, connectionSettings)
 
-                    .AddStatelessActor<MarketDataService>()
+                    .AddStatelessActor<MarketDataService>(ActorConfiguration.Default)
                     .CreateActor()
 
-                    .AddStatelessActor<TradeService>()
+                    .AddStatelessActor<TradeService>(ActorConfiguration.Default)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                    .AddStatefulActor<TradePriceUpdateService, Trade>()
+                    .AddStatefulActor<TradePriceUpdateService, Trade>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                    .AddStatefulActor<TradeSink, Trade>()
+                    .AddStatefulActor<TradeSink, Trade>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                     .CreateActor()
 
-                    .AddStatefulActor<MarketDataSink, MarketData>()
+                    .AddStatefulActor<MarketDataSink, MarketData>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
                     .CreateActor();
 

@@ -22,7 +22,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
     {
         public List<IEvent> Events { get; } = new();
 
-        public TestRabbitMqActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public TestRabbitMqActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(new ActorConfiguration(), eventStoreRepository, loggerFactory)
         {
         }
 
@@ -77,7 +77,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         {
 
              _testRabbitMqActor = StatelessActorBuilder<TestRabbitMqActor, SomeRegistry>
-                                            .Create(_clusterVNode, _connectionSettings, _loggerFactory)
+                                            .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                             .Build();
 
             _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);

@@ -24,7 +24,7 @@ namespace Anabasis.EventStore.Tests
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestStatefulActorOne(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ISomeDependency _) : base(eventStoreRepository, eventStoreCache)
+        public TestStatefulActorOne(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ISomeDependency _) : base(actorConfiguration, eventStoreRepository, eventStoreCache)
         {
         }
 
@@ -49,7 +49,7 @@ namespace Anabasis.EventStore.Tests
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestAggregatedActorTwo(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ISomeDependency _) : base(eventStoreRepository, eventStoreCache)
+        public TestAggregatedActorTwo(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ISomeDependency _) : base(actorConfiguration, eventStoreRepository, eventStoreCache)
         {
         }
         public async Task Handle(SomeCommand someCommand)
@@ -152,7 +152,7 @@ namespace Anabasis.EventStore.Tests
 
             var defaultEventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
-            var testActorAutoBuildOne = StatefulActorBuilder<TestStatefulActorOne, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
+            var testActorAutoBuildOne = StatefulActorBuilder<TestStatefulActorOne, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
@@ -160,7 +160,7 @@ namespace Anabasis.EventStore.Tests
                                                                                          .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
                                                                                          .Build();
 
-            var testActorAutoBuildTwo = StatefulActorBuilder<TestAggregatedActorTwo, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
+            var testActorAutoBuildTwo = StatefulActorBuilder<TestAggregatedActorTwo, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))

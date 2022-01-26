@@ -24,7 +24,8 @@ namespace Anabasis.EventStore.Standalone
         private IEventStoreCache< TAggregate> EventStoreCache { get; set; }
         private IEventStoreAggregateRepository EventStoreRepository { get; set; }
         private ILoggerFactory LoggerFactory { get; set; }
-        private ConnectionStatusMonitor ConnectionMonitor { get; set; }
+        private IConnectionStatusMonitor ConnectionMonitor { get; set; }
+        private IActorConfiguration ActorConfiguration { get; set; }
 
         private readonly List<IEventStoreStream> _streamsToRegisterTo;
 
@@ -39,6 +40,7 @@ namespace Anabasis.EventStore.Standalone
 
             var container = new Container(configuration =>
             {
+                configuration.For<IActorConfiguration>().Use(ActorConfiguration);
                 configuration.For<ILoggerFactory>().Use(LoggerFactory);
                 configuration.For<IEventStoreCache< TAggregate>>().Use(EventStoreCache);
                 configuration.For<IEventStoreAggregateRepository>().Use(EventStoreRepository);
@@ -61,29 +63,32 @@ namespace Anabasis.EventStore.Standalone
         public static StatefulActorBuilder<TActor,  TAggregate, TRegistry> Create(
         string eventStoreUrl,
         ConnectionSettings connectionSettings,
+        IActorConfiguration actorConfiguration,
         ILoggerFactory loggerFactory = null,
         Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfigurationBuilder = null)
         {
             var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
 
-            return CreateInternal(connection, loggerFactory, getEventStoreRepositoryConfigurationBuilder);
+            return CreateInternal(actorConfiguration, connection, loggerFactory, getEventStoreRepositoryConfigurationBuilder);
 
         }
 
 
         public static StatefulActorBuilder<TActor,  TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
           ConnectionSettings connectionSettings,
+          IActorConfiguration actorConfiguration,
           ILoggerFactory loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
         {
 
             var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
-            return CreateInternal(connection, loggerFactory, eventStoreRepositoryConfigurationBuilder);
+            return CreateInternal(actorConfiguration, connection, loggerFactory, eventStoreRepositoryConfigurationBuilder);
 
         }
 
         private static StatefulActorBuilder<TActor,  TAggregate, TRegistry> CreateInternal(
+          IActorConfiguration actorConfiguration,
           IEventStoreConnection eventStoreConnection,
           ILoggerFactory loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
@@ -92,7 +97,8 @@ namespace Anabasis.EventStore.Standalone
             var builder = new StatefulActorBuilder<TActor,  TAggregate, TRegistry>
             {
                 LoggerFactory = loggerFactory?? new DummyLoggerFactory(),
-                ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, loggerFactory)
+                ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, loggerFactory),
+                ActorConfiguration = actorConfiguration
             };
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();

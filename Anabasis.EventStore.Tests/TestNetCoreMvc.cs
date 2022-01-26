@@ -7,7 +7,6 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.Common.Options;
@@ -19,11 +18,6 @@ using System.Collections.Generic;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
 using Microsoft.Extensions.Hosting;
-using System.Threading;
-using Anabasis.EventSore.Shared;
-using System.Reactive.Disposables;
-using System.Diagnostics;
-using EventStore.Core.Data;
 using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests
@@ -33,7 +27,7 @@ namespace Anabasis.EventStore.Tests
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestStatelessActorOneMvc(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public TestStatelessActorOneMvc(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
         }
 
@@ -54,11 +48,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestStatefulActorOneMvc : TestStatefulActorTwoMvc
     {
-        public TestStatefulActorOneMvc(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
+        public TestStatefulActorOneMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActorOneMvc(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public TestStatefulActorOneMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
         {
         }
     }
@@ -67,11 +61,11 @@ namespace Anabasis.EventStore.Tests
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestStatefulActorTwoMvc(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, eventStoreCache, loggerFactory)
+        public TestStatefulActorTwoMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActorTwoMvc(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public TestStatefulActorTwoMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
         {
         }
 
@@ -138,21 +132,21 @@ namespace Anabasis.EventStore.Tests
 
             services.AddWorld(TestBed.ClusterVNode, TestBed.ConnectionSettings)
 
-                    .AddStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>()
+                    .AddStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                   .AddStatefulActor<TestStatefulActorTwoMvc, SomeDataAggregate>()
+                   .AddStatefulActor<TestStatefulActorTwoMvc, SomeDataAggregate>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                   .AddStatelessActor<TestStatelessActorOneMvc>()
+                   .AddStatelessActor<TestStatelessActorOneMvc>(ActorConfiguration.Default)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor();
         }

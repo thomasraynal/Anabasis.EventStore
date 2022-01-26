@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
@@ -59,7 +60,7 @@ namespace Anabasis.EventStore.Tests
     public class TestStatefulActorWithSnapshot : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
         public TestStatefulActorWithSnapshot(SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache,
-          IEventStoreAggregateRepository eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
+          IEventStoreAggregateRepository eventStoreRepository) : base(new ActorConfiguration(), eventStoreRepository, catchupEventStoreCache)
         {
             Events = new List<SomeRandomEvent>();
         }

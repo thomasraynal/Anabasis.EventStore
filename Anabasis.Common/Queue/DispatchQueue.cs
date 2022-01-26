@@ -8,16 +8,14 @@ namespace Anabasis.Common
     public class DispatchQueue<TMessage> : IDisposable, IDispatchQueue<TMessage>
     {
 
-        private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly Func<TMessage, Task> _onEventReceived;
-        private readonly BlockingCollection<TMessage> _workQueue;
+        private readonly FlushableBlockingCollection<TMessage> _workQueue;
         private readonly Task _workProc;
 
-        public DispatchQueue(Func<TMessage, Task> onEventReceived)
+        public DispatchQueue(Func<TMessage, Task> onEventReceived, int messageBatchSize, int queueMaxSize)
         {
-            _workQueue = new BlockingCollection<TMessage>();
+            _workQueue = new FlushableBlockingCollection<TMessage>(messageBatchSize, queueMaxSize);
             _workProc = Task.Run(HandleWork, CancellationToken.None);
-            _cancellationTokenSource = new CancellationTokenSource();
             _onEventReceived = onEventReceived;
         }
 
@@ -28,29 +26,24 @@ namespace Anabasis.Common
 
         private void HandleWork()
         {
-            foreach (var message in _workQueue.GetConsumingEnumerable(_cancellationTokenSource.Token))
+            foreach (var messages in _workQueue.GetConsumingEnumerable())
             {
-                _onEventReceived(message).Wait();
+                foreach (var message in messages)
+                {
+                    _onEventReceived(message).Wait();
+                }
             }
-        }
-        private void WaitUntilIsEmpty()
-        {
-            _workQueue.CompleteAdding();
-
-            while (_workQueue.Count > 0)
-            {
-                Thread.Sleep(1);
-            }
-
-            _cancellationTokenSource.Cancel();
-
-            _workProc.Dispose();
-
         }
 
         public void Dispose()
         {
-            WaitUntilIsEmpty();
+            _workQueue.WaitUntilIsEmpty();
+            _workQueue.Dispose();
+        }
+
+        public bool CanEnqueue()
+        {
+            return _workQueue.CanAdd;
         }
     }
 }

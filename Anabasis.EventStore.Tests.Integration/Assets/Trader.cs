@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Anabasis.Common;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Repository;
@@ -16,13 +17,14 @@ namespace Anabasis.EventStore.Integration.Tests
 
     private readonly CancellationTokenSource _cancel;
     private readonly Task _workProc;
-    private readonly Random _rand = new Random();
+    private readonly Random _rand = new();
 
     private readonly TraderConfiguration _configuration;
 
     public Trader(TraderConfiguration traderConfiguration,
+      IActorConfiguration actorConfiguration,
       IEventStoreAggregateRepository eventStoreRepository,
-      IEventStoreCache<CurrencyPair> eventStoreCache) : base(eventStoreRepository, eventStoreCache)
+      IEventStoreCache<CurrencyPair> eventStoreCache) : base(actorConfiguration, eventStoreRepository, eventStoreCache)
     {
 
       _cancel = new CancellationTokenSource();

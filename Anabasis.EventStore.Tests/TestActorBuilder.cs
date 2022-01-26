@@ -41,7 +41,7 @@ namespace Anabasis.EventStore.Tests
     {
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestActorAutoBuildOne(IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public TestActorAutoBuildOne(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
         }
 
@@ -66,7 +66,7 @@ namespace Anabasis.EventStore.Tests
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestActorAutoBuildTwo(IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public TestActorAutoBuildTwo(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
         }
         public async Task Handle(SomeCommand someCommand)
@@ -175,6 +175,8 @@ namespace Anabasis.EventStore.Tests
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
+            var actorConfiguration = new ActorConfiguration();
+
             var eventStoreRepository = new EventStoreRepository(
               eventStoreRepositoryConfiguration,
               connection,
@@ -197,8 +199,8 @@ namespace Anabasis.EventStore.Tests
               eventProvider,
               _loggerFactory);
 
-            var testActorAutoBuildOne = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency(), _loggerFactory);
-            var testActorAutoBuildTwo = new TestActorAutoBuildOne(eventStoreRepository, new SomeDependency(), _loggerFactory);
+            var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
+            var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
 
             testActorAutoBuildOne.SubscribeToEventStream(persistentSubscriptionEventStoreStream);
             testActorAutoBuildOne.SubscribeToEventStream(volatileEventStoreStream);
@@ -221,12 +223,12 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldBuildFromActorBuilderAndRunActors()
         {
 
-            var testActorAutoBuildOne = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
+            var testActorAutoBuildOne = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .WithSubscribeFromEndToAllStream()
                                                                                          .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
                                                                                          .Build();
 
-            var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, _loggerFactory)
+            var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .Build();
 
             await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));

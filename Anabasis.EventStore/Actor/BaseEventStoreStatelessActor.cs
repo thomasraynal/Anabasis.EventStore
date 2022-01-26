@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Actor
         private readonly IEventStoreRepository _eventStoreRepository;
         private readonly List<IEventStoreStream> _eventStoreStreams;
 
-        protected BaseEventStoreStatelessActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(loggerFactory)
+        protected BaseEventStoreStatelessActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration,loggerFactory)
         {
             _eventStoreRepository = eventStoreRepository;
             _eventStoreStreams = new List<IEventStoreStream>();

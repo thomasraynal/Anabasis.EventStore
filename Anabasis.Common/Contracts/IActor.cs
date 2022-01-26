@@ -12,7 +12,7 @@ namespace Anabasis.Common
         bool IsConnected { get; }
         TBus GetConnectedBus<TBus>() where TBus : class;
         Task WaitUntilConnected(TimeSpan? timeout = null);
-        Task OnEventReceived(IEvent @event);
+        Task OnEventReceived(IEvent @event, TimeSpan? timeout = null);
         void AddDisposable(IDisposable disposable);
         void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false);
     }

@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Repository;
 using DynamicData;
@@ -20,7 +21,7 @@ namespace Anabasis.EventStore.Demo
         private readonly object _locker = new();
         private int _counter = 0;
 
-        public TradeService(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public TradeService(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
 
             var tradesData = GenerateTradesAndMaintainCache().Publish();

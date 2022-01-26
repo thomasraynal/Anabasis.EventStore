@@ -10,14 +10,14 @@ namespace Anabasis.EventStore.Actor
     public abstract class BaseEventStoreStatefulActor< TAggregate> : BaseEventStoreStatelessActor, IEventStoreStatefulActor<TAggregate> where TAggregate : IAggregate, new()
     {
 
-        public BaseEventStoreStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
             Setup(eventStoreCache);
         }
 
-        public BaseEventStoreStatefulActor(IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory =null) : base(eventStoreRepository, loggerFactory)
+        public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory =null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
-            var getEventStoreCache = eventStoreCacheFactory.Get< TAggregate>(GetType());
+            var getEventStoreCache = eventStoreCacheFactory.Get<TAggregate>(GetType());
 
             Setup(getEventStoreCache(connectionStatusMonitor, loggerFactory));
         }

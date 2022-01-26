@@ -17,14 +17,14 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests
 {
     public class TestStatefulActor : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestStatefulActor(AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache,
-          IEventStoreAggregateRepository eventStoreRepository) : base(eventStoreRepository, catchupEventStoreCache)
+        public TestStatefulActor(IActorConfiguration actorConfiguration,  AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, 
+          IEventStoreAggregateRepository eventStoreRepository) : base(actorConfiguration, eventStoreRepository, catchupEventStoreCache)
         {
             Events = new List<SomeRandomEvent>();
         }
@@ -144,7 +144,7 @@ namespace Anabasis.EventStore.Tests
                 new ConsumerBasedEventProvider<TestStatefulActor>(),
                 _loggerFactory);
 
-            _testActorOne = new TestStatefulActor(_cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
+            _testActorOne = new TestStatefulActor(ActorConfiguration.Default, _cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
 
             _testActorOne.SubscribeToEventStream(subscribeToAllStream);
 

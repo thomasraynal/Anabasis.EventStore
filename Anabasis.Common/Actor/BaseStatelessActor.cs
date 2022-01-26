@@ -17,12 +17,12 @@ namespace Anabasis.Common
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
         private readonly Dictionary<Type, IBus> _connectedBus;
-
-        private readonly ManualResetEventSlim _manualResetEvent = new(true);
+        private readonly IActorConfiguration _actorConfiguration;
+        private readonly IDispatchQueue<IEvent> _dispatchQueue;
 
         public ILogger Logger { get; }
 
-        protected BaseStatelessActor(ILoggerFactory loggerFactory = null)
+        protected BaseStatelessActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null)
         {
             Id = $"{GetType()}-{Guid.NewGuid()}";
 
@@ -30,6 +30,10 @@ namespace Anabasis.Common
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
             _connectedBus = new Dictionary<Type, IBus>();
+            _actorConfiguration = actorConfiguration;
+            _dispatchQueue = new DispatchQueue<IEvent>(OnEventReceivedInternal, 
+                _actorConfiguration.ActorMailBoxMessageBatchSize,
+                _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize);
 
             Logger = loggerFactory?.CreateLogger(GetType());
 
@@ -46,11 +50,8 @@ namespace Anabasis.Common
             return Task.CompletedTask;
         }
 
-        public async Task OnEventReceived(IEvent @event)
+        private async Task OnEventReceivedInternal(IEvent @event)
         {
-            _manualResetEvent.Wait();
-  
-
             try
             {
 
@@ -87,11 +88,22 @@ namespace Anabasis.Common
             {
                 await OnError(@event, exception);
             }
-            finally
+        }
+
+        public async Task OnEventReceived(IEvent @event, TimeSpan? timeout = null)
+        {
+            var timeoutDateTime = timeout == null ? DateTime.MaxValue : DateTime.UtcNow.Add(timeout.Value);
+
+            while (!_dispatchQueue.CanEnqueue())
             {
-                _manualResetEvent.Set();
+                if (DateTime.UtcNow > timeoutDateTime)
+                    throw new TimeoutException("Unable to process event - timout reached");
+
+                //maybe think of something more optimized - no thread destack, some kind of event signaling?
+                await Task.Delay(200);
             }
 
+            _dispatchQueue.Enqueue(@event);
         }
 
         public override bool Equals(object obj)

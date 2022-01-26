@@ -39,31 +39,31 @@ namespace Anabasis.EventStore
             return _world;
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> WithReadAllFromStartCache(
-          IEventTypeProvider< TAggregate> eventTypeProvider = null,
-          Action<AllStreamsCatchupCacheConfiguration< TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
-          ISnapshotStore< TAggregate> snapshotStore = null,
+        public StatefulActorBuilder<TActor, TAggregate> WithReadAllFromStartCache(
+          IEventTypeProvider<TAggregate> eventTypeProvider = null,
+          Action<AllStreamsCatchupCacheConfiguration<TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
+          ISnapshotStore<TAggregate> snapshotStore = null,
           ISnapshotStrategy snapshotStrategy = null)
         {
 
-            var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache< TAggregate>>((connectionMonitor,loggerFactory) =>
-            {
-                var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration< TAggregate>(Position.Start);
+            var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TAggregate>>((connectionMonitor, loggerFactory) =>
+           {
+               var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.Start);
 
-                catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
+               catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-                var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider< TAggregate, TActor>();
+               var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TAggregate, TActor>();
 
-                var catchupEventStoreCache = new AllStreamsCatchupCache< TAggregate>(connectionMonitor,
-                    catchupEventStoreCacheConfiguration,
-                    eventProvider,
-                    loggerFactory,
-                    snapshotStore,
-                    snapshotStrategy);
+               var catchupEventStoreCache = new AllStreamsCatchupCache<TAggregate>(connectionMonitor,
+                   catchupEventStoreCacheConfiguration,
+                   eventProvider,
+                   loggerFactory,
+                   snapshotStore,
+                   snapshotStrategy);
 
-                return catchupEventStoreCache;
+               return catchupEventStoreCache;
 
-            });
+           });
 
             if (null != _cacheToRegisterTo) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
 

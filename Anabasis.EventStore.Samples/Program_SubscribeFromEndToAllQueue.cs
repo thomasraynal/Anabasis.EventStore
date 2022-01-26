@@ -1,4 +1,5 @@
-﻿using Anabasis.EventStore.Actor;
+﻿using Anabasis.Common;
+using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
@@ -16,7 +17,7 @@ namespace Anabasis.EventStore.Samples
         {
 
             var eventCountActor = StatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
-                                       .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings())
+                                       .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
                                        .WithSubscribeFromEndToAllStream()
                                        .Build();
 

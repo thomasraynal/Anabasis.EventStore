@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Repository;
 using DynamicData.Kernel;
@@ -12,7 +13,7 @@ namespace Anabasis.EventStore.Demo
     {
         private readonly Dictionary<string, IObservable<MarketData>> _prices = new();
 
-        public MarketDataService(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(eventStoreRepository, loggerFactory)
+        public MarketDataService(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration,eventStoreRepository, loggerFactory)
         {
 
             foreach (var item in StaticData.CurrencyPairs)

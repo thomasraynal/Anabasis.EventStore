@@ -19,7 +19,8 @@ namespace Anabasis.EventStore
         internal IServiceCollection ServiceCollection { get; }
 
         private readonly IEventStoreCacheFactory _eventStoreCacheFactory;
-        private readonly IEventTypeProviderFactory _eventTypeProviderFactory;
+        //private readonly IEventTypeProviderFactory _eventTypeProviderFactory;
+        private readonly IActorConfigurationFactory _actorConfigurationFactory;
 
         internal World(IServiceCollection services)
         {
@@ -28,13 +29,15 @@ namespace Anabasis.EventStore
             ServiceCollection = services;
 
             _eventStoreCacheFactory = new EventStoreCacheFactory();
-            _eventTypeProviderFactory = new EventTypeProviderFactory();
+            //_eventTypeProviderFactory = new EventTypeProviderFactory();
+            _actorConfigurationFactory = new ActorConfigurationFactory();
 
             ServiceCollection.AddSingleton(_eventStoreCacheFactory);
-            ServiceCollection.AddSingleton(_eventTypeProviderFactory);
+            //ServiceCollection.AddSingleton(_eventTypeProviderFactory);
+            ServiceCollection.AddSingleton(_actorConfigurationFactory);
         }
 
-        public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IEventTypeProvider eventTypeProvider = null)
+        public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IActorConfiguration actorConfiguration, IEventTypeProvider eventTypeProvider = null)
             where TActor : class, IEventStoreStatelessActor
         {
             if (StatefulActorBuilders.Any(statefulActorBuilder => statefulActorBuilder.actorType == typeof(TActor)))
@@ -43,7 +46,8 @@ namespace Anabasis.EventStore
 
             eventTypeProvider ??= new ConsumerBasedEventProvider<TActor>();
 
-            _eventTypeProviderFactory.Add<TActor>(eventTypeProvider);
+            //_eventTypeProviderFactory.Add<TActor>(eventTypeProvider);
+            _actorConfigurationFactory.Add<TActor>(actorConfiguration);
 
             var statelessActorBuilder = new StatelessActorBuilder<TActor>(this);
 
@@ -53,7 +57,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> AddStatefulActor<TActor,  TAggregate>()
+        public StatefulActorBuilder<TActor,  TAggregate> AddStatefulActor<TActor,  TAggregate>(IActorConfiguration actorConfiguration)
             where TActor : class, IEventStoreStatefulActor< TAggregate>
             where TAggregate : IAggregate, new()
         {
