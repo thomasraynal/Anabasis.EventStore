@@ -26,12 +26,12 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: status.podIP
-        image: https://hub.docker.com/appgroup-anabasis-deployment-test-app/NO_GIT_REPOS_DETECTED:1.0.67
+        image: https://hub.docker.com//appgroup-anabasis-deployment-test-app:1.0.67-
         imagePullPolicy: IfNotPresent
         livenessProbe:
           httpGet:
             path: /health
-            port: 1337
+            port: 80
           initialDelaySeconds: 30
           periodSeconds: 60
           timeoutSeconds: 30
@@ -46,7 +46,7 @@ spec:
         readinessProbe:
           httpGet:
             path: /health
-            port: 1337
+            port: 80
           initialDelaySeconds: 30
           periodSeconds: 20
           timeoutSeconds: 15

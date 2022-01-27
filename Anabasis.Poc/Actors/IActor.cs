@@ -42,6 +42,11 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
+        public Task<IAnabasisHealthCheck> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<TCommandResult> Send<TCommand, TCommandResult>(TCommand command)
         {
             throw new NotImplementedException();
@@ -129,6 +134,11 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
+        public Task<IAnabasisHealthCheck> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        {
+            throw new NotImplementedException();
+        }
+
         public Task<TCommandResult> Send<TCommand, TCommandResult>(TCommand command)
         {
             throw new NotImplementedException();
@@ -209,6 +219,12 @@ namespace Anabasis.Poc
         {
             throw new NotImplementedException();
         }
+
+        public Task<IAnabasisHealthCheck[]> GetActorHealthChecks()
+        {
+            throw new NotImplementedException();
+        }
+
     }
 
     public interface IStatefulActor : IStatelessActor

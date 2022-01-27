@@ -11,30 +11,32 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public abstract class BaseStatelessActor :  IActor
+    public abstract class BaseStatelessActor : IActor
     {
-        protected readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
+
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
         private readonly Dictionary<Type, IBus> _connectedBus;
         private readonly IActorConfiguration _actorConfiguration;
         private readonly IDispatchQueue<IEvent> _dispatchQueue;
 
+        protected Dictionary<Guid, TaskCompletionSource<ICommandResponse>> PendingCommands { get; }
         public ILogger Logger { get; }
 
         protected BaseStatelessActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null)
         {
             Id = $"{GetType()}-{Guid.NewGuid()}";
 
+
             _cleanUp = new CompositeDisposable();
-            _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
             _connectedBus = new Dictionary<Type, IBus>();
             _actorConfiguration = actorConfiguration;
-            _dispatchQueue = new DispatchQueue<IEvent>(OnEventReceivedInternal, 
+            _dispatchQueue = new DispatchQueue<IEvent>(OnEventReceivedInternal,
                 _actorConfiguration.ActorMailBoxMessageBatchSize,
                 _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize);
 
+            PendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             Logger = loggerFactory?.CreateLogger(GetType());
 
         }
@@ -64,14 +66,14 @@ namespace Anabasis.Common
 
                     var commandResponse = @event as ICommandResponse;
 
-                    if (_pendingCommands.ContainsKey(commandResponse.CommandId))
+                    if (PendingCommands.ContainsKey(commandResponse.CommandId))
                     {
 
-                        var task = _pendingCommands[commandResponse.CommandId];
+                        var task = PendingCommands[commandResponse.CommandId];
 
                         task.SetResult(commandResponse);
 
-                        _pendingCommands.Remove(commandResponse.EventID, out _);
+                        PendingCommands.Remove(commandResponse.EventID, out _);
                     }
 
                 }
@@ -176,6 +178,13 @@ namespace Anabasis.Common
         public void AddDisposable(IDisposable disposable)
         {
             _cleanUp.Add(disposable);
+        }
+
+        public Task<IAnabasisHealthCheck[]> GetActorHealthChecks()
+        {
+            if (_connectedBus.Count == 0) return Task.FromResult(new IAnabasisHealthCheck[0]);
+
+            return Task.WhenAll(_connectedBus.Select(bus => bus.Value.GetHealthCheck()));
         }
     }
 }

@@ -6,6 +6,7 @@ using Anabasis.EventStore.Stream;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Anabasis.Common;
+using System.Threading.Tasks;
 
 namespace Anabasis.EventStore
 {
@@ -20,7 +21,6 @@ namespace Anabasis.EventStore
             _world = world;
             _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>>();
         }
-
 
         public StatelessActorBuilder<TActor> WithSubscribeFromEndToAllStreams(
             Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null,  
@@ -147,5 +147,6 @@ namespace Anabasis.EventStore
         {
             return _streamsToRegisterTo.ToArray();
         }
+
     }
 }

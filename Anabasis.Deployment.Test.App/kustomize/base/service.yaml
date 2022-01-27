@@ -13,10 +13,6 @@ spec:
     port: 80
     protocol: TCP
     targetPort: http
-  - name: health
-    port: 1337
-    protocol: TCP
-    targetPort: 1337
   selector:
     app: appgroup-anabasis-deployment-test-app
     release: 1.0.67

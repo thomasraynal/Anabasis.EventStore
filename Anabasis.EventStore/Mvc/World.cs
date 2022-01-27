@@ -3,7 +3,6 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Mvc;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -19,8 +18,6 @@ namespace Anabasis.EventStore
         internal IServiceCollection ServiceCollection { get; }
 
         private readonly IEventStoreCacheFactory _eventStoreCacheFactory;
-        //private readonly IEventTypeProviderFactory _eventTypeProviderFactory;
-        private readonly IActorConfigurationFactory _actorConfigurationFactory;
 
         internal World(IServiceCollection services)
         {
@@ -29,12 +26,8 @@ namespace Anabasis.EventStore
             ServiceCollection = services;
 
             _eventStoreCacheFactory = new EventStoreCacheFactory();
-            //_eventTypeProviderFactory = new EventTypeProviderFactory();
-            _actorConfigurationFactory = new ActorConfigurationFactory();
 
             ServiceCollection.AddSingleton(_eventStoreCacheFactory);
-            //ServiceCollection.AddSingleton(_eventTypeProviderFactory);
-            ServiceCollection.AddSingleton(_actorConfigurationFactory);
         }
 
         public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IActorConfiguration actorConfiguration, IEventTypeProvider eventTypeProvider = null)
@@ -46,8 +39,7 @@ namespace Anabasis.EventStore
 
             eventTypeProvider ??= new ConsumerBasedEventProvider<TActor>();
 
-            //_eventTypeProviderFactory.Add<TActor>(eventTypeProvider);
-            _actorConfigurationFactory.Add<TActor>(actorConfiguration);
+            ServiceCollection.AddSingleton(actorConfiguration);
 
             var statelessActorBuilder = new StatelessActorBuilder<TActor>(this);
 
@@ -68,6 +60,7 @@ namespace Anabasis.EventStore
 
             ServiceCollection.AddTransient<IEventStoreAggregateRepository, EventStoreAggregateRepository>();
             ServiceCollection.AddSingleton<TActor>();
+            ServiceCollection.AddSingleton(actorConfiguration);
 
             var statelessActorBuilder = new StatefulActorBuilder<TActor,  TAggregate>(this, _eventStoreCacheFactory);
 

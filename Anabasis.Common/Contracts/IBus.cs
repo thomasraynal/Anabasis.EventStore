@@ -9,6 +9,6 @@ namespace Anabasis.Common
     public interface IBus : IDisposable
     {
         bool IsConnected { get; }
-        void DoHealthCheck(bool shouldThrow = false);
+        Task<IAnabasisHealthCheck> GetHealthCheck(bool shouldThrowIfUnhealthy = false);
     }
 }

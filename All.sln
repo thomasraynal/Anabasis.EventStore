@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore", "Anab
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{2751A486-6A83-4D62-B37E-713DAC303FD8}"
 	ProjectSection(SolutionItems) = preProject
+		.gitignore = .gitignore
 		appveyor.yml = appveyor.yml
+		docker-compose.yaml = docker-compose.yaml
 		README.md = README.md
 	EndProjectSection
 EndProject
@@ -61,7 +63,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Deployment.Test.Ap
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Poc", "Anabasis.Poc\Actors\Anabasis.Poc.csproj", "{3AB47F59-6C2D-41BC-9CAA-A9C11C044E30}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventHubs", "Anabasis.EventHubs\Anabasis.EventHubs.csproj", "{61723003-4FCA-4849-8C7B-A6746FC21ACD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventHubs", "Anabasis.EventHubs\Anabasis.EventHubs.csproj", "{61723003-4FCA-4849-8C7B-A6746FC21ACD}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

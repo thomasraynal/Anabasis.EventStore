@@ -1,8 +1,8 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Stream;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Threading.Tasks;
 
 namespace Anabasis.EventStore
 {

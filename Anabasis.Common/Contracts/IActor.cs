@@ -1,7 +1,4 @@
-﻿using Anabasis.Common.Shared;
-using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System;
 using System.Threading.Tasks;
 
 namespace Anabasis.Common
@@ -10,6 +7,7 @@ namespace Anabasis.Common
     {
         string Id { get; }
         bool IsConnected { get; }
+        Task<IAnabasisHealthCheck[]> GetActorHealthChecks();
         TBus GetConnectedBus<TBus>() where TBus : class;
         Task WaitUntilConnected(TimeSpan? timeout = null);
         Task OnEventReceived(IEvent @event, TimeSpan? timeout = null);

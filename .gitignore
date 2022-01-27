@@ -77,5 +77,4 @@ _ReSharper*/
 #Nuget packages folder
 packages/
 ProdConfig.json
-secret-docker-registry.yaml
 
