@@ -1,4 +1,4 @@
-version: '2'
+version: '3.2'
  
 services:
   sqlserver:
@@ -50,3 +50,5 @@ services:
 volumes:
   rabbitmq_data:
     driver: local
+  eventstore-volume-data:
+  eventstore-volume-logs:
