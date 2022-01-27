@@ -1,4 +1,4 @@
 {
   "$schema": "./build.schema.json",
-  "Solution": "Anabasis.Poc/PocDeployment/PocDeployment.sln"
+  "Solution": "All.sln"
 }

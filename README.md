@@ -29,3 +29,7 @@
 **Anabasis.Deployment**
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.Deployment.svg)](https://www.nuget.org/packages/Anabasis.Deployment)
+
+**Anabasis.Api**
+
+[![NuGet](https://img.shields.io/nuget/v/Anabasis.Api.svg)](https://www.nuget.org/packages/Anabasis.Api)
