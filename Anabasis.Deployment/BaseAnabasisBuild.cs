@@ -412,7 +412,7 @@ namespace Anabasis.Deployment
         protected string GetDockerImageName(AppDescriptor appDescriptor)
         {
             var prefix = $"{appDescriptor.AppLongName}:{appDescriptor.AppRelease.ToLower()}";
-            return $"{prefix}-{GitRepository.Branch.Replace("/", "")}".ToLower();
+            return $"{prefix}-{GitRepository?.Branch.Replace("/", "")}".ToLower();
         }
 
         protected string GetDockerImageNameWithDockerRegistry(AppDescriptor appDescriptor)

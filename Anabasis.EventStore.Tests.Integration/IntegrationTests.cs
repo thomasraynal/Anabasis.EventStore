@@ -11,18 +11,13 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Integration.Tests
 {
 
-    [TestFixture, Category("Integration"), Ignore("Integration")]
+    [TestFixture]
     public class IntegrationTests
     {
-        private DockerEventStoreFixture _dockerEventStoreFixture;
-        private readonly IPEndPoint _httpEndpoint = new IPEndPoint(IPAddress.Loopback, 2113);
 
         [OneTimeSetUp]
         public async Task SetUp()
         {
-            _dockerEventStoreFixture = new DockerEventStoreFixture();
-
-            await _dockerEventStoreFixture.Initialize();
         }
 
         [Test, Order(1)]
@@ -77,7 +72,6 @@ namespace Anabasis.EventStore.Integration.Tests
         [OneTimeTearDown]
         public async Task TearDown()
         {
-            await _dockerEventStoreFixture.Dispose();
         }
 
     }

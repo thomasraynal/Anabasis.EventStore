@@ -26,10 +26,25 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
+    public class SomeCommandResponse2 : BaseCommandResponse
+    {
+        public SomeCommandResponse2(Guid commandId, Guid correlationId, string streamId) : base(commandId, correlationId, streamId)
+        {
+        }
+    }
+
     public class SomeCommand : BaseCommand
     {
 
         public SomeCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
+        {
+        }
+    }
+
+    public class SomeCommand2 : BaseCommand
+    {
+
+        public SomeCommand2(Guid correlationId, string streamId) : base(correlationId, streamId)
         {
         }
     }
@@ -41,9 +56,9 @@ namespace Anabasis.EventStore.Tests
 
         }
 
-        public async Task Handle(SomeCommand someCommand)
+        public async Task Handle(SomeCommand2 someCommand)
         {
-            await EmitEventStore(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
+            await EmitEventStore(new SomeCommandResponse2(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
         }
 
         public override void Dispose()
@@ -159,7 +174,7 @@ namespace Anabasis.EventStore.Tests
             var volatileEventStoreStream = new SubscribeFromEndEventStoreStream(
               connectionMonitor,
               volatileEventStoreStreamConfiguration,
-              new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent), typeof(SomeCommandResponse), typeof(SomeCommand) }),
+              new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent), typeof(SomeCommandResponse), typeof(SomeCommand), typeof(SomeCommand2), typeof(SomeCommandResponse2) }),
               _loggerFactory);
 
             return (connectionMonitor, volatileEventStoreStream);
@@ -270,13 +285,17 @@ namespace Anabasis.EventStore.Tests
         {
             var (_, volatileEventStoreStream) = CreateVolatileEventStoreStream();
 
+            await Task.Delay(500);
+
             var sender = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
             sender.SubscribeToEventStream(volatileEventStoreStream);
 
             var receiver = new TestActorReceiver(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
             receiver.SubscribeToEventStream(volatileEventStoreStream);
 
-            var someCommandResponse = await sender.SendEventStore<SomeCommandResponse>(new SomeCommand(Guid.NewGuid(), "some-stream"), TimeSpan.FromSeconds(5));
+            await Task.Delay(500);
+
+            var someCommandResponse = await sender.SendEventStore<SomeCommandResponse2>(new SomeCommand2(Guid.NewGuid(), "some-other-stream"), TimeSpan.FromSeconds(5));
 
             Assert.NotNull(someCommandResponse);
         }

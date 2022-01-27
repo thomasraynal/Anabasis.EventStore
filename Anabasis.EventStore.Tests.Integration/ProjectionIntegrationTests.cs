@@ -12,7 +12,7 @@ using ResolvedEvent = EventStore.ClientAPI.ResolvedEvent;
 namespace Anabasis.EventStore.Integration.Tests
 {
 
-    [TestFixture, Category("Integration"), Ignore("Integration")]
+    [TestFixture, Ignore("Cannot run on CI")]
     public class ProjectionIntegrationTests
     {
         private DockerEventStoreFixture _dockerEventStoreFixture;

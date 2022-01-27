@@ -58,14 +58,14 @@ namespace Anabasis.EventStore.Actor
 
             cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
 
-            _pendingCommands[command.EventID] = taskSource;
+            PendingCommands[command.EventID] = taskSource;
 
             _eventStoreRepository.Emit(command);
 
             return taskSource.Task.ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
-                if (task.IsCanceled) throw new Exception("Command went in timeout");
+                if (task.IsCanceled) throw new TimeoutException($"Command {command.EntityId} timeout");
 
                 throw task.Exception;
 

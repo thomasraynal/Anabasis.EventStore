@@ -21,8 +21,8 @@ namespace Anabasis.EventStore
         {
             var registerStreams = new Action<IConnectionStatusMonitor, IStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
              {
-                 var actor = (IEventStoreStatelessActor)applicationBuilder.ApplicationServices.GetService(
-                     actorType);
+                 var actor = (IEventStoreStatelessActor)applicationBuilder.ApplicationServices.GetService(actorType);
+
                  var loggerFactory = applicationBuilder.ApplicationServices.GetService<ILoggerFactory>();
 
                  foreach (var getStream in builder.GetStreamFactories())
