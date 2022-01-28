@@ -199,15 +199,19 @@ namespace Anabasis.EventStore.Tests
               eventProvider,
               _loggerFactory);
 
+            await Task.Delay(500);
+
             var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
             var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
 
             testActorAutoBuildOne.SubscribeToEventStream(persistentSubscriptionEventStoreStream);
             testActorAutoBuildOne.SubscribeToEventStream(volatileEventStoreStream);
 
+            await Task.Delay(500);
+
             await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
 
-            await Task.Delay(100);
+            await Task.Delay(500);
 
             Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
 

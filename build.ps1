@@ -4,6 +4,8 @@ Param(
     [string[]]$BuildArguments
 )
 
+$ErrorActionPreference = "Stop";
+
 Write-Output "PowerShell $($PSVersionTable.PSEdition) version $($PSVersionTable.PSVersion)"
 
 Set-StrictMode -Version 2.0; $ErrorActionPreference = "Stop"; $ConfirmPreference = "None"; trap { Write-Error $_ -ErrorAction Continue; exit 1 }
