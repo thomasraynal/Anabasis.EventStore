@@ -220,7 +220,7 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public Task<IAnabasisHealthCheck[]> GetActorHealthChecks()
+        public Task<IAnabasisHealthCheck[]> GetHealthChecks()
         {
             throw new NotImplementedException();
         }

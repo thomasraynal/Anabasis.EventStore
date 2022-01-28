@@ -1,19 +1,25 @@
 version: 1.0.{build}
 image: Visual Studio 2019
 configuration: Release
-environment:
-  matrix:
-  - SOLUTION_NAME: Anabasis.Api
-  - SOLUTION_NAME: Anabasis.EventStore
-  - SOLUTION_NAME: Anabasis.EventStore.Standalone
-  - SOLUTION_NAME: Anabasis.EventStore.Snapshot.InMemory
-  - SOLUTION_NAME: Anabasis.RabbitMQ
-  - SOLUTION_NAME: Anabasis.Common
-  - SOLUTION_NAME: Anabasis.EntityFramework
-  - SOLUTION_NAME: Anabasis.Deployment
+#environment:
+#  matrix:
+#  - SOLUTION_NAME: Anabasis.Api
+#  - SOLUTION_NAME: Anabasis.EventStore
+#  - SOLUTION_NAME: Anabasis.EventStore.Standalone
+#  - SOLUTION_NAME: Anabasis.EventStore.Snapshot.InMemory
+#  - SOLUTION_NAME: Anabasis.RabbitMQ
+#  - SOLUTION_NAME: Anabasis.Common
+#  - SOLUTION_NAME: Anabasis.EntityFramework
+#  - SOLUTION_NAME: Anabasis.Deployment
 branches:
   only:
     - master
+nuget:
+  disable_publish_on_pr: true
+test: off
+build_script:
+  - ps: ./build.ps1
+
 #before_build:
 #- cmd: docker-compose down
 #- cmd: docker-compose up

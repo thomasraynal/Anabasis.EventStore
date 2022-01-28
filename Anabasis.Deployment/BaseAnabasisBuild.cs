@@ -54,14 +54,14 @@ namespace Anabasis.Deployment
 
         [Parameter("Kubernetes cluster configuration file")]
         public readonly AbsolutePath KubeConfigPath = RootDirectory / ".kube" / "kubeconfig";
-        public AbsolutePath BuildDirectory => RootDirectory / "build";
-        public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
+        public AbsolutePath NukeBuildDirectory => RootDirectory / "build";
+
 
         [Required]
         [GitRepository]
         public readonly GitRepository GitRepository;
 
-        public AbsolutePath DockerFile => BuildDirectory / "docker" / "build.dockerfile";
+        public AbsolutePath DockerFile => NukeBuildDirectory / "docker" / "build.dockerfile";
         public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
         public AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
         public AbsolutePath KustomizationFileForOverride => BuildProjectKustomizeDirectory / "kustomization.yaml";
