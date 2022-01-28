@@ -3,7 +3,6 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Nuke.Common;
-using Nuke.Common.CI;
 using Nuke.Common.CI.AppVeyor;
 using Nuke.Common.Execution;
 using Nuke.Common.IO;
@@ -11,10 +10,7 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.NuGet;
-using Nuke.Common.Utilities.Collections;
 using Serilog;
-using static Nuke.Common.EnvironmentInfo;
-using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 
 [CheckBuildProjectConfigurations]
@@ -29,7 +25,10 @@ class Build : NukeBuild
     public static int Main() => Execute<Build>(x => x.PushNuget);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
-    readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+    public readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+
+    [Parameter("Should run integration tests?")]
+    public readonly bool SkipIntegrationTests = false;
 
     [Solution] readonly Solution Solution;
 
@@ -44,11 +43,24 @@ class Build : NukeBuild
                                                                        .ToArray();
     }
 
+    public virtual FileInfo[] GetAllNonTestProjects()
+    {
+        var allProjects = GetAllProjects();
+        var testProjects = GetAllTestsProjects();
+
+        return allProjects.Where(project => !testProjects.Contains(project)).ToArray();
+    }
+
     public virtual FileInfo[] GetAllTestsProjects()
     {
-        return PathConstruction.GlobFiles(RootDirectory, "**/Anabasis.*.Test.*.csproj").OrderBy(path => $"{path}")
+        var testProjects = PathConstruction.GlobFiles(RootDirectory, "**/Anabasis.*.Tests*.csproj").OrderBy(path => $"{path}")
                                                                        .Select(path => new FileInfo($"{path}"))
                                                                        .ToArray();
+
+        if (SkipIntegrationTests)
+            testProjects = testProjects.Where(testProject => !testProject.Name.ToLower().Contains("integration")).ToArray();
+
+        return testProjects;
     }
 
     public virtual FileInfo[] GetAllNugetPackages()
@@ -59,26 +71,28 @@ class Build : NukeBuild
     }
 
     Target DockerComposeDown => _ => _
+        .OnlyWhenDynamic(() => !SkipIntegrationTests)
         .Executes(() =>
         {
-            var process = ProcessTasks.StartProcess("docker-compose", "down", RootDirectory, logOutput: false);
+            var process = ProcessTasks.StartProcess("docker-compose", "down", RootDirectory, logOutput: true);
             process.AssertWaitForExit();
         });
 
     Target DockerComposeUp => _ => _
+        .OnlyWhenDynamic(() => !SkipIntegrationTests)
         .DependsOn(DockerComposeDown)
-        .Executes(async() =>
-        {
-
-            var dockerComposeUpTask = Task.Run(() =>
+        .Executes(async () =>
             {
-                var process = ProcessTasks.StartProcess("docker-compose", "up", RootDirectory, logOutput: false);
-                process.AssertWaitForExit();
+
+                var dockerComposeUpTask = Task.Run(() =>
+                {
+                    var process = ProcessTasks.StartProcess("docker-compose", "up", RootDirectory, logOutput: true);
+                    process.AssertWaitForExit();
+                });
+
+                await Task.Delay(50_000);
+
             });
-
-
-            await Task.Delay(15_000);
-        });
 
     Target Clean => _ => _
         .DependsOn(DockerComposeUp)
@@ -120,7 +134,7 @@ class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            foreach (var projectFilePath in GetAllProjects())
+            foreach (var projectFilePath in GetAllNonTestProjects())
             {
                 Log.Information($"Publishing {projectFilePath.Name}");
 
@@ -139,7 +153,7 @@ class Build : NukeBuild
         .DependsOn(Publish)
         .Executes(() =>
         {
-            foreach (var projectFilePath in GetAllProjects())
+            foreach (var projectFilePath in GetAllTestsProjects())
             {
 
                 DotNetTasks.DotNetTest(dotNetTestSettings =>

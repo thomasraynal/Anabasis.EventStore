@@ -2,7 +2,7 @@ version: '3.2'
  
 services:
   sqlserver:
-    image: "mcr.microsoft.com/mssql/server"
+    image: "mcr.microsoft.com/mssql/server:2019-CU14-ubuntu-20.04"
     environment:
         SA_PASSWORD: "Your_password123"
         ACCEPT_EULA: "Y"
@@ -27,7 +27,7 @@ services:
     volumes:
       - 'rabbitmq_data:/bitnami/rabbitmq/mnesia'
   eventstore.db:
-    image: eventstore/eventstore
+    image: eventstore/eventstore:21.10.1-bionic
     environment:
       - EVENTSTORE_CLUSTER_SIZE=1
       - EVENTSTORE_RUN_PROJECTIONS=All
@@ -37,18 +37,10 @@ services:
       - EVENTSTORE_INSECURE=true
       - EVENTSTORE_ENABLE_EXTERNAL_TCP=true
       - EVENTSTORE_ENABLE_ATOM_PUB_OVER_HTTP=true
+      - EVENTSTORE_MEM_DB=true
     ports:
       - "1113:1113"
       - "2113:2113"
-    volumes:
-      - type: volume
-        source: eventstore-volume-data
-        target: /var/lib/eventstore
-      - type: volume
-        source: eventstore-volume-logs
-        target: /var/log/eventstore
 volumes:
   rabbitmq_data:
     driver: local
-  eventstore-volume-data:
-  eventstore-volume-logs:
