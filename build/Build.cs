@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Nuke.Common;
 using Nuke.Common.CI;
+using Nuke.Common.CI.AppVeyor;
 using Nuke.Common.Execution;
 using Nuke.Common.IO;
 using Nuke.Common.ProjectModel;
@@ -25,12 +26,16 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main() => Execute<Build>(x => x.NugetPush);
+    public static int Main() => Execute<Build>(x => x.PushNuget);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
 
     [Solution] readonly Solution Solution;
+
+    public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
+
+    private static readonly string BuildVersion = AppVeyor.Instance?.BuildVersion ?? "1.0.0";
 
     public virtual FileInfo[] GetAllProjects()
     {
@@ -46,10 +51,17 @@ class Build : NukeBuild
                                                                        .ToArray();
     }
 
+    public virtual FileInfo[] GetAllNugetPackages()
+    {
+        return PathConstruction.GlobFiles(RootDirectory, "**/Anabasis.*.nupkg").OrderBy(path => $"{path}")
+                                                                       .Select(path => new FileInfo($"{path}"))
+                                                                       .ToArray();
+    }
+
     Target DockerComposeDown => _ => _
         .Executes(() =>
         {
-            var process = ProcessTasks.StartProcess("docker-compose", "down", RootDirectory, logOutput: true);
+            var process = ProcessTasks.StartProcess("docker-compose", "down", RootDirectory, logOutput: false);
             process.AssertWaitForExit();
         });
 
@@ -60,12 +72,12 @@ class Build : NukeBuild
 
             var dockerComposeUpTask = Task.Run(() =>
             {
-                var process = ProcessTasks.StartProcess("docker-compose", "up", RootDirectory, logOutput: true);
+                var process = ProcessTasks.StartProcess("docker-compose", "up", RootDirectory, logOutput: false);
                 process.AssertWaitForExit();
             });
 
 
-            await Task.Delay(30_000);
+            await Task.Delay(15_000);
         });
 
     Target Clean => _ => _
@@ -117,6 +129,7 @@ class Build : NukeBuild
                 DotNetTasks.DotNetPublish(s => s
                     .SetConfiguration(Configuration)
                     .EnableNoRestore()
+                    .SetVersion(BuildVersion)
                     .SetProject(projectFilePath.FullName)
                     );
             }
@@ -134,18 +147,29 @@ class Build : NukeBuild
                     dotNetTestSettings = dotNetTestSettings
                         .SetConfiguration(Configuration)
                         .SetProjectFile(projectFilePath.FullName);
-                       // .EnableNoBuild();
 
                     return dotNetTestSettings;
                 });
             }
         });
 
-    Target NugetPush => _ => _
+    Target PushNuget => _ => _
         .DependsOn(Test)
         .Executes(() =>
         {
-            //NuGetTasks.NuGetPush();
+            foreach (var nugetPackage in GetAllNugetPackages())
+            {
+
+                Log.Information(nugetPackage.Name);
+
+                //NuGetTasks.NuGetPush(_ => _
+                // .SetTargetPath(ArtifactsDirectory / $"{packageName}.{OctoVersionInfo.FullSemVer}.nupkg")
+                // .SetSource("https://f.feedz.io/octopus-deploy/dependencies/nuget")
+                // .set
+                // .SetApiKey(FeedzIoApiKey)
+            }
+         
+ 
 
         });
 

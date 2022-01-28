@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Deployment.Tests
 {
+    public static class Sanitizer
+    {
+        public static string SanitizeYamlForTests(this string yaml)
+        {
+            return yaml.Replace('\n', ' ').Replace('\r', ' ').Replace(" ","");
+        }
+    }
 
     [TestFixture]
     public class GenerateOverridesTests
@@ -21,6 +28,8 @@ namespace Anabasis.Deployment.Tests
         private string _namespaceName;
         private string _configMapGroup;
         private string _configMapApp;
+
+     
 
         [OneTimeSetUp]
         public void OneTimeSetUp()
@@ -50,7 +59,7 @@ namespace Anabasis.Deployment.Tests
 
             var namespaceYaml = Yaml.SaveToString(@namespace);
 
-            Assert.AreEqual(File.ReadAllText("./data/expected-namespace.yaml"), namespaceYaml);
+            Assert.AreEqual(File.ReadAllText("./data/expected-namespace.yaml").SanitizeYamlForTests(), namespaceYaml.SanitizeYamlForTests());
         }
 
         [Test]
@@ -70,7 +79,7 @@ namespace Anabasis.Deployment.Tests
 
             var serviceYaml = Yaml.SaveToString(service);
 
-            Assert.AreEqual(File.ReadAllText("./data/expected-service.yaml"), serviceYaml);
+            Assert.AreEqual(File.ReadAllText("./data/expected-service.yaml").SanitizeYamlForTests(), serviceYaml.SanitizeYamlForTests());
         }
 
         [Test]
@@ -98,7 +107,7 @@ namespace Anabasis.Deployment.Tests
 
             var deploymentYaml = Yaml.SaveToString(deployment);
 
-            Assert.AreEqual(File.ReadAllText("./data/expected-deployment.yaml"), deploymentYaml);
+            Assert.AreEqual(File.ReadAllText("./data/expected-deployment.yaml").SanitizeYamlForTests(), deploymentYaml.SanitizeYamlForTests());
 
         }
 

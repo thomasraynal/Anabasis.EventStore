@@ -7,7 +7,7 @@ namespace Anabasis.Common
     {
         string Id { get; }
         bool IsConnected { get; }
-        Task<IAnabasisHealthCheck[]> GetActorHealthChecks();
+        Task<IAnabasisHealthCheck[]> GetHealthChecks();
         TBus GetConnectedBus<TBus>() where TBus : class;
         Task WaitUntilConnected(TimeSpan? timeout = null);
         Task OnEventReceived(IEvent @event, TimeSpan? timeout = null);

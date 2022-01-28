@@ -180,7 +180,7 @@ namespace Anabasis.Common
             _cleanUp.Add(disposable);
         }
 
-        public Task<IAnabasisHealthCheck[]> GetActorHealthChecks()
+        public Task<IAnabasisHealthCheck[]> GetHealthChecks()
         {
             if (_connectedBus.Count == 0) return Task.FromResult(new IAnabasisHealthCheck[0]);
 
