@@ -23,7 +23,7 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main() => Execute<Build>(x => x.Test);
+    public static int Main() => Execute<Build>(x => x.PushNuget);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     public readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -187,27 +187,23 @@ class Build : NukeBuild
 
         });
 
-    //Target PushNuget => _ => _
-    //    .DependsOn(Test)
-    //    .Executes(() =>
-    //    {
-    //        foreach (var nugetPackage in GetAllReleaseNugetPackages())
-    //        {
-    //            Log.Information($"Publishing {nugetPackage.Name}");
+    Target PushNuget => _ => _
+        .DependsOn(Test)
+        .Executes(() =>
+        {
+            foreach (var nugetPackage in GetAllReleaseNugetPackages())
+            {
 
-    //            File.Copy(nugetPackage.FullName, Path.Combine(ArtifactsDirectory, nugetPackage.Name));
+                var process = ProcessTasks.StartProcess("appveyor", $"PushArtifact {nugetPackage}", RootDirectory, logOutput: true);
+                process.AssertWaitForExit();
+                //NuGetTasks.NuGetPush(_ => _
+                // .SetTargetPath(nugetPackage.FullName)
+                // .SetSource("")
+                // .SetApiKey("")
+            }
 
-    //            //NuGetTasks.NuGetPush(_ => _
-    //            // .SetTargetPath(nugetPackage.FullName)
-    //            // .SetSource("")
-    //            // .SetApiKey("")
-    //        }
-
-
-
-    //    });
-
-
+        });
 
 
 }
+
