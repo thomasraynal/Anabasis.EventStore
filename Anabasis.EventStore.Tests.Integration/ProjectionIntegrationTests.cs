@@ -17,8 +17,6 @@ namespace Anabasis.EventStore.Integration.Tests
     {
         private DockerEventStoreFixture _dockerEventStoreFixture;
 
-        private readonly IPEndPoint _httpEndpoint = new IPEndPoint(IPAddress.Loopback, 2113);
-
         [OneTimeSetUp]
         public async Task SetUp()
         {

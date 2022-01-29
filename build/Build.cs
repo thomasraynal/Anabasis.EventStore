@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -22,7 +23,7 @@ class Build : NukeBuild
     ///   - Microsoft VisualStudio     https://nuke.build/visualstudio
     ///   - Microsoft VSCode           https://nuke.build/vscode
 
-    public static int Main() => Execute<Build>(x => x.PushNuget);
+    public static int Main() => Execute<Build>(x => x.Test);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
     public readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
@@ -63,9 +64,10 @@ class Build : NukeBuild
         return testProjects;
     }
 
-    public virtual FileInfo[] GetAllNugetPackages()
+    public virtual FileInfo[] GetAllReleaseNugetPackages()
     {
-        return PathConstruction.GlobFiles(RootDirectory, "**/Anabasis.*.nupkg").OrderBy(path => $"{path}")
+        return PathConstruction.GlobFiles(RootDirectory, $"**/Anabasis.*.{BuildVersion}.nupkg")
+                                                                       .OrderBy(path => $"{path}")
                                                                        .Select(path => new FileInfo($"{path}"))
                                                                        .ToArray();
     }
@@ -125,6 +127,8 @@ class Build : NukeBuild
         {
             foreach (var projectFilePath in GetAllProjects())
             {
+                Log.Information($"Restoring {projectFilePath.Name}");
+
                 DotNetTasks.DotNetRestore(dotNetRestoreSettings => dotNetRestoreSettings.SetProjectFile(projectFilePath.FullName));
             }
         });
@@ -153,39 +157,55 @@ class Build : NukeBuild
         .DependsOn(Publish)
         .Executes(() =>
         {
-            foreach (var projectFilePath in GetAllTestsProjects())
-            {
+            var exceptions = new List<Exception>();
 
-                DotNetTasks.DotNetTest(dotNetTestSettings =>
+            try
+            {
+                foreach (var projectFilePath in GetAllTestsProjects())
                 {
-                    dotNetTestSettings = dotNetTestSettings
-                        .SetConfiguration(Configuration)
-                        .SetProjectFile(projectFilePath.FullName);
+                    Log.Information($"Testing {projectFilePath.Name}");
 
-                    return dotNetTestSettings;
-                });
+                    DotNetTasks.DotNetTest(dotNetTestSettings =>
+                    {
+                        dotNetTestSettings = dotNetTestSettings
+                            .SetConfiguration(Configuration)
+                            .SetProjectFile(projectFilePath.FullName)
+                            .SetNoBuild(true);
+
+                        return dotNetTestSettings;
+                    });
+                }
             }
-        });
-
-    Target PushNuget => _ => _
-        .DependsOn(Test)
-        .Executes(() =>
-        {
-            foreach (var nugetPackage in GetAllNugetPackages())
+            catch (Exception ex)
             {
-
-                Log.Information(nugetPackage.Name);
-
-                //NuGetTasks.NuGetPush(_ => _
-                // .SetTargetPath(ArtifactsDirectory / $"{packageName}.{OctoVersionInfo.FullSemVer}.nupkg")
-                // .SetSource("https://f.feedz.io/octopus-deploy/dependencies/nuget")
-                // .set
-                // .SetApiKey(FeedzIoApiKey)
+                exceptions.Add(ex);
             }
-         
- 
+
+            if (exceptions.Any())
+                throw new AggregateException(exceptions);
+
 
         });
+
+    //Target PushNuget => _ => _
+    //    .DependsOn(Test)
+    //    .Executes(() =>
+    //    {
+    //        foreach (var nugetPackage in GetAllReleaseNugetPackages())
+    //        {
+    //            Log.Information($"Publishing {nugetPackage.Name}");
+
+    //            File.Copy(nugetPackage.FullName, Path.Combine(ArtifactsDirectory, nugetPackage.Name));
+
+    //            //NuGetTasks.NuGetPush(_ => _
+    //            // .SetTargetPath(nugetPackage.FullName)
+    //            // .SetSource("")
+    //            // .SetApiKey("")
+    //        }
+
+
+
+    //    });
 
 
 
