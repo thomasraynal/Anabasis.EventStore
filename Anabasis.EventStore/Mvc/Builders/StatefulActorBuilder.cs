@@ -12,6 +12,7 @@ using Microsoft.Extensions.Logging;
 using System.Linq;
 using EventStore.ClientAPI;
 using Anabasis.Common;
+using Anabasis.EventStore.Mvc.Factories;
 
 namespace Anabasis.EventStore
 {
@@ -22,20 +23,23 @@ namespace Anabasis.EventStore
     {
         private readonly World _world;
         private readonly List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>> _streamsToRegisterTo;
-        private readonly IEventStoreCacheFactory _eventStoreCacheFactory;
-        private Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TAggregate>> _cacheToRegisterTo;
+        private readonly IEventStoreActorConfigurationFactory _eventStoreCacheFactory;
+        private readonly IActorConfiguration _actorConfiguration;
+        private IEventStoreActorConfiguration<TAggregate> _eventStoreActorConfiguration;
 
-        public StatefulActorBuilder(World world, IEventStoreCacheFactory eventStoreCacheFactory)
+        public StatefulActorBuilder(World world, IActorConfiguration actorConfiguration, IEventStoreActorConfigurationFactory eventStoreCacheFactory)
         {
             _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>>();
             _eventStoreCacheFactory = eventStoreCacheFactory;
+            _actorConfiguration = actorConfiguration;
             _world = world;
         }
 
         public World CreateActor()
         {
             _world.StatefulActorBuilders.Add((typeof(TActor), this));
-            _eventStoreCacheFactory.Add<TActor, TAggregate>(_cacheToRegisterTo);
+            _eventStoreCacheFactory.AddConfiguration<TActor>(_actorConfiguration);
+           _eventStoreCacheFactory.AddConfiguration<TActor, TAggregate>(_eventStoreActorConfiguration);
             return _world;
         }
 
@@ -47,27 +51,27 @@ namespace Anabasis.EventStore
         {
 
             var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TAggregate>>((connectionMonitor, loggerFactory) =>
-           {
-               var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.Start);
+               {
+                   var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.Start);
 
-               catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
+                   catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
-               var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TAggregate, TActor>();
+                   var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TAggregate, TActor>();
 
-               var catchupEventStoreCache = new AllStreamsCatchupCache<TAggregate>(connectionMonitor,
-                   catchupEventStoreCacheConfiguration,
-                   eventProvider,
-                   loggerFactory,
-                   snapshotStore,
-                   snapshotStrategy);
+                   var catchupEventStoreCache = new AllStreamsCatchupCache<TAggregate>(connectionMonitor,
+                       catchupEventStoreCacheConfiguration,
+                       eventProvider,
+                       loggerFactory,
+                       snapshotStore,
+                       snapshotStrategy);
 
-               return catchupEventStoreCache;
+                   return catchupEventStoreCache;
 
-           });
+               });
 
-            if (null != _cacheToRegisterTo) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
+            if (null != _eventStoreActorConfiguration) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
 
-            _cacheToRegisterTo = getCatchupEventStoreStream;
+            _eventStoreActorConfiguration = new EventStoreActorConfiguration<TAggregate>(_actorConfiguration, getCatchupEventStoreStream);
 
             return this;
 
@@ -102,9 +106,9 @@ namespace Anabasis.EventStore
                 return multipleStreamsCatchupCache;
             });
 
-            if (null != _cacheToRegisterTo) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
+            if (null != _eventStoreActorConfiguration) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
 
-            _cacheToRegisterTo = getSubscribeFromEndMultipleStreamsEventStoreCache;
+            _eventStoreActorConfiguration = new EventStoreActorConfiguration<TAggregate>(_actorConfiguration, getSubscribeFromEndMultipleStreamsEventStoreCache);
 
             return this;
         }
@@ -129,9 +133,10 @@ namespace Anabasis.EventStore
 
             });
 
-            if (null != _cacheToRegisterTo) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
+            if (null != _eventStoreActorConfiguration) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
 
-            _cacheToRegisterTo = getSubscribeFromEndEventStoreCache;
+            _eventStoreActorConfiguration = new EventStoreActorConfiguration<TAggregate>(_actorConfiguration, getSubscribeFromEndEventStoreCache);
+
 
             return this;
         }

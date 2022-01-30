@@ -1,7 +1,9 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Mvc;
+using Anabasis.EventStore.Mvc.Factories;
 using Anabasis.EventStore.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -17,7 +19,7 @@ namespace Anabasis.EventStore
 
         internal IServiceCollection ServiceCollection { get; }
 
-        private readonly IEventStoreCacheFactory _eventStoreCacheFactory;
+        private readonly IEventStoreActorConfigurationFactory _eventStoreCacheFactory;
 
         internal World(IServiceCollection services)
         {
@@ -28,6 +30,7 @@ namespace Anabasis.EventStore
             _eventStoreCacheFactory = new EventStoreCacheFactory();
 
             ServiceCollection.AddSingleton(_eventStoreCacheFactory);
+            ServiceCollection.AddSingleton<IActorConfigurationFactory>(_eventStoreCacheFactory);
         }
 
         public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IActorConfiguration actorConfiguration, IEventTypeProvider eventTypeProvider = null)
@@ -39,9 +42,9 @@ namespace Anabasis.EventStore
 
             eventTypeProvider ??= new ConsumerBasedEventProvider<TActor>();
 
-            ServiceCollection.AddSingleton(actorConfiguration);
+            _eventStoreCacheFactory.AddConfiguration<TActor>(actorConfiguration);
 
-            var statelessActorBuilder = new StatelessActorBuilder<TActor>(this);
+              var statelessActorBuilder = new StatelessActorBuilder<TActor>(this);
 
             ServiceCollection.AddSingleton<TActor>();
 
@@ -60,9 +63,8 @@ namespace Anabasis.EventStore
 
             ServiceCollection.AddTransient<IEventStoreAggregateRepository, EventStoreAggregateRepository>();
             ServiceCollection.AddSingleton<TActor>();
-            ServiceCollection.AddSingleton(actorConfiguration);
-
-            var statelessActorBuilder = new StatefulActorBuilder<TActor,  TAggregate>(this, _eventStoreCacheFactory);
+    
+            var statelessActorBuilder = new StatefulActorBuilder<TActor,  TAggregate>(this, actorConfiguration, _eventStoreCacheFactory);
 
             return statelessActorBuilder;
         }

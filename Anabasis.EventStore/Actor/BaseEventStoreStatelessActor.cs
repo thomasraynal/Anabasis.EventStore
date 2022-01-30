@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common;
+using Anabasis.Common.Configuration;
 
 namespace Anabasis.EventStore.Actor
 {
@@ -18,7 +19,12 @@ namespace Anabasis.EventStore.Actor
         {
             _eventStoreRepository = eventStoreRepository;
             _eventStoreStreams = new List<IEventStoreStream>();
+        }
 
+        protected BaseEventStoreStatelessActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
+        {
+            _eventStoreRepository = eventStoreRepository;
+            _eventStoreStreams = new List<IEventStoreStream>();
         }
 
         public void SubscribeToEventStream(IEventStoreStream eventStoreStream, bool closeSubscriptionOnDispose = false)
@@ -60,7 +66,7 @@ namespace Anabasis.EventStore.Actor
 
             PendingCommands[command.EventID] = taskSource;
 
-            _eventStoreRepository.Emit(command);
+            _eventStoreRepository.Emit(command).Wait();
 
             return taskSource.Task.ContinueWith(task =>
             {
