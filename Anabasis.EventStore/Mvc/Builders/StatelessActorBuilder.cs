@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Anabasis.Common;
 using System.Threading.Tasks;
+using Anabasis.EventStore.Mvc.Factories;
 
 namespace Anabasis.EventStore
 {
@@ -139,7 +140,6 @@ namespace Anabasis.EventStore
         public World CreateActor()
         {
             _world.StatelessActorBuilders.Add((typeof(TActor), this));
-
             return _world;
         }
 

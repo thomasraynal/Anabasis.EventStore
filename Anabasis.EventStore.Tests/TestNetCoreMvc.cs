@@ -19,17 +19,24 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
 using Microsoft.Extensions.Hosting;
 using Anabasis.Common;
+using Anabasis.EventStore.Mvc.Factories;
+using Anabasis.Common.Configuration;
 
 namespace Anabasis.EventStore.Tests
 {
 
     public class TestStatelessActorOneMvc : BaseEventStoreStatelessActor
     {
-        public List<IEvent> Events { get; } = new List<IEvent>();
-
         public TestStatelessActorOneMvc(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
         }
+
+        public TestStatelessActorOneMvc(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, loggerFactory)
+        {
+        }
+
+        public List<IEvent> Events { get; } = new List<IEvent>();
+
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)
         {
@@ -46,28 +53,47 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestStatefulActorOneMvc : TestStatefulActorTwoMvc
+    public class TestStatefulActorOneMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
         public TestStatefulActorOneMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActorOneMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public TestStatefulActorOneMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
+
+        public List<IEvent> Events { get; } = new List<IEvent>();
+
+        public Task Handle(AgainSomeMoreData againSomeMoreData)
+        {
+            Events.Add(againSomeMoreData);
+
+            return Task.CompletedTask;
+        }
+
+        public Task Handle(SomeMoreData someMoreData)
+        {
+            Events.Add(someMoreData);
+
+            return Task.CompletedTask;
+        }
+
     }
 
     public class TestStatefulActorTwoMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public List<IEvent> Events { get; } = new List<IEvent>();
-
         public TestStatefulActorTwoMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActorTwoMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, IEventStoreCacheFactory eventStoreCacheFactory, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, eventStoreCacheFactory, loggerFactory)
+        public TestStatefulActorTwoMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
+
+        public List<IEvent> Events { get; } = new List<IEvent>();
+
+
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)
         {

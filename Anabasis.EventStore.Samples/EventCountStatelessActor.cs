@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Repository;
 using Microsoft.Extensions.Logging;
@@ -12,6 +13,10 @@ namespace Anabasis.EventStore.Samples
     public class EventCountStatelessActor : BaseEventStoreStatelessActor
     {
         public EventCountStatelessActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
+        {
+        }
+
+        public EventCountStatelessActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, loggerFactory)
         {
         }
 

@@ -1,4 +1,5 @@
 using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Repository;
 using DynamicData.Kernel;
@@ -15,13 +16,21 @@ namespace Anabasis.EventStore.Demo
 
         public MarketDataService(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration,eventStoreRepository, loggerFactory)
         {
+            Initialize();
+        }
 
+        public MarketDataService(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, loggerFactory)
+        {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
             foreach (var item in StaticData.CurrencyPairs)
             {
                 _prices[item.EntityId] = GenerateStream(item).Replay(1).RefCount();
                 _prices[item.EntityId].Subscribe();
             }
-
         }
 
         private IObservable<MarketData> GenerateStream(CurrencyPair currencyPair)

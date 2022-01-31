@@ -55,7 +55,7 @@ namespace Anabasis.Deployment
         [Parameter("Kubernetes cluster configuration file")]
         public readonly AbsolutePath KubeConfigPath = RootDirectory / ".kube" / "kubeconfig";
         public AbsolutePath NukeBuildDirectory => RootDirectory / "build";
-
+        public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
 
         [Required]
         [GitRepository]

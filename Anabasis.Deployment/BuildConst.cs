@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Anabasis.Common;
+using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -9,8 +10,8 @@ namespace Anabasis.Deployment
 {
     public static class BuildConst
     {
-        public const string GroupConfigurationFileName = "config.group.json";
-        public const string AppConfigurationFileName = "config.app.json";
+        public const string GroupConfigurationFileName = AnabasisAppContext.GroupConfigurationFile;
+        public const string AppConfigurationFileName = AnabasisAppContext.AppConfigurationFile;
         public const string KustomizeFolderName = "kustomize";
         public const string Base = "base";
         public const string Templates = "templates";

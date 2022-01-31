@@ -66,11 +66,6 @@ namespace Anabasis.Deployment.Tests
             Assert.Greater(Directory.GetFiles(Path.Combine(_testApp.AppSourceKustomizeDirectory.FullName, "prod")).Length, 0);
         }
 
-        [Test, Order(4)]
-        public async Task ShouldCopyKustomizationFiles()
-        {
-
-        }
 
     }
 }

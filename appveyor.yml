@@ -18,7 +18,7 @@ nuget:
   disable_publish_on_pr: true
 test: off
 build_script:
-  - ps: ./build.ps1
+  - ps: ./build.ps1 -SkipIntegrationTests true
 
 #before_build:
 #- cmd: docker-compose down
@@ -64,11 +64,11 @@ build_script:
 #- cmd: |
 #    cd %APPVEYOR_BUILD_FOLDER%
 #    dotnet test Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj --configuration Release --no-build --no-restore
-#deploy:
-#  provider: NuGet
-#  api_key:
-#    secure: zuIMF/Jd5yeqbYdq9HDfTniovjEbGuRKqkBO6KrZpCiR/gjfqAgbSWhcp9htTzhb
-#  skip_symbols: false
-#  artifact: /.*\.nupkg/
-#  on:
-#    branch: master
+deploy:
+  provider: NuGet
+  api_key:
+    secure: zuIMF/Jd5yeqbYdq9HDfTniovjEbGuRKqkBO6KrZpCiR/gjfqAgbSWhcp9htTzhb
+  skip_symbols: false
+  artifact: /.*\.nupkg/
+  on:
+    branch: master

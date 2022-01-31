@@ -3,7 +3,6 @@ using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -199,15 +198,19 @@ namespace Anabasis.EventStore.Tests
               eventProvider,
               _loggerFactory);
 
+            await Task.Delay(1000);
+
             var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
             var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
 
             testActorAutoBuildOne.SubscribeToEventStream(persistentSubscriptionEventStoreStream);
             testActorAutoBuildOne.SubscribeToEventStream(volatileEventStoreStream);
 
+            await Task.Delay(2000);
+
             await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
 
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
 
@@ -231,9 +234,12 @@ namespace Anabasis.EventStore.Tests
             var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .Build();
 
-            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
 
-            await Task.Delay(500);
+            await Task.Delay(1000);
+
+            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
+                
+            await Task.Delay(2000);
 
             Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
 

@@ -1,9 +1,9 @@
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Nuke.Common;
-using Nuke.Common.CI;
 using Nuke.Common.CI.AppVeyor;
 using Nuke.Common.Execution;
 using Nuke.Common.IO;
@@ -11,10 +11,7 @@ using Nuke.Common.ProjectModel;
 using Nuke.Common.Tooling;
 using Nuke.Common.Tools.DotNet;
 using Nuke.Common.Tools.NuGet;
-using Nuke.Common.Utilities.Collections;
 using Serilog;
-using static Nuke.Common.EnvironmentInfo;
-using static Nuke.Common.IO.FileSystemTasks;
 using static Nuke.Common.IO.PathConstruction;
 
 [CheckBuildProjectConfigurations]
@@ -29,7 +26,10 @@ class Build : NukeBuild
     public static int Main() => Execute<Build>(x => x.PushNuget);
 
     [Parameter("Configuration to build - Default is 'Debug' (local) or 'Release' (server)")]
-    readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+    public readonly Configuration Configuration = IsLocalBuild ? Configuration.Debug : Configuration.Release;
+
+    [Parameter("Should run integration tests?")]
+    public readonly bool SkipIntegrationTests = false;
 
     [Solution] readonly Solution Solution;
 
@@ -44,21 +44,36 @@ class Build : NukeBuild
                                                                        .ToArray();
     }
 
-    public virtual FileInfo[] GetAllTestsProjects()
+    public virtual FileInfo[] GetAllNonTestProjects()
     {
-        return PathConstruction.GlobFiles(RootDirectory, "**/Anabasis.*.Test.*.csproj").OrderBy(path => $"{path}")
-                                                                       .Select(path => new FileInfo($"{path}"))
-                                                                       .ToArray();
+        var allProjects = GetAllProjects();
+        var testProjects = GetAllTestsProjects();
+
+        return allProjects.Where(project => !testProjects.Contains(project)).ToArray();
     }
 
-    public virtual FileInfo[] GetAllNugetPackages()
+    public virtual FileInfo[] GetAllTestsProjects()
     {
-        return PathConstruction.GlobFiles(RootDirectory, "**/Anabasis.*.nupkg").OrderBy(path => $"{path}")
+        var testProjects = PathConstruction.GlobFiles(RootDirectory, "**/Anabasis.*.Tests*.csproj").OrderBy(path => $"{path}")
+                                                                       .Select(path => new FileInfo($"{path}"))
+                                                                       .ToArray();
+
+        if (SkipIntegrationTests)
+            testProjects = testProjects.Where(testProject => !testProject.Name.ToLower().Contains("integration")).ToArray();
+
+        return testProjects;
+    }
+
+    public virtual FileInfo[] GetAllReleaseNugetPackages()
+    {
+        return PathConstruction.GlobFiles(RootDirectory, $"**/Anabasis.*.{BuildVersion}.nupkg")
+                                                                       .OrderBy(path => $"{path}")
                                                                        .Select(path => new FileInfo($"{path}"))
                                                                        .ToArray();
     }
 
     Target DockerComposeDown => _ => _
+        .OnlyWhenDynamic(() => !SkipIntegrationTests)
         .Executes(() =>
         {
             var process = ProcessTasks.StartProcess("docker-compose", "down", RootDirectory, logOutput: true);
@@ -66,19 +81,20 @@ class Build : NukeBuild
         });
 
     Target DockerComposeUp => _ => _
+        .OnlyWhenDynamic(() => !SkipIntegrationTests)
         .DependsOn(DockerComposeDown)
-        .Executes(async() =>
-        {
-
-            var dockerComposeUpTask = Task.Run(() =>
+        .Executes(async () =>
             {
-                var process = ProcessTasks.StartProcess("docker-compose", "up", RootDirectory, logOutput: true);
-                process.AssertWaitForExit();
+
+                var dockerComposeUpTask = Task.Run(() =>
+                {
+                    var process = ProcessTasks.StartProcess("docker-compose", "up", RootDirectory, logOutput: true);
+                    process.AssertWaitForExit();
+                });
+
+                await Task.Delay(50_000);
+
             });
-
-
-            await Task.Delay(15_000);
-        });
 
     Target Clean => _ => _
         .DependsOn(DockerComposeUp)
@@ -111,6 +127,8 @@ class Build : NukeBuild
         {
             foreach (var projectFilePath in GetAllProjects())
             {
+                Log.Information($"Restoring {projectFilePath.Name}");
+
                 DotNetTasks.DotNetRestore(dotNetRestoreSettings => dotNetRestoreSettings.SetProjectFile(projectFilePath.FullName));
             }
         });
@@ -120,7 +138,7 @@ class Build : NukeBuild
         .DependsOn(Restore)
         .Executes(() =>
         {
-            foreach (var projectFilePath in GetAllProjects())
+            foreach (var projectFilePath in GetAllNonTestProjects())
             {
                 Log.Information($"Publishing {projectFilePath.Name}");
 
@@ -139,40 +157,53 @@ class Build : NukeBuild
         .DependsOn(Publish)
         .Executes(() =>
         {
-            foreach (var projectFilePath in GetAllProjects())
+            var exceptions = new List<Exception>();
+
+            try
             {
-
-                DotNetTasks.DotNetTest(dotNetTestSettings =>
+                foreach (var projectFilePath in GetAllTestsProjects())
                 {
-                    dotNetTestSettings = dotNetTestSettings
-                        .SetConfiguration(Configuration)
-                        .SetProjectFile(projectFilePath.FullName);
+                    Log.Information($"Testing {projectFilePath.Name}");
 
-                    return dotNetTestSettings;
-                });
+                    DotNetTasks.DotNetTest(dotNetTestSettings =>
+                    {
+                        dotNetTestSettings = dotNetTestSettings
+                            .SetConfiguration(Configuration)
+                            .SetProjectFile(projectFilePath.FullName)
+                            .SetNoBuild(true);
+
+                        return dotNetTestSettings;
+                    });
+                }
             }
+            catch (Exception ex)
+            {
+                exceptions.Add(ex);
+            }
+
+            if (exceptions.Any())
+                throw new AggregateException(exceptions);
+
+
         });
 
     Target PushNuget => _ => _
         .DependsOn(Test)
         .Executes(() =>
         {
-            foreach (var nugetPackage in GetAllNugetPackages())
+            foreach (var nugetPackage in GetAllReleaseNugetPackages())
             {
 
-                Log.Information(nugetPackage.Name);
-
+                var process = ProcessTasks.StartProcess("appveyor", $"PushArtifact {nugetPackage}", RootDirectory, logOutput: true);
+                process.AssertWaitForExit();
                 //NuGetTasks.NuGetPush(_ => _
-                // .SetTargetPath(ArtifactsDirectory / $"{packageName}.{OctoVersionInfo.FullSemVer}.nupkg")
-                // .SetSource("https://f.feedz.io/octopus-deploy/dependencies/nuget")
-                // .set
-                // .SetApiKey(FeedzIoApiKey)
+                // .SetTargetPath(nugetPackage.FullName)
+                // .SetSource("")
+                // .SetApiKey("")
             }
-         
- 
 
         });
 
 
-
 }
+

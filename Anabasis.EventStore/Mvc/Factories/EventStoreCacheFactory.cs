@@ -1,15 +1,13 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Shared;
-using Microsoft.Extensions.Logging;
+using Anabasis.EventStore.Mvc.Factories;
 using System;
 using System.Collections.Generic;
 
 namespace Anabasis.EventStore.Mvc
 {
-    public class EventStoreCacheFactory : IEventStoreCacheFactory
+    public class EventStoreCacheFactory : ActorConfigurationFactory, IEventStoreActorConfigurationFactory
     {
         private readonly Dictionary<Type, object> _eventStoreCaches;
 
@@ -18,17 +16,20 @@ namespace Anabasis.EventStore.Mvc
             _eventStoreCaches = new Dictionary<Type, object>();
         }
 
-        public void Add<TActor,  TAggregate>(Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache< TAggregate>> getEventStoreCache)
-            where TActor : IEventStoreStatefulActor< TAggregate>
+        public void AddConfiguration<TActor, TAggregate>(IEventStoreActorConfiguration<TAggregate> eventStoreActorConfiguration)
+            where TActor : IEventStoreStatefulActor<TAggregate>
             where TAggregate : IAggregate, new()
         {
-            _eventStoreCaches.Add(typeof(TActor), getEventStoreCache);
+            _eventStoreCaches.Add(typeof(TActor), eventStoreActorConfiguration);
         }
 
-        public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache< TAggregate>> Get< TAggregate>(Type type)
-            where TAggregate : IAggregate, new()
+        public IEventStoreActorConfiguration<TAggregate> GetConfiguration<TAggregate>(Type type) where TAggregate : IAggregate, new()
         {
-            return (Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache < TAggregate>>)_eventStoreCaches[type];
+            if (!_eventStoreCaches.ContainsKey(type))
+                throw new InvalidOperationException($"Unable to find a configuration for actor {type}");
+
+            return (IEventStoreActorConfiguration<TAggregate>)_eventStoreCaches[type];
         }
+
     }
 }

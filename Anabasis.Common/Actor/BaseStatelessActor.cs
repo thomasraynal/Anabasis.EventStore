@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -14,19 +15,29 @@ namespace Anabasis.Common
     public abstract class BaseStatelessActor : IActor
     {
 
-        private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
-        private readonly CompositeDisposable _cleanUp;
-        private readonly Dictionary<Type, IBus> _connectedBus;
-        private readonly IActorConfiguration _actorConfiguration;
-        private readonly IDispatchQueue<IEvent> _dispatchQueue;
+        private MessageHandlerInvokerCache _messageHandlerInvokerCache;
+        private CompositeDisposable _cleanUp;
+        private Dictionary<Type, IBus> _connectedBus;
+        private IActorConfiguration _actorConfiguration;
+        private IDispatchQueue<IEvent> _dispatchQueue;
 
-        protected Dictionary<Guid, TaskCompletionSource<ICommandResponse>> PendingCommands { get; }
-        public ILogger Logger { get; }
+        public string Id { get; private set; }
+        protected Dictionary<Guid, TaskCompletionSource<ICommandResponse>> PendingCommands { get; private set; }
+        public ILogger Logger { get; private set; }
+
+        protected BaseStatelessActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null)
+        {
+            Setup(actorConfigurationFactory.GetConfiguration(GetType()), loggerFactory);
+        }
 
         protected BaseStatelessActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null)
         {
-            Id = $"{GetType()}-{Guid.NewGuid()}";
+            Setup(actorConfiguration, loggerFactory);
+        }
 
+        private void Setup(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory)
+        {
+            Id = $"{GetType()}-{Guid.NewGuid()}";
 
             _cleanUp = new CompositeDisposable();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
@@ -38,10 +49,7 @@ namespace Anabasis.Common
 
             PendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             Logger = loggerFactory?.CreateLogger(GetType());
-
         }
-
-        public string Id { get; }
 
         public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.IsConnected);
 

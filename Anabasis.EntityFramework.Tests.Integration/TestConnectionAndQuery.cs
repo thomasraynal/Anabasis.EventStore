@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Anabasis.Api.Tests.Common;
+using Microsoft.EntityFrameworkCore;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -16,6 +17,12 @@ namespace Anabasis.EntityFramework.Tests.Integration
         [OneTimeSetUp]
         public void Setup()
         {
+
+            if (TestHelper.IsAppVeyor)
+            {
+                Assert.Ignore("Cannot use SQLServer image in CI - too much RAM needed on th VM.");
+            }
+           
             _random = new Random();
 
             _dbContext = new TestDbContext();

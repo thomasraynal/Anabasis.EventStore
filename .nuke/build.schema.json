@@ -74,12 +74,16 @@
               "Clean",
               "DockerComposeDown",
               "DockerComposeUp",
-              "NugetPush",
               "Publish",
+              "PushNuget",
               "Restore",
               "Test"
             ]
           }
+        },
+        "SkipIntegrationTests": {
+          "type": "boolean",
+          "description": "Should run integration tests?"
         },
         "Solution": {
           "type": "string",
@@ -94,8 +98,8 @@
               "Clean",
               "DockerComposeDown",
               "DockerComposeUp",
-              "NugetPush",
               "Publish",
+              "PushNuget",
               "Restore",
               "Test"
             ]

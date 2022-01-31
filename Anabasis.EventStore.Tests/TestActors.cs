@@ -17,6 +17,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Anabasis.Common;
 
+[assembly: NonParallelizable]
+
 namespace Anabasis.EventStore.Tests
 {
     public class SomeCommandResponse : BaseCommandResponse

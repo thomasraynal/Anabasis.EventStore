@@ -1,4 +1,5 @@
 using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Repository;
 using DynamicData;
@@ -23,7 +24,16 @@ namespace Anabasis.EventStore.Demo
 
         public TradeService(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
+            Initialize();
+        }
 
+        public TradeService(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, loggerFactory)
+        {
+            Initialize();
+        }
+
+        private void Initialize()
+        {
             var tradesData = GenerateTradesAndMaintainCache().Publish();
 
             var cleanup = tradesData.Connect();
