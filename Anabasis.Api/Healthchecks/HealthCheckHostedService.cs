@@ -1,4 +1,5 @@
-﻿using DynamicData.Kernel;
+﻿using Anabasis.Common.HealthChecks;
+using DynamicData.Kernel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
@@ -40,9 +41,13 @@ namespace Anabasis.Api
         {
             if (cancellationToken.IsCancellationRequested) return;
 
-            var healthStatus = await _serviceProvider.GetRequiredService<HealthCheckService>().CheckHealthAsync(cancellationToken);
+            var healthCheckService = _serviceProvider.GetRequiredService<HealthCheckService>();
+            var dynamicHealthCheckProvider = _serviceProvider.GetRequiredService<IDynamicHealthCheckProvider>();
 
-            var currentStatus = healthStatus.Status;
+            var healthCheckServiceHealthReport = await healthCheckService.CheckHealthAsync(cancellationToken);
+            var dynamicHealthCheckProviderHealthReport = await dynamicHealthCheckProvider.CheckHealth(cancellationToken);
+
+            var currentStatus = healthCheckServiceHealthReport.Status> dynamicHealthCheckProviderHealthReport.Status ? dynamicHealthCheckProviderHealthReport.Status : healthCheckServiceHealthReport.Status;
             var statusChanged = _previousStatus != currentStatus;
             var notHealthy = currentStatus != HealthStatus.Healthy;
 
@@ -62,7 +67,15 @@ namespace Anabasis.Api
                 {
                     _logger.LogInformation($"================> HEALTH STATUS : { currentStatus.ToString().ToUpper() } =================");
 
-                    foreach (var entry in healthStatus.Entries)
+                    foreach (var entry in healthCheckServiceHealthReport.Entries)
+                    {
+                        var key = entry.Key;
+                        var value = entry.Value;
+
+                        _logger.LogInformation($"{key}: [{value.Status}] {value.Description}");
+                    }
+
+                    foreach (var entry in dynamicHealthCheckProviderHealthReport.Entries)
                     {
                         var key = entry.Key;
                         var value = entry.Value;

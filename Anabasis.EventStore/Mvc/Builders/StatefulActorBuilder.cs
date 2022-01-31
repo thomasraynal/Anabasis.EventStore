@@ -1,7 +1,6 @@
 ﻿using System;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.EventProvider;
@@ -9,7 +8,6 @@ using Anabasis.EventStore.Mvc;
 using System.Collections.Generic;
 using Anabasis.EventStore.Stream;
 using Microsoft.Extensions.Logging;
-using System.Linq;
 using EventStore.ClientAPI;
 using Anabasis.Common;
 using Anabasis.EventStore.Mvc.Factories;

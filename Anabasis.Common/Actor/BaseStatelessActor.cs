@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -37,7 +38,7 @@ namespace Anabasis.Common
 
         private void Setup(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory)
         {
-            Id = $"{GetType()}-{Guid.NewGuid()}";
+            Id = $"{GetType().Name}-{Guid.NewGuid()}";
 
             _cleanUp = new CompositeDisposable();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
@@ -188,11 +189,38 @@ namespace Anabasis.Common
             _cleanUp.Add(disposable);
         }
 
-        public Task<IAnabasisHealthCheck[]> GetHealthChecks()
+        //todo: add event store bus
+        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            if (_connectedBus.Count == 0) return Task.FromResult(new IAnabasisHealthCheck[0]);
+            var healthCheckDescription = "Actor HealthChecks";
 
-            return Task.WhenAll(_connectedBus.Select(bus => bus.Value.GetHealthCheck()));
+            if (_connectedBus.Count == 0) return new HealthCheckResult(HealthStatus.Healthy, healthCheckDescription);
+
+            Exception exception = null;
+
+            var anabasisHealthChecks = new HealthCheckResult[0];
+            var healthStatus = HealthStatus.Healthy;
+            var data = new Dictionary<string, object>();
+
+            try
+            {
+                anabasisHealthChecks = await Task.WhenAll(_connectedBus.Select(bus => bus.Value.GetHealthCheck()));
+                healthStatus = anabasisHealthChecks.Select(anabasisHealthCheck => anabasisHealthCheck.Status).Min();
+
+                foreach (var anabasisHealthCheck in anabasisHealthChecks.SelectMany(anabasisHealthCheck => anabasisHealthCheck.Data))
+                {
+                    data.Add(anabasisHealthCheck.Key, anabasisHealthCheck.Value);
+                }
+            }
+
+            catch (Exception ex)
+            {
+                healthStatus = HealthStatus.Unhealthy;
+                exception = ex;
+            }
+
+            return new HealthCheckResult(healthStatus, healthCheckDescription, exception, data);
+
         }
     }
 }

@@ -16,6 +16,6 @@ namespace Anabasis.EventStore.Mvc.Factories
 
         public IActorConfiguration ActorConfiguration { get; }
 
-        public Func<IConnectionStatusMonitor, ILoggerFactory, Cache.IEventStoreCache<TAggregate>> GetEventStoreCache { get; }
+        public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TAggregate>> GetEventStoreCache { get; }
     }
 }

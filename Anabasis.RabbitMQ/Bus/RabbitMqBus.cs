@@ -50,7 +50,7 @@ namespace Anabasis.RabbitMQ
             _isConnectedDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(async _ =>
            {
                var healthCheck = await GetHealthCheck();
-               _connectionStatusSubject.OnNext(healthCheck.HealthStatus != HealthStatus.Unhealthy);
+               _connectionStatusSubject.OnNext(healthCheck.Status != HealthStatus.Unhealthy);
            });
 
         }
@@ -231,12 +231,15 @@ namespace Anabasis.RabbitMQ
             subscriberDescriptor.Subscriptions.Remove(subscription);
         }
 
-        public Task<IAnabasisHealthCheck> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
         {
-            DefaultAnabasisHealthCheck defaultAnabasisHealthCheck = null;
+            var healthCheckDescription = $"{nameof(RabbitMqBus)} healthcheck";
+            
+            var healthCheckResult = HealthCheckResult.Healthy(healthCheckDescription);
 
             RabbitMqConnection.DoWithChannel(model =>
             {
+
                 if (!model.IsOpen)
                 {
                     _connectionStatusSubject.OnNext(false);
@@ -244,23 +247,23 @@ namespace Anabasis.RabbitMQ
                     if (shouldThrowIfUnhealthy)
                         throw new InvalidOperationException("RabbitMq connection not opened");
 
-                    var healthCheckMessages = new[]
+                    var healthCheckMessages = new Dictionary<string, object>()
                     {
-                        "RabbitMQ channel is not open"
+                        { "ConnectivityIssue", "RabbitMQ channel is not open" }
                     };
 
-                    defaultAnabasisHealthCheck = new DefaultAnabasisHealthCheck(HealthStatus.Unhealthy, healthCheckMessages);
+                    healthCheckResult = HealthCheckResult.Unhealthy(healthCheckDescription, data: healthCheckMessages);
                 }
                 else
                 {
                     if (!IsConnected)
                         _connectionStatusSubject.OnNext(true);
-
-                    defaultAnabasisHealthCheck = new DefaultAnabasisHealthCheck(HealthStatus.Healthy);
                 }
+
             });
 
-            return Task.FromResult<IAnabasisHealthCheck>(defaultAnabasisHealthCheck);
+
+            return Task.FromResult(healthCheckResult);
 
         }
 

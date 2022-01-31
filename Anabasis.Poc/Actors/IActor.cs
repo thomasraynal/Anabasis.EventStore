@@ -1,8 +1,10 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Shared;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.Poc
@@ -42,7 +44,7 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public Task<IAnabasisHealthCheck> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
         {
             throw new NotImplementedException();
         }
@@ -134,7 +136,7 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public Task<IAnabasisHealthCheck> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
         {
             throw new NotImplementedException();
         }
@@ -220,11 +222,10 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public Task<IAnabasisHealthCheck[]> GetHealthChecks()
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             throw new NotImplementedException();
         }
-
     }
 
     public interface IStatefulActor : IStatelessActor

@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.Common.HealthChecks;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Mvc;
@@ -19,6 +20,7 @@ namespace Anabasis.EventStore
 
         internal IServiceCollection ServiceCollection { get; }
 
+        private readonly DynamicHealthCheckProvider _dynamicHealthCheckProvider;
         private readonly IEventStoreActorConfigurationFactory _eventStoreCacheFactory;
 
         internal World(IServiceCollection services)
@@ -27,9 +29,10 @@ namespace Anabasis.EventStore
             StatefulActorBuilders = new List<(Type actorType, IStatefulActorBuilder builder)>();
             ServiceCollection = services;
 
+            _dynamicHealthCheckProvider = new DynamicHealthCheckProvider();
             _eventStoreCacheFactory = new EventStoreCacheFactory();
 
-            ServiceCollection.AddSingleton(_eventStoreCacheFactory);
+            ServiceCollection.AddSingleton<IDynamicHealthCheckProvider>(_dynamicHealthCheckProvider);
             ServiceCollection.AddSingleton<IActorConfigurationFactory>(_eventStoreCacheFactory);
         }
 

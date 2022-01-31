@@ -8,6 +8,8 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Logging;
 using EventStore.Core;
 using EventStore.ClientAPI.Embedded;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Anabasis.Common.HealthChecks;
 
 namespace Anabasis.EventStore
 {
@@ -23,6 +25,9 @@ namespace Anabasis.EventStore
              {
                  var actor = (IEventStoreStatelessActor)applicationBuilder.ApplicationServices.GetService(actorType);
 
+                 var healthCheckService = applicationBuilder.ApplicationServices.GetService<IDynamicHealthCheckProvider>();
+                 healthCheckService.AddHealthCheck(new HealthCheckRegistration(actor.Id, actor, HealthStatus.Unhealthy, null));
+ 
                  var loggerFactory = applicationBuilder.ApplicationServices.GetService<ILoggerFactory>();
 
                  foreach (var getStream in builder.GetStreamFactories())
