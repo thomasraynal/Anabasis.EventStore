@@ -14,6 +14,8 @@ namespace Anabasis.Poc
     {
         public bool IsConnected => throw new NotImplementedException();
 
+        public string BusId => throw new NotImplementedException();
+
         public void Dispose()
         {
             throw new NotImplementedException();
@@ -106,6 +108,8 @@ namespace Anabasis.Poc
 
         public bool IsConnected => throw new NotImplementedException();
 
+        public string BusId => throw new NotImplementedException();
+
         public void Dispose()
         {
             throw new NotImplementedException();
@@ -177,7 +181,7 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
+        public Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
         {
             throw new NotImplementedException();
         }

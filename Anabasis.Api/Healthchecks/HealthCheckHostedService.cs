@@ -47,7 +47,7 @@ namespace Anabasis.Api
             var healthCheckServiceHealthReport = await healthCheckService.CheckHealthAsync(cancellationToken);
             var dynamicHealthCheckProviderHealthReport = await dynamicHealthCheckProvider.CheckHealth(cancellationToken);
 
-            var currentStatus = healthCheckServiceHealthReport.Status> dynamicHealthCheckProviderHealthReport.Status ? dynamicHealthCheckProviderHealthReport.Status : healthCheckServiceHealthReport.Status;
+            var currentStatus = new[] { healthCheckServiceHealthReport.Status, dynamicHealthCheckProviderHealthReport.Status }.Min();
             var statusChanged = _previousStatus != currentStatus;
             var notHealthy = currentStatus != HealthStatus.Healthy;
 

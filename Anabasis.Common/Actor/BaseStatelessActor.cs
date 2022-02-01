@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Actor;
 using Anabasis.Common.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -167,8 +168,14 @@ namespace Anabasis.Common
             return (TBus)_connectedBus[busType];
         }
 
-        public void ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
+        public async Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
         {
+
+            var healthCheckResult = await bus.GetHealthCheck();
+
+            if (healthCheckResult.Status == HealthStatus.Unhealthy)
+                throw new BusUnhealthyException($"Bus {bus.BusId} is unhealthy", healthCheckResult);
+
             var busType = bus.GetType();
 
             if (_connectedBus.ContainsKey(busType))

@@ -195,7 +195,7 @@ namespace Anabasis.EventStore.Tests
             _eventRepository = CreateEventRepository();
             _cache = CreateCatchupEventStoreCache();
 
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             for (var i = 0; i < _cache.defaultSnapshotStrategy.SnapshotIntervalInEvents; i++)
             {
