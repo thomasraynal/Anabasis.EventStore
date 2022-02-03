@@ -1,5 +1,4 @@
-﻿using Anabasis.Common;
-using Anabasis.Common.Actor;
+﻿using Anabasis.Common.Actor;
 using Anabasis.Common.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -8,7 +7,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Runtime.ExceptionServices;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
