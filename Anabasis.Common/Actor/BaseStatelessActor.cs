@@ -169,6 +169,8 @@ namespace Anabasis.Common
         public async Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
         {
 
+            await bus.Initialize();
+
             var healthCheckResult = await bus.GetHealthCheck();
 
             if (healthCheckResult.Status == HealthStatus.Unhealthy)

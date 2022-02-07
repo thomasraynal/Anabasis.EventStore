@@ -33,6 +33,8 @@ namespace Anabasis.EventStore.Tests
 
         public string BusId => nameof(TestWorkingBus);
 
+        public bool IsInitialized => true;
+
         public void Dispose()
         {
         }
@@ -40,6 +42,11 @@ namespace Anabasis.EventStore.Tests
         public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
         {
             return Task.FromResult(HealthCheckResult.Healthy($"{nameof(TestWorkingBus)}"));
+        }
+
+        public Task Initialize()
+        {
+            return Task.CompletedTask;
         }
     }
 
@@ -50,6 +57,8 @@ namespace Anabasis.EventStore.Tests
         public bool IsFailing { get; set; } = true;
 
         public string BusId => nameof(TestFailingBus);
+
+        public bool IsInitialized => false;
 
         public void Dispose()
         {
@@ -69,6 +78,11 @@ namespace Anabasis.EventStore.Tests
                 return Task.FromResult(HealthCheckResult.Unhealthy($"{nameof(TestFailingBus)}", data: data));
 
             return Task.FromResult(HealthCheckResult.Healthy($"{nameof(TestFailingBus)}"));
+        }
+
+        public Task Initialize()
+        {
+            return Task.CompletedTask;
         }
     }
 

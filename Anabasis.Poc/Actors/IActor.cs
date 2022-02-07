@@ -16,6 +16,8 @@ namespace Anabasis.Poc
 
         public string BusId => throw new NotImplementedException();
 
+        public bool IsInitialized => throw new NotImplementedException();
+
         public void Dispose()
         {
             throw new NotImplementedException();
@@ -47,6 +49,11 @@ namespace Anabasis.Poc
         }
 
         public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Initialize()
         {
             throw new NotImplementedException();
         }
@@ -110,6 +117,8 @@ namespace Anabasis.Poc
 
         public string BusId => throw new NotImplementedException();
 
+        public bool IsInitialized => throw new NotImplementedException();
+
         public void Dispose()
         {
             throw new NotImplementedException();
@@ -141,6 +150,11 @@ namespace Anabasis.Poc
         }
 
         public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task Initialize()
         {
             throw new NotImplementedException();
         }

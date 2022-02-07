@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Actor;
 using Anabasis.Common.Shared;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -20,10 +21,11 @@ namespace Anabasis.RabbitMQ
         private readonly ISerializer _serializer;
         private readonly ILogger _logger;
         private readonly TimeSpan _defaultPublishConfirmTimeout;
-
         private readonly BehaviorSubject<bool> _connectionStatusSubject;
-        private readonly IDisposable _isConnectedDisposable;
 
+        private IDisposable _isConnectedDisposable;
+
+        public bool IsInitialized { get; private set; }
         public string BusId { get; }
         public IRabbitMqConnection RabbitMqConnection { get; }
 
@@ -44,14 +46,6 @@ namespace Anabasis.RabbitMQ
             _existingSubscriptions = new Dictionary<string, IRabbitMqSubscription>();
 
             _connectionStatusSubject = new BehaviorSubject<bool>(false);
-
-            GetHealthCheck();
-
-            _isConnectedDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(async _ =>
-           {
-               var healthCheck = await GetHealthCheck();
-               _connectionStatusSubject.OnNext(healthCheck.Status != HealthStatus.Unhealthy);
-           });
 
         }
 
@@ -272,6 +266,26 @@ namespace Anabasis.RabbitMQ
             _isConnectedDisposable.Dispose();
             _connectionStatusSubject.Dispose();
             RabbitMqConnection.Dispose();
+        }
+
+        public async Task Initialize()
+        {
+            if (IsInitialized) return;
+
+            var healthCheck = await GetHealthCheck();
+
+            if (healthCheck.Status != HealthStatus.Healthy)
+            {
+                throw new BusUnhealthyException("RabbitMQ bus is not healthy", healthCheck);
+            }
+
+            _isConnectedDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(async _ =>
+            {
+                var healthCheck = await GetHealthCheck();
+                _connectionStatusSubject.OnNext(healthCheck.Status != HealthStatus.Unhealthy);
+            });
+
+            IsInitialized = true;
         }
     }
 }

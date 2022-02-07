@@ -25,10 +25,12 @@ namespace Anabasis.EventStore.Standalone
         private IActorConfiguration ActorConfiguration { get; set; }
 
         private readonly List<IEventStoreStream> _streamsToRegisterTo;
+        private readonly Dictionary<Type,Action<Container,IActor>> _busToRegisterTo;
 
         private StatelessActorBuilder()
         {
             _streamsToRegisterTo = new List<IEventStoreStream>();
+            _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
         }
 
         public TActor Build()
@@ -47,6 +49,17 @@ namespace Anabasis.EventStore.Standalone
             foreach (var stream in _streamsToRegisterTo)
             {
                 actor.SubscribeToEventStream(stream, closeUnderlyingSubscriptionOnDispose: true);
+            }
+
+            foreach (var busRegistration in _busToRegisterTo)
+            {
+                var bus = (IBus)container.GetInstance(busRegistration.Key);
+
+                bus.Initialize().Wait();
+                actor.ConnectTo(bus).Wait();
+
+                busRegistration.Value(container, actor);
+
             }
 
             return actor;
@@ -168,6 +181,26 @@ namespace Anabasis.EventStore.Standalone
               LoggerFactory);
 
             _streamsToRegisterTo.Add(persistentSubscriptionEventStoreStream);
+
+            return this;
+        }
+
+        public StatelessActorBuilder<TActor, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup) where TBus : IBus
+        {
+            var busType = typeof(TBus);
+
+            if (_busToRegisterTo.ContainsKey(busType))
+                throw new InvalidOperationException($"ActorBuilder already has a reference to bus of type {busType}");
+
+            var onRegistration = new Action<Container, IActor>((container, actor) =>
+            {
+                var bus = container.GetInstance<TBus>();
+
+                onStartup((TActor)actor, bus);
+
+            });
+
+            _busToRegisterTo.Add(busType, onRegistration);
 
             return this;
         }

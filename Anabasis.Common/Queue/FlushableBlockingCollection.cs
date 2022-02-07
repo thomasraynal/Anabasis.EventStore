@@ -25,7 +25,7 @@ namespace Anabasis.Common
 
         public int Count => _queue.Count;
 
-        public bool CanAdd => _queue.Count < _queueMaxSize;
+        public bool CanAdd => _queue.Count < _queueMaxSize && !_isAddingCompleted;
 
         public void CompleteAdding()
         {
