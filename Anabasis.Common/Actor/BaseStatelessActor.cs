@@ -157,7 +157,7 @@ namespace Anabasis.Common
 
                 if (null == candidate)
                 {
-                    throw new InvalidOperationException($"Bus of type {busType} is already registered");
+                    throw new InvalidOperationException($"Bus of type {busType} is not registered");
                 }
 
                 _connectedBus[busType] = candidate;

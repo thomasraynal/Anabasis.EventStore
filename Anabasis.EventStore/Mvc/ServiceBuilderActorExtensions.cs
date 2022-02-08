@@ -21,19 +21,26 @@ namespace Anabasis.EventStore
 
         public static IApplicationBuilder UseWorld(this IApplicationBuilder applicationBuilder)
         {
-            var registerStreams = new Action<IConnectionStatusMonitor, IStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
+            var registerStreamsAndBus = new Action<IConnectionStatusMonitor, IStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
              {
                  var actor = (IEventStoreStatelessActor)applicationBuilder.ApplicationServices.GetService(actorType);
 
                  var healthCheckService = applicationBuilder.ApplicationServices.GetService<IDynamicHealthCheckProvider>();
                  healthCheckService.AddHealthCheck(new HealthCheckRegistration(actor.Id, actor, HealthStatus.Unhealthy, null));
- 
+
                  var loggerFactory = applicationBuilder.ApplicationServices.GetService<ILoggerFactory>();
 
                  foreach (var getStream in builder.GetStreamFactories())
                  {
-                     actor.SubscribeToEventStream(getStream(connectionStatusMonitor, loggerFactory), closeUnderlyingSubscriptionOnDispose: true);
-                 } 
+                     var eventStoreStream = getStream(connectionStatusMonitor, loggerFactory);
+
+                     actor.SubscribeToEventStream(eventStoreStream, closeUnderlyingSubscriptionOnDispose: true);
+                 }
+
+                 foreach (var busConfiguration in builder.GetBusFactories())
+                 {
+                     busConfiguration.factory(applicationBuilder.ApplicationServices, actor);
+                 }
 
              });
 
@@ -41,12 +48,12 @@ namespace Anabasis.EventStore
 
             foreach (var (actorType, builder) in _world.StatelessActorBuilders)
             {
-                registerStreams(connectionStatusMonitor, builder, actorType);
+                registerStreamsAndBus(connectionStatusMonitor, builder, actorType);
             }
 
             foreach (var (actorType, builder) in _world.StatefulActorBuilders)
             {
-                registerStreams(connectionStatusMonitor, builder, actorType);
+                registerStreamsAndBus(connectionStatusMonitor, builder, actorType);
             }
 
             return applicationBuilder;

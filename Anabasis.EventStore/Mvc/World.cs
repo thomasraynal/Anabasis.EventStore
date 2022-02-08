@@ -36,7 +36,7 @@ namespace Anabasis.EventStore
             ServiceCollection.AddSingleton(_eventStoreCacheFactory);
         }
 
-        public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IActorConfiguration actorConfiguration, IEventTypeProvider eventTypeProvider = null)
+        public EventStoreStatelessActorBuilder<TActor> AddStatelessActor<TActor>(IActorConfiguration actorConfiguration, IEventTypeProvider eventTypeProvider = null)
             where TActor : class, IEventStoreStatelessActor
         {
             if (StatefulActorBuilders.Any(statefulActorBuilder => statefulActorBuilder.actorType == typeof(TActor)))
@@ -47,7 +47,7 @@ namespace Anabasis.EventStore
 
             _eventStoreCacheFactory.AddConfiguration<TActor>(actorConfiguration);
 
-              var statelessActorBuilder = new StatelessActorBuilder<TActor>(this);
+              var statelessActorBuilder = new EventStoreStatelessActorBuilder<TActor>(this);
 
             ServiceCollection.AddSingleton<TActor>();
 
@@ -55,7 +55,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> AddStatefulActor<TActor,  TAggregate>(IActorConfiguration actorConfiguration)
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> AddStatefulActor<TActor,  TAggregate>(IActorConfiguration actorConfiguration)
             where TActor : class, IEventStoreStatefulActor< TAggregate>
             where TAggregate : IAggregate, new()
         {
@@ -67,7 +67,7 @@ namespace Anabasis.EventStore
             ServiceCollection.AddTransient<IEventStoreAggregateRepository, EventStoreAggregateRepository>();
             ServiceCollection.AddSingleton<TActor>();
     
-            var statelessActorBuilder = new StatefulActorBuilder<TActor,  TAggregate>(this, actorConfiguration, _eventStoreCacheFactory);
+            var statelessActorBuilder = new EventStoreStatefulActorBuilder<TActor,  TAggregate>(this, actorConfiguration, _eventStoreCacheFactory);
 
             return statelessActorBuilder;
         }

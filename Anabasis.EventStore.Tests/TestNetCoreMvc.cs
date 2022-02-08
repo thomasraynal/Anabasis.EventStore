@@ -51,6 +51,7 @@ namespace Anabasis.EventStore.Tests
 
             return Task.CompletedTask;
         }
+
     }
 
     public class TestStatefulActorOneMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
@@ -81,13 +82,13 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class TestStatefulActorTwoMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
+    public class TestBusRegistrationStatefullActor : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestStatefulActorTwoMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
+        public TestBusRegistrationStatefullActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActorTwoMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationStatefullActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 
@@ -165,7 +166,7 @@ namespace Anabasis.EventStore.Tests
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                   .AddStatefulActor<TestStatefulActorTwoMvc, SomeDataAggregate>(ActorConfiguration.Default)
+                   .AddStatefulActor<TestBusRegistrationStatefullActor, SomeDataAggregate>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
@@ -211,8 +212,6 @@ namespace Anabasis.EventStore.Tests
             _testServer = new TestServer(builder);
             _host = _testServer.Host;
 
-         
-
         }
 
         [Test, Order(0)]
@@ -220,7 +219,7 @@ namespace Anabasis.EventStore.Tests
         {
 
             var testStatefulActorOneMvc = _host.Services.GetService<TestStatefulActorOneMvc>();
-            var testStatefulActorTwoMvc = _host.Services.GetService<TestStatefulActorTwoMvc>();
+            var testStatefulActorTwoMvc = _host.Services.GetService<TestBusRegistrationStatefullActor>();
             var testStatelessActorOneMvc = _host.Services.GetService<TestStatelessActorOneMvc>();
 
             Assert.NotNull(testStatefulActorOneMvc);
@@ -240,7 +239,7 @@ namespace Anabasis.EventStore.Tests
             var streamTwo = "stream-two";
 
             var testStatefulActorOneMvc = _host.Services.GetService<TestStatefulActorOneMvc>();
-            var testStatefulActorTwoMvc = _host.Services.GetService<TestStatefulActorTwoMvc>();
+            var testStatefulActorTwoMvc = _host.Services.GetService<TestBusRegistrationStatefullActor>();
             var testStatelessActorOneMvc = _host.Services.GetService<TestStatelessActorOneMvc>();
 
             await Task.Delay(200);

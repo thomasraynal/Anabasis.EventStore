@@ -9,5 +9,6 @@ namespace Anabasis.EventStore
     public interface IStatelessActorBuilder
     {
         Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>[] GetStreamFactories();
+        (Type actor, Action<IServiceProvider, IActor> factory)[] GetBusFactories();
     }
 }

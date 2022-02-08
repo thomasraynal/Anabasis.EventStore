@@ -63,6 +63,9 @@ namespace Anabasis.EventStore.Standalone
             {
                 var bus = (IBus)container.GetInstance(busRegistration.Key);
 
+                if (null == bus)
+                    throw new InvalidOperationException($"No bus of type {busRegistration.Key} has been registered");
+
                 bus.Initialize().Wait();
                 actor.ConnectTo(bus).Wait();
 

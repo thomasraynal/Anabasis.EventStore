@@ -198,6 +198,9 @@ namespace Anabasis.EventStore.Standalone
             {
                 var bus = container.GetInstance<TBus>();
 
+                if (null == bus)
+                    throw new InvalidOperationException($"No bus of type {busType} has been registered");
+
                 onStartup((TActor)actor, bus);
 
             });

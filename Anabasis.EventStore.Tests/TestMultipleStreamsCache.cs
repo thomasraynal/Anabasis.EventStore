@@ -11,13 +11,7 @@ using EventStore.Common.Options;
 using EventStore.Core;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
-using Serilog;
-using Serilog.Configuration;
-using Serilog.Core;
-using Serilog.Events;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests

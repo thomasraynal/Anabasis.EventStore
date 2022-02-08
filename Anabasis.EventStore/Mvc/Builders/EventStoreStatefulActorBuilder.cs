@@ -15,7 +15,7 @@ using Anabasis.EventStore.Mvc.Factories;
 namespace Anabasis.EventStore
 {
 
-    public class StatefulActorBuilder<TActor, TAggregate> : IStatefulActorBuilder
+    public class EventStoreStatefulActorBuilder<TActor, TAggregate> : IStatefulActorBuilder
         where TActor : class, IEventStoreStatefulActor<TAggregate>
         where TAggregate : IAggregate, new()
     {
@@ -25,7 +25,7 @@ namespace Anabasis.EventStore
         private readonly IActorConfiguration _actorConfiguration;
         private IEventStoreActorConfiguration<TAggregate> _eventStoreActorConfiguration;
 
-        public StatefulActorBuilder(World world, IActorConfiguration actorConfiguration, IEventStoreActorConfigurationFactory eventStoreCacheFactory)
+        public EventStoreStatefulActorBuilder(World world, IActorConfiguration actorConfiguration, IEventStoreActorConfigurationFactory eventStoreCacheFactory)
         {
             _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>>();
             _eventStoreCacheFactory = eventStoreCacheFactory;
@@ -41,7 +41,7 @@ namespace Anabasis.EventStore
             return _world;
         }
 
-        public StatefulActorBuilder<TActor, TAggregate> WithReadAllFromStartCache(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithReadAllFromStartCache(
           IEventTypeProvider<TAggregate> eventTypeProvider = null,
           Action<AllStreamsCatchupCacheConfiguration<TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
           ISnapshotStore<TAggregate> snapshotStore = null,
@@ -75,7 +75,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> WithReadOneStreamFromStartCache(
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithReadOneStreamFromStartCache(
           string streamId,
           IEventTypeProvider< TAggregate> eventTypeProvider = null,
           Action<MultipleStreamsCatchupCacheConfiguration< TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
@@ -85,7 +85,7 @@ namespace Anabasis.EventStore
             return WithReadManyStreamFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration, snapshotStore, snapshotStrategy);
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> WithReadManyStreamFromStartCache(
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithReadManyStreamFromStartCache(
           string[] streamIds,
           IEventTypeProvider< TAggregate> eventTypeProvider = null,
           Action<MultipleStreamsCatchupCacheConfiguration< TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
@@ -111,7 +111,7 @@ namespace Anabasis.EventStore
             return this;
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> WithReadAllFromEndCache(
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithReadAllFromEndCache(
           IEventTypeProvider< TAggregate> eventTypeProvider = null,
           Action<AllStreamsCatchupCacheConfiguration< TAggregate>> volatileCacheConfigurationBuilder = null)
         {
@@ -139,7 +139,7 @@ namespace Anabasis.EventStore
             return this;
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromEndToAllStreams(
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromEndToAllStreams(
             Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
@@ -166,7 +166,7 @@ namespace Anabasis.EventStore
             return this;
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> WithPersistentSubscriptionStream(
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithPersistentSubscriptionStream(
             string streamId,
             string groupId,
             Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
@@ -194,7 +194,7 @@ namespace Anabasis.EventStore
             return this;
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromStartToOneStreamStream(
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromStartToOneStreamStream(
             string streamId,
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
@@ -223,7 +223,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public StatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromEndToOneStreamStream(
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromEndToOneStreamStream(
             string streamId,
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
@@ -256,6 +256,11 @@ namespace Anabasis.EventStore
         public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>[] GetStreamFactories()
         {
             return _streamsToRegisterTo.ToArray();
+        }
+
+        public (Type actor, Action<IServiceProvider, IActor> factory)[] GetBusFactories()
+        {
+            throw new NotImplementedException();
         }
     }
 
