@@ -42,7 +42,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
             var defaultEventTypeProvider = new DefaultEventTypeProvider<CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged) });
 
-            var traderOne = StatefulActorBuilder<Trader, CurrencyPair, TestRegistry>.Create(url, connectionSettings, ActorConfiguration.Default)
+            var traderOne = EventStoreStatefulActorBuilder<Trader, CurrencyPair, TestRegistry>.Create(url, connectionSettings, ActorConfiguration.Default)
                                                                                               .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                                 getCatchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                               .Build();
@@ -50,7 +50,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
             Assert.IsTrue(traderOne.State.IsConnected);
 
-            var traderTwo = StatefulActorBuilder<Trader, CurrencyPair, TestRegistry>.Create(url, connectionSettings, ActorConfiguration.Default)
+            var traderTwo = EventStoreStatefulActorBuilder<Trader, CurrencyPair, TestRegistry>.Create(url, connectionSettings, ActorConfiguration.Default)
                                                                                             .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
                                                                                                getCatchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
                                                                                             .Build();

@@ -1,254 +1,141 @@
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Stream;
-using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Standalone;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Embedded;
-using EventStore.ClientAPI.SystemData;
-using EventStore.Common.Options;
-using EventStore.Core;
+﻿using Anabasis.Common;
+using Anabasis.Common.Actor;
+using Anabasis.Common.Configuration;
 using Lamar;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
-using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests
 {
-    public class SomeDependency : ISomeDependency
+    public interface ITestActorBuilderDummyBus : IBus
     {
-
+        void Push(IEvent push);
+        void Subscribe(Action<IEvent> onEventReceived);
     }
-
-    public interface ISomeDependency
+    public class TestActorBuilderDummyBusRegistry : ServiceRegistry
     {
-    }
-
-    public class SomeRegistry : ServiceRegistry
-    {
-        public SomeRegistry()
+        public TestActorBuilderDummyBusRegistry()
         {
-            For<ISomeDependency>().Use<SomeDependency>();
+            For<ITestActorBuilderDummyBus>().Use<TestActorDummyBus>().Singleton();
         }
     }
 
-    public class TestActorAutoBuildOne : BaseEventStoreStatelessActor
+    public class TestActorDummyBus : ITestActorBuilderDummyBus
     {
-        public List<IEvent> Events { get; } = new List<IEvent>();
+        private readonly List<Action<IEvent>> _subscribers;
 
-        public TestActorAutoBuildOne(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
+        public TestActorDummyBus()
+        {
+            _subscribers = new List<Action<IEvent>>();
+        }
+
+        public string BusId => nameof(TestActorDummyBus);
+
+        public bool IsConnected => true;
+
+        public bool IsInitialized => true;
+
+        public void Dispose()
         {
         }
 
-        public Task Handle(AgainSomeMoreData againSomeMoreData)
+        public void Push(IEvent push)
         {
-            Events.Add(againSomeMoreData);
+            foreach (var subscriber in _subscribers)
+            {
+                subscriber(push);
+            }
+        }
 
+        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        {
+            return Task.FromResult(HealthCheckResult.Healthy());
+        }
+
+        public Task Initialize()
+        {
             return Task.CompletedTask;
         }
 
-        public Task Handle(SomeMoreData someMoreData)
+        public void Subscribe(Action<IEvent> onEventReceived)
         {
-            Events.Add(someMoreData);
-
-            return Task.CompletedTask;
+            _subscribers.Add(onEventReceived);
         }
-
     }
 
-    public class TestActorAutoBuildTwo : BaseEventStoreStatelessActor
+    public static class TestActorDummyBussExtensions
     {
+        public static void SubscribeTestActorDummyBus(this IActor actor, string subject)
+        {
+            var dummyBus = actor.GetConnectedBus<TestActorDummyBus>();
 
-        public List<IEvent> Events { get; } = new List<IEvent>();
+            void onEventReceived(IEvent @event)
+            {
+                actor.OnEventReceived(@event);
+            }
 
-        public TestActorAutoBuildTwo(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
+            dummyBus.Subscribe(onEventReceived);
+
+
+
+        }
+    }
+
+    public class TestBuilderActor : BaseStatelessActor
+    {
+        public List<SomeData> Events { get; } = new List<SomeData>();
+
+        public TestBuilderActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
         }
-        public async Task Handle(SomeCommand someCommand)
+
+        public TestBuilderActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
-            await EmitEventStore(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
         }
 
-        public Task Handle(AgainSomeMoreData againSomeMoreData)
+        public Task Handle(SomeData someData)
         {
-            Events.Add(againSomeMoreData);
-
-            return Task.CompletedTask;
-        }
-
-        public Task Handle(SomeMoreData someMoreData)
-        {
-            Events.Add(someMoreData);
+            Events.Add(someData);
 
             return Task.CompletedTask;
         }
     }
-
 
     [TestFixture]
     public class TestActorBuilder
     {
-
-        private UserCredentials _userCredentials;
-        private ConnectionSettings _connectionSettings;
-        private ClusterVNode _clusterVNode;
-        private ILoggerFactory _loggerFactory;
-
-        private Guid _correlationId = Guid.NewGuid();
-        private readonly string _streamId = "streamId";
-        private readonly string _streamId2 = "streamId2";
-        private readonly string _groupIdOne = "groupIdOne";
-        private readonly string _groupIdTwo = "groupIdTwo";
+        private LoggerFactory _loggerFactory;
 
         [OneTimeSetUp]
-        public async Task Setup()
+        public void Setup()
         {
-
-            _userCredentials = new UserCredentials("admin", "changeit");
-
-            _connectionSettings = ConnectionSettings.Create()
-                .UseDebugLogger()
-                .SetDefaultUserCredentials(_userCredentials)
-                .KeepRetrying()
-                .Build();
-
-            _loggerFactory = new DummyLoggerFactory();
-
-            _clusterVNode = EmbeddedVNodeBuilder
-              .AsSingleNode()
-              .RunInMemory()
-              .RunProjections(ProjectionType.All)
-              .StartStandardProjections()
-              .WithWorkerThreads(1)
-              .Build();
-
-            await _clusterVNode.StartAsync(true);
-
-            await CreateSubscriptionGroups();
-
+            _loggerFactory = new LoggerFactory();
         }
-
-        [OneTimeTearDown]
-        public async Task TearDown()
-        {
-            await _clusterVNode.StopAsync();
-        }
-
-        private async Task CreateSubscriptionGroups()
-        {
-            var connectionSettings = PersistentSubscriptionSettings.Create().StartFromCurrent().Build();
-            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode);
-
-            await connection.CreatePersistentSubscriptionAsync(
-                 _streamId,
-                 _groupIdOne,
-                 connectionSettings,
-                 _userCredentials);
-
-            await connection.CreatePersistentSubscriptionAsync(
-                 _streamId,
-                 _groupIdTwo,
-                 connectionSettings,
-                 _userCredentials);
-
-            await connection.CreatePersistentSubscriptionAsync(
-                 _streamId2,
-                 _groupIdOne,
-                 connectionSettings,
-                 _userCredentials);
-        }
-
 
         [Test, Order(0)]
-        public async Task ShouldBuildAndRunActors()
+        public async Task ShouldBuildAStatelessActorAndRegisterABus()
         {
+            var testBusRegistrationActor = StatelessActorBuilder<TestBuilderActor, TestActorBuilderDummyBusRegistry>
+                                                 .Create(ActorConfiguration.Default, _loggerFactory)
+                                                 .WithBus<ITestActorBuilderDummyBus>((actor, bus) =>
+                                                 {
+                                                     actor.SubscribeTestActorDummyBus("somesubject");
+                                                 })
+                                                 .Build();
 
-            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+            var dummyBus = testBusRegistrationActor.GetConnectedBus<ITestActorBuilderDummyBus>();
 
-            var eventProvider = new ConsumerBasedEventProvider<TestActorAutoBuildOne>();
+            dummyBus.Push(new SomeData("entity", Guid.NewGuid()));
 
-            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
+            await Task.Delay(200);
 
-            var actorConfiguration = new ActorConfiguration();
-
-            var eventStoreRepository = new EventStoreRepository(
-              eventStoreRepositoryConfiguration,
-              connection,
-              connectionMonitor,
-              _loggerFactory);
-
-            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(_streamId, _groupIdOne, _userCredentials);
-
-            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
-              connectionMonitor,
-              persistentEventStoreStreamConfiguration,
-              eventProvider,
-              _loggerFactory);
-
-            var volatileEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration(_userCredentials);
-
-            var volatileEventStoreStream = new SubscribeFromEndEventStoreStream(
-              connectionMonitor,
-              volatileEventStoreStreamConfiguration,
-              eventProvider,
-              _loggerFactory);
-
-            await Task.Delay(1000);
-
-            var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
-            var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
-
-            testActorAutoBuildOne.SubscribeToEventStream(persistentSubscriptionEventStoreStream);
-            testActorAutoBuildOne.SubscribeToEventStream(volatileEventStoreStream);
-
-            await Task.Delay(2000);
-
-            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
-
-            await Task.Delay(1000);
-
-            Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
-
-            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, _streamId));
-
-            await Task.Delay(100);
-
-            Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
+            Assert.AreEqual(1, testBusRegistrationActor.Events.Count);
         }
-
-        [Ignore("Non deterministic")]
-        [Test, Order(1)]
-        public async Task ShouldBuildFromActorBuilderAndRunActors()
-        {
-
-            var testActorAutoBuildOne = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
-                                                                                         .WithSubscribeFromEndToAllStream()
-                                                                                         .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
-                                                                                         .Build();
-
-            var testActorAutoBuildTwo = StatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
-                                                                                         .Build();
-
-
-            await Task.Delay(1000);
-
-            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
-                
-            await Task.Delay(2000);
-
-            Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
-
-            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, _streamId2));
-
-            await Task.Delay(1000);
-
-            Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
-        }
-
     }
 }

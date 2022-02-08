@@ -152,7 +152,7 @@ namespace Anabasis.EventStore.Tests
 
             var defaultEventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
-            var testActorAutoBuildOne = StatefulActorBuilder<TestStatefulActorOne, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+            var testActorAutoBuildOne = EventStoreStatefulActorBuilder<TestStatefulActorOne, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
@@ -160,7 +160,7 @@ namespace Anabasis.EventStore.Tests
                                                                                          .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
                                                                                          .Build();
 
-            var testActorAutoBuildTwo = StatefulActorBuilder<TestAggregatedActorTwo, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+            var testActorAutoBuildTwo = EventStoreStatefulActorBuilder<TestAggregatedActorTwo, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))

@@ -76,7 +76,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         public async Task ShouldCreateSusbscriptionAndConsumeAnEvent()
         {
 
-             _testRabbitMqActor = StatelessActorBuilder<TestRabbitMqActor, SomeRegistry>
+             _testRabbitMqActor = EventStoreStatelessActorBuilder<TestRabbitMqActor, SomeRegistry>
                                             .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                             .Build();
 

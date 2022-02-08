@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Samples
 
             var defaultSnapshotStrategy = new DefaultSnapshotStrategy(5);
 
-            var eventCountActorWithSnapshot = StatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
+            var eventCountActorWithSnapshot = EventStoreStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
                                        .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
                                        .WithReadOneStreamFromStartCache(StaticData.EntityOne,
                                             eventTypeProvider: eventTypeProvider,
@@ -34,7 +34,7 @@ namespace Anabasis.EventStore.Samples
                                            snapshotStrategy: defaultSnapshotStrategy)
                                        .Build();
 
-            var eventCountActor = StatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
+            var eventCountActor = EventStoreStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
                            .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
                            .WithReadOneStreamFromStartCache(StaticData.EntityOne,
                                 eventTypeProvider: eventTypeProvider,

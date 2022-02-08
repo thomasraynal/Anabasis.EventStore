@@ -16,7 +16,7 @@ using Anabasis.Common;
 
 namespace Anabasis.EventStore.Standalone
 {
-    public class StatefulActorBuilder<TActor, TAggregate, TRegistry>
+    public class EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>
       where TActor : IEventStoreStatefulActor<TAggregate>
       where TAggregate : IAggregate, new()
       where TRegistry : ServiceRegistry, new()
@@ -28,17 +28,18 @@ namespace Anabasis.EventStore.Standalone
         private IActorConfiguration ActorConfiguration { get; set; }
 
         private readonly List<IEventStoreStream> _streamsToRegisterTo;
-        private readonly Dictionary<Type,Action<IActor,IBus>> _busToRegisterTo;
+        private readonly Dictionary<Type, Action<Container, IActor>> _busToRegisterTo;
 
-        private StatefulActorBuilder()
+        private EventStoreStatefulActorBuilder()
         {
             _streamsToRegisterTo = new List<IEventStoreStream>();
-            _busToRegisterTo = new Dictionary<Type, Action<IActor, IBus>>();
+            _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
         }
 
         public TActor Build()
         {
-            if (null == EventStoreCache) throw new InvalidOperationException($"You must specify a cache for an StatefulActor");
+            if (null == EventStoreCache) throw new InvalidOperationException($"You must specify a cache for an StatefulActor." +
+                $" Use the With* methods on the builder to choose the cache type.");
 
             var container = new Container(configuration =>
             {
@@ -58,11 +59,24 @@ namespace Anabasis.EventStore.Standalone
                 actor.SubscribeToEventStream(stream, closeUnderlyingSubscriptionOnDispose: true);
             }
 
+            foreach (var busRegistration in _busToRegisterTo)
+            {
+                var bus = (IBus)container.GetInstance(busRegistration.Key);
+
+                bus.Initialize().Wait();
+                actor.ConnectTo(bus).Wait();
+
+                var onBusRegistration = busRegistration.Value;
+
+                onBusRegistration(container, actor);
+
+            }
+
             return actor;
 
         }
 
-        public static StatefulActorBuilder<TActor, TAggregate, TRegistry> Create(
+        public static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> Create(
         string eventStoreUrl,
         ConnectionSettings connectionSettings,
         IActorConfiguration actorConfiguration,
@@ -76,7 +90,7 @@ namespace Anabasis.EventStore.Standalone
         }
 
 
-        public static StatefulActorBuilder<TActor, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
+        public static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
           ConnectionSettings connectionSettings,
           IActorConfiguration actorConfiguration,
           ILoggerFactory loggerFactory = null,
@@ -89,14 +103,14 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        private static StatefulActorBuilder<TActor, TAggregate, TRegistry> CreateInternal(
+        private static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> CreateInternal(
           IActorConfiguration actorConfiguration,
           IEventStoreConnection eventStoreConnection,
           ILoggerFactory loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
         {
 
-            var builder = new StatefulActorBuilder<TActor, TAggregate, TRegistry>
+            var builder = new EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>
             {
                 LoggerFactory = loggerFactory ?? new DummyLoggerFactory(),
                 ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, loggerFactory),
@@ -117,7 +131,7 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public StatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadAllFromStartCache(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadAllFromStartCache(
           IEventTypeProvider<TAggregate> eventTypeProvider,
           Action<AllStreamsCatchupCacheConfiguration<TAggregate>> getCatchupEventStoreCacheConfigurationBuilder = null,
           ISnapshotStore<TAggregate> snapshotStore = null,
@@ -134,7 +148,7 @@ namespace Anabasis.EventStore.Standalone
             return this;
         }
 
-        public StatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadOneStreamFromStartCache(
           string streamId,
           IEventTypeProvider<TAggregate> eventTypeProvider,
           Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
@@ -144,7 +158,7 @@ namespace Anabasis.EventStore.Standalone
             return WithReadManyStreamFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration, snapshotStore, snapshotStrategy);
         }
 
-        public StatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadManyStreamFromStartCache(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadManyStreamFromStartCache(
           string[] streamIds,
           IEventTypeProvider<TAggregate> eventTypeProvider,
           Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
@@ -162,7 +176,7 @@ namespace Anabasis.EventStore.Standalone
             return this;
         }
 
-        public StatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadAllFromEndCache(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadAllFromEndCache(
           IEventTypeProvider<TAggregate> eventTypeProvider,
           Action<AllStreamsCatchupCacheConfiguration<TAggregate>> getSubscribeFromEndCacheConfiguration = null)
         {
@@ -179,7 +193,7 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public StatefulActorBuilder<TActor, TAggregate, TRegistry> WithSubscribeFromEndToAllStream(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithSubscribeFromEndToAllStream(
             Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null)
         {
             var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
@@ -198,7 +212,7 @@ namespace Anabasis.EventStore.Standalone
             return this;
         }
 
-        public StatefulActorBuilder<TActor, TAggregate, TRegistry> WithPersistentSubscriptionStream(string streamId, string groupId)
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithPersistentSubscriptionStream(string streamId, string groupId)
         {
             var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
 
@@ -214,14 +228,22 @@ namespace Anabasis.EventStore.Standalone
             return this;
         }
 
-        public StatefulActorBuilder<TActor, TAggregate, TRegistry> WithBus<TBus>(Action<IActor, IBus> onStartup) where TBus : IBus
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup) where TBus : IBus
         {
             var busType = typeof(TBus);
 
             if (_busToRegisterTo.ContainsKey(busType))
-                throw new InvalidOperationException($"ActorBuilder already has a reference to bus of type {busType}");
+                throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");
 
-            _busToRegisterTo.Add(busType, onStartup);
+            var onRegistration = new Action<Container, IActor>((container, actor) =>
+            {
+                var bus = container.GetInstance<TBus>();
+
+                onStartup((TActor)actor, bus);
+
+            });
+
+            _busToRegisterTo.Add(busType, onRegistration);
 
             return this;
         }

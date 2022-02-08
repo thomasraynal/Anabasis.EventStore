@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Samples
             
             var eventTypeProvider = new DefaultEventTypeProvider<EventCountAggregate>(() => new[] { typeof(EventCountOne), typeof(EventCountTwo) }); ;
 
-            var eventCountActor = StatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
+            var eventCountActor = EventStoreStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
                                        .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
                                        .WithReadManyStreamFromStartCache(
                                             new[] { StaticData.EntityOne, StaticData.EntityTwo, StaticData.EntityThree },
