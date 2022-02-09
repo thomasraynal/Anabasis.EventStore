@@ -47,6 +47,8 @@ namespace Anabasis.Common
                 _actorConfiguration.ActorMailBoxMessageBatchSize,
                 _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize);
 
+            _cleanUp.Add(_dispatchQueue);
+
             PendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             Logger = loggerFactory?.CreateLogger(GetType());
         }

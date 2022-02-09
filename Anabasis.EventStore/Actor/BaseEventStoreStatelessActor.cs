@@ -35,14 +35,14 @@ namespace Anabasis.EventStore.Actor
 
             _eventStoreStreams.Add(eventStoreStream);
 
-            var disposable = eventStoreStream.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
+            var onEventReceivedDisposable = eventStoreStream.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
 
             if (closeSubscriptionOnDispose)
             {
                 AddDisposable(eventStoreStream);
             }
 
-            AddDisposable(disposable);
+            AddDisposable(onEventReceivedDisposable);
         }
 
         public async Task EmitEventStore<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent: IEvent

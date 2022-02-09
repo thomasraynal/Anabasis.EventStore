@@ -10,6 +10,9 @@ using EventStore.Core;
 using EventStore.ClientAPI.Embedded;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Anabasis.Common.HealthChecks;
+using Anabasis.EventStore.Mvc.Builders;
+using Anabasis.Common;
+using Anabasis.EventStore.Mvc;
 
 namespace Anabasis.EventStore
 {
@@ -17,16 +20,11 @@ namespace Anabasis.EventStore
     public static class ServiceBuilderActorExtensions
     {
 
-        private static World _world;
-
         public static IApplicationBuilder UseWorld(this IApplicationBuilder applicationBuilder)
         {
-            var registerStreamsAndBus = new Action<IConnectionStatusMonitor, IStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
+            var registerStreams = new Action<IConnectionStatusMonitor, IEventStoreStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
              {
                  var actor = (IEventStoreStatelessActor)applicationBuilder.ApplicationServices.GetService(actorType);
-
-                 var healthCheckService = applicationBuilder.ApplicationServices.GetService<IDynamicHealthCheckProvider>();
-                 healthCheckService.AddHealthCheck(new HealthCheckRegistration(actor.Id, actor, HealthStatus.Unhealthy, null));
 
                  var loggerFactory = applicationBuilder.ApplicationServices.GetService<ILoggerFactory>();
 
@@ -37,23 +35,41 @@ namespace Anabasis.EventStore
                      actor.SubscribeToEventStream(eventStoreStream, closeUnderlyingSubscriptionOnDispose: true);
                  }
 
-                 foreach (var busConfiguration in builder.GetBusFactories())
-                 {
-                     busConfiguration.factory(applicationBuilder.ApplicationServices, actor);
-                 }
-
              });
+
+            var registerHealthChecksAndBus = new Action<IStatelessActorBuilder, Type>((builder, actorType) =>
+            {
+                var actor = (IActor)applicationBuilder.ApplicationServices.GetService(actorType);
+
+                var healthCheckService = applicationBuilder.ApplicationServices.GetService<IDynamicHealthCheckProvider>();
+                healthCheckService.AddHealthCheck(new HealthCheckRegistration(actor.Id, actor, HealthStatus.Unhealthy, null));
+
+                foreach (var busConfiguration in builder.GetBusFactories())
+                {
+                    busConfiguration.factory(applicationBuilder.ApplicationServices, actor);
+                }
+
+            });
 
             var connectionStatusMonitor = applicationBuilder.ApplicationServices.GetService<IConnectionStatusMonitor>();
 
-            foreach (var (actorType, builder) in _world.StatelessActorBuilders)
+            var world = applicationBuilder.ApplicationServices.GetService<World>();
+
+            foreach (var (actorType, builder) in world.EventStoreStatelessActorBuilders)
             {
-                registerStreamsAndBus(connectionStatusMonitor, builder, actorType);
+                registerHealthChecksAndBus(builder, actorType);
+                registerStreams(connectionStatusMonitor, builder, actorType);
             }
 
-            foreach (var (actorType, builder) in _world.StatefulActorBuilders)
+            foreach (var (actorType, builder) in world.EventStoreStatefulActorBuilders)
             {
-                registerStreamsAndBus(connectionStatusMonitor, builder, actorType);
+                registerHealthChecksAndBus(builder, actorType);
+                registerStreams(connectionStatusMonitor, builder, actorType);
+            }
+
+            foreach (var (actorType, builder) in world.StatelessActorBuilders)
+            {
+                registerHealthChecksAndBus(builder, actorType);
             }
 
             return applicationBuilder;
@@ -64,8 +80,7 @@ namespace Anabasis.EventStore
             ConnectionSettings connectionSettings,
             Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
         {
-            if (null != _world) throw new InvalidOperationException("A world already exist");
-
+    
             var eventStoreConnection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
 
             services.AddSingleton<IConnectionStatusMonitor, ConnectionStatusMonitor>();
@@ -80,7 +95,11 @@ namespace Anabasis.EventStore
 
             services.AddTransient<IEventStoreRepository, EventStoreRepository>();
 
-            return _world = new World(services);
+            var world = new World(services);
+
+            services.AddSingleton(world);
+
+            return world;
 
         }
 
@@ -89,7 +108,6 @@ namespace Anabasis.EventStore
             ConnectionSettings connectionSettings,
             Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
         {
-            if (null != _world) throw new InvalidOperationException("A world already exist");
 
             var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
@@ -105,7 +123,11 @@ namespace Anabasis.EventStore
 
             services.AddTransient<IEventStoreRepository, EventStoreRepository>();
 
-            return _world = new World(services);
+            var world = new World(services);
+
+            services.AddSingleton(world);
+
+            return world;
 
         }
 

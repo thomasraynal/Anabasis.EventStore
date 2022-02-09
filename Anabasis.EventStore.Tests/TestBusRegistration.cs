@@ -315,7 +315,7 @@ namespace Anabasis.EventStore.Tests
                                        .Build();
 
 
-            await Task.Delay(200);
+            await Task.Delay(500);
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
@@ -333,7 +333,7 @@ namespace Anabasis.EventStore.Tests
 
             await eventStoreRepository.Emit(new SomeData("thisisit", Guid.NewGuid()));
 
-            await Task.Delay(200);
+            await Task.Delay(500);
 
             Assert.AreEqual(2, testBusRegistrationActor.Events.Count);
             Assert.True(testBusRegistrationActor.Events.Any(ev => ev.EntityId == "thisisit"));

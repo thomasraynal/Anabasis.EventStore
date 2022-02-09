@@ -27,12 +27,6 @@ namespace Anabasis.Common
 
         public bool CanAdd => _queue.Count < _queueMaxSize && !_isAddingCompleted;
 
-        public void CompleteAdding()
-        {
-            _isAddingCompleted = true;
-            _addSignal.Set();
-        }
-
         public void Add(T item)
         {
             if (_isAddingCompleted)
@@ -81,7 +75,8 @@ namespace Anabasis.Common
 
         public void Dispose()
         {
-            CompleteAdding();
+            _isAddingCompleted = true;
+            _addSignal.Set();
         }
 
         public ConcurrentQueue<T> Flush()

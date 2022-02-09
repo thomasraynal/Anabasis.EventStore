@@ -2,7 +2,6 @@ using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Tests.Components;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -142,7 +141,7 @@ namespace Anabasis.EventStore.Tests
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
-            await Task.Delay(100);
+            await Task.Delay(500);
 
             Assert.AreEqual(0, eventCount);
 
@@ -150,7 +149,7 @@ namespace Anabasis.EventStore.Tests
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
-            await Task.Delay(100);
+            await Task.Delay(500);
 
             Assert.AreEqual(1, eventCount);
 

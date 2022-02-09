@@ -7,11 +7,6 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Cache;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Embedded;
-using EventStore.Common.Options;
-using EventStore.Core;
-using EventStore.ClientAPI.SystemData;
 using Anabasis.EventStore.EventProvider;
 using Microsoft.AspNetCore.Builder;
 using System.Collections.Generic;
@@ -21,9 +16,19 @@ using Microsoft.Extensions.Hosting;
 using Anabasis.Common;
 using Anabasis.EventStore.Mvc.Factories;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Tests.Mvc;
 
 namespace Anabasis.EventStore.Tests
 {
+    public static class TestNetCoreMvcTestBed
+    {
+        static TestNetCoreMvcTestBed()
+        {
+            TestBed = new TestBed();
+        }
+
+        public static TestBed TestBed { get; }
+    }
 
     public class TestStatelessActorOneMvc : BaseEventStoreStatelessActor
     {
@@ -112,68 +117,30 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public static class TestBed
-    {
-        public static ClusterVNode ClusterVNode { get; }
-        public static UserCredentials UserCredentials { get; }
-        public static ConnectionSettings ConnectionSettings { get; }
-
-        static TestBed()
-        {
-            UserCredentials = new UserCredentials("admin", "changeit");
-
-
-            ConnectionSettings = ConnectionSettings.Create()
-                .UseDebugLogger()
-                .SetDefaultUserCredentials(UserCredentials)
-                .KeepRetrying()
-                .Build();
-    
-
-            ClusterVNode = EmbeddedVNodeBuilder
-              .AsSingleNode()
-              .RunInMemory()
-              .RunProjections(ProjectionType.All)
-              .StartStandardProjections()
-              .WithWorkerThreads(1)
-              .Build();
-
-        }
-        public static async Task Start()
-        {
-            await ClusterVNode.StartAsync(true);
-        }
-
-        public static async Task Dispose()
-        {
-            await ClusterVNode.StopAsync();
-        }
-    }
-
-    public class TestStartup
+    public class TestNetCoreMvcStartup
     {
         public void ConfigureServices(IServiceCollection services)
         {
 
             var eventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
-            services.AddWorld(TestBed.ClusterVNode, TestBed.ConnectionSettings)
+            services.AddWorld(TestNetCoreMvcTestBed.TestBed.ClusterVNode, TestNetCoreMvcTestBed.TestBed.ConnectionSettings)
 
-                    .AddStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>(ActorConfiguration.Default)
+                    .AddEventStoreStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                   .AddStatefulActor<TestBusRegistrationStatefullActor, SomeDataAggregate>(ActorConfiguration.Default)
+                   .AddEventStoreStatefulActor<TestBusRegistrationStatefullActor, SomeDataAggregate>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                   .AddStatelessActor<TestStatelessActorOneMvc>(ActorConfiguration.Default)
+                   .AddEventStoreStatelessActor<TestStatelessActorOneMvc>(ActorConfiguration.Default)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor();
         }
@@ -193,13 +160,15 @@ namespace Anabasis.EventStore.Tests
         public async Task TearDown()
         {
             _host.Dispose();
-            await TestBed.Dispose();
+            _testServer.Dispose();
+
+            await TestNetCoreMvcTestBed.TestBed.Stop();
         }
 
         [OneTimeSetUp]
-        public async Task SetupFixture()
+        public async Task Setup()
         {
-            await TestBed.Start();
+            await TestNetCoreMvcTestBed.TestBed.Start();
 
             var builder = new WebHostBuilder()
                         .UseKestrel()
@@ -207,7 +176,7 @@ namespace Anabasis.EventStore.Tests
                         {
                             logging.AddDebug();
                         })
-                        .UseStartup<TestStartup>();
+                        .UseStartup<TestNetCoreMvcStartup>();
 
             _testServer = new TestServer(builder);
             _host = _testServer.Host;

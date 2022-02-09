@@ -19,6 +19,7 @@ namespace Anabasis.EventStore.Tests
 
             var dispatchQueue = new DispatchQueue<int>(async (m) =>
             {
+               
                 messages.Add(m);
                 await Task.Delay(messageConsumptionWait);
 

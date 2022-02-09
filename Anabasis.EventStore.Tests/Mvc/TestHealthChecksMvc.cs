@@ -24,9 +24,21 @@ using Anabasis.Common.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System.Net.Http;
 using Anabasis.Common.Actor;
+using Anabasis.EventStore.Tests.Mvc;
 
 namespace Anabasis.EventStore.Tests
 {
+
+    public static class TestHealthChecksMvcTestBed
+    {
+        static TestHealthChecksMvcTestBed()
+        {
+            TestBed = new TestBed();
+        }
+
+        public static TestBed TestBed { get; }
+    }
+
     public class TestWorkingBus : IBus
     {
         public bool IsConnected => true;
@@ -142,44 +154,6 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public static class TestBedHealthChecks
-    {
-        public static ClusterVNode ClusterVNode { get; }
-        public static UserCredentials UserCredentials { get; }
-        public static ConnectionSettings ConnectionSettings { get; }
-
-        static TestBedHealthChecks()
-        {
-            UserCredentials = new UserCredentials("admin", "changeit");
-
-
-            ConnectionSettings = ConnectionSettings.Create()
-                .UseDebugLogger()
-                .SetDefaultUserCredentials(UserCredentials)
-                .KeepRetrying()
-                .Build();
-
-
-            ClusterVNode = EmbeddedVNodeBuilder
-              .AsSingleNode()
-              .RunInMemory()
-              .RunProjections(ProjectionType.All)
-              .StartStandardProjections()
-              .WithWorkerThreads(1)
-              .Build();
-
-        }
-        public static async Task Start()
-        {
-            await ClusterVNode.StartAsync(true);
-        }
-
-        public static async Task Dispose()
-        {
-            await ClusterVNode.StopAsync();
-        }
-    }
-
     public class TestStartupHealthChecks
     {
         public void ConfigureServices(IServiceCollection services)
@@ -187,23 +161,23 @@ namespace Anabasis.EventStore.Tests
 
             var eventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
-            services.AddWorld(TestBed.ClusterVNode, TestBed.ConnectionSettings)
+            services.AddWorld(TestHealthChecksMvcTestBed.TestBed.ClusterVNode, TestHealthChecksMvcTestBed.TestBed.ConnectionSettings)
 
-                    .AddStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>(ActorConfiguration.Default)
+                    .AddEventStoreStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                   .AddStatefulActor<TestBusRegistrationStatefullActor, SomeDataAggregate>(ActorConfiguration.Default)
-                    .WithReadAllFromStartCache(
+                   .AddEventStoreStatefulActor<TestBusRegistrationStatefullActor, SomeDataAggregate>(ActorConfiguration.Default)
+                   .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                   .AddStatelessActor<TestStatelessActorOneMvc>(ActorConfiguration.Default)
+                   .AddEventStoreStatelessActor<TestStatelessActorOneMvc>(ActorConfiguration.Default)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor();
         }
@@ -214,23 +188,22 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestHealthChecks
+    public class TestHealthChecksMvc
     {
         private TestServer _testServer;
         private IWebHost _host;
-        private HttpClient _testServerClient;
 
         [OneTimeTearDown]
         public async Task TearDown()
         {
             _host.Dispose();
-            await TestBed.Dispose();
+            await TestHealthChecksMvcTestBed.TestBed.Stop();
         }
 
         [OneTimeSetUp]
         public async Task SetupFixture()
         {
-            await TestBed.Start();
+            await TestHealthChecksMvcTestBed.TestBed.Start();
 
             var builder = new WebHostBuilder()
                         .UseKestrel()
@@ -238,13 +211,10 @@ namespace Anabasis.EventStore.Tests
                         {
                             logging.AddDebug();
                         })
-                        .UseStartup<TestStartup>();
+                        .UseStartup<TestStartupHealthChecks>();
 
             _testServer = new TestServer(builder);
             _host = _testServer.Host;
-           
-
-
         }
 
         [Test, Order(0)]

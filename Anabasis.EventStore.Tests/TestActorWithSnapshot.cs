@@ -6,7 +6,6 @@ using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Snapshot.InMemory;
-using Anabasis.EventStore.Tests.Components;
 using DynamicData;
 using DynamicData.Binding;
 using EventStore.ClientAPI;

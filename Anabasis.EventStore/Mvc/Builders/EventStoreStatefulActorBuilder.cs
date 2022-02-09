@@ -11,16 +11,18 @@ using Microsoft.Extensions.Logging;
 using EventStore.ClientAPI;
 using Anabasis.Common;
 using Anabasis.EventStore.Mvc.Factories;
+using System.Linq;
 
 namespace Anabasis.EventStore
 {
 
-    public class EventStoreStatefulActorBuilder<TActor, TAggregate> : IStatefulActorBuilder
+    public class EventStoreStatefulActorBuilder<TActor, TAggregate> : IEventStoreStatefulActorBuilder
         where TActor : class, IEventStoreStatefulActor<TAggregate>
         where TAggregate : IAggregate, new()
     {
         private readonly World _world;
         private readonly List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>> _streamsToRegisterTo;
+        private readonly Dictionary<Type, Action<IServiceProvider, IActor>> _busToRegisterTo;
         private readonly IEventStoreActorConfigurationFactory _eventStoreCacheFactory;
         private readonly IActorConfiguration _actorConfiguration;
         private IEventStoreActorConfiguration<TAggregate> _eventStoreActorConfiguration;
@@ -30,12 +32,13 @@ namespace Anabasis.EventStore
             _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>>();
             _eventStoreCacheFactory = eventStoreCacheFactory;
             _actorConfiguration = actorConfiguration;
+            _busToRegisterTo = new Dictionary<Type, Action<IServiceProvider, IActor>>();
             _world = world;
         }
 
         public World CreateActor()
         {
-            _world.StatefulActorBuilders.Add((typeof(TActor), this));
+            _world.EventStoreStatefulActorBuilders.Add((typeof(TActor), this));
             _eventStoreCacheFactory.AddConfiguration<TActor>(_actorConfiguration);
            _eventStoreCacheFactory.AddConfiguration<TActor, TAggregate>(_eventStoreActorConfiguration);
             return _world;
@@ -223,7 +226,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromEndToOneStreamStream(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithSubscribeFromEndToOneStreamStream(
             string streamId,
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
@@ -253,6 +256,32 @@ namespace Anabasis.EventStore
 
         }
 
+        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithBus<TBus>(Action<TActor, TBus> onStartup) where TBus : IBus
+        {
+            var busType = typeof(TBus);
+
+            if (_busToRegisterTo.ContainsKey(busType))
+                throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");
+
+            var onRegistration = new Action<IServiceProvider, IActor>((serviceProvider, actor) =>
+            {
+                var bus = (TBus)serviceProvider.GetService(busType);
+
+                if (null == bus)
+                    throw new InvalidOperationException($"No bus of type {busType} has been registered");
+
+                bus.Initialize().Wait();
+                actor.ConnectTo(bus).Wait();
+
+                onStartup((TActor)actor, bus);
+
+            });
+
+            _busToRegisterTo.Add(busType, onRegistration);
+
+            return this;
+        }
+
         public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>[] GetStreamFactories()
         {
             return _streamsToRegisterTo.ToArray();
@@ -260,7 +289,7 @@ namespace Anabasis.EventStore
 
         public (Type actor, Action<IServiceProvider, IActor> factory)[] GetBusFactories()
         {
-            throw new NotImplementedException();
+            return _busToRegisterTo.Select((keyValue) => (keyValue.Key, keyValue.Value)).ToArray();
         }
     }
 

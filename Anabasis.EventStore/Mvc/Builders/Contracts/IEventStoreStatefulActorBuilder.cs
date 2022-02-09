@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Mvc
 {
-    public interface IStatefulActorBuilder : IStatelessActorBuilder
+    public interface IEventStoreStatefulActorBuilder : IEventStoreStatelessActorBuilder
     {
     }
 }

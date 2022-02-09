@@ -3,7 +3,6 @@ using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Tests.Components;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -295,7 +294,7 @@ namespace Anabasis.EventStore.Tests
             var receiver = new TestActorReceiver(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
             receiver.SubscribeToEventStream(volatileEventStoreStream);
 
-            await Task.Delay(500);
+            await Task.Delay(2000);
 
             var someCommandResponse = await sender.SendEventStore<SomeCommandResponse2>(new SomeCommand2(Guid.NewGuid(), "some-other-stream"), TimeSpan.FromSeconds(5));
 

@@ -33,23 +33,23 @@ namespace Anabasis.EventStore.Demo
 
             services.AddWorld(StaticData.ClusterVNode, connectionSettings)
 
-                    .AddStatelessActor<MarketDataService>(ActorConfiguration.Default)
+                    .AddEventStoreStatelessActor<MarketDataService>(ActorConfiguration.Default)
                     .CreateActor()
 
-                    .AddStatelessActor<TradeService>(ActorConfiguration.Default)
+                    .AddEventStoreStatelessActor<TradeService>(ActorConfiguration.Default)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                    .AddStatefulActor<TradePriceUpdateService, Trade>(ActorConfiguration.Default)
+                    .AddEventStoreStatefulActor<TradePriceUpdateService, Trade>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                     .WithSubscribeFromEndToAllStreams()
                     .CreateActor()
 
-                    .AddStatefulActor<TradeSink, Trade>(ActorConfiguration.Default)
+                    .AddEventStoreStatefulActor<TradeSink, Trade>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                     .CreateActor()
 
-                    .AddStatefulActor<MarketDataSink, MarketData>(ActorConfiguration.Default)
+                    .AddEventStoreStatefulActor<MarketDataSink, MarketData>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
                     .CreateActor();
 

@@ -7,10 +7,11 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Anabasis.Common;
 using System.Linq;
+using Anabasis.EventStore.Mvc;
 
 namespace Anabasis.EventStore
 {
-    public class EventStoreStatelessActorBuilder<TActor> : IStatelessActorBuilder
+    public class EventStoreStatelessActorBuilder<TActor> : IEventStoreStatelessActorBuilder
         where TActor : IEventStoreStatelessActor
     {
         private readonly World _world;
@@ -166,7 +167,7 @@ namespace Anabasis.EventStore
 
         public World CreateActor()
         {
-            _world.StatelessActorBuilders.Add((typeof(TActor), this));
+            _world.EventStoreStatelessActorBuilders.Add((typeof(TActor), this));
             return _world;
         }
 

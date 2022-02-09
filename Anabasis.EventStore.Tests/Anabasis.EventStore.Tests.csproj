@@ -38,20 +38,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="POC\Ex1\" />
-    <Folder Include="POC\Ex2\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\Anabasis.EventStore.Snapshot.InMemory\Anabasis.EventStore.Snapshot.InMemory.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Projections\testProjection.js">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 

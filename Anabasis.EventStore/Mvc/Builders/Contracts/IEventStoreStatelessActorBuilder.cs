@@ -4,11 +4,10 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.Mvc
 {
-    public interface IStatelessActorBuilder
+    public interface IEventStoreStatelessActorBuilder: IStatelessActorBuilder
     {
         Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreStream>[] GetStreamFactories();
-        (Type actor, Action<IServiceProvider, IActor> factory)[] GetBusFactories();
     }
 }
