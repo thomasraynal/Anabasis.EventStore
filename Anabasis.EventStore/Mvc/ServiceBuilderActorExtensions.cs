@@ -10,7 +10,6 @@ using EventStore.Core;
 using EventStore.ClientAPI.Embedded;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Anabasis.Common.HealthChecks;
-using Anabasis.EventStore.Mvc.Builders;
 using Anabasis.Common;
 using Anabasis.EventStore.Mvc;
 

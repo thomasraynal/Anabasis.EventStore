@@ -1,4 +1,5 @@
-﻿using Anabasis.EventStore.Connection;
+﻿using Anabasis.Common;
+using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Standalone;
 using Lamar;
 using Microsoft.Extensions.Logging;
@@ -6,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.Common.Actor
+namespace Anabasis.EventStore.Standalone
 {
     public class StatelessActorBuilder<TActor, TRegistry>
       where TActor : IActor

@@ -197,7 +197,7 @@ namespace Anabasis.EventStore
             return this;
         }
 
-        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromStartToOneStreamStream(
+        public EventStoreStatefulActorBuilder<TActor,  TAggregate> WithSubscribeFromStartToOneStream(
             string streamId,
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
@@ -226,7 +226,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithSubscribeFromEndToOneStreamStream(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithSubscribeFromEndToOneStream(
             string streamId,
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)

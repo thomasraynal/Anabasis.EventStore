@@ -52,7 +52,7 @@ namespace Anabasis.EventStore
             return this;
         }
 
-        public EventStoreStatelessActorBuilder<TActor> WithSubscribeFromStartToOneStreamStream(
+        public EventStoreStatelessActorBuilder<TActor> WithSubscribeFromStartToOneStream(
             string streamId,
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
@@ -82,7 +82,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public EventStoreStatelessActorBuilder<TActor> WithSubscribeFromEndToOneStreamStream(
+        public EventStoreStatelessActorBuilder<TActor> WithSubscribeFromEndToOneStream(
             string streamId,
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
@@ -139,7 +139,7 @@ namespace Anabasis.EventStore
             return this;
         }
 
-        public EventStoreStatelessActorBuilder<TActor> WithBus<TBus>(Action<TActor, TBus> onStartup) where TBus : IBus
+        public EventStoreStatelessActorBuilder<TActor> WithBus<TBus>(Action<TActor, TBus> onStartup = null) where TBus : IBus
         {
             var busType = typeof(TBus);
 
@@ -156,7 +156,7 @@ namespace Anabasis.EventStore
                 bus.Initialize().Wait();
                 actor.ConnectTo(bus).Wait();
 
-                onStartup((TActor)actor, bus);
+                onStartup?.Invoke((TActor)actor, bus);
 
             });
 

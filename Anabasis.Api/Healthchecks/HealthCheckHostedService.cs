@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common.HealthChecks;
+using Anabasis.Common.Utilities;
 using DynamicData.Kernel;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -42,12 +43,20 @@ namespace Anabasis.Api
             if (cancellationToken.IsCancellationRequested) return;
 
             var healthCheckService = _serviceProvider.GetRequiredService<HealthCheckService>();
-            var dynamicHealthCheckProvider = _serviceProvider.GetRequiredService<IDynamicHealthCheckProvider>();
 
             var healthCheckServiceHealthReport = await healthCheckService.CheckHealthAsync(cancellationToken);
-            var dynamicHealthCheckProviderHealthReport = await dynamicHealthCheckProvider.CheckHealth(cancellationToken);
 
-            var currentStatus = new[] { healthCheckServiceHealthReport.Status, dynamicHealthCheckProviderHealthReport.Status }.Min();
+            var dynamicHealthCheckProvider = _serviceProvider.GetRequiredService<IDynamicHealthCheckProvider>();
+
+            if (null != dynamicHealthCheckProvider)
+            {
+                var dynamicHealthCheckProviderHealthReport = await dynamicHealthCheckProvider.CheckHealth(cancellationToken);
+
+                healthCheckServiceHealthReport = healthCheckServiceHealthReport.Combine(dynamicHealthCheckProviderHealthReport);
+
+            }
+
+            var currentStatus = healthCheckServiceHealthReport.Status;
             var statusChanged = _previousStatus != currentStatus;
             var notHealthy = currentStatus != HealthStatus.Healthy;
 
@@ -68,14 +77,6 @@ namespace Anabasis.Api
                     _logger.LogInformation($"================> HEALTH STATUS : { currentStatus.ToString().ToUpper() } =================");
 
                     foreach (var entry in healthCheckServiceHealthReport.Entries)
-                    {
-                        var key = entry.Key;
-                        var value = entry.Value;
-
-                        _logger.LogInformation($"{key}: [{value.Status}] {value.Description}");
-                    }
-
-                    foreach (var entry in dynamicHealthCheckProviderHealthReport.Entries)
                     {
                         var key = entry.Key;
                         var value = entry.Value;

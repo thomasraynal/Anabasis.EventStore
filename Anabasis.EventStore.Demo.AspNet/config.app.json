@@ -1,0 +1,31 @@
+{
+  "appConfigurationOptions": {
+    "applicationName": "App",
+    "sentryDsn": "https://d35eb7346892458899aac2541a20115f@o1067128.ingest.sentry.io/6060457",
+    "apiVersion": "1.0",
+    "docUrl": "https://api-docs.beezup.com/#operation"
+  },
+  "AllowedHosts": "*",
+  "IpRateLimiting": {
+    "EnableEndpointRateLimiting": false,
+    //"StackBlockedRequests": false,
+    //"RealIpHeader": "X-Real-IP",
+    //"ClientIdHeader": "X-ClientId",
+    "HttpStatusCode": 429,
+    //"IpWhitelist": [ "127.0.0.1", "::1/10", "192.168.0.0/24" ],
+    //"EndpointWhitelist": [ "get:/api/license", "*:/api/status" ],
+    //"ClientWhitelist": [ "dev-id-1", "dev-id-2" ],
+    "GeneralRules": [
+      {
+        "Endpoint": "*:/api",
+        "Period": "1s",
+        "Limit": 1
+      },
+      {
+        "Endpoint": "*:/graphql",
+        "Period": "1s",
+        "Limit": 1
+      }
+    ]
+  }
+}

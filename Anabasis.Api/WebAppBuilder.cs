@@ -2,6 +2,8 @@
 using Anabasis.Api.Filters;
 using Anabasis.Api.Middleware;
 using Anabasis.Common;
+using Anabasis.Common.HealthChecks;
+using Anabasis.Common.Utilities;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -20,9 +22,13 @@ using Microsoft.OpenApi.Models;
 using Serilog;
 using Serilog.Events;
 using System;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
+using System.Text;
+using System.Text.Json;
+using System.Threading;
 
 namespace Anabasis.Api
 {
@@ -32,6 +38,7 @@ namespace Anabasis.Api
         public static IWebHostBuilder Create<THost>(
             int apiPort = 80,
             int? memoryCheckTresholdInMB = 200,
+            bool useCors = false,
             Action<MvcOptions> configureMvcBuilder = null,
             Action<IMvcBuilder> configureMvc = null,
             Action<MvcNewtonsoftJsonOptions> configureJson = null,
@@ -104,7 +111,7 @@ namespace Anabasis.Api
                 .ConfigureServices((context, services) =>
                 {
 
-                    ConfigureServices<THost>(services, appContext, configureMvcBuilder, configureMvc, configureJson);
+                    ConfigureServices<THost>(services, useCors, appContext, configureMvcBuilder, configureMvc, configureJson);
 
                     configureServiceCollection?.Invoke(services, configurationRoot);
 
@@ -123,6 +130,7 @@ namespace Anabasis.Api
 
         private static void ConfigureServices<THost>(
             IServiceCollection services,
+            bool useCors,
             AnabasisAppContext appContext,
             Action<MvcOptions> configureMvcBuilder = null,
             Action<IMvcBuilder> configureMvc = null,
@@ -217,18 +225,19 @@ namespace Anabasis.Api
                         options.Providers.Add<GzipCompressionProvider>();
                     });
 
-#if DEBUG
-            services.AddCors(options =>
+            if (useCors)
             {
-                options.AddPolicy(name: "cors",
-                                  builder =>
-                                  {
-                                      builder.AllowAnyOrigin()
-                              .AllowAnyMethod()
-                              .AllowAnyHeader();
-                                  });
-            });
-#endif
+                services.AddCors(options =>
+                {
+                    options.AddPolicy(name: "cors",
+                                      builder =>
+                                      {
+                                          builder.AllowAnyOrigin()
+                                  .AllowAnyMethod()
+                                  .AllowAnyHeader();
+                                      });
+                });
+            }
 
             services.AddSwaggerGen(swaggerGenOptions =>
             {
@@ -296,7 +305,25 @@ namespace Anabasis.Api
                         [HealthStatus.Healthy] = StatusCodes.Status200OK,
                         [HealthStatus.Degraded] = StatusCodes.Status200OK,
                         [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
+                    },
+                    ResponseWriter = async (httpContext, healthReport) =>
+                    {
+                        var combinedHealthReport = healthReport;
+
+                        var dynamicHealthCheckProvider = httpContext.RequestServices.GetService<IDynamicHealthCheckProvider>();
+
+                        if (null != dynamicHealthCheckProvider)
+                        {
+                            var dynamicHealthCheckHealthReport = await dynamicHealthCheckProvider.CheckHealth(CancellationToken.None);
+
+                            combinedHealthReport = healthReport.Combine(dynamicHealthCheckHealthReport);
+                        }
+
+                        httpContext.Response.ContentType = "application/json; charset=utf-8";
+
+                        await httpContext.Response.WriteAsync(combinedHealthReport.ToJson());
                     }
+
                 });
             });
 

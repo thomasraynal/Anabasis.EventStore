@@ -6,15 +6,24 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Carter" Version="5.2.0" />
     <PackageReference Include="Microsoft.AspNetCore" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Api\Anabasis.Api.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore.Demo\Anabasis.EventStore.Demo.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.app.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="config.group.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
 
