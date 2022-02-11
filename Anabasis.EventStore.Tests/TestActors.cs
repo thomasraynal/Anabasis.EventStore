@@ -143,7 +143,11 @@ namespace Anabasis.EventStore.Tests
         [OneTimeTearDown]
         public async Task TearDown()
         {
+            _testActorOne.Dispose();
+            _testActorTwo.Dispose();
+
             await _clusterVNode.StopAsync();
+ 
         }
 
         private async Task CreateSubscriptionGroups()
@@ -299,6 +303,10 @@ namespace Anabasis.EventStore.Tests
             var someCommandResponse = await sender.SendEventStore<SomeCommandResponse2>(new SomeCommand2(Guid.NewGuid(), "some-other-stream"), TimeSpan.FromSeconds(5));
 
             Assert.NotNull(someCommandResponse);
+
+            sender.Dispose();
+            receiver.Dispose();
+
         }
 
     }

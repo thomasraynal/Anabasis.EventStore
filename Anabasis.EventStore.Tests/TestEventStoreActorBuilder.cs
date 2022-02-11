@@ -220,9 +220,11 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(100);
 
             Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
+
+            testActorAutoBuildOne.Dispose();
+            testActorAutoBuildTwo.Dispose();
         }
 
-        [Ignore("Non deterministic")]
         [Test, Order(1)]
         public async Task ShouldBuildFromActorBuilderAndRunActors()
         {
@@ -249,6 +251,9 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(1000);
 
             Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
+
+            testActorAutoBuildOne.Dispose();
+            testActorAutoBuildTwo.Dispose();
         }
 
     }

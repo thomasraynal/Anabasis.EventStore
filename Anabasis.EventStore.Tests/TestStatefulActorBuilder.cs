@@ -202,6 +202,9 @@ namespace Anabasis.EventStore.Tests
 
             Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrent($"{aggregateOne}").AppliedEvents.Length);
             Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrent($"{aggregateTwo}").AppliedEvents.Length);
+
+            testActorAutoBuildOne.Dispose();
+            testActorAutoBuildTwo.Dispose();
         }
 
     }

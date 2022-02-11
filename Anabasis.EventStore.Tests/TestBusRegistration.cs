@@ -253,6 +253,8 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(200);
 
             Assert.AreEqual(1, testBusRegistrationActor.Events.Count);
+
+            testBusRegistrationActor.Dispose();
         }
 
         [Test, Order(1)]
@@ -274,6 +276,8 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(200);
 
             Assert.AreEqual(1, testBusRegistrationActor.Events.Count);
+
+            testBusRegistrationActor.Dispose();
         }
 
         [Test, Order(2)]
@@ -299,6 +303,8 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(200);
 
             Assert.AreEqual(2, testBusRegistrationActor.Events.Count);
+
+            testBusRegistrationActor.Dispose();
         }
 
         [Test, Order(3)]
@@ -337,6 +343,8 @@ namespace Anabasis.EventStore.Tests
 
             Assert.AreEqual(2, testBusRegistrationActor.Events.Count);
             Assert.True(testBusRegistrationActor.Events.Any(ev => ev.EntityId == "thisisit"));
+
+            testBusRegistrationActor.Dispose();
         }
 
     }

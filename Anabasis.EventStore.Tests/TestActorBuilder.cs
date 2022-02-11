@@ -1,6 +1,7 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Actor;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Standalone;
 using Lamar;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -136,6 +137,8 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(200);
 
             Assert.AreEqual(1, testBusRegistrationActor.Events.Count);
+
+            testBusRegistrationActor.Dispose();
         }
     }
 }

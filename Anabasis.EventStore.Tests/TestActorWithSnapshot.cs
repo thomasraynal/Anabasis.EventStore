@@ -56,30 +56,6 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestStatefulActorWithSnapshot : BaseEventStoreStatefulActor<SomeDataAggregate>
-    {
-        public TestStatefulActorWithSnapshot(SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache,
-          IEventStoreAggregateRepository eventStoreRepository) : base(new ActorConfiguration(), eventStoreRepository, catchupEventStoreCache)
-        {
-            Events = new List<SomeRandomEvent>();
-        }
-
-        public List<SomeRandomEvent> Events { get; }
-
-        public Task Handle(SomeRandomEvent someMoreData)
-        {
-            Events.Add(someMoreData);
-
-            return Task.CompletedTask;
-        }
-
-        public override void Dispose()
-        {
-            base.Dispose();
-        }
-
-    }
-
     [TestFixture]
     public class TestActorWithSnapshot
     {

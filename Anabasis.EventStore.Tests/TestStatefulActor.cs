@@ -82,6 +82,7 @@ namespace Anabasis.EventStore.Tests
         [OneTimeTearDown]
         public async Task TearDown()
         {
+            _testActorOne.Dispose();
             await _clusterVNode.StopAsync();
         }
 
@@ -168,6 +169,8 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(500);
 
             Assert.AreEqual(1, _testActorOne.Events.Count);
+
+            _testActorOne.Dispose();
 
         }
     }
