@@ -6,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Anabasis.Common;
 using Anabasis.EventStore.Demo.AspNet;
 using Microsoft.AspNetCore.Builder;
+using Anabasis.EventStore.Demo.Bus;
 
 namespace Anabasis.EventStore.Demo
 {
@@ -30,33 +31,38 @@ namespace Anabasis.EventStore.Demo
                             var tradeDataEventProvider = new DefaultEventTypeProvider<Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
                             var marketDataEventProvider = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
 
-                            serviceCollection.AddSingleton<MarketDataBus>();
+                            serviceCollection.AddSingleton<IMarketDataBus, MarketDataBus>();
 
                             serviceCollection.AddWorld(StaticData.ClusterVNode, connectionSettings)
 
-                                    .AddEventStoreStatelessActor<MarketDataService>(ActorConfiguration.Default)
-                                    .WithBus<MarketDataBus>()
-                                    .CreateActor()
-
+               
                                     .AddEventStoreStatelessActor<TradeService>(ActorConfiguration.Default)
-                                    .WithSubscribeFromEndToAllStreams()
-                                    .CreateActor()
+                                        .WithSubscribeFromEndToAllStreams()
+                                        .CreateActor()
 
                                     .AddEventStoreStatefulActor<TradePriceUpdateService, Trade>(ActorConfiguration.Default)
-                                    .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                    .WithSubscribeFromEndToAllStreams()
-                                    .CreateActor()
+                                        .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+                                        .WithSubscribeFromEndToAllStreams()
+                                        .WithBus<IMarketDataBus>((actor, bus) =>
+                                        {
+                                            actor.SubscribeMarketDataBus();
+                                        })
+                                        .CreateActor()
 
                                     .AddEventStoreStatefulActor<TradeSink, Trade>(ActorConfiguration.Default)
-                                    .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                    .CreateActor()
+                                        .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+                                        .CreateActor()
 
-                                    .AddEventStoreStatefulActor<MarketDataSink, MarketData>(ActorConfiguration.Default)
-                                    .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
-                                    .CreateActor();
+                                    .AddStatelessActor<MarketDataSink>(ActorConfiguration.Default)
+                                        .WithBus<IMarketDataBus>((actor, bus) =>
+                                        {
+                                            actor.SubscribeMarketDataBus();
+                                        })
+                                        .CreateActor();
 
 
                             serviceCollection.AddHostedService<HostedService>();
+
                         },
                         configureApplicationBuilder: (app) =>
                         {

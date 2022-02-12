@@ -17,13 +17,13 @@ namespace Anabasis.EventStore.Demo
         [HttpGet]
         public IActionResult GetTradedCurrencyPairs()
         {
-            return Ok(_marketDataSink.State.GetCurrents());
+            return Ok(_marketDataSink.CurrentPrices.Items);
         }
 
         [HttpGet("{id}")]
         public IActionResult GetOneTradedCurrencyPair(string currencyId)
         {
-            var currencyPair = _marketDataSink.State.GetCurrents().FirstOrDefault(marketData => marketData.EntityId == currencyId);
+            var currencyPair = _marketDataSink.CurrentPrices.Items.FirstOrDefault(marketData => marketData.EntityId == currencyId);
             return Ok(currencyPair);
         }
 

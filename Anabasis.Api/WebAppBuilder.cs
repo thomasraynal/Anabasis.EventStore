@@ -90,7 +90,7 @@ namespace Anabasis.Api
                .WriteTo.Sentry(
                     dsn: appContext.SentryDsn,
                     sampleRate: 1f,
-                    debug: true);
+                    debug: false);
 
             configureLogging?.Invoke(loggerConfiguration);
 
@@ -142,8 +142,7 @@ namespace Anabasis.Api
             const long MBytes = 1024L * 1024L;
 
             services.AddHealthChecks()
-                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * MBytes, "Degraded working set", HealthStatus.Degraded)
-                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Unhealthy working set", HealthStatus.Unhealthy);
+                    .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Working set", HealthStatus.Unhealthy);
 
             services.AddHostedService<HealthCheckHostedService>();
 

@@ -1,4 +1,5 @@
 using Anabasis.Common;
+using Anabasis.EventStore.Demo.Bus;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Standalone;
 using System;
@@ -16,12 +17,9 @@ namespace Anabasis.EventStore.Demo
             {
 
                 var connectionSettings = StaticData.GetConnectionSettings();
+
                 var tradeDataEventProvider = new DefaultEventTypeProvider<Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
                 var marketDataEventProvider = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
-
-                var marketDataService = EventStoreStatelessActorBuilder<MarketDataService, DemoSystemRegistry>
-                                                .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
-                                                .Build();
 
                 var tradeService = EventStoreStatelessActorBuilder<TradeService, DemoSystemRegistry>
                                                 .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
@@ -32,6 +30,10 @@ namespace Anabasis.EventStore.Demo
                                                 .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
                                                 .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                                                 .WithSubscribeFromEndToAllStream()
+                                                .WithBus<IMarketDataBus>((actor, bus) =>
+                                                {
+                                                    actor.SubscribeMarketDataBus();
+                                                })
                                                 .Build();
 
                 var tradeSink = EventStoreStatefulActorBuilder<TradeSink, Trade, DemoSystemRegistry>
@@ -39,12 +41,15 @@ namespace Anabasis.EventStore.Demo
                                                 .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
                                                 .Build();
 
-                var marketDataSink = EventStoreStatefulActorBuilder<MarketDataSink, MarketData, DemoSystemRegistry>
-                                                .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
-                                                .WithReadAllFromStartCache(eventTypeProvider: marketDataEventProvider)
+                var marketDataSink = StatelessActorBuilder<MarketDataSink, DemoSystemRegistry>
+                                                .Create(ActorConfiguration.Default)
+                                                .WithBus<IMarketDataBus>((actor, bus) =>
+                                                {
+                                                    actor.SubscribeMarketDataBus();
+                                                })
                                                 .Build();
 
-                var marketDataCache = marketDataSink.State.AsObservableCache().Connect();
+                var marketDataCache = marketDataSink.CurrentPrices.Connect();
                 var tradeCache = tradeSink.State.AsObservableCache().Connect();
 
                 tradeCache.PrintTradeChanges();

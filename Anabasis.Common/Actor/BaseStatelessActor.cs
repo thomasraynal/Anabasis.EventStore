@@ -162,7 +162,7 @@ namespace Anabasis.Common
                     throw new InvalidOperationException($"Bus of type {busType} is not registered");
                 }
 
-                _connectedBus[busType] = candidate;
+                return (TBus)candidate;
             }
 
             return (TBus)_connectedBus[busType];
@@ -201,7 +201,7 @@ namespace Anabasis.Common
         //todo: add event store bus
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            var healthCheckDescription = "Actor HealthChecks";
+            var healthCheckDescription = $"{Id} HealthChecks";
 
             if (_connectedBus.Count == 0) return new HealthCheckResult(HealthStatus.Healthy, healthCheckDescription);
 

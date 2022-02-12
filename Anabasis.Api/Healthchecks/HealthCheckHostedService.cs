@@ -5,12 +5,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
-using Serilog;
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Concurrency;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -31,11 +27,11 @@ namespace Anabasis.Api
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-
             await DoHealthCheck(cancellationToken);
 
             _doHealthCheck = TaskPoolScheduler.Default
                 .ScheduleRecurringAction(TimeSpan.FromSeconds(10), async () => await DoHealthCheck(cancellationToken));
+
         }
 
         private async Task DoHealthCheck(CancellationToken cancellationToken)
@@ -67,27 +63,37 @@ namespace Anabasis.Api
 
                 if (statusChanged)
                 {
-                    _logger.LogInformation($"================> HEALTH STATUS CHANGED from {_previousStatus?.ToString() ?? "<unknown>"} to {currentStatus}");
+                    _logger.LogInformation($"[HEALTHCHECK] STATUS CHANGED from {_previousStatus?.ToString() ?? "<unknown>"} to {currentStatus}");
                 }
 
                 _previousStatus = currentStatus;
 
                 if (notHealthy)
                 {
-                    _logger.LogInformation($"================> HEALTH STATUS : { currentStatus.ToString().ToUpper() } =================");
+                    _logger.LogInformation($"[HEALTHCHECK] STATUS : { currentStatus.ToString().ToUpper() } =================");
 
                     foreach (var entry in healthCheckServiceHealthReport.Entries)
                     {
-                        var key = entry.Key;
-                        var value = entry.Value;
+                        var healthCheckReportKey = entry.Key;
+                        var healthCheckReportEntry = entry.Value;
 
-                        _logger.LogInformation($"{key}: [{value.Status}] {value.Description}");
+                        _logger.LogInformation($"[HEALTHCHECK]   {healthCheckReportKey}: [{healthCheckReportEntry.Status}] {healthCheckReportEntry.Description}");
+
+                        if(null != healthCheckReportEntry.Exception)
+                        {
+                            _logger.LogError(healthCheckReportEntry.Exception, string.Empty);
+                        }
+
+                        foreach (var healthCheckReportEntryData in healthCheckReportEntry.Data)
+                        {
+                            _logger.LogInformation($"[HEALTHCHECK]       {healthCheckReportEntryData.Key}: [{healthCheckReportEntryData.Value}]");
+                        }
                     }
-                }
 
+                }
             }
         }
-           
+
         public Task StopAsync(CancellationToken cancellationToken)
         {
             _doHealthCheck.Dispose();
@@ -95,4 +101,5 @@ namespace Anabasis.Api
             return Task.CompletedTask;
         }
     }
+
 }

@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Demo.AspNet
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
-            var marketDataCache = _marketDataSink.State.AsObservableCache().Connect();
+            var marketDataCache = _marketDataSink.CurrentPrices.Connect();
             var tradeCache = _tradeSink.State.AsObservableCache().Connect();
 
             _cleanUp.Add(tradeCache.PrintTradeChanges());

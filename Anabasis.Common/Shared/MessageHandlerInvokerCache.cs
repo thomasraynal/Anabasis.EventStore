@@ -21,11 +21,16 @@ namespace Anabasis.Common
 
             public override bool Equals(object obj)
             {
-                return base.Equals(obj);
+                return obj is MessageHandlerInvokerCacheKey && base.Equals(obj);
             }
             public override int GetHashCode()
             {
-                return HandlerType.GetHashCode() ^ MessageHandlerType.GetHashCode();
+                unchecked
+                {
+                    var hashCode = HandlerType.GetHashCode();
+                    hashCode = (hashCode * 397) ^ MessageHandlerType.GetHashCode();
+                    return hashCode;
+                }
             }
         }
 

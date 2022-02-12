@@ -1,4 +1,5 @@
-﻿using Lamar;
+﻿using Anabasis.EventStore.Demo.Bus;
+using Lamar;
 using System;
 using System.Collections.Generic;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Anabasis.EventStore.Demo
     {
         public DemoSystemRegistry()
         {
-            //For<IStaticData>().Use<StaticData>();
+            For<IMarketDataBus>().Use<MarketDataBus>();
         }
     }
 }
