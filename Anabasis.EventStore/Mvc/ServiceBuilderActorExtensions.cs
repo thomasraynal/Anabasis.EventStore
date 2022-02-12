@@ -74,6 +74,16 @@ namespace Anabasis.EventStore
             return applicationBuilder;
         }
 
+        public static World AddWorld(this IServiceCollection services)
+        {
+            var world = new World(services, false);
+
+            services.AddSingleton(world);
+
+            return world;
+
+        }
+
         public static World AddWorld(this IServiceCollection services,
             string eventStoreUrl,
             ConnectionSettings connectionSettings,
@@ -94,7 +104,7 @@ namespace Anabasis.EventStore
 
             services.AddTransient<IEventStoreRepository, EventStoreRepository>();
 
-            var world = new World(services);
+            var world = new World(services, true);
 
             services.AddSingleton(world);
 
@@ -122,7 +132,7 @@ namespace Anabasis.EventStore
 
             services.AddTransient<IEventStoreRepository, EventStoreRepository>();
 
-            var world = new World(services);
+            var world = new World(services, true);
 
             services.AddSingleton(world);
 

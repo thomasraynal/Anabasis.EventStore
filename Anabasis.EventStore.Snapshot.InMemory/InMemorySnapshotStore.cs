@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.Snapshot.InMemory
           }
         }
 
-        return base.SaveChangesAsync();
+        return base.SaveChangesAsync(cancellationToken);
       }
 
     }

@@ -17,15 +17,19 @@ namespace Anabasis.EventStore
     public class World
     {
         internal List<(Type actorType, IEventStoreStatefulActorBuilder builder)> EventStoreStatefulActorBuilders { get; }
+
         internal List<(Type actorType, IEventStoreStatelessActorBuilder builder)> EventStoreStatelessActorBuilders { get; }
         internal List<(Type actorType, IStatelessActorBuilder builder)> StatelessActorBuilders { get; }
 
         internal IServiceCollection ServiceCollection { get; }
 
         private readonly IEventStoreActorConfigurationFactory _eventStoreCacheFactory;
+        private readonly bool _useEventStore;
 
-        internal World(IServiceCollection services)
+        internal World(IServiceCollection services, bool useEventStore)
         {
+            _useEventStore = useEventStore;
+
             EventStoreStatelessActorBuilders = new List<(Type, IEventStoreStatelessActorBuilder)>();
             EventStoreStatefulActorBuilders = new List<(Type actorType, IEventStoreStatefulActorBuilder builder)>();
             StatelessActorBuilders = new List<(Type actorType, IStatelessActorBuilder builder)>();
@@ -39,7 +43,13 @@ namespace Anabasis.EventStore
             ServiceCollection.AddSingleton(_eventStoreCacheFactory);
         }
 
-        public void EnsureActorNotAlreadyRegistered<TActor>()
+        private void EnsureIsEventStoreWorld()
+        {
+            if (!_useEventStore)
+                throw new InvalidOperationException("This world does not support eventstore - use another world builder method");
+        }
+
+        private void EnsureActorNotAlreadyRegistered<TActor>()
         {
             if (StatelessActorBuilders.Any(statefulActorBuilder => statefulActorBuilder.actorType == typeof(TActor)) ||
             EventStoreStatefulActorBuilders.Any(eventStoreStatefulActorBuilder => eventStoreStatefulActorBuilder.actorType == typeof(TActor)) ||
@@ -53,6 +63,7 @@ namespace Anabasis.EventStore
         public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IActorConfiguration actorConfiguration)
             where TActor : class, IActor
         {
+
             EnsureActorNotAlreadyRegistered<TActor>();
 
             _eventStoreCacheFactory.AddConfiguration<TActor>(actorConfiguration);
@@ -68,6 +79,9 @@ namespace Anabasis.EventStore
         public EventStoreStatelessActorBuilder<TActor> AddEventStoreStatelessActor<TActor>(IActorConfiguration actorConfiguration)
             where TActor : class, IEventStoreStatelessActor
         {
+
+            EnsureIsEventStoreWorld();
+
             EnsureActorNotAlreadyRegistered<TActor>();
 
             _eventStoreCacheFactory.AddConfiguration<TActor>(actorConfiguration);
@@ -84,6 +98,8 @@ namespace Anabasis.EventStore
             where TActor : class, IEventStoreStatefulActor<TAggregate>
             where TAggregate : IAggregate, new()
         {
+
+            EnsureIsEventStoreWorld();
 
             EnsureActorNotAlreadyRegistered<TActor>();
 

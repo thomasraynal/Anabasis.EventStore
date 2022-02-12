@@ -238,5 +238,6 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(2, testStatefulActorTwoMvc.State.GetCurrents().Length);
         }
 
+
     }
 }

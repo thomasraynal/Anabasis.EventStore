@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System;
@@ -31,6 +32,10 @@ namespace Anabasis.EventStore.Tests
         public TestStatelessActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
             ProcessedEvents = new List<IEvent>();
+        }
+
+        public TestStatelessActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
+        {
         }
 
         public async Task Handle(EventA eventA)
