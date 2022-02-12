@@ -102,17 +102,16 @@ namespace Anabasis.Common
             }
         }
 
-        public async Task OnEventReceived(IEvent @event, TimeSpan? timeout = null)
+        public void OnEventReceived(IEvent @event, TimeSpan? timeout = null)
         {
-            var timeoutDateTime = timeout == null ? DateTime.MaxValue : DateTime.UtcNow.Add(timeout.Value);
+             timeout = timeout == null ? TimeSpan.MaxValue : timeout.Value;
 
-            while (!_dispatchQueue.CanEnqueue())
+            if(!_dispatchQueue.CanEnqueue())
             {
-                if (DateTime.UtcNow > timeoutDateTime)
-                    throw new TimeoutException("Unable to process event - timout reached");
+                SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue(), timeout.Value.Milliseconds);
 
-                //maybe think of something more optimized - no thread destack, some kind of event signaling?
-                await Task.Delay(200);
+                if(!_dispatchQueue.CanEnqueue())
+                    throw new TimeoutException("Unable to process event - timout reached");
             }
 
             _dispatchQueue.Enqueue(@event);

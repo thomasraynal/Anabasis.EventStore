@@ -35,7 +35,7 @@ namespace Anabasis.EventStore.Actor
 
             _eventStoreStreams.Add(eventStoreStream);
 
-            var onEventReceivedDisposable = eventStoreStream.OnEvent().Subscribe(async @event => await OnEventReceived(@event));
+            var onEventReceivedDisposable = eventStoreStream.OnEvent().Subscribe(@event => OnEventReceived(@event));
 
             if (closeSubscriptionOnDispose)
             {

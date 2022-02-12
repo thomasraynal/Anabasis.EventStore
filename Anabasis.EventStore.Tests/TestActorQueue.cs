@@ -61,20 +61,20 @@ namespace Anabasis.EventStore.Tests
 
             var cancellationTokenSource = new CancellationTokenSource();
 
-            var producerOneTask = Task.Run(async() =>
+            var producerOneTask = Task.Run(() =>
             {
                 while (true)
                 {
-                    await testStatelessActor.OnEventReceived(getEventA());
+                     testStatelessActor.OnEventReceived(getEventA());
                 }
 
             }, cancellationTokenSource.Token);
 
-            var producerTwoTask = Task.Run(async () =>
+            var producerTwoTask = Task.Run( () =>
             {
                 while (true)
                 {
-                    await testStatelessActor.OnEventReceived(getEventB());
+                     testStatelessActor.OnEventReceived(getEventB());
 
                 }
             }, cancellationTokenSource.Token);

@@ -15,7 +15,9 @@ namespace Anabasis.EventStore.Demo.Bus
 
             var dispose = marketDataBus.Subscribe(actor.Id,(marketDataChanged) =>
              {
-                 return actor.OnEventReceived(marketDataChanged);
+                  actor.OnEventReceived(marketDataChanged);
+
+                 return Task.CompletedTask;
              });
 
             actor.AddDisposable(dispose);

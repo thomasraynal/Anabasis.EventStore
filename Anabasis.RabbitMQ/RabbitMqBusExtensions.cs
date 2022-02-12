@@ -44,7 +44,9 @@ namespace Anabasis.RabbitMQ
 
             var rabbitMqSubscription = new RabbitMqEventSubscription<TEvent>(exchange, (@event) =>
             {
-                return actor.OnEventReceived(@event);
+                 actor.OnEventReceived(@event);
+
+                return Task.CompletedTask;
 
             }, routingStrategy);
 
