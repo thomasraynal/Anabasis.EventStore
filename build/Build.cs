@@ -155,6 +155,7 @@ class Build : NukeBuild
 
     Target Test => _ => _
         .DependsOn(Publish)
+        .ProceedAfterFailure()
         .Executes(() =>
         {
             var exceptions = new List<Exception>();

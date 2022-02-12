@@ -244,6 +244,11 @@ namespace Anabasis.Poc
         {
             throw new NotImplementedException();
         }
+
+        void IActor.OnEventReceived(IEvent @event, TimeSpan? timeout)
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public interface IStatefulActor : IStatelessActor

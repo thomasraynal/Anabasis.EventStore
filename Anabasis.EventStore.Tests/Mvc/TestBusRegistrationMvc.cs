@@ -235,7 +235,7 @@ namespace Anabasis.EventStore.Tests
 
             bus.Push(new SomeData("entityId", Guid.NewGuid()));
 
-            await Task.Delay(500);
+            await Task.Delay(1000);
 
             Assert.AreEqual(1, testBusRegistrationEventStoreStatelessActorMvc.Events.Count);
             Assert.AreEqual(1, testBusRegistrationEventStoreStatefullActorMvc.Events.Count);
