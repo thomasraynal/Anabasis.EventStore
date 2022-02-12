@@ -46,14 +46,16 @@ namespace Anabasis.Deployment
         [Parameter("Set the build environment")]
         public AnabasisBuildEnvironment AnabasisBuildEnvironment;
 
+        [Required]
+        [Parameter("Kubernetes cluster configuration file")]
+        public readonly AbsolutePath KubeConfigPath;
+
         [Parameter("Solution source directory")]
         public AbsolutePath SourceDirectory = RootDirectory / "src";
 
         [Parameter("Solution test directory")]
         public AbsolutePath TestsDirectory = RootDirectory / "tests";
 
-        [Parameter("Kubernetes cluster configuration file")]
-        public readonly AbsolutePath KubeConfigPath = RootDirectory / ".kube" / "kubeconfig";
         public AbsolutePath NukeBuildDirectory => RootDirectory / "build";
         public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
 
