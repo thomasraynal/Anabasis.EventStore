@@ -1,7 +1,5 @@
-using Anabasis.EventStore.Shared;
+using Anabasis.Common;
 using System;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 
 namespace Anabasis.EventStore.Demo
 {

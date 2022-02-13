@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 
 
-namespace Anabasis.EventStore.Shared
+namespace Anabasis.Common
 {
 
     public abstract class BaseAggregate : IAggregate

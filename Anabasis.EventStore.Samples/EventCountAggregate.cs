@@ -1,23 +1,15 @@
-﻿using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Shared;
-using Microsoft.Extensions.Logging;
+﻿using Anabasis.Common;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Samples
 {
-   
+
 
     public class EventCountAggregate : BaseAggregate
     {
 
-        private static object _locker = new();
+        private static object _syncLock = new();
 
         public EventCountAggregate()
         {
@@ -27,7 +19,7 @@ namespace Anabasis.EventStore.Samples
 
         public void PrintConsole()
         {
-            lock (_locker)
+            lock (_syncLock)
             {
 
                 var header = $"{nameof(EventCountAggregate)} - {EntityId} - {HitCounter}";

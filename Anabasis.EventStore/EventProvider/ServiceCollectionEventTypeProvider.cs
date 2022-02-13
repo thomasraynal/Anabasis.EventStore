@@ -1,5 +1,5 @@
 using Anabasis.Common;
-using Anabasis.EventStore.Shared;
+using Anabasis.Common.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;

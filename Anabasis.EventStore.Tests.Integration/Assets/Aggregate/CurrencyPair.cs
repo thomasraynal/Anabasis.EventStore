@@ -1,4 +1,5 @@
 using System.Linq;
+using Anabasis.Common;
 using Anabasis.EventStore.Shared;
 
 namespace Anabasis.EventStore.Integration.Tests

@@ -1,5 +1,4 @@
-using Anabasis.EventStore;
-using Anabasis.EventStore.Shared;
+using Anabasis.Common;
 using System;
 
 namespace Anabasis.EventStore.Integration.Tests

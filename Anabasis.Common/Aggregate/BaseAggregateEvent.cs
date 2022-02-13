@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Shared
+namespace Anabasis.Common
 {
     public abstract class BaseAggregateEvent<TEntity> : IEvent, IMutation<TEntity> where TEntity : IAggregate
     {

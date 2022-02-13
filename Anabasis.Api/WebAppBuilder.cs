@@ -26,8 +26,6 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Text;
-using System.Text.Json;
 using System.Threading;
 
 namespace Anabasis.Api
@@ -119,7 +117,7 @@ namespace Anabasis.Api
                 .Configure((context, appBuilder) =>
                 {
 
-                    ConfigureApplication(appBuilder, context.HostingEnvironment, appContext);
+                    ConfigureApplication(appBuilder, context.HostingEnvironment, appContext, useCors);
 
                     configureApplicationBuilder?.Invoke(appBuilder);
 
@@ -264,7 +262,8 @@ namespace Anabasis.Api
         private static void ConfigureApplication(
             IApplicationBuilder appBuilder,
             IWebHostEnvironment webHostEnvironment,
-            AnabasisAppContext appContext)
+            AnabasisAppContext appContext,
+            bool useCors)
         {
             appBuilder.WithClientIPAddress();
             appBuilder.WithRequestContextHeaders();
@@ -289,9 +288,10 @@ namespace Anabasis.Api
                      $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
             }
 
-#if DEBUG
-            appBuilder.UseCors("cors");
-#endif
+            if (useCors)
+            {
+                appBuilder.UseCors("cors");
+            }
 
             appBuilder.UseEndpoints(endpoints =>
             {

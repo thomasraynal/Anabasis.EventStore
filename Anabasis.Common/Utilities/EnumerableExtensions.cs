@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Anabasis.Common
+namespace Anabasis.Common.Utilities
 {
 
     //https://github.com/morelinq/MoreLINQ/blob/master/MoreLinq/Batch.cs
