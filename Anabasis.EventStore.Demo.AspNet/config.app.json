@@ -3,7 +3,7 @@
     "applicationName": "App",
     "sentryDsn": "https://d35eb7346892458899aac2541a20115f@o1067128.ingest.sentry.io/6060457",
     "apiVersion": "1.0",
-    "docUrl": "https://api-docs.beezup.com/#operation"
+    "docUrl": "https://apidocjs.com/example/"
   },
   "AllowedHosts": "*",
   "IpRateLimiting": {

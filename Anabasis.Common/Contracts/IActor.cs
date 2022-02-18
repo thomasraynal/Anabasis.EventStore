@@ -12,6 +12,7 @@ namespace Anabasis.Common
         Task WaitUntilConnected(TimeSpan? timeout = null);
         void OnEventReceived(IEvent @event, TimeSpan? timeout = null);
         void AddDisposable(IDisposable disposable);
+        Task OnInitialized();
         Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false);
     }
 }

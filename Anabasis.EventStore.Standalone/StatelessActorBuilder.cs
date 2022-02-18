@@ -71,9 +71,11 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public StatelessActorBuilder<TActor, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup) where TBus : IBus
+        public StatelessActorBuilder<TActor, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup=null) where TBus : IBus
         {
             var busType = typeof(TBus);
+
+            onStartup ??= new Action<TActor, TBus>((actor, bus) => { });
 
             if (_busToRegisterTo.ContainsKey(busType))
                 throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");

@@ -249,6 +249,11 @@ namespace Anabasis.Poc
         {
             throw new NotImplementedException();
         }
+
+        public Task OnInitialized()
+        {
+            throw new NotImplementedException();
+        }
     }
 
     public interface IStatefulActor : IStatelessActor

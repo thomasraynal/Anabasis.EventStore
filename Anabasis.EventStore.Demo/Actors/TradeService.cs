@@ -24,21 +24,23 @@ namespace Anabasis.EventStore.Demo
 
         public TradeService(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
-            Initialize();
         }
 
         public TradeService(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, loggerFactory)
         {
-            Initialize();
+  
         }
 
-        private void Initialize()
+        public async override Task OnInitialized()
         {
+            await Task.Delay(5000);
+
             var tradesData = GenerateTradesAndMaintainCache().Publish();
 
             var cleanup = tradesData.Connect();
 
             AddDisposable(cleanup);
+
         }
 
         public Task Handle(MarketDataChanged marketDataChanged)

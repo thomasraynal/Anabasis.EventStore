@@ -143,6 +143,8 @@ namespace Anabasis.EventStore
         {
             var busType = typeof(TBus);
 
+            onStartup ??= new Action<TActor, TBus>((actor, bus) => { });
+
             if (_busToRegisterTo.ContainsKey(busType))
                 throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");
 

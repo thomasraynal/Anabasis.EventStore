@@ -7,10 +7,10 @@ namespace Anabasis.RabbitMQ.Event
     public class BaseRabbitMqEvent : IRabbitMqMessage
     {
 
-        public BaseRabbitMqEvent(Guid eventID, Guid correlationId)
+        public BaseRabbitMqEvent(Guid? eventID, Guid? correlationId)
         {
-            EventID = eventID;
-            CorrelationID = correlationId;
+            EventID = eventID ?? Guid.NewGuid();
+            CorrelationID = correlationId ?? Guid.NewGuid();
         }
 
         public string Subject

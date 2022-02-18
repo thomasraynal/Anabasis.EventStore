@@ -2,7 +2,6 @@
 using Anabasis.Common.Configuration;
 using Anabasis.Common.HealthChecks;
 using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Mvc;
 using Anabasis.EventStore.Mvc.Builders;
 using Anabasis.EventStore.Mvc.Factories;
@@ -17,7 +16,6 @@ namespace Anabasis.EventStore
     public class World
     {
         internal List<(Type actorType, IEventStoreStatefulActorBuilder builder)> EventStoreStatefulActorBuilders { get; }
-
         internal List<(Type actorType, IEventStoreStatelessActorBuilder builder)> EventStoreStatelessActorBuilders { get; }
         internal List<(Type actorType, IStatelessActorBuilder builder)> StatelessActorBuilders { get; }
 

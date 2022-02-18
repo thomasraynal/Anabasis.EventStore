@@ -230,5 +230,10 @@ namespace Anabasis.Common
             return new HealthCheckResult(healthStatus, healthCheckDescription, exception, data);
 
         }
+
+        public virtual Task OnInitialized()
+        {
+            return Task.CompletedTask;
+        }
     }
 }

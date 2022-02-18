@@ -50,6 +50,14 @@ namespace Anabasis.EventStore
 
             });
 
+            var initializeActor = new Action<IStatelessActorBuilder, Type>((builder, actorType) =>
+            {
+                var actor = (IActor)applicationBuilder.ApplicationServices.GetService(actorType);
+
+                actor.OnInitialized().Wait();
+
+            });
+
             var connectionStatusMonitor = applicationBuilder.ApplicationServices.GetService<IConnectionStatusMonitor>();
 
             var world = applicationBuilder.ApplicationServices.GetService<World>();
@@ -58,17 +66,20 @@ namespace Anabasis.EventStore
             {
                 registerHealthChecksAndBus(builder, actorType);
                 registerStreams(connectionStatusMonitor, builder, actorType);
+                initializeActor(builder, actorType);
             }
 
             foreach (var (actorType, builder) in world.EventStoreStatefulActorBuilders)
             {
                 registerHealthChecksAndBus(builder, actorType);
                 registerStreams(connectionStatusMonitor, builder, actorType);
+                initializeActor(builder, actorType);
             }
 
             foreach (var (actorType, builder) in world.StatelessActorBuilders)
             {
                 registerHealthChecksAndBus(builder, actorType);
+                initializeActor(builder, actorType);
             }
 
             return applicationBuilder;
@@ -85,12 +96,41 @@ namespace Anabasis.EventStore
         }
 
         public static World AddWorld(this IServiceCollection services,
-            string eventStoreUrl,
+            string eventStoreConnectionString,
+            ConnectionSettingsBuilder connectionSettingsBuilder,
+            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
+        {
+
+            var eventStoreConnection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettingsBuilder);
+
+            var connectionSettings = connectionSettingsBuilder.Build();
+
+            services.AddSingleton<IConnectionStatusMonitor, ConnectionStatusMonitor>();
+            services.AddSingleton(eventStoreConnection);
+            services.AddSingleton(connectionSettings);
+
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
+
+            getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
+
+            services.AddSingleton<IEventStoreRepositoryConfiguration>(eventStoreRepositoryConfiguration);
+
+            services.AddTransient<IEventStoreRepository, EventStoreRepository>();
+
+            var world = new World(services, true);
+
+            services.AddSingleton(world);
+
+            return world;
+        }
+
+        public static World AddWorld(this IServiceCollection services,
+            Uri eventStoreUrl,
             ConnectionSettings connectionSettings,
             Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
         {
-    
-            var eventStoreConnection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
+
+            var eventStoreConnection = EventStoreConnection.Create(connectionSettings, eventStoreUrl);
 
             services.AddSingleton<IConnectionStatusMonitor, ConnectionStatusMonitor>();
             services.AddSingleton(eventStoreConnection);
