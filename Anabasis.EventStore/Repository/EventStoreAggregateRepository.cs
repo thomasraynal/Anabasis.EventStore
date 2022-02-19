@@ -75,7 +75,7 @@ namespace Anabasis.EventStore.Repository
 
             var afterApplyAggregateVersion = aggregate.Version;
 
-            var commitHeaders = CreateCommitHeaders(aggregate, extraHeaders);
+            var commitHeaders = CreateCommitHeaders(aggregate, @event, extraHeaders);
 
             var eventsToSave = aggregate.PendingEvents.Select(ev => ToEventData(Guid.NewGuid(), ev, commitHeaders)).ToArray();
 

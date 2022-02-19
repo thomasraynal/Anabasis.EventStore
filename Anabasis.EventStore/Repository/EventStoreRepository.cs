@@ -51,13 +51,13 @@ namespace Anabasis.EventStore.Repository
 
             foreach (var eventBatch in events.GroupBy(ev => ev.EntityId))
             {
-                var eventsToSave = eventBatch.Select(ev =>
+                var eventsToSave = eventBatch.Select(@event =>
                 {
-                    var commitHeaders = CreateCommitHeaders(ev, extraHeaders);
+                    var commitHeaders = CreateCommitHeaders(null, @event, extraHeaders);
 
-                    Logger?.LogDebug($"{Id} => Emitting event: {ev.EventID} {ev.EntityId} {ev.GetType()}");
+                    Logger?.LogDebug($"{Id} => Emitting event: {@event.EventID} {@event.EntityId} {@event.GetType()}");
 
-                    return ToEventData(ev.EventID, ev, commitHeaders);
+                    return ToEventData(@event.EventID, @event, commitHeaders);
 
                 });
 
@@ -95,23 +95,30 @@ namespace Anabasis.EventStore.Repository
             return events.Batch(_eventStoreRepositoryConfiguration.WritePageSize).Select(batch => batch.ToArray());
         }
 
-        protected virtual IDictionary<string, string> GetCommitHeaders(object aggregate)
+        protected virtual IDictionary<string, string> GetCommitHeaders(object aggregate, object @event)
         {
             var commitId = Guid.NewGuid();
 
-            return new Dictionary<string, string>
+            var commitHeaders = new Dictionary<string, string>
             {
                 {MetadataKeys.CommitIdHeader, commitId.ToString()},
-                {MetadataKeys.AggregateClrTypeHeader, aggregate.GetType().AssemblyQualifiedName},
+                {MetadataKeys.EventClrTypeHeader, @event.GetType().AssemblyQualifiedName},
                 {MetadataKeys.UserIdentityHeader, Thread.CurrentPrincipal?.Identity?.Name},
                 {MetadataKeys.ServerNameHeader, Environment.MachineName},
                 {MetadataKeys.ServerClockHeader, DateTime.UtcNow.ToString("o")}
             };
+
+            if (null != aggregate)
+            {
+                commitHeaders.Add(MetadataKeys.AggregateClrTypeHeader, aggregate.GetType().AssemblyQualifiedName);
+            }
+
+            return commitHeaders;
         }
 
-        protected IDictionary<string, string> CreateCommitHeaders(object aggregate, KeyValuePair<string, string>[] extraHeaders)
+        protected IDictionary<string, string> CreateCommitHeaders(object aggregate, object @event, KeyValuePair<string, string>[] extraHeaders)
         {
-            var commitHeaders = GetCommitHeaders(aggregate);
+            var commitHeaders = GetCommitHeaders(aggregate, @event);
 
             foreach (var extraHeader in extraHeaders)
             {
@@ -126,12 +133,12 @@ namespace Anabasis.EventStore.Repository
 
             var data = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(@event);
 
-            var eventHeaders = new Dictionary<string, string>(headers)
-            {
-                {MetadataKeys.EventClrTypeHeader, @event.GetType().AssemblyQualifiedName}
-            };
+            if (!headers.ContainsKey(MetadataKeys.EventClrTypeHeader)){
 
-            var metadata = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(eventHeaders);
+                headers.Add(MetadataKeys.EventClrTypeHeader, @event.GetType().AssemblyQualifiedName);
+            }
+
+            var metadata = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(headers);
             var typeName = @event.GetType().FullName;
 
             return new EventData(eventId, typeName, true, data, metadata);
@@ -143,7 +150,7 @@ namespace Anabasis.EventStore.Repository
         {
             Logger?.LogDebug($"{Id} => Emitting event: {@event.EntityId} {@event.GetType()}");
 
-            var commitHeaders = CreateCommitHeaders(@event, extraHeaders);
+            var commitHeaders = CreateCommitHeaders(null, @event, extraHeaders);
 
             var eventsToSave = new[] { ToEventData(Guid.NewGuid(), @event, commitHeaders) };
 
