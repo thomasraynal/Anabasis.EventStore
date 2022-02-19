@@ -6,6 +6,7 @@ using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 using NUnit.Framework;
+using System;
 using System.Net;
 using System.Threading.Tasks;
 
@@ -29,7 +30,7 @@ namespace Anabasis.EventStore.Integration.Tests
         public async Task ShouldRunAnIntegrationScenario()
         {
 
-            var url = "tcp://admin:changeit@localhost:1113";
+            var url = new Uri("tcp://admin:changeit@localhost:1113");
 
             var userCredentials = new UserCredentials("admin", "changeit");
 

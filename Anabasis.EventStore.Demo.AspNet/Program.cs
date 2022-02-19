@@ -33,9 +33,9 @@ namespace Anabasis.EventStore.Demo
 
                             serviceCollection.AddSingleton<IMarketDataBus, MarketDataBus>();
 
-                            serviceCollection.AddWorld(StaticData.ClusterVNode, connectionSettings)
+                            serviceCollection.AddWorld("ConnectTo=tcp://admin:changeit@localhost:1113; HeartBeatTimeout=1500; VerboseLogging=false; OperationTimeout=60000; UseSslConnection=false;", ConnectionSettings.Create())
 
-               
+
                                     .AddEventStoreStatelessActor<TradeService>(ActorConfiguration.Default)
                                         .WithSubscribeFromEndToAllStreams()
                                         .CreateActor()

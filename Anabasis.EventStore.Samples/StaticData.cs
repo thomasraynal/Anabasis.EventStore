@@ -27,9 +27,9 @@ namespace Anabasis.EventStore.Samples
 
         public static readonly string Persisten = "entityThree";
 
-        public static UserCredentials EventStoreUserCredentials = new UserCredentials("admin", "changeit");
+        public static UserCredentials EventStoreUserCredentials = new ("admin", "changeit");
 
-        public static string EventStoreUrl => "tcp://localhost:1113";
+        public static Uri EventStoreUrl => new("tcp://localhost:1113");
 
     }
 }

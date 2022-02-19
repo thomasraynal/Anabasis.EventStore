@@ -69,14 +69,14 @@ namespace Anabasis.EventStore.Standalone
         }
 
         public static EventStoreStatelessActorBuilder<TActor, TRegistry> Create(
-            string eventStoreUrl,
+            Uri eventStoreUrl,
             ConnectionSettings connectionSettings,
             IActorConfiguration actorConfiguration,
             ILoggerFactory loggerFactory = null,
             Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
         {
 
-            var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
+            var connection = EventStoreConnection.Create(connectionSettings, eventStoreUrl);
 
             loggerFactory ??= new DummyLoggerFactory();
 
@@ -94,6 +94,38 @@ namespace Anabasis.EventStore.Standalone
             builder.EventStoreRepository = new EventStoreRepository(
               eventStoreRepositoryConfiguration,
               connection,
+              builder.ConnectionMonitor,
+              loggerFactory);
+
+            return builder;
+
+        }
+
+        public static EventStoreStatelessActorBuilder<TActor, TRegistry> Create(string eventStoreConnectionString,
+             ConnectionSettingsBuilder connectionSettingsBuilder,
+             IActorConfiguration actorConfiguration,
+             ILoggerFactory loggerFactory = null,
+             Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
+        {
+
+            var eventStoreConnection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettingsBuilder);
+
+            loggerFactory ??= new DummyLoggerFactory();
+
+            var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>
+            {
+                ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, loggerFactory),
+                LoggerFactory = loggerFactory,
+                ActorConfiguration = actorConfiguration
+            };
+
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
+
+            getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
+
+            builder.EventStoreRepository = new EventStoreRepository(
+              eventStoreRepositoryConfiguration,
+              eventStoreConnection,
               builder.ConnectionMonitor,
               loggerFactory);
 

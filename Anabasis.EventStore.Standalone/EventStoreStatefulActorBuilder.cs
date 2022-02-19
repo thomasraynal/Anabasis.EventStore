@@ -79,19 +79,30 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> Create(
-        string eventStoreUrl,
+        public static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> Create(Uri eventStoreUrl,
         ConnectionSettings connectionSettings,
         IActorConfiguration actorConfiguration,
         ILoggerFactory loggerFactory = null,
         Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfigurationBuilder = null)
         {
-            var connection = EventStoreConnection.Create(connectionSettings, new Uri(eventStoreUrl));
+            var connection = EventStoreConnection.Create(connectionSettings, eventStoreUrl);
 
             return CreateInternal(actorConfiguration, connection, loggerFactory, getEventStoreRepositoryConfigurationBuilder);
 
         }
+        
+         public static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> Create(string eventStoreConnectionString,
+          ConnectionSettingsBuilder connectionSettingsBuilder,
+          IActorConfiguration actorConfiguration,
+          ILoggerFactory loggerFactory = null,
+          Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
+        {
 
+            var eventStoreConnection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettingsBuilder);
+
+            return CreateInternal(actorConfiguration, eventStoreConnection, loggerFactory, eventStoreRepositoryConfigurationBuilder);
+
+        }
 
         public static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
           ConnectionSettings connectionSettings,
