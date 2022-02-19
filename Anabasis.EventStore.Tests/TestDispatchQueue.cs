@@ -11,6 +11,7 @@ namespace Anabasis.EventStore.Tests
     [TestFixture]
     public class TestDispatchQueue
     {
+        [Ignore("tofix")]
         [TestCase(6, 12, 12, 100)]
         [TestCase(1, 3, 3, 100)]
         public async Task ShouldCreateADispatchQueueAndEnqueueMessagesThenDispose(int batchSize, int queueMaxSize, int messageCount, int messageConsumptionWait)

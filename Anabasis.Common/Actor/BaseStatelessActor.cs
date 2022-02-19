@@ -104,11 +104,11 @@ namespace Anabasis.Common
 
         public void OnEventReceived(IEvent @event, TimeSpan? timeout = null)
         {
-             timeout = timeout == null ? TimeSpan.MaxValue : timeout.Value;
+             timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
 
             if(!_dispatchQueue.CanEnqueue())
             {
-                SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue(), timeout.Value.Milliseconds);
+                SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue(), (int)timeout.Value.TotalMilliseconds);
 
                 if(!_dispatchQueue.CanEnqueue())
                     throw new TimeoutException("Unable to process event - timout reached");
