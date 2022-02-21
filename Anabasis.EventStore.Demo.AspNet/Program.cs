@@ -18,22 +18,22 @@ namespace Anabasis.EventStore.Demo
                 WebAppBuilder.Create<Program>(
                         configureServiceCollection: (serviceCollection, configurationRoot) =>
                         {
-          
+
                             var connectionSettings = ConnectionSettings
                                     .Create()
                                     .DisableTls()
                                     .DisableServerCertificateValidation()
                                     .EnableVerboseLogging()
                                     .UseDebugLogger()
-                                    .SetDefaultUserCredentials(StaticData.UserCredentials)
-                                    .Build();
+                                    .SetDefaultUserCredentials(StaticData.UserCredentials);
+                                
 
                             var tradeDataEventProvider = new DefaultEventTypeProvider<Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
                             var marketDataEventProvider = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
 
                             serviceCollection.AddSingleton<IMarketDataBus, MarketDataBus>();
 
-                            serviceCollection.AddWorld("ConnectTo=tcp://admin:changeit@localhost:1113; HeartBeatTimeout=1500; VerboseLogging=false; OperationTimeout=60000; UseSslConnection=false;", ConnectionSettings.Create())
+                            serviceCollection.AddWorld("ConnectTo=tcp://admin:changeit@localhost:1113; HeartBeatTimeout=1500; VerboseLogging=false; OperationTimeout=60000; UseSslConnection=false;", connectionSettings)
 
 
                                     .AddEventStoreStatelessActor<TradeService>(ActorConfiguration.Default)

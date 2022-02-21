@@ -21,7 +21,8 @@ namespace Anabasis.EventStore.Repository
         {
         }
 
-        public async Task<TAggregate> GetById<TAggregate>(string aggregateId, IEventTypeProvider eventTypeProvider, bool loadEvents = false) where TAggregate : IAggregate, new()
+        public async Task<TAggregate> GetById<TAggregate>(string aggregateId, IEventTypeProvider eventTypeProvider, bool loadEvents = false)
+            where TAggregate : IAggregate, new()
         {
             if (!IsConnected) throw new InvalidOperationException("Client is not connected to EventStore");
 
@@ -51,7 +52,7 @@ namespace Anabasis.EventStore.Repository
 
                 foreach (var resolvedEvent in currentSlice.Events)
                 {
-                    var @event = DeserializeEvent(resolvedEvent.Event, eventTypeProvider, false);
+                    var @event = DeserializeEvent<TAggregate>(resolvedEvent.Event, eventTypeProvider, false);
 
                     if (null == @event) continue;
 
@@ -64,9 +65,9 @@ namespace Anabasis.EventStore.Repository
         }
 
 
-        public async Task Apply<TEntity, TEvent>(TEntity aggregate, TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-            where TEntity : IAggregate
-            where TEvent : IEntity, IMutation< TEntity>
+        public async Task Apply<TAggregate, TEvent>(TAggregate aggregate, TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
+            where TAggregate : IAggregate
+            where TEvent : IHaveEntityId, IAggregateEvent< TAggregate>
         {
 
             Logger?.LogDebug($"{Id} => Applying event: {@event.EntityId} {@event.GetType()}");
@@ -84,16 +85,25 @@ namespace Anabasis.EventStore.Repository
             aggregate.ClearPendingEvents();
 
         }
-
-
-        private IEntity DeserializeEvent(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
+        private IEvent DeserializeEvent(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
         {
             var targetType = eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
             if (null == targetType && throwIfNotHandled) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
             if (null == targetType) return null;
 
-            return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEntity;
+            return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
+        }
+
+        private IAggregateEvent<TAggregate> DeserializeEvent<TAggregate>(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
+            where TAggregate : IAggregate
+        {
+            var targetType = eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
+
+            if (null == targetType && throwIfNotHandled) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
+            if (null == targetType) return null;
+
+            return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IAggregateEvent<TAggregate>;
         }
     }
 }

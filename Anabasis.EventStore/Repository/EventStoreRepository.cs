@@ -146,7 +146,7 @@ namespace Anabasis.EventStore.Repository
 
 
         public async Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-            where TEvent : IEntity
+            where TEvent : IHaveEntityId
         {
             Logger?.LogDebug($"{Id} => Emitting event: {@event.EntityId} {@event.GetType()}");
 

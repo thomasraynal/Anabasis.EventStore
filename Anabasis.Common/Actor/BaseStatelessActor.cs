@@ -111,7 +111,7 @@ namespace Anabasis.Common
                 SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue(), (int)timeout.Value.TotalMilliseconds);
 
                 if(!_dispatchQueue.CanEnqueue())
-                    throw new TimeoutException("Unable to process event - timout reached");
+                    throw new TimeoutException("Unable to process event - timeout reached");
             }
 
             _dispatchQueue.Enqueue(@event);
@@ -132,7 +132,6 @@ namespace Anabasis.Common
         {
             _cleanUp.Dispose();
         }
-
         public async Task WaitUntilConnected(TimeSpan? timeout = null)
         {
             if (IsConnected) return;

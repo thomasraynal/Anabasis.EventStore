@@ -1,5 +1,4 @@
 ﻿using Anabasis.Common;
-using Anabasis.Common.Shared;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using NUnit.Framework;
 using System;
@@ -43,7 +42,7 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity
+        public Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IHaveEntityId
         {
             throw new NotImplementedException();
         }
@@ -83,9 +82,11 @@ namespace Anabasis.Poc
 
         public bool IsCommand => false;
 
-        public BusType BusType => throw new NotImplementedException();
-
         public string EntityId => throw new NotImplementedException();
+
+        public DateTime Timestamp => throw new NotImplementedException();
+
+        public string Name => throw new NotImplementedException();
     }
 
     public class OneRabbitMQEvent : IRabbitMQEvent
@@ -102,16 +103,17 @@ namespace Anabasis.Poc
 
         public bool IsCommand => false;
 
-        public BusType BusType => throw new NotImplementedException();
-
         public string EntityId => Subject;
 
         public string Subject => throw new NotImplementedException();
+
+        public DateTime Timestamp => throw new NotImplementedException();
+
+        public string Name => throw new NotImplementedException();
     }
 
     public class RabbitMQBus : IBus
     {
-        public BusType BusType => throw new NotImplementedException();
 
         public bool IsConnected => throw new NotImplementedException();
 
@@ -144,7 +146,7 @@ namespace Anabasis.Poc
             throw new NotImplementedException();
         }
 
-        public Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEntity
+        public Task Emit<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IHaveEntityId
         {
             throw new NotImplementedException();
         }

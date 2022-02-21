@@ -2,15 +2,15 @@ using Newtonsoft.Json;
 
 namespace Anabasis.Common
 {
-    public interface IAggregate : IEntity
+    public interface IAggregate : IHaveEntityId
     {
         int Version { get; }
         int VersionFromSnapshot { get; set; }
-        void ApplyEvent(IEntity @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = false);
+        void ApplyEvent<TAggregate>(IAggregateEvent<TAggregate> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = false) where TAggregate : IAggregate;
         [JsonIgnore]
-        IEntity[] PendingEvents { get; }
+        IEvent[] PendingEvents { get; }
         [JsonIgnore]
-        IEntity[] AppliedEvents { get; }
+        IEvent[] AppliedEvents { get; }
         void ClearPendingEvents();
         void SetEntityId(string entityId);
     }

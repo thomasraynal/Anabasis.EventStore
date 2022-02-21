@@ -29,5 +29,8 @@ namespace Anabasis.RabbitMQ.Event
 
         public string EntityId => Subject;
 
+        public DateTime Timestamp { get; }
+
+        public string Name => GetType().Name;
     }
 }

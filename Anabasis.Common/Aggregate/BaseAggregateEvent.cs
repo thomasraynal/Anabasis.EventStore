@@ -6,26 +6,22 @@ using System.Text;
 
 namespace Anabasis.Common
 {
-    public abstract class BaseAggregateEvent<TEntity> : IEvent, IMutation<TEntity> where TEntity : IAggregate
+    public abstract class BaseAggregateEvent<TAggregate> : BaseEvent, IAggregateEvent<TAggregate> where TAggregate : IAggregate
     {
-        public string EntityId { get; set; }
-        public Guid EventID { get; set; }
-        public Guid CorrelationID { get; set; }
-        public bool IsCommand => false;
-
         [JsonConstructor]
         private protected BaseAggregateEvent()
         {
         }
 
-        protected BaseAggregateEvent(string entityId, Guid correlationId)
+        protected BaseAggregateEvent(string entityId, Guid correlationId):base(correlationId, entityId)
         {
+            Timestamp = DateTime.UtcNow;
             EventID = Guid.NewGuid();
             CorrelationID = correlationId;
             EntityId = entityId;
         }
 
-        public abstract void Apply(TEntity entity);
+        public abstract void Apply(TAggregate entity);
 
     }
 }

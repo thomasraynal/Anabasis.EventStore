@@ -22,14 +22,14 @@ namespace Anabasis.EventStore.EventProvider
     //refacto
     public Type[] GetAll()
     {
-      return _serviceProvider.GetServices<IEntity>().Select(type => type.GetType()).ToArray();
+      return _serviceProvider.GetServices<IHaveEntityId>().Select(type => type.GetType()).ToArray();
     }
 
     public Type GetEventTypeByName(string name)
     {
       return _eventTypeCache.GetOrAdd(name, (key) =>
       {
-        var type = _serviceProvider.GetServices<IEntity>()
+        var type = _serviceProvider.GetServices<IHaveEntityId>()
                                .FirstOrDefault(type => type.GetType().FullName == name);
 
         if (null == type) return null;
@@ -54,14 +54,14 @@ namespace Anabasis.EventStore.EventProvider
     //refacto
     public Type[] GetAll()
     {
-      return _serviceProvider.GetServices<IMutation< TAggregate>>().Select(type => type.GetType()).ToArray();
+      return _serviceProvider.GetServices<IAggregateEvent< TAggregate>>().Select(type => type.GetType()).ToArray();
     }
 
     public Type GetEventTypeByName(string name)
     {
       return _eventTypeCache.GetOrAdd(name, (key) =>
       {
-        var type = _serviceProvider.GetServices<IMutation< TAggregate>>()
+        var type = _serviceProvider.GetServices<IAggregateEvent< TAggregate>>()
                                .FirstOrDefault(type => type.GetType().FullName == name);
 
         if (null == type) return null;

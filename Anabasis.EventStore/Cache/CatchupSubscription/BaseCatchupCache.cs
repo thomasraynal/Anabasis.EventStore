@@ -338,13 +338,13 @@ namespace Anabasis.EventStore.Cache
             Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent,
             Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped);
 
-        private IMutation< TAggregate> DeserializeEvent(RecordedEvent recordedEvent)
+        private IAggregateEvent<TAggregate> DeserializeEvent(RecordedEvent recordedEvent)
         {
             var targetType = EventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
             if (null == targetType) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
 
-            return _catchupCacheConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IMutation< TAggregate>;
+            return _catchupCacheConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IAggregateEvent<TAggregate>;
         }
 
         protected void UpdateCacheState(ResolvedEvent resolvedEvent, SourceCache<TAggregate, string> specificCache = null)

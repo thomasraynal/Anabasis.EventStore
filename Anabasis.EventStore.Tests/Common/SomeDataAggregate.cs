@@ -20,12 +20,11 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class SomeData : BaseAggregateEvent< SomeDataAggregate>
+    public class SomeData : BaseAggregateEvent<SomeDataAggregate>
     {
 
         public SomeData(string entityId, Guid correlationId) : base(entityId, correlationId)
         {
-            EntityId = entityId;
         }
 
         public override void Apply(SomeDataAggregate entity)

@@ -1,6 +1,5 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Actor;
-using Anabasis.Common.Shared;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Polly.Retry;

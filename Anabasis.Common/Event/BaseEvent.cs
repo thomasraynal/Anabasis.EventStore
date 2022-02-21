@@ -6,11 +6,15 @@ namespace Anabasis.Common
 {
     public abstract class BaseEvent : IEvent
     {
+        [JsonConstructor]
+        private protected BaseEvent()
+        {
+        }
 
         public BaseEvent(Guid correlationId, string streamId)
         {
             EventID = Guid.NewGuid();
-
+            Timestamp = DateTime.UtcNow;
             CorrelationID = correlationId;
             EntityId = streamId;
         }
@@ -23,6 +27,9 @@ namespace Anabasis.Common
         public string EntityId { get; internal set; }
         [JsonProperty]
         public bool IsCommand { get; internal set; }
+        [JsonProperty]
+        public DateTime Timestamp { get; internal set; }
 
+        public string Name => GetType().Name;
     }
 }

@@ -9,8 +9,8 @@ namespace Anabasis.Common
 
     public abstract class BaseAggregate : IAggregate
     {
-        private readonly List<IEntity> _pendingEvents = new();
-        private readonly List<IEntity> _appliedEvents = new();
+        private readonly List<IEvent> _pendingEvents = new();
+        private readonly List<IEvent> _appliedEvents = new();
 
         [JsonProperty]
         public string EntityId { get; protected set; }
@@ -20,13 +20,14 @@ namespace Anabasis.Common
         [JsonProperty]
         public int VersionFromSnapshot { get; set; } = -1;
 
-        public void Mutate<TEntity>(IMutation<TEntity> @event) where TEntity : class, IAggregate
+        public void Mutate<TAggregate>(IAggregateEvent<TAggregate> @event) where TAggregate : class, IAggregate
         {
-            @event.Apply(this as TEntity);
+            @event.Apply(this as TAggregate);
             Version++;
         }
 
-        public void ApplyEvent(IEntity @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true)
+        public void ApplyEvent<TAggregate>(IAggregateEvent<TAggregate> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true) 
+            where TAggregate : IAggregate
         {
             //we only save applied events
             if (keepAppliedEventsOnAggregate && !saveAsPendingEvent)
@@ -44,11 +45,6 @@ namespace Anabasis.Common
 
         }
 
-        public ICollection<IEntity> GetPendingEvents()
-        {
-            return _pendingEvents;
-        }
-
         public void ClearPendingEvents()
         {
             _pendingEvents.Clear();
@@ -62,7 +58,7 @@ namespace Anabasis.Common
             EntityId = entityId;
         }
 
-        public IEntity[] PendingEvents
+        public IEvent[] PendingEvents
         {
             get
             {
@@ -70,7 +66,7 @@ namespace Anabasis.Common
             }
         }
 
-        public IEntity[] AppliedEvents
+        public IEvent[] AppliedEvents
         {
             get
             {
