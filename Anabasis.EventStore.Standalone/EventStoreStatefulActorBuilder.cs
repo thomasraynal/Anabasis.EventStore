@@ -18,7 +18,7 @@ namespace Anabasis.EventStore.Standalone
 {
     public class EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>
       where TActor : IEventStoreStatefulActor<TAggregate>
-      where TAggregate : IAggregate, new()
+      where TAggregate : class, IAggregate, new()
       where TRegistry : ServiceRegistry, new()
     {
         private IEventStoreCache<TAggregate> EventStoreCache { get; set; }

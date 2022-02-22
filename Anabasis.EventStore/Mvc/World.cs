@@ -94,7 +94,7 @@ namespace Anabasis.EventStore
 
         public EventStoreStatefulActorBuilder<TActor, TAggregate> AddEventStoreStatefulActor<TActor, TAggregate>(IActorConfiguration actorConfiguration)
             where TActor : class, IEventStoreStatefulActor<TAggregate>
-            where TAggregate : IAggregate, new()
+            where TAggregate : class, IAggregate, new()
         {
 
             EnsureIsEventStoreWorld();

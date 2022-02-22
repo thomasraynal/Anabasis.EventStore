@@ -8,67 +8,67 @@ using System.Linq;
 namespace Anabasis.EventStore.EventProvider
 {
 
-  public class ServiceCollectionEventTypeProvider : IEventTypeProvider
-  {
-    private readonly Dictionary<string, Type> _eventTypeCache;
-    private readonly IServiceProvider _serviceProvider;
-
-    public ServiceCollectionEventTypeProvider(IServiceProvider serviceProvider)
+    public class ServiceCollectionEventTypeProvider : IEventTypeProvider
     {
-      _eventTypeCache = new Dictionary<string, Type>();
-      _serviceProvider = serviceProvider;
+        private readonly Dictionary<string, Type> _eventTypeCache;
+        private readonly IServiceProvider _serviceProvider;
+
+        public ServiceCollectionEventTypeProvider(IServiceProvider serviceProvider)
+        {
+            _eventTypeCache = new Dictionary<string, Type>();
+            _serviceProvider = serviceProvider;
+        }
+
+        //refacto
+        public Type[] GetAll()
+        {
+            return _serviceProvider.GetServices<IHaveEntityId>().Select(type => type.GetType()).ToArray();
+        }
+
+        public Type GetEventTypeByName(string name)
+        {
+            return _eventTypeCache.GetOrAdd(name, (key) =>
+            {
+                var type = _serviceProvider.GetServices<IHaveEntityId>()
+                                 .FirstOrDefault(type => type.GetType().FullName == name);
+
+                if (null == type) return null;
+
+                return type.GetType();
+
+            });
+        }
     }
 
-    //refacto
-    public Type[] GetAll()
+    public class ServiceCollectionEventTypeProvider<TAggregate> : IEventTypeProvider<TAggregate> where TAggregate : class, IAggregate
     {
-      return _serviceProvider.GetServices<IHaveEntityId>().Select(type => type.GetType()).ToArray();
+        private readonly Dictionary<string, Type> _eventTypeCache;
+        private readonly IServiceProvider _serviceProvider;
+
+        public ServiceCollectionEventTypeProvider(IServiceProvider serviceProvider)
+        {
+            _eventTypeCache = new Dictionary<string, Type>();
+            _serviceProvider = serviceProvider;
+        }
+
+        //refacto
+        public Type[] GetAll()
+        {
+            return _serviceProvider.GetServices<IAggregateEvent<TAggregate>>().Select(type => type.GetType()).ToArray();
+        }
+
+        public Type GetEventTypeByName(string name)
+        {
+            return _eventTypeCache.GetOrAdd(name, (key) =>
+            {
+                var type = _serviceProvider.GetServices<IAggregateEvent<TAggregate>>()
+                                 .FirstOrDefault(type => type.GetType().FullName == name);
+
+                if (null == type) return null;
+
+                return type.GetType();
+
+            });
+        }
     }
-
-    public Type GetEventTypeByName(string name)
-    {
-      return _eventTypeCache.GetOrAdd(name, (key) =>
-      {
-        var type = _serviceProvider.GetServices<IHaveEntityId>()
-                               .FirstOrDefault(type => type.GetType().FullName == name);
-
-        if (null == type) return null;
-
-        return type.GetType();
-
-      });
-    }
-  }
-
-  public class ServiceCollectionEventTypeProvider<TAggregate> : IEventTypeProvider<TAggregate> where TAggregate : IAggregate
-  {
-    private readonly Dictionary<string, Type> _eventTypeCache;
-    private readonly IServiceProvider _serviceProvider;
-
-    public ServiceCollectionEventTypeProvider(IServiceProvider serviceProvider)
-    {
-      _eventTypeCache = new Dictionary<string, Type>();
-      _serviceProvider = serviceProvider;
-    }
-
-    //refacto
-    public Type[] GetAll()
-    {
-      return _serviceProvider.GetServices<IAggregateEvent< TAggregate>>().Select(type => type.GetType()).ToArray();
-    }
-
-    public Type GetEventTypeByName(string name)
-    {
-      return _eventTypeCache.GetOrAdd(name, (key) =>
-      {
-        var type = _serviceProvider.GetServices<IAggregateEvent< TAggregate>>()
-                               .FirstOrDefault(type => type.GetType().FullName == name);
-
-        if (null == type) return null;
-
-        return type.GetType();
-
-      });
-    }
-  }
 }

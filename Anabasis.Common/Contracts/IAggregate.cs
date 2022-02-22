@@ -6,7 +6,8 @@ namespace Anabasis.Common
     {
         int Version { get; }
         int VersionFromSnapshot { get; set; }
-        void ApplyEvent<TAggregate>(IAggregateEvent<TAggregate> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = false) where TAggregate : IAggregate;
+        void ApplyEvent<TAggregate>(IAggregateEvent<TAggregate> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = false)
+            where TAggregate : class, IAggregate;
         [JsonIgnore]
         IEvent[] PendingEvents { get; }
         [JsonIgnore]

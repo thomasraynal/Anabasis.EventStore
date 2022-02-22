@@ -45,9 +45,13 @@ namespace Anabasis.EventStore.Actor
             AddDisposable(onEventReceivedDisposable);
         }
 
-        public async Task EmitEventStore<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent: IEvent
+        public async Task EmitEventStore<TEvent>(TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
         {
-            if (!_eventStoreRepository.IsConnected) throw new InvalidOperationException("Not connected");
+
+            if (!_eventStoreRepository.IsConnected)
+            {
+               await WaitUntilConnected(timeout);
+            }
 
             Logger?.LogDebug($"{Id} => Emitting {@event.EntityId} - {@event.GetType()}");
 

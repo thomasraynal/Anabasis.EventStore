@@ -15,15 +15,15 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseCatchupCache< TAggregate> : IEventStoreCache<TAggregate> where TAggregate : IAggregate, new()
+    public abstract class BaseCatchupCache<TAggregate> : IEventStoreCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
 
         private readonly object _catchUpLocker = new();
         private IDisposable _eventStoreConnectionStatus;
-        private CatchupCacheSubscriptionHolder< TAggregate>[] _catchupCacheSubscriptionHolders;
+        private CatchupCacheSubscriptionHolder<TAggregate>[] _catchupCacheSubscriptionHolders;
 
         private readonly ISnapshotStrategy _snapshotStrategy;
-        private readonly ISnapshotStore< TAggregate> _snapshotStore;
+        private readonly ISnapshotStore<TAggregate> _snapshotStore;
         private readonly IConnectionStatusMonitor _connectionMonitor;
         private readonly DateTime _lastProcessedEventUtcTimestamp;
         private readonly CompositeDisposable _cleanUp;
@@ -32,11 +32,11 @@ namespace Anabasis.EventStore.Cache
         private readonly BehaviorSubject<bool> _connectionStatusSubject;
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
         private readonly BehaviorSubject<bool> _isStaleSubject;
-        private readonly IEventStoreCacheConfiguration< TAggregate> _catchupCacheConfiguration;
+        private readonly IEventStoreCacheConfiguration<TAggregate> _catchupCacheConfiguration;
 
         protected Microsoft.Extensions.Logging.ILogger Logger { get; }
 
-        public IEventTypeProvider< TAggregate> EventTypeProvider { get; }
+        public IEventTypeProvider<TAggregate> EventTypeProvider { get; }
         public string Id { get; }
         public bool IsWiredUp { get; private set; }
         public bool UseSnapshot { get; private set; }
@@ -54,8 +54,8 @@ namespace Anabasis.EventStore.Cache
 
         public BaseCatchupCache(
            IConnectionStatusMonitor connectionMonitor,
-           IEventStoreCacheConfiguration< TAggregate> catchupCacheConfiguration,
-           IEventTypeProvider< TAggregate> eventTypeProvider,
+           IEventStoreCacheConfiguration<TAggregate> catchupCacheConfiguration,
+           IEventTypeProvider<TAggregate> eventTypeProvider,
            ILoggerFactory loggerFactory,
            ISnapshotStore<TAggregate> snapshotStore = null,
            ISnapshotStrategy snapshotStrategy = null)
@@ -86,17 +86,17 @@ namespace Anabasis.EventStore.Cache
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
             _isStaleSubject = new BehaviorSubject<bool>(true);
             _cleanUp = new CompositeDisposable();
- 
+
         }
 
         protected void Initialize()
         {
-            _catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder< TAggregate>() };
+            _catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder<TAggregate>() };
 
             Initialize(_catchupCacheSubscriptionHolders);
         }
 
-        protected void Initialize(CatchupCacheSubscriptionHolder< TAggregate>[] catchupCacheSubscriptionHolders)
+        protected void Initialize(CatchupCacheSubscriptionHolder<TAggregate>[] catchupCacheSubscriptionHolders)
         {
 
             _catchupCacheSubscriptionHolders = catchupCacheSubscriptionHolders;
@@ -166,9 +166,9 @@ namespace Anabasis.EventStore.Cache
         }
 
         protected abstract Task OnLoadSnapshot(
-            CatchupCacheSubscriptionHolder< TAggregate>[] catchupCacheSubscriptionHolders,
-            ISnapshotStrategy snapshotStrategy, 
-            ISnapshotStore< TAggregate> snapshotStore);
+            CatchupCacheSubscriptionHolder<TAggregate>[] catchupCacheSubscriptionHolders,
+            ISnapshotStrategy snapshotStrategy,
+            ISnapshotStore<TAggregate> snapshotStore);
 
         public IObservableCache<TAggregate, string> AsObservableCache()
         {
@@ -184,11 +184,48 @@ namespace Anabasis.EventStore.Cache
 
         protected SourceCache<TAggregate, string> CurrentCache => IsCaughtUp ? _cache : _caughtingUpCache;
 
-        protected void OnResolvedEvent(ResolvedEvent @event)
+        protected void OnResolvedEvent(ResolvedEvent resolvedEvent)
         {
-            Logger?.LogDebug($"{Id} => OnResolvedEvent {@event.Event.EventType} - v.{@event.Event.EventNumber} - IsCaughtUp => {IsCaughtUp}");
+            var recordedEvent = resolvedEvent.Event;
 
-            UpdateCacheState(@event, CurrentCache);
+            Logger?.LogDebug($"{Id} => OnResolvedEvent: {recordedEvent.EventId} {recordedEvent.EventStreamId} - v.{recordedEvent.EventNumber}");
+
+            var @event = DeserializeEvent(recordedEvent);
+
+            if (null == @event)
+            {
+                throw new EventNotSupportedException(recordedEvent);
+            }
+
+            //we do not reprocess commands 
+            if (!IsCaughtUp && @event.IsCommand) return;
+
+            var entry = CurrentCache.Lookup(@event.EntityId);
+
+            TAggregate entity;
+
+            if (entry.HasValue)
+            {
+                entity = entry.Value;
+
+                if (entity.Version == recordedEvent.EventNumber)
+                {
+                    return;
+                }
+            }
+            else
+            {
+                Logger?.LogDebug($"{Id} => Creating aggregate: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
+
+                entity = new TAggregate();
+                entity.SetEntityId(@event.EntityId);
+            }
+
+            Logger?.LogDebug($"{Id} => Updating aggregate: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
+
+            entity.ApplyEvent(@event, false, _catchupCacheConfiguration.KeepAppliedEventsOnAggregate);
+
+            CurrentCache.AddOrUpdate(entity);
         }
 
         public void Connect()
@@ -255,7 +292,7 @@ namespace Anabasis.EventStore.Cache
         }
 
         private IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection,
-            CatchupCacheSubscriptionHolder< TAggregate> catchupCacheSubscriptionHolder)
+            CatchupCacheSubscriptionHolder<TAggregate> catchupCacheSubscriptionHolder)
         {
 
             return Observable.Create<ResolvedEvent>(obs =>
@@ -333,7 +370,7 @@ namespace Anabasis.EventStore.Cache
         }
 
         protected abstract EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(
-            CatchupCacheSubscriptionHolder< TAggregate> catchupCacheSubscriptionHolder,
+            CatchupCacheSubscriptionHolder<TAggregate> catchupCacheSubscriptionHolder,
             IEventStoreConnection connection,
             Func<EventStoreCatchUpSubscription, ResolvedEvent, Task> onEvent,
             Action<EventStoreCatchUpSubscription, SubscriptionDropReason, Exception> onSubscriptionDropped);
@@ -345,53 +382,6 @@ namespace Anabasis.EventStore.Cache
             if (null == targetType) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
 
             return _catchupCacheConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IAggregateEvent<TAggregate>;
-        }
-
-        protected void UpdateCacheState(ResolvedEvent resolvedEvent, SourceCache<TAggregate, string> specificCache = null)
-        {
-            var recordedEvent = resolvedEvent.Event;
-
-            Logger?.LogDebug($"{Id} => UpdateCacheState: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
-
-            var cache = specificCache ?? _cache;
-
-            var @event = DeserializeEvent(recordedEvent);
-
-            if (null == @event)
-            {
-                throw new EventNotSupportedException(recordedEvent);
-            }
-
-            //we do not reprocess commands 
-            if (!IsCaughtUp && @event.IsCommand) return;
-
-            var entry = cache.Lookup(@event.EntityId);
-
-            TAggregate entity;
-
-            if (entry.HasValue)
-            {
-                entity = entry.Value;
-
-                if (entity.Version == recordedEvent.EventNumber)
-                {
-                    return;
-                }
-            }
-            else
-            {
-                Logger?.LogDebug($"{Id} => Creating aggregate: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
-
-                entity = new TAggregate();
-                entity.SetEntityId(@event.EntityId);
-            }
-
-            Logger?.LogDebug($"{Id} => Updating aggregate: {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} - v.{resolvedEvent.Event.EventNumber}");
-
-            entity.ApplyEvent(@event, false, _catchupCacheConfiguration.KeepAppliedEventsOnAggregate);
-
-            cache.AddOrUpdate(entity);
-
         }
 
         public void Dispose()

@@ -30,5 +30,9 @@
   <ItemGroup>
     <Content Remove="C:\Users\thoma\.nuget\packages\eventstore.client.embedded\20.6.0\build\..\runtimes\win-x64\native\js1.dll" />
   </ItemGroup>
+  
+  <ItemGroup>
+    <Content Remove="C:\Users\thoma\.nuget\packages\eventstore.client.embedded\20.6.0\build\..\runtimes\win-x64\native\js1.dll" />
+  </ItemGroup>
 
 </Project>

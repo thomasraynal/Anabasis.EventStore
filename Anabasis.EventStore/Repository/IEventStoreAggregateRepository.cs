@@ -8,7 +8,7 @@ namespace Anabasis.EventStore.Repository
   public interface IEventStoreAggregateRepository : IEventStoreRepository
   {
     Task Apply<TAggregate, TEvent>(TAggregate aggregate, TEvent ev, params KeyValuePair<string, string>[] extraHeaders)
-      where TAggregate : IAggregate
-      where TEvent : IHaveEntityId, IAggregateEvent< TAggregate>;
+      where TAggregate : class, IAggregate
+      where TEvent : IAggregateEvent< TAggregate>;
   }
 }

@@ -20,14 +20,8 @@ namespace Anabasis.Common
         [JsonProperty]
         public int VersionFromSnapshot { get; set; } = -1;
 
-        public void Mutate<TAggregate>(IAggregateEvent<TAggregate> @event) where TAggregate : class, IAggregate
-        {
-            @event.Apply(this as TAggregate);
-            Version++;
-        }
-
         public void ApplyEvent<TAggregate>(IAggregateEvent<TAggregate> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true) 
-            where TAggregate : IAggregate
+            where TAggregate : class, IAggregate
         {
             //we only save applied events
             if (keepAppliedEventsOnAggregate && !saveAsPendingEvent)
@@ -41,8 +35,9 @@ namespace Anabasis.Common
                 return;
             }
 
-            ((dynamic)this).Mutate((dynamic)@event);
+            @event.Apply(this as TAggregate);
 
+            Version++;
         }
 
         public void ClearPendingEvents()

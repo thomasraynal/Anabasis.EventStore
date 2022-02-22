@@ -6,8 +6,9 @@ using System.Text;
 
 namespace Anabasis.Common
 {
-    public abstract class BaseAggregateEvent<TAggregate> : BaseEvent, IAggregateEvent<TAggregate> where TAggregate : IAggregate
+    public abstract class BaseAggregateEvent<TAggregate> : BaseEvent, IAggregateEvent<TAggregate> where TAggregate : class, IAggregate
     {
+
         [JsonConstructor]
         private protected BaseAggregateEvent()
         {

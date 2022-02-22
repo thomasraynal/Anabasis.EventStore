@@ -3,14 +3,13 @@ using System.Threading.Tasks;
 using Anabasis.Common;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class AllStreamsCatchupCache<TAggregate> : BaseAllStreamsCatchupCache<TAggregate> where TAggregate : IAggregate, new()
+    public class AllStreamsCatchupCache<TAggregate> : BaseAllStreamsCatchupCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
 
         private readonly AllStreamsCatchupCacheConfiguration<TAggregate> _catchupCacheConfiguration;

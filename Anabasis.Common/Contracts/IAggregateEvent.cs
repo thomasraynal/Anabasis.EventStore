@@ -5,7 +5,7 @@ using System.Text;
 namespace Anabasis.Common
 {
 
-    public interface IAggregateEvent<TAggregate> : IEvent where TAggregate : IAggregate
+    public interface IAggregateEvent<TAggregate> : IEvent where TAggregate : class, IAggregate
     {
         void Apply(TAggregate aggregate);
     }

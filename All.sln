@@ -69,7 +69,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "_build", "build\_build.cspr
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Api.Tests.Common", "Anabasis.Api.Tests.Common\Anabasis.Api.Tests.Common.csproj", "{1D5797C4-FFB5-48F2-A16C-2F45004FC8AD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Api.Demo", "Anabasis.Api.Demo\Anabasis.Api.Demo.csproj", "{F418F409-9F7C-4538-9B32-90FF8F8427FF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Api.Demo", "Anabasis.Api.Demo\Anabasis.Api.Demo.csproj", "{F418F409-9F7C-4538-9B32-90FF8F8427FF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

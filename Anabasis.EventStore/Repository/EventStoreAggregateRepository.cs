@@ -4,7 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using System.Reactive.Linq;
-using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Connection;
 using Microsoft.Extensions.Logging;
@@ -22,7 +21,7 @@ namespace Anabasis.EventStore.Repository
         }
 
         public async Task<TAggregate> GetById<TAggregate>(string aggregateId, IEventTypeProvider eventTypeProvider, bool loadEvents = false)
-            where TAggregate : IAggregate, new()
+            where TAggregate : class, IAggregate, new()
         {
             if (!IsConnected) throw new InvalidOperationException("Client is not connected to EventStore");
 
@@ -66,8 +65,8 @@ namespace Anabasis.EventStore.Repository
 
 
         public async Task Apply<TAggregate, TEvent>(TAggregate aggregate, TEvent @event, params KeyValuePair<string, string>[] extraHeaders)
-            where TAggregate : IAggregate
-            where TEvent : IHaveEntityId, IAggregateEvent< TAggregate>
+            where TAggregate : class, IAggregate
+            where TEvent : IAggregateEvent<TAggregate>
         {
 
             Logger?.LogDebug($"{Id} => Applying event: {@event.EntityId} {@event.GetType()}");
@@ -85,18 +84,9 @@ namespace Anabasis.EventStore.Repository
             aggregate.ClearPendingEvents();
 
         }
-        private IEvent DeserializeEvent(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
-        {
-            var targetType = eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
-
-            if (null == targetType && throwIfNotHandled) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
-            if (null == targetType) return null;
-
-            return _eventStoreRepositoryConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
-        }
 
         private IAggregateEvent<TAggregate> DeserializeEvent<TAggregate>(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
-            where TAggregate : IAggregate
+            where TAggregate : class, IAggregate
         {
             var targetType = eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 

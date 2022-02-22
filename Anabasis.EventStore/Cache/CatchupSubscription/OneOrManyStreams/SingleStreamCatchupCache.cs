@@ -7,7 +7,7 @@ using Anabasis.Common;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class SingleStreamCatchupCache< TAggregate> : MultipleStreamsCatchupCache< TAggregate> where TAggregate : IAggregate, new()
+    public class SingleStreamCatchupCache< TAggregate> : MultipleStreamsCatchupCache< TAggregate> where TAggregate : class, IAggregate, new()
     {
         public SingleStreamCatchupCache(IConnectionStatusMonitor connectionMonitor,
           SingleStreamCatchupCacheConfiguration< TAggregate> cacheConfiguration,

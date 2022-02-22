@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Cache
 {
 
-    public class MultipleStreamsCatchupCache< TAggregate> : BaseOneOrManyStreamCatchupCache< TAggregate> where TAggregate : IAggregate, new()
+    public class MultipleStreamsCatchupCache< TAggregate> : BaseOneOrManyStreamCatchupCache< TAggregate> where TAggregate : class, IAggregate, new()
     {
         private MultipleStreamsCatchupCacheConfiguration< TAggregate> _multipleStreamsCatchupCacheConfiguration;
 
