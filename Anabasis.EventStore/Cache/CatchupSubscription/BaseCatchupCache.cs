@@ -8,6 +8,7 @@ using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -226,6 +227,7 @@ namespace Anabasis.EventStore.Cache
             entity.ApplyEvent(@event, false, _catchupCacheConfiguration.KeepAppliedEventsOnAggregate);
 
             CurrentCache.AddOrUpdate(entity);
+
         }
 
         public void Connect()
@@ -258,6 +260,10 @@ namespace Anabasis.EventStore.Cache
 
                               catchupCacheSubscriptionHolder.LastProcessedEventSequenceNumber = @event.Event.EventNumber;
                               catchupCacheSubscriptionHolder.LastProcessedEventUtcTimestamp = DateTime.UtcNow;
+
+                          }, onError:(ex)=>
+                          {
+
 
                           });
                     }
@@ -300,33 +306,36 @@ namespace Anabasis.EventStore.Cache
 
                 Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
                 {
-                    lock (_catchUpLocker)
-                    {
+           
 
-                        Logger?.LogDebug($"{Id} => OnEvent {@event.Event.EventType} - v.{@event.Event.EventNumber}");
-
-                        obs.OnNext(@event);
-
-                        if (IsCaughtUp && UseSnapshot)
+                        lock (_catchUpLocker)
                         {
-                            foreach (var aggregate in _cache.Items)
+
+                            Logger?.LogDebug($"{Id} => OnEvent {@event.Event.EventType} - v.{@event.Event.EventNumber}");
+
+                            obs.OnNext(@event);
+
+                            if (IsCaughtUp && UseSnapshot)
                             {
-                                if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+                                foreach (var aggregate in _cache.Items)
                                 {
-                                    Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
+                                    if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+                                    {
+                                        Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
 
-                                    var eventFilter = GetEventsFilters();
+                                        var eventFilter = GetEventsFilters();
 
-                                    aggregate.VersionFromSnapshot = aggregate.Version;
+                                        aggregate.VersionFromSnapshot = aggregate.Version;
 
-                                    _snapshotStore.Save(eventFilter, aggregate).Wait();
+                                        _snapshotStore.Save(eventFilter, aggregate).Wait();
 
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    return Task.CompletedTask;
+                        return Task.CompletedTask;
+
                 }
 
                 void onSubscriptionDropped(EventStoreCatchUpSubscription _, SubscriptionDropReason subscriptionDropReason, Exception exception)
@@ -351,10 +360,11 @@ namespace Anabasis.EventStore.Cache
                         case SubscriptionDropReason.PersistentSubscriptionDeleted:
                         case SubscriptionDropReason.Unknown:
                         case SubscriptionDropReason.NotFound:
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
-
+                            obs.OnError(new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception));
+                            break;
                         default:
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception);
+                            obs.OnError(new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception));
+                            break;
                     }
                 }
 

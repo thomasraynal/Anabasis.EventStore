@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Actor
 
         public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
         {
-            Setup(eventStoreCache);
+            Initialize(eventStoreCache);
         }
 
         public BaseEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory =null) : base(eventStoreCacheFactory, eventStoreRepository, loggerFactory)
@@ -22,10 +22,10 @@ namespace Anabasis.EventStore.Actor
             var eventStoreActorConfiguration = eventStoreCacheFactory.GetConfiguration<TAggregate>(GetType());
             var eventStoreCache = eventStoreActorConfiguration.GetEventStoreCache(connectionStatusMonitor, loggerFactory);
 
-            Setup(eventStoreCache);
+            Initialize(eventStoreCache);
         }
 
-        private void Setup(IEventStoreCache<TAggregate> eventStoreCache)
+        private void Initialize(IEventStoreCache<TAggregate> eventStoreCache)
         {
 
             State = eventStoreCache;
