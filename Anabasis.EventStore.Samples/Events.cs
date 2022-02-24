@@ -15,6 +15,8 @@ namespace Anabasis.EventStore.Samples
 
         public override void Apply(EventCountAggregate entity)
         {
+           throw new Exception("boom");
+
             entity.HitCounter += 1;
         }
     }

@@ -8,9 +8,11 @@ using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
@@ -32,6 +34,7 @@ namespace Anabasis.EventStore.Cache
         private readonly BehaviorSubject<bool> _connectionStatusSubject;
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
         private readonly BehaviorSubject<bool> _isStaleSubject;
+        private readonly Subject<Exception> _onUnhandledExceptionSubject;
         private readonly IEventStoreCacheConfiguration<TAggregate> _catchupCacheConfiguration;
 
         protected Microsoft.Extensions.Logging.ILogger Logger { get; }
@@ -46,6 +49,7 @@ namespace Anabasis.EventStore.Cache
         public bool IsCaughtUp => _isCaughtUpSubject.Value;
         public bool IsConnected => _connectionMonitor.IsConnected && IsWiredUp;
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
+
 
         public ICatchupCacheSubscriptionHolder[] GetSubscriptionStates()
         {
@@ -82,6 +86,7 @@ namespace Anabasis.EventStore.Cache
             _snapshotStrategy = snapshotStrategy;
             _snapshotStore = snapshotStore;
             _lastProcessedEventUtcTimestamp = DateTime.MinValue;
+            _onUnhandledExceptionSubject = new Subject<Exception>();
             _connectionStatusSubject = new BehaviorSubject<bool>(false);
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
             _isStaleSubject = new BehaviorSubject<bool>(true);
@@ -92,6 +97,16 @@ namespace Anabasis.EventStore.Cache
         protected void Initialize()
         {
             _catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder<TAggregate>() };
+
+            var onUnhandledExceptionSubscription = _onUnhandledExceptionSubject
+                 .ObserveOn(Scheduler.Default)
+                 .Subscribe((exception) =>
+                 {
+                     ExceptionDispatchInfo.Capture(exception).Throw();
+
+                 });
+
+            _cleanUp.Add(onUnhandledExceptionSubscription);
 
             Initialize(_catchupCacheSubscriptionHolders);
         }
@@ -226,6 +241,7 @@ namespace Anabasis.EventStore.Cache
             entity.ApplyEvent(@event, false, _catchupCacheConfiguration.KeepAppliedEventsOnAggregate);
 
             CurrentCache.AddOrUpdate(entity);
+
         }
 
         public void Connect()
@@ -236,7 +252,9 @@ namespace Anabasis.EventStore.Cache
 
             IsWiredUp = true;
 
-            _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus().Subscribe(async connectionChanged =>
+            _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus()
+                
+                .Subscribe(async connectionChanged =>
             {
                 Logger?.LogDebug($"{Id} => IsConnected: {connectionChanged.IsConnected}");
 
@@ -247,10 +265,11 @@ namespace Anabasis.EventStore.Cache
 
                     await OnLoadSnapshot(_catchupCacheSubscriptionHolders, _snapshotStrategy, _snapshotStore);
 
+
                     foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
                     {
                         catchupCacheSubscriptionHolder.EventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value, catchupCacheSubscriptionHolder)
-                          .Subscribe(@event =>
+                         .Subscribe(@event =>
                           {
                               OnResolvedEvent(@event);
 
@@ -291,45 +310,46 @@ namespace Anabasis.EventStore.Cache
             return _cache.Items.ToArray();
         }
 
-        private IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection,
-            CatchupCacheSubscriptionHolder<TAggregate> catchupCacheSubscriptionHolder)
+        private IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection, CatchupCacheSubscriptionHolder<TAggregate> catchupCacheSubscriptionHolder)
         {
 
             return Observable.Create<ResolvedEvent>(obs =>
             {
-
+                
                 Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
                 {
-                    lock (_catchUpLocker)
-                    {
-
-                        Logger?.LogDebug($"{Id} => OnEvent {@event.Event.EventType} - v.{@event.Event.EventNumber}");
-
-                        obs.OnNext(@event);
-
-                        if (IsCaughtUp && UseSnapshot)
+           
+                        lock (_catchUpLocker)
                         {
-                            foreach (var aggregate in _cache.Items)
+
+                            Logger?.LogDebug($"{Id} => OnEvent {@event.Event.EventType} - v.{@event.Event.EventNumber}");
+
+                            obs.OnNext(@event);
+
+                            if (IsCaughtUp && UseSnapshot)
                             {
-                                if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+                                foreach (var aggregate in _cache.Items)
                                 {
-                                    Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
+                                    if (_snapshotStrategy.IsSnapShotRequired(aggregate))
+                                    {
+                                        Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
 
-                                    var eventFilter = GetEventsFilters();
+                                        var eventFilter = GetEventsFilters();
 
-                                    aggregate.VersionFromSnapshot = aggregate.Version;
+                                        aggregate.VersionFromSnapshot = aggregate.Version;
 
-                                    _snapshotStore.Save(eventFilter, aggregate).Wait();
+                                        _snapshotStore.Save(eventFilter, aggregate).Wait();
 
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    return Task.CompletedTask;
+                        return Task.CompletedTask;
+
                 }
 
-                void onSubscriptionDropped(EventStoreCatchUpSubscription _, SubscriptionDropReason subscriptionDropReason, Exception exception)
+                void onSubscriptionDropped(EventStoreCatchUpSubscription eventStoreCatchUpSubscription, SubscriptionDropReason subscriptionDropReason, Exception exception)
                 {
                     switch (subscriptionDropReason)
                     {
@@ -338,9 +358,6 @@ namespace Anabasis.EventStore.Cache
                             break;
 
                         case SubscriptionDropReason.CatchUpError:
-                            Logger?.LogInformation($"{nameof(SubscriptionDropReason)} - {subscriptionDropReason}", exception);
-                            break;
-
                         case SubscriptionDropReason.NotAuthenticated:
                         case SubscriptionDropReason.AccessDenied:
                         case SubscriptionDropReason.SubscribingError:
@@ -353,8 +370,13 @@ namespace Anabasis.EventStore.Cache
                         case SubscriptionDropReason.NotFound:
                             throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
 
+                            //var invalidOperationException = new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
+                            //  _onUnhandledExceptionSubject.OnNext(invalidOperationException);
+                            break;
+
                         default:
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception);
+                            _onUnhandledExceptionSubject.OnNext(new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not excepted", exception));
+                            break;
                     }
                 }
 
