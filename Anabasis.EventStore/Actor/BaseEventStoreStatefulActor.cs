@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Actor
 
             State = eventStoreCache;
 
-            eventStoreCache.Connect();
+            eventStoreCache.Connect().Wait();
         }
 
         public IEventStoreCache<TAggregate> State { get; internal set; }

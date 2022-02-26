@@ -171,23 +171,23 @@ namespace Anabasis.EventStore.Tests
         {
             //var exp = Assert.ThrowsAsync<Exception>(async () =>
             //{
-            try
-            {
-              await  Task.Run(async() =>
-                 {
-                     await _testActorOne.EmitEventStore(new SomeFaultyData($"{_firstAggregateId}", Guid.NewGuid()));
+            //try
+            //{
+            //  await  Task.Run(async() =>
+            //     {
+            //         await _testActorOne.EmitEventStore(new SomeFaultyData($"{_firstAggregateId}", Guid.NewGuid()));
 
 
 
-                     var current = _testActorOne.State.GetCurrent($"{_firstAggregateId}");
+            //         var current = _testActorOne.State.GetCurrent($"{_firstAggregateId}");
 
-                 });
+            //     });
 
-            }
-            catch(Exception ex)
-            {
+            //}
+            //catch(Exception ex)
+            //{
 
-            }
+            //}
 
             //});
 

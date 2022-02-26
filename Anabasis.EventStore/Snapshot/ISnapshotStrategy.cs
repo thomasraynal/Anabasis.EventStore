@@ -9,6 +9,6 @@ namespace Anabasis.EventStore.Snapshot
     public interface ISnapshotStrategy
     {
         int SnapshotIntervalInEvents { get; }
-        bool IsSnapShotRequired(IAggregate aggregate);
+        bool IsSnapshotRequired(IAggregate aggregate);
     }
 }

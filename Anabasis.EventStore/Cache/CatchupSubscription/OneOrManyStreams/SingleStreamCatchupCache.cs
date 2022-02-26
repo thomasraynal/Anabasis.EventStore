@@ -7,13 +7,13 @@ using Anabasis.Common;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class SingleStreamCatchupCache< TAggregate> : MultipleStreamsCatchupCache< TAggregate> where TAggregate : class, IAggregate, new()
+    public class SingleStreamCatchupCache<TAggregate> : MultipleStreamsCatchupCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
         public SingleStreamCatchupCache(IConnectionStatusMonitor connectionMonitor,
-          SingleStreamCatchupCacheConfiguration< TAggregate> cacheConfiguration,
-          IEventTypeProvider< TAggregate> eventTypeProvider,
+          SingleStreamCatchupCacheConfiguration<TAggregate> cacheConfiguration,
+          IEventTypeProvider<TAggregate> eventTypeProvider,
           ILoggerFactory loggerFactory,
-          ISnapshotStore< TAggregate> snapshotStore = null,
+          ISnapshotStore<TAggregate> snapshotStore = null,
           ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, cacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
         }

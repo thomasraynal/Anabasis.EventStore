@@ -40,12 +40,12 @@ namespace Anabasis.EventStore.Samples
                 var entity = rand.Next(0, 3);
 
                 string target;
-                if (entity == 1)
+                //if (entity == 1)
                     target = StaticData.EntityOne;
-                else if (entity == 2)
-                    target = StaticData.EntityTwo;
-                else
-                    target = StaticData.EntityThree;
+                //else if (entity == 2)
+                //    target = StaticData.EntityTwo;
+                //else
+                //    target = StaticData.EntityThree;
 
 
 

@@ -8,11 +8,13 @@ using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.ExceptionServices;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
@@ -20,9 +22,10 @@ namespace Anabasis.EventStore.Cache
     public abstract class BaseCatchupCache<TAggregate> : IEventStoreCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
 
-        private readonly object _catchUpLocker = new();
-        private IDisposable _eventStoreConnectionStatus;
+        private readonly object _catchUpSyncLock = new();
+
         private CatchupCacheSubscriptionHolder<TAggregate>[] _catchupCacheSubscriptionHolders;
+   
 
         private readonly ISnapshotStrategy _snapshotStrategy;
         private readonly ISnapshotStore<TAggregate> _snapshotStore;
@@ -31,10 +34,8 @@ namespace Anabasis.EventStore.Cache
         private readonly CompositeDisposable _cleanUp;
         private readonly SourceCache<TAggregate, string> _cache;
         private readonly SourceCache<TAggregate, string> _caughtingUpCache;
-        private readonly BehaviorSubject<bool> _connectionStatusSubject;
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
         private readonly BehaviorSubject<bool> _isStaleSubject;
-        private readonly Subject<Exception> _onUnhandledExceptionSubject;
         private readonly IEventStoreCacheConfiguration<TAggregate> _catchupCacheConfiguration;
 
         protected Microsoft.Extensions.Logging.ILogger Logger { get; }
@@ -48,8 +49,6 @@ namespace Anabasis.EventStore.Cache
         public bool IsStale => _isStaleSubject.Value;
         public bool IsCaughtUp => _isCaughtUpSubject.Value;
         public bool IsConnected => _connectionMonitor.IsConnected && IsWiredUp;
-        public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
-
 
         public ICatchupCacheSubscriptionHolder[] GetSubscriptionStates()
         {
@@ -86,8 +85,6 @@ namespace Anabasis.EventStore.Cache
             _snapshotStrategy = snapshotStrategy;
             _snapshotStore = snapshotStore;
             _lastProcessedEventUtcTimestamp = DateTime.MinValue;
-            _onUnhandledExceptionSubject = new Subject<Exception>();
-            _connectionStatusSubject = new BehaviorSubject<bool>(false);
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
             _isStaleSubject = new BehaviorSubject<bool>(true);
             _cleanUp = new CompositeDisposable();
@@ -96,17 +93,7 @@ namespace Anabasis.EventStore.Cache
 
         protected void Initialize()
         {
-            _catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder<TAggregate>() };
-
-            var onUnhandledExceptionSubscription = _onUnhandledExceptionSubject
-                 .ObserveOn(Scheduler.Default)
-                 .Subscribe((exception) =>
-                 {
-                     ExceptionDispatchInfo.Capture(exception).Throw();
-
-                 });
-
-            _cleanUp.Add(onUnhandledExceptionSubscription);
+            _catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder<TAggregate>(_catchupCacheConfiguration.DoAppCrashIfSubscriptionFail) };
 
             Initialize(_catchupCacheSubscriptionHolders);
         }
@@ -121,7 +108,7 @@ namespace Anabasis.EventStore.Cache
                 var subscription = catchupCacheSubscriptionHolder.OnCaughtUp.Subscribe(hasStreamSubscriptionCaughtUp =>
                 {
 
-                    lock (_catchUpLocker)
+                    lock (_catchUpSyncLock)
                     {
 
                         if (hasStreamSubscriptionCaughtUp && !IsCaughtUp)
@@ -244,60 +231,35 @@ namespace Anabasis.EventStore.Cache
 
         }
 
-        public void Connect()
+        public async Task Connect()
         {
             if (IsWiredUp) return;
 
-            Logger?.LogDebug($"{Id} => Connecting");
-
             IsWiredUp = true;
 
-            _eventStoreConnectionStatus = _connectionMonitor.GetEvenStoreConnectionStatus()
-                
-                .Subscribe(async connectionChanged =>
+            await OnLoadSnapshot(_catchupCacheSubscriptionHolders, _snapshotStrategy, _snapshotStore);
+
+            foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
             {
-                Logger?.LogDebug($"{Id} => IsConnected: {connectionChanged.IsConnected}");
+                catchupCacheSubscriptionHolder.EventStreamConnectionDisposable = ConnectToEventStream(_connectionMonitor.EventStoreConnection, catchupCacheSubscriptionHolder);
 
-                _connectionStatusSubject.OnNext(connectionChanged.IsConnected);
+                _cleanUp.Add(catchupCacheSubscriptionHolder.EventStreamConnectionDisposable);
 
-                if (connectionChanged.IsConnected)
-                {
+            }
 
-                    await OnLoadSnapshot(_catchupCacheSubscriptionHolders, _snapshotStrategy, _snapshotStore);
+        }
 
+        public Task Disconnect()
+        {
+        
+            foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
+            {
+                catchupCacheSubscriptionHolder.EventStreamConnectionDisposable.Dispose();
+            }
 
-                    foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
-                    {
-                        catchupCacheSubscriptionHolder.EventStreamConnectionDisposable = ConnectToEventStream(connectionChanged.Value, catchupCacheSubscriptionHolder)
-                         .Subscribe(@event =>
-                          {
-                              OnResolvedEvent(@event);
+            IsWiredUp = false;
 
-                              if (IsStale) _isStaleSubject.OnNext(false);
-
-                              catchupCacheSubscriptionHolder.LastProcessedEventSequenceNumber = @event.Event.EventNumber;
-                              catchupCacheSubscriptionHolder.LastProcessedEventUtcTimestamp = DateTime.UtcNow;
-
-                          });
-                    }
-                }
-                else
-                {
-                    foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
-                    {
-
-                        if (null != catchupCacheSubscriptionHolder.EventStreamConnectionDisposable)
-                            catchupCacheSubscriptionHolder.EventStreamConnectionDisposable.Dispose();
-                    }
-
-                    if (IsCaughtUp)
-                    {
-                        _isCaughtUpSubject.OnNext(false);
-                    }
-                }
-            });
-
-            _cleanUp.Add(_eventStoreConnectionStatus);
+            return Task.CompletedTask;
         }
 
         public TAggregate GetCurrent(string key)
@@ -310,85 +272,109 @@ namespace Anabasis.EventStore.Cache
             return _cache.Items.ToArray();
         }
 
-        private IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection, CatchupCacheSubscriptionHolder<TAggregate> catchupCacheSubscriptionHolder)
+        private IDisposable ConnectToEventStream(IEventStoreConnection connection, CatchupCacheSubscriptionHolder<TAggregate> catchupCacheSubscriptionHolder)
         {
 
-            return Observable.Create<ResolvedEvent>(obs =>
+            void stopSubscription()
             {
-                
-                Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
+                if (null != catchupCacheSubscriptionHolder.EventStoreCatchUpSubscription)
                 {
-           
-                        lock (_catchUpLocker)
+                    _isCaughtUpSubject.OnNext(false);
+                    catchupCacheSubscriptionHolder.EventStoreCatchUpSubscription.Stop();
+                }
+               
+            }
+
+            void createNewCatchupSubscription()
+            {
+                stopSubscription();
+
+                catchupCacheSubscriptionHolder.EventStoreCatchUpSubscription = GetEventStoreCatchUpSubscription(catchupCacheSubscriptionHolder, connection, onEvent, onSubscriptionDropped);
+            }
+
+            Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent @event)
+            {
+
+                lock (_catchUpSyncLock)
+                {
+
+                    Logger?.LogDebug($"{Id} => OnEvent {@event.Event.EventType} - v.{@event.Event.EventNumber}");
+
+                    OnResolvedEvent(@event);
+
+                    if (IsStale) _isStaleSubject.OnNext(false);
+
+                    catchupCacheSubscriptionHolder.LastProcessedEventSequenceNumber = @event.Event.EventNumber;
+                    catchupCacheSubscriptionHolder.LastProcessedEventUtcTimestamp = DateTime.UtcNow;
+
+                    if (IsCaughtUp && UseSnapshot)
+                    {
+                        foreach (var aggregate in _cache.Items)
                         {
-
-                            Logger?.LogDebug($"{Id} => OnEvent {@event.Event.EventType} - v.{@event.Event.EventNumber}");
-
-                            obs.OnNext(@event);
-
-                            if (IsCaughtUp && UseSnapshot)
+                            if (_snapshotStrategy.IsSnapshotRequired(aggregate))
                             {
-                                foreach (var aggregate in _cache.Items)
-                                {
-                                    if (_snapshotStrategy.IsSnapShotRequired(aggregate))
-                                    {
-                                        Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
+                                Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
 
-                                        var eventFilter = GetEventsFilters();
+                                var eventFilter = GetEventsFilters();
 
-                                        aggregate.VersionFromSnapshot = aggregate.Version;
+                                aggregate.VersionFromSnapshot = aggregate.Version;
 
-                                        _snapshotStore.Save(eventFilter, aggregate).Wait();
+                                _snapshotStore.Save(eventFilter, aggregate).Wait();
 
-                                    }
-                                }
                             }
                         }
-
-                        return Task.CompletedTask;
-
-                }
-
-                void onSubscriptionDropped(EventStoreCatchUpSubscription eventStoreCatchUpSubscription, SubscriptionDropReason subscriptionDropReason, Exception exception)
-                {
-                    switch (subscriptionDropReason)
-                    {
-                        case SubscriptionDropReason.UserInitiated:
-                        case SubscriptionDropReason.ConnectionClosed:
-                            break;
-
-                        case SubscriptionDropReason.CatchUpError:
-                        case SubscriptionDropReason.NotAuthenticated:
-                        case SubscriptionDropReason.AccessDenied:
-                        case SubscriptionDropReason.SubscribingError:
-                        case SubscriptionDropReason.ServerError:
-                        case SubscriptionDropReason.ProcessingQueueOverflow:
-                        case SubscriptionDropReason.EventHandlerException:
-                        case SubscriptionDropReason.MaxSubscribersReached:
-                        case SubscriptionDropReason.PersistentSubscriptionDeleted:
-                        case SubscriptionDropReason.Unknown:
-                        case SubscriptionDropReason.NotFound:
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
-
-                            //var invalidOperationException = new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
-                            //  _onUnhandledExceptionSubject.OnNext(invalidOperationException);
-                            break;
-
-                        default:
-                            _onUnhandledExceptionSubject.OnNext(new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not excepted", exception));
-                            break;
                     }
                 }
 
-                var subscription = GetEventStoreCatchUpSubscription(catchupCacheSubscriptionHolder,
-                    connection, onEvent, onSubscriptionDropped);
+                return Task.CompletedTask;
 
-                return Disposable.Create(() =>
+            }
+
+            void onSubscriptionDropped(EventStoreCatchUpSubscription eventStoreCatchUpSubscription, SubscriptionDropReason subscriptionDropReason, Exception exception)
+            {
+
+                switch (subscriptionDropReason)
                 {
-                    subscription.Stop();
-                });
 
+                    case SubscriptionDropReason.UserInitiated:
+                        break;
+
+                    case SubscriptionDropReason.ConnectionClosed:
+                    case SubscriptionDropReason.EventHandlerException:
+                    case SubscriptionDropReason.CatchUpError:
+                    case SubscriptionDropReason.NotAuthenticated:
+                    case SubscriptionDropReason.AccessDenied:
+                    case SubscriptionDropReason.SubscribingError:
+                    case SubscriptionDropReason.ServerError:
+                    case SubscriptionDropReason.ProcessingQueueOverflow:
+                    case SubscriptionDropReason.MaxSubscribersReached:
+                    case SubscriptionDropReason.PersistentSubscriptionDeleted:
+                    case SubscriptionDropReason.Unknown:
+                    case SubscriptionDropReason.NotFound:
+                    default:
+
+                        Logger?.LogError(exception, $"{nameof(SubscriptionDropReason)}: [{subscriptionDropReason}] throwed the consumer in an invalid state");
+
+                        if (catchupCacheSubscriptionHolder.DoAppCrashIfSubscriptionFail)
+                        {
+                            Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
+                        }
+                        else
+                        {
+                            createNewCatchupSubscription();
+                        }
+
+                        break;
+                }
+            }
+
+            createNewCatchupSubscription();
+
+            return Disposable.Create(() =>
+            {
+                stopSubscription();
             });
+
         }
 
         protected abstract EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(

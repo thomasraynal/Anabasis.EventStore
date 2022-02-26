@@ -22,7 +22,7 @@ namespace Anabasis.EventStore.Samples
 
             var eventCountActor = EventStoreStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
                                        .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
-                                       .WithReadManyStreamFromStartCache(
+                                       .WithReadManyStreamsFromStartCache(
                                             new[] { StaticData.EntityOne, StaticData.EntityTwo, StaticData.EntityThree },
                                             eventTypeProvider: eventTypeProvider,
                                             getMultipleStreamsCatchupCacheConfiguration: builder => builder.KeepAppliedEventsOnAggregate = true)

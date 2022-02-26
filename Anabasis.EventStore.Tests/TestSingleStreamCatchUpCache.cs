@@ -96,7 +96,7 @@ namespace Anabasis.EventStore.Tests
               new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }),
               _loggerFactory);
 
-            catchUpCache.Connect();
+            catchUpCache.Connect().Wait();
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
@@ -185,18 +185,11 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldStopAndRestartCache()
         {
 
-            _cacheOne.connectionStatusMonitor.ForceConnectionStatus(false);
+            await _cacheOne.catchupEventStoreCache.Disconnect();
 
             await Task.Delay(100);
 
             Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsStale);
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
-
-            await Task.Delay(1500);
-
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-            Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
             Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeData(_streamId, Guid.NewGuid()));
@@ -210,12 +203,11 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(1, _cacheTwo.someDataAggregates.Count);
             Assert.AreEqual(5, _cacheTwo.someDataAggregates[0].AppliedEvents.Length);
 
-            _cacheOne.connectionStatusMonitor.ForceConnectionStatus(true);
+            await _cacheOne.catchupEventStoreCache.Connect();
 
             await Task.Delay(100);
 
             Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsStale);
             Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
 
             Assert.AreEqual(1, _cacheOne.someDataAggregates.Count);

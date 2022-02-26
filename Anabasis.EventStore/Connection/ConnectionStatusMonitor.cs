@@ -22,6 +22,8 @@ namespace Anabasis.EventStore.Connection
         public IObservable<ConnectionInfo> OnConnectionChanged => _connectionInfoChanged.AsObservable();
         public IObservable<bool> OnConnected => _isConnected.AsObservable();
 
+        public IEventStoreConnection EventStoreConnection => _eventStoreConnection;
+
         public ConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory = null)
         {
             _eventStoreConnection = connection;
@@ -94,12 +96,6 @@ namespace Anabasis.EventStore.Connection
             _isConnected.OnCompleted();
             _isConnected.Dispose();
             _cleanUp.Dispose();
-        }
-
-        //for testing purpose
-        public void ForceConnectionStatus(bool isConnected)
-        {
-            _forceConnectionStatus.OnNext(isConnected ? ConnectionStatus.Connected : ConnectionStatus.Disconnected);
         }
 
         public IObservable<IConnected<IEventStoreConnection>> GetEvenStoreConnectionStatus()

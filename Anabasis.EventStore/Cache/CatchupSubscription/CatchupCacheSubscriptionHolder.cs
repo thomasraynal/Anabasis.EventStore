@@ -1,4 +1,5 @@
-﻿using System;
+﻿using EventStore.ClientAPI;
+using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -9,18 +10,22 @@ namespace Anabasis.EventStore.Cache
 
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
 
-        internal CatchupCacheSubscriptionHolder()
+        internal CatchupCacheSubscriptionHolder(bool doAppCrashIfSubscriptionFail)
         {
             IsSuscribeToAll = true;
+            DoAppCrashIfSubscriptionFail = doAppCrashIfSubscriptionFail;
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
         }
 
-        internal CatchupCacheSubscriptionHolder(string streamId)
+        internal CatchupCacheSubscriptionHolder(string streamId, bool doAppCrashIfSubscriptionFail)
         {
             StreamId = streamId;
+            DoAppCrashIfSubscriptionFail = doAppCrashIfSubscriptionFail;
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
         }
 
+        public EventStoreCatchUpSubscription EventStoreCatchUpSubscription { get;  set; }
+        public bool DoAppCrashIfSubscriptionFail { get; private set; }
         public bool IsSuscribeToAll { get; private set; }
         public bool IsCaughtUp => _isCaughtUpSubject.Value;
         internal BehaviorSubject<bool> OnCaughtUpSubject => _isCaughtUpSubject;
@@ -30,6 +35,7 @@ namespace Anabasis.EventStore.Cache
         internal IDisposable EventStreamConnectionDisposable { get; set; }
         public long? LastProcessedEventSequenceNumber { get; internal set; } = null;
         public long? CurrentSnapshotEventVersion { get; internal set; } = null;
+
         public void Dispose()
         {
             _isCaughtUpSubject.Dispose();

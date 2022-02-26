@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Snapshot
 
         public int SnapshotIntervalInEvents { get; }
 
-        public bool IsSnapShotRequired(IAggregate aggregate)
+        public bool IsSnapshotRequired(IAggregate aggregate)
         {
             return aggregate.Version - aggregate.VersionFromSnapshot >= SnapshotIntervalInEvents;
         }

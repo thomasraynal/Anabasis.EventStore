@@ -61,7 +61,7 @@ namespace Anabasis.EventStore.Tests
         }
 
         [Test]
-        public async Task ShouldCreateAndGetSnapshotsFOrSeveralStreams()
+        public async Task ShouldCreateAndGetSnapshotsForSeveralStreams()
         {
             var snaphotRepository = new InMemorySnapshotStore<SomeDataAggregate>();
 

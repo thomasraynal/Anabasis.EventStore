@@ -9,11 +9,11 @@ using System.Reactive.Linq;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseOneOrManyStreamCatchupCache< TAggregate> : BaseCatchupCache< TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class BaseOneOrManyStreamCatchupCache<TAggregate> : BaseCatchupCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
-        protected BaseOneOrManyStreamCatchupCache(IConnectionStatusMonitor connectionMonitor, MultipleStreamsCatchupCacheConfiguration< TAggregate> catchupCacheConfiguration, IEventTypeProvider< TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore< TAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        protected BaseOneOrManyStreamCatchupCache(IConnectionStatusMonitor connectionMonitor, MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, IEventTypeProvider<TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<TAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
-            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder< TAggregate>(streamId)).ToArray();
+            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, catchupCacheConfiguration.DoAppCrashIfSubscriptionFail)).ToArray();
 
             Initialize(catchupCacheSubscriptionHolders);
 

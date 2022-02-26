@@ -196,13 +196,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldStopAndRestartCache()
         {
 
-            _cacheOne.connectionStatusMonitor.ForceConnectionStatus(false);
-
-            await Task.Delay(100);
-
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsStale);
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
+            await _cacheOne.catchupEventStoreCache.Disconnect();
 
             await Task.Delay(1500);
 
@@ -223,12 +217,11 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(3, _cacheTwo.someDataAggregates.Count);
             Assert.AreEqual(3, _cacheTwo.someDataAggregates[0].AppliedEvents.Length);
 
-            _cacheOne.connectionStatusMonitor.ForceConnectionStatus(true);
+            await _cacheOne.catchupEventStoreCache.Connect();
 
-            await Task.Delay(100);
+            await Task.Delay(1000);
 
             Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsStale);
             Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
 
             Assert.AreEqual(3, _cacheOne.someDataAggregates.Count);

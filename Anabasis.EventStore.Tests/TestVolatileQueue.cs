@@ -132,7 +132,7 @@ namespace Anabasis.EventStore.Tests
 
             var eventCount = 0;
 
-            _streamOne.connectionStatusMonitor.ForceConnectionStatus(false);
+            await _clusterVNode.StopAsync();
 
             _streamOne.volatileEventStoreStream.OnEvent().Subscribe((@event) =>
              {
@@ -145,7 +145,7 @@ namespace Anabasis.EventStore.Tests
 
             Assert.AreEqual(0, eventCount);
 
-            _streamOne.connectionStatusMonitor.ForceConnectionStatus(true);
+            await _clusterVNode.StartAsync(true);
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 

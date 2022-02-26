@@ -95,7 +95,7 @@ namespace Anabasis.EventStore.Tests
               new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }),
               _loggerFactory);
 
-            catchUpCache.Connect();
+            catchUpCache.Connect().Wait();
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
@@ -151,7 +151,7 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(0, _multipleStreamsCatchupCache.someDataAggregates[0].Version);
             Assert.AreEqual(1, _multipleStreamsCatchupCache.someDataAggregates[1].AppliedEvents.Length);
 
-            _multipleStreamsCatchupCache.connectionStatusMonitor.ForceConnectionStatus(false);
+            await _multipleStreamsCatchupCache.catchupEventStoreCache.Disconnect();
 
             await Task.Delay(500);
 
@@ -165,7 +165,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(500);
 
-            _multipleStreamsCatchupCache.connectionStatusMonitor.ForceConnectionStatus(true);
+            await _multipleStreamsCatchupCache.catchupEventStoreCache.Connect();
 
             await Task.Delay(500);
 

@@ -107,7 +107,7 @@ namespace Anabasis.EventStore.Tests
               _inMemorySnapshotStore,
               _defaultSnapshotStrategy);
 
-            catchUpCache.Connect();
+            catchUpCache.Connect().Wait();
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
@@ -184,7 +184,7 @@ namespace Anabasis.EventStore.Tests
         [Test, Order(2)]
         public async Task ShouldDisconnectAndLoadSnapshot()
         {
-            _multipleStreamsCatchupCacheOne.connectionStatusMonitor.ForceConnectionStatus(false);
+            await _multipleStreamsCatchupCacheOne.catchupEventStoreCache.Disconnect();
 
             var streamOneEventCount = _multipleStreamsCatchupCacheOne.someDataAggregates
                     .First(aggregate => aggregate.EntityId == _streamIdOne)
@@ -197,7 +197,7 @@ namespace Anabasis.EventStore.Tests
 
             await _eventStoreRepositoryAndConnectionMonitor.eventStoreRepository.Emit(new SomeData(_streamIdOne, Guid.NewGuid()));
 
-            _multipleStreamsCatchupCacheOne.connectionStatusMonitor.ForceConnectionStatus(true);
+            await _multipleStreamsCatchupCacheOne.catchupEventStoreCache.Connect();
 
             await Task.Delay(1000);
 

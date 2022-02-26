@@ -3,6 +3,7 @@ using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Shared;
 using DynamicData;
 using System;
+using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
@@ -13,13 +14,13 @@ namespace Anabasis.EventStore.Cache
         bool IsCaughtUp { get; }
         bool IsConnected { get; }
         bool IsWiredUp { get; }
-        IObservable<bool> OnConnected { get; }
         IObservable<bool> OnCaughtUp { get; }
         IObservable<bool> OnStale { get; }
         TAggregate GetCurrent(string key);
         TAggregate[] GetCurrents();
         IObservableCache<TAggregate, string> AsObservableCache();
         IEventTypeProvider<TAggregate> EventTypeProvider { get; }
-        void Connect();
+        Task Connect();
+        Task Disconnect();
     }
 }

@@ -169,10 +169,10 @@ namespace Anabasis.EventStore.Standalone
           ISnapshotStore<TAggregate> snapshotStore = null,
           ISnapshotStrategy snapshotStrategy = null)
         {
-            return WithReadManyStreamFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration, snapshotStore, snapshotStrategy);
+            return WithReadManyStreamsFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration, snapshotStore, snapshotStrategy);
         }
 
-        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadManyStreamFromStartCache(
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithReadManyStreamsFromStartCache(
           string[] streamIds,
           IEventTypeProvider<TAggregate> eventTypeProvider,
           Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,

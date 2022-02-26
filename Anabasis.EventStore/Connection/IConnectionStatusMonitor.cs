@@ -4,11 +4,12 @@ using EventStore.ClientAPI;
 
 namespace Anabasis.EventStore.Connection
 {
-  public interface IConnectionStatusMonitor
-  {
-    bool IsConnected { get; }
-    ConnectionInfo ConnectionInfo { get; }
-    IObservable<bool> OnConnected { get; }
-    IObservable<IConnected<IEventStoreConnection>> GetEvenStoreConnectionStatus();
-  }
+    public interface IConnectionStatusMonitor
+    {
+        bool IsConnected { get; }
+        ConnectionInfo ConnectionInfo { get; }
+        IObservable<bool> OnConnected { get; }
+        IEventStoreConnection EventStoreConnection { get; }
+        IObservable<IConnected<IEventStoreConnection>> GetEvenStoreConnectionStatus();
+    }
 }
