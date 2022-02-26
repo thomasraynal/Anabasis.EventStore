@@ -157,7 +157,9 @@ namespace Anabasis.EventStore.Tests
 
             var eventCount = 0;
 
-           // _streamOne.persistentEventStoreStream.Disconnect();
+            _streamOne.persistentEventStoreStream.Disconnect();
+
+            await Task.Delay(200);
 
             _streamOne.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
             {
@@ -171,6 +173,8 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(0, eventCount);
 
             _streamOne.persistentEventStoreStream.Connect();
+
+            await Task.Delay(200);
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 

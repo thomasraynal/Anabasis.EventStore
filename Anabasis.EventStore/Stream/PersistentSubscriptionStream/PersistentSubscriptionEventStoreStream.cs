@@ -3,8 +3,10 @@ using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Stream
@@ -17,9 +19,9 @@ namespace Anabasis.EventStore.Stream
         public PersistentSubscriptionEventStoreStream(IConnectionStatusMonitor connectionMonitor,
           PersistentSubscriptionEventStoreStreamConfiguration persistentEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILoggerFactory loggerFactory) : base(connectionMonitor, 
-              persistentEventStoreStreamConfiguration, 
-              eventTypeProvider, 
+          ILoggerFactory loggerFactory) : base(connectionMonitor,
+              persistentEventStoreStreamConfiguration,
+              eventTypeProvider,
               loggerFactory.CreateLogger<PersistentSubscriptionEventStoreStream>())
         {
             _persistentEventStoreStreamConfiguration = persistentEventStoreStreamConfiguration;
@@ -32,6 +34,12 @@ namespace Anabasis.EventStore.Stream
             _eventStorePersistentSubscription.Acknowledge(resolvedEvent);
         }
 
+        public override void Disconnect()
+        {
+            _eventStorePersistentSubscription.Stop(TimeSpan.FromSeconds(5));
+            IsWiredUp = false;
+        }
+
         public void NotAcknowledge(ResolvedEvent resolvedEvent, PersistentSubscriptionNakEventAction persistentSubscriptionNakEventAction, string reason = null)
         {
             Logger?.LogDebug($"{Id} => NACK event - {resolvedEvent.Event.EventId} - reason : {reason}");
@@ -39,49 +47,64 @@ namespace Anabasis.EventStore.Stream
             _eventStorePersistentSubscription.Fail(resolvedEvent, persistentSubscriptionNakEventAction, reason);
         }
 
-        protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
+        protected override IDisposable ConnectToEventStream(IEventStoreConnection connection)
         {
-            return Observable.Create<ResolvedEvent>(async observer =>
+
+            void stopSubscription()
             {
-
-                Task onEvent(EventStorePersistentSubscriptionBase _, ResolvedEvent resolvedEvent)
+                if (null != _eventStorePersistentSubscription)
                 {
-                    Logger?.LogDebug($"{Id} => onEvent - {resolvedEvent.Event.EventId}");
-
-                    observer.OnNext(resolvedEvent);
-
-                    return Task.CompletedTask;
+                    _eventStorePersistentSubscription.Stop(TimeSpan.FromSeconds(5));
                 }
+            }
 
-                void onSubscriptionDropped(EventStorePersistentSubscriptionBase _, SubscriptionDropReason subscriptionDropReason, Exception exception)
+            void onEvent(EventStorePersistentSubscriptionBase _, ResolvedEvent resolvedEvent)
+            {
+                Logger?.LogDebug($"{Id} => onEvent - {resolvedEvent.Event.EventId}");
+
+                OnResolvedEvent(resolvedEvent);
+            }
+
+            void onSubscriptionDropped(EventStorePersistentSubscriptionBase _, SubscriptionDropReason subscriptionDropReason, Exception exception)
+            {
+                switch (subscriptionDropReason)
                 {
-                    switch (subscriptionDropReason)
-                    {
-                        case SubscriptionDropReason.UserInitiated:
-                        case SubscriptionDropReason.ConnectionClosed:
-                            Logger?.LogDebug(exception,$"{Id} => SubscriptionDropReason - reason : {subscriptionDropReason}");
-                            break;
-                        case SubscriptionDropReason.NotAuthenticated:
-                        case SubscriptionDropReason.AccessDenied:
-                        case SubscriptionDropReason.SubscribingError:
-                        case SubscriptionDropReason.ServerError:
-                        case SubscriptionDropReason.CatchUpError:
-                        case SubscriptionDropReason.ProcessingQueueOverflow:
-                        case SubscriptionDropReason.EventHandlerException:
-                        case SubscriptionDropReason.MaxSubscribersReached:
-                        case SubscriptionDropReason.PersistentSubscriptionDeleted:
-                        case SubscriptionDropReason.Unknown:
-                        case SubscriptionDropReason.NotFound:
+                    case SubscriptionDropReason.UserInitiated:
+                        break;
+                    case SubscriptionDropReason.ConnectionClosed:
+                    case SubscriptionDropReason.NotAuthenticated:
+                    case SubscriptionDropReason.AccessDenied:
+                    case SubscriptionDropReason.SubscribingError:
+                    case SubscriptionDropReason.ServerError:
+                    case SubscriptionDropReason.CatchUpError:
+                    case SubscriptionDropReason.ProcessingQueueOverflow:
+                    case SubscriptionDropReason.EventHandlerException:
+                    case SubscriptionDropReason.MaxSubscribersReached:
+                    case SubscriptionDropReason.PersistentSubscriptionDeleted:
+                    case SubscriptionDropReason.Unknown:
+                    case SubscriptionDropReason.NotFound:
+                    default:
 
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
+                        Logger?.LogError(exception, $"{nameof(SubscriptionDropReason)}: [{subscriptionDropReason}] throwed the consumer in an invalid state");
 
-                        default:
+                        if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
+                        {
+                            Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
+                        }
+                        else
+                        {
+                            createNewPersistentSubscription().Wait();
+                        }
 
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception);
-                    }
+                        break;
                 }
+            }
 
-                Logger?.LogInformation($"{Id} => ConnectToEventStream - ConnectToPersistentSubscriptionAsync - StreamId: {_persistentEventStoreStreamConfiguration.StreamId} - GroupId: {_persistentEventStoreStreamConfiguration.GroupId}");
+            async Task createNewPersistentSubscription()
+            {
+                stopSubscription();
+
+                Logger?.LogInformation($"{Id} => ConnectToPersistentSubscriptionAsync - StreamId: {_persistentEventStoreStreamConfiguration.StreamId} - GroupId: {_persistentEventStoreStreamConfiguration.GroupId}");
 
                 _eventStorePersistentSubscription = await connection.ConnectToPersistentSubscriptionAsync(
                  _persistentEventStoreStreamConfiguration.StreamId,
@@ -91,13 +114,17 @@ namespace Anabasis.EventStore.Stream
                  userCredentials: _persistentEventStoreStreamConfiguration.UserCredentials,
                  _persistentEventStoreStreamConfiguration.BufferSize,
                  _persistentEventStoreStreamConfiguration.AutoAck);
+            };
 
-                return Disposable.Create(() =>
-                  {
-                      _eventStorePersistentSubscription.Stop(TimeSpan.FromSeconds(5));
-                  });
+            createNewPersistentSubscription().Wait();
 
-            });
+            return Disposable.Create(() =>
+              {
+                  stopSubscription();
+              });
+
         }
+
+
     }
 }

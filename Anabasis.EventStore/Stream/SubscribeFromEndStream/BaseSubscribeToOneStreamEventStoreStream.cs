@@ -3,8 +3,10 @@ using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Stream
@@ -13,6 +15,7 @@ namespace Anabasis.EventStore.Stream
     {
         private readonly SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration _volatileSubscribeToOneStreamEventStoreStreamConfiguration;
         private readonly int _streamPosition;
+        private EventStoreStreamCatchUpSubscription _eventStoreCatchupSubscription;
 
         public BaseSubscribeToOneStreamEventStoreStream(
           int streamPosition,
@@ -26,56 +29,77 @@ namespace Anabasis.EventStore.Stream
             _streamPosition = streamPosition;
         }
 
-        protected override IObservable<ResolvedEvent> ConnectToEventStream(IEventStoreConnection connection)
+        public override void Disconnect()
+        {
+            _eventStoreCatchupSubscription.Stop();
+            IsWiredUp = false;
+        }
+
+        protected override IDisposable ConnectToEventStream(IEventStoreConnection connection)
         {
 
-            return Observable.Create<ResolvedEvent>(observer =>
+            void stopSubscription()
             {
-
-                Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent resolvedEvent)
+                if (null != _eventStoreCatchupSubscription)
                 {
-                    Logger?.LogDebug($"{Id} => onEvent - {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} {resolvedEvent.Event.EventNumber}");
-
-                    observer.OnNext(resolvedEvent);
-
-                    return Task.CompletedTask;
+                    _eventStoreCatchupSubscription.Stop();
                 }
+            }
 
-                void onSubscriptionDropped(EventStoreCatchUpSubscription _, SubscriptionDropReason subscriptionDropReason, Exception exception)
+            void onEvent(EventStoreCatchUpSubscription _, ResolvedEvent resolvedEvent)
+            {
+                Logger?.LogDebug($"{Id} => onEvent - {resolvedEvent.Event.EventId} {resolvedEvent.Event.EventStreamId} {resolvedEvent.Event.EventNumber}");
+
+                OnResolvedEvent(resolvedEvent);
+            }
+
+            void onSubscriptionDropped(EventStoreCatchUpSubscription _, SubscriptionDropReason subscriptionDropReason, Exception exception)
+            {
+                switch (subscriptionDropReason)
                 {
-                    switch (subscriptionDropReason)
-                    {
-                        case SubscriptionDropReason.UserInitiated:
-                        case SubscriptionDropReason.ConnectionClosed:
-                            Logger?.LogDebug(exception,$"{Id} => SubscriptionDropReason - reason : {subscriptionDropReason}");
-                            break;
-                        case SubscriptionDropReason.NotAuthenticated:
-                        case SubscriptionDropReason.AccessDenied:
-                        case SubscriptionDropReason.SubscribingError:
-                        case SubscriptionDropReason.ServerError:
-                        case SubscriptionDropReason.CatchUpError:
-                        case SubscriptionDropReason.ProcessingQueueOverflow:
-                        case SubscriptionDropReason.EventHandlerException:
-                        case SubscriptionDropReason.MaxSubscribersReached:
-                        case SubscriptionDropReason.PersistentSubscriptionDeleted:
-                        case SubscriptionDropReason.Unknown:
-                        case SubscriptionDropReason.NotFound:
+                    case SubscriptionDropReason.UserInitiated:
+                        break;
+                    case SubscriptionDropReason.ConnectionClosed:
+                    case SubscriptionDropReason.NotAuthenticated:
+                    case SubscriptionDropReason.AccessDenied:
+                    case SubscriptionDropReason.SubscribingError:
+                    case SubscriptionDropReason.ServerError:
+                    case SubscriptionDropReason.CatchUpError:
+                    case SubscriptionDropReason.ProcessingQueueOverflow:
+                    case SubscriptionDropReason.EventHandlerException:
+                    case SubscriptionDropReason.MaxSubscribersReached:
+                    case SubscriptionDropReason.PersistentSubscriptionDeleted:
+                    case SubscriptionDropReason.Unknown:
+                    case SubscriptionDropReason.NotFound:
+                    default:
 
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} throwed the consumer in a invalid state", exception);
+                        Logger?.LogError(exception, $"{nameof(SubscriptionDropReason)}: [{subscriptionDropReason}] throwed the consumer in an invalid state");
 
-                        default:
+                        if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
+                        {
+                            Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
+                        }
+                        else
+                        {
+                            createNewCatchupSubscription();
+                        }
 
-                            throw new InvalidOperationException($"{nameof(SubscriptionDropReason)} {subscriptionDropReason} not found", exception);
-                    }
+                        break;
                 }
+            }
 
-                void onCaughtUp(EventStoreCatchUpSubscription _)
-                {
-                }
+            void onCaughtUp(EventStoreCatchUpSubscription _)
+            {
+            }
 
-                Logger?.LogInformation($"{Id} => ConnectToEventStream - SubscribeToStreamFrom - StreamId: {_volatileSubscribeToOneStreamEventStoreStreamConfiguration.StreamId} - StreamPosition: {_streamPosition}");
 
-                var subscription = connection.SubscribeToStreamFrom(
+            void createNewCatchupSubscription()
+            {
+                stopSubscription();
+
+                Logger?.LogInformation($"{Id} => SubscribeToStreamFrom - StreamId: {_volatileSubscribeToOneStreamEventStoreStreamConfiguration.StreamId} - StreamPosition: {_streamPosition}");
+
+                _eventStoreCatchupSubscription = connection.SubscribeToStreamFrom(
                   _volatileSubscribeToOneStreamEventStoreStreamConfiguration.StreamId,
                   _streamPosition,
                   _volatileSubscribeToOneStreamEventStoreStreamConfiguration.CatchUpSubscriptionFilteredSettings,
@@ -84,12 +108,17 @@ namespace Anabasis.EventStore.Stream
                   subscriptionDropped: onSubscriptionDropped,
                   userCredentials: _volatileSubscribeToOneStreamEventStoreStreamConfiguration.UserCredentials);
 
-                return Disposable.Create(() =>
-                  {
-                      subscription.Stop();
-                  });
+            }
 
-            });
+
+            createNewCatchupSubscription();
+
+            return Disposable.Create(() =>
+              {
+                  stopSubscription();
+              });
+
+
         }
     }
 }

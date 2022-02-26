@@ -241,6 +241,9 @@ namespace Anabasis.EventStore.Cache
 
             foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
             {
+                if (null != catchupCacheSubscriptionHolder.EventStreamConnectionDisposable) 
+                    catchupCacheSubscriptionHolder.EventStreamConnectionDisposable.Dispose();
+
                 catchupCacheSubscriptionHolder.EventStreamConnectionDisposable = ConnectToEventStream(_connectionMonitor.EventStoreConnection, catchupCacheSubscriptionHolder);
 
                 _cleanUp.Add(catchupCacheSubscriptionHolder.EventStreamConnectionDisposable);

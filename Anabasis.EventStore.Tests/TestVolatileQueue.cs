@@ -132,7 +132,9 @@ namespace Anabasis.EventStore.Tests
 
             var eventCount = 0;
 
-            await _clusterVNode.StopAsync();
+            _streamOne.volatileEventStoreStream.Disconnect();
+
+            await Task.Delay(200);
 
             _streamOne.volatileEventStoreStream.OnEvent().Subscribe((@event) =>
              {
@@ -141,15 +143,17 @@ namespace Anabasis.EventStore.Tests
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
-            await Task.Delay(500);
+            await Task.Delay(200);
 
             Assert.AreEqual(0, eventCount);
 
-            await _clusterVNode.StartAsync(true);
+            _streamOne.volatileEventStoreStream.Connect();
+
+            await Task.Delay(200);
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
-            await Task.Delay(500);
+            await Task.Delay(200);
 
             Assert.AreEqual(1, eventCount);
 
@@ -175,14 +179,14 @@ namespace Anabasis.EventStore.Tests
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
-            await Task.Delay(100);
+            await Task.Delay(200);
 
             Assert.AreEqual(1, eventCountOne);
             Assert.AreEqual(1, eventCountTwo);
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId));
 
-            await Task.Delay(100);
+            await Task.Delay(200);
 
             Assert.AreEqual(2, eventCountOne);
             Assert.AreEqual(2, eventCountTwo);

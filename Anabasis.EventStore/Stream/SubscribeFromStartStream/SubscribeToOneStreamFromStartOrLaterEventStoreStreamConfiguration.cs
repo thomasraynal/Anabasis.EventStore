@@ -22,5 +22,6 @@ namespace Anabasis.EventStore.Stream
         public ISerializer Serializer { get; set; } = new DefaultSerializer();
         public UserCredentials UserCredentials { get; set; }
         public CatchUpSubscriptionFilteredSettings CatchUpSubscriptionFilteredSettings { get; set; } = CatchUpSubscriptionFilteredSettings.Default;
+        public bool DoAppCrashIfSubscriptionFail { get; set; }
     }
 }
