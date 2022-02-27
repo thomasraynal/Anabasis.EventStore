@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
@@ -24,6 +25,20 @@ namespace Anabasis.EventStore.Tests
         public TestActorBuilderDummyBusRegistry()
         {
             For<ITestActorBuilderDummyBus>().Use<TestActorDummyBus>().Singleton();
+        }
+    }
+
+    public class TestActorDummyBusConnectionMonitor : IConnectionStatusMonitor
+    {
+        public bool IsConnected => true;
+
+        public ConnectionInfo ConnectionInfo => new ConnectionInfo(ConnectionStatus.Connected, 1);
+
+        public IObservable<bool> OnConnected => throw new NotImplementedException();
+
+        public void Dispose()
+        {
+          
         }
     }
 
@@ -42,7 +57,7 @@ namespace Anabasis.EventStore.Tests
 
         public bool IsInitialized => true;
 
-        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+        public IConnectionStatusMonitor ConnectionStatusMonitor => new TestActorDummyBusConnectionMonitor();
 
         public void Dispose()
         {
@@ -56,11 +71,7 @@ namespace Anabasis.EventStore.Tests
             }
         }
 
-        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
-        {
-            return Task.FromResult(HealthCheckResult.Healthy());
-        }
-
+ 
         public Task Initialize()
         {
             return Task.CompletedTask;
@@ -69,6 +80,11 @@ namespace Anabasis.EventStore.Tests
         public void Subscribe(Action<IEvent> onEventReceived)
         {
             _subscribers.Add(onEventReceived);
+        }
+
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(HealthCheckResult.Healthy());
         }
     }
 

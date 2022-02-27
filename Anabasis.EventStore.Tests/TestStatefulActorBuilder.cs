@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.AspNet.Factories;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Repository;
@@ -22,11 +23,17 @@ namespace Anabasis.EventStore.Tests
 
     public class TestStatefulActorOne : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public List<IEvent> Events { get; } = new List<IEvent>();
-
-        public TestStatefulActorOne(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ISomeDependency _) : base(actorConfiguration, eventStoreRepository, eventStoreCache)
+        public TestStatefulActorOne(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
+
+        public TestStatefulActorOne(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        {
+        }
+
+        public List<IEvent> Events { get; } = new List<IEvent>();
+
+
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)
         {
@@ -46,12 +53,17 @@ namespace Anabasis.EventStore.Tests
 
     public class TestAggregatedActorTwo : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
+        public TestAggregatedActorTwo(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        {
+        }
+
+        public TestAggregatedActorTwo(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        {
+        }
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestAggregatedActorTwo(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ISomeDependency _) : base(actorConfiguration, eventStoreRepository, eventStoreCache)
-        {
-        }
+   
         public async Task Handle(SomeCommand someCommand)
         {
             await EmitEventStore(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));

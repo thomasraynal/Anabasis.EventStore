@@ -1,13 +1,9 @@
 using Anabasis.Common;
-using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Stream
@@ -90,7 +86,7 @@ namespace Anabasis.EventStore.Stream
 
                         if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
                         {
-                            Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
+                            KillSwitch.KillMe(exception);
                         }
                         else
                         {

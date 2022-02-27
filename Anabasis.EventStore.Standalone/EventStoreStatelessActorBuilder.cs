@@ -82,7 +82,7 @@ namespace Anabasis.EventStore.Standalone
 
             var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>
             {
-                ConnectionMonitor = new EventstoreConnectionStatusMonitor(connection, loggerFactory),
+                ConnectionMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory),
                 LoggerFactory = loggerFactory,
                 ActorConfiguration = actorConfiguration
             };
@@ -114,7 +114,7 @@ namespace Anabasis.EventStore.Standalone
 
             var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>
             {
-                ConnectionMonitor = new EventstoreConnectionStatusMonitor(eventStoreConnection, loggerFactory),
+                ConnectionMonitor = new EventStoreConnectionStatusMonitor(eventStoreConnection, loggerFactory),
                 LoggerFactory = loggerFactory,
                 ActorConfiguration = actorConfiguration
             };
@@ -148,7 +148,7 @@ namespace Anabasis.EventStore.Standalone
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
 
-            var connectionStatusMonitor = new EventstoreConnectionStatusMonitor(connection, loggerFactory);
+            var connectionStatusMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory);
 
             var eventStoreRepository = new EventStoreRepository(
                 eventStoreRepositoryConfiguration,

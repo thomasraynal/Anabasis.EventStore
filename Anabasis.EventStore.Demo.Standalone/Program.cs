@@ -1,4 +1,5 @@
 using Anabasis.Common;
+using Anabasis.Common.Queue;
 using Anabasis.EventStore.Demo.Bus;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Standalone;
@@ -18,30 +19,13 @@ namespace Anabasis.EventStore.Demo
         static void Main(string[] args)
         {
 
-
-            var rabbitMqConnectionOptions = new RabbitMqConnectionOptions()
+            var dispatchQueue = new DispatchQueue<int>(new DispatchQueueConfiguration<int>((i=>
             {
-                HostName = "localhost",
-                Password = "password",
-                Username = "username",
-            };
+                throw new Exception("boom");
 
+            }),1,1));
 
-            Log.Logger = new LoggerConfiguration()
-              .MinimumLevel.Information()
-              .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
-              .WriteTo.Console()
-              .CreateLogger();
-
-            var loggerFactory = new LoggerFactory().AddSerilog(Log.Logger);
-
-            var anabasisAppContext = new AnabasisAppContext("appName", "appGroup", new Version(1, 0));
-
-            var defaultSerializer = new DefaultSerializer();
-
-            var connection = new RabbitMqConnection(rabbitMqConnectionOptions, anabasisAppContext, loggerFactory);
-
-            var monitor = new RabbitMqConnectionStatusMonitor(connection, loggerFactory);
+            dispatchQueue.Enqueue(1);
 
 
             //Task.Run(() =>

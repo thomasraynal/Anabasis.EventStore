@@ -6,25 +6,38 @@ using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using EventStore.ClientAPI;
 
 namespace Anabasis.EventStore.Actor
 {
     public abstract class BaseEventStoreStatelessActor : BaseStatelessActor, IEventStoreStatelessActor
     {
 
-        private readonly IEventStoreRepository _eventStoreRepository;
-        private readonly List<IEventStoreStream> _eventStoreStreams;
+        private IEventStoreRepository _eventStoreRepository;
+        private List<IEventStoreStream> _eventStoreStreams;
 
-        protected BaseEventStoreStatelessActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration,loggerFactory)
+        protected BaseEventStoreStatelessActor(IActorConfiguration actorConfiguration, 
+            IEventStoreRepository eventStoreRepository,
+            IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
+            ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
-            _eventStoreRepository = eventStoreRepository;
-            _eventStoreStreams = new List<IEventStoreStream>();
+            Initialize(eventStoreRepository, connectionStatusMonitor);
         }
 
-        protected BaseEventStoreStatelessActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
+        protected BaseEventStoreStatelessActor(IActorConfigurationFactory actorConfigurationFactory,
+            IEventStoreRepository eventStoreRepository,
+            IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
+            ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
+        {
+            Initialize(eventStoreRepository, connectionStatusMonitor);
+        }
+
+        public void Initialize(IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor)
         {
             _eventStoreRepository = eventStoreRepository;
             _eventStoreStreams = new List<IEventStoreStream>();
+
+            ConnectTo(new EventStoreBus(connectionStatusMonitor)).Wait();
         }
 
         public void SubscribeToEventStream(IEventStoreStream eventStoreStream, bool closeSubscriptionOnDispose = false)
@@ -50,7 +63,7 @@ namespace Anabasis.EventStore.Actor
 
             if (!_eventStoreRepository.IsConnected)
             {
-               await WaitUntilConnected(timeout);
+                await WaitUntilConnected(timeout);
             }
 
             Logger?.LogDebug($"{Id} => Emitting {@event.EntityId} - {@event.GetType()}");

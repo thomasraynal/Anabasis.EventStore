@@ -17,8 +17,15 @@ namespace Anabasis.Common
         public DispatchQueue(DispatchQueueConfiguration<TMessage> dispatchQueueConfiguration)
         {
             _workQueue = new FlushableBlockingCollection<TMessage>(dispatchQueueConfiguration.MessageBatchSize, dispatchQueueConfiguration.QueueMaxSize);
-            _workProc = Task.Run(HandleWork, CancellationToken.None);
+
             _onEventReceived = dispatchQueueConfiguration.OnEventReceived;
+
+            _workProc = Task.Run(HandleWork, CancellationToken.None).ContinueWith(task =>
+               {
+                   KillSwitch.KillMe(task.Exception);
+
+               }, TaskContinuationOptions.OnlyOnFaulted);
+
         }
 
         public void Enqueue(TMessage message)
@@ -32,17 +39,7 @@ namespace Anabasis.Common
             {
                 foreach (var message in messages)
                 {
-                    try
-                    {
-                        _onEventReceived(message).Wait();
-                    }
-                    catch(Exception exception)
-                    {
-                        Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
-
-                        throw;
-                    }
-                   
+                    _onEventReceived(message).Wait();
                 }
             }
         }

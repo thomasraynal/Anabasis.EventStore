@@ -19,6 +19,7 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
@@ -43,6 +44,20 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
+    public class DummyBusConnectionMonitor : IConnectionStatusMonitor
+    {
+        public bool IsConnected => true;
+
+        public ConnectionInfo ConnectionInfo => ConnectionInfo.InitialConnected;
+
+        public IObservable<bool> OnConnected => throw new NotImplementedException();
+
+        public void Dispose()
+        {
+
+        }
+    }
+
     public class DummyBus :  IDummyBus
     {
         private readonly List<Action<IEvent>> _subscribers;
@@ -58,7 +73,7 @@ namespace Anabasis.EventStore.Tests
 
         public bool IsInitialized => true;
 
-        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+        public IConnectionStatusMonitor ConnectionStatusMonitor => new DummyBusConnectionMonitor();
 
         public void Dispose()
         {
@@ -72,7 +87,7 @@ namespace Anabasis.EventStore.Tests
             }
         }
 
-        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(HealthCheckResult.Healthy());
         }
@@ -116,7 +131,7 @@ namespace Anabasis.EventStore.Tests
             }
         }
 
-        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(HealthCheckResult.Healthy());
         }
@@ -160,17 +175,16 @@ namespace Anabasis.EventStore.Tests
 
     public class TestBusRegistrationStatelessActor : BaseEventStoreStatelessActor
     {
-        public List<SomeData> Events { get; }
-
-        public TestBusRegistrationStatelessActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
+        public TestBusRegistrationStatelessActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
-            Events = new List<SomeData>();
         }
 
-        public TestBusRegistrationStatelessActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, loggerFactory)
+        public TestBusRegistrationStatelessActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
-            Events = new List<SomeData>();
         }
+
+        public List<SomeData> Events { get; } = new List<SomeData>();
+
 
         public Task Handle(SomeData someData)
         {
@@ -182,11 +196,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestBusRegistrationStatefulActor : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestBusRegistrationStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
+        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 
-        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
         {
         }
 
@@ -329,7 +343,7 @@ namespace Anabasis.EventStore.Tests
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,

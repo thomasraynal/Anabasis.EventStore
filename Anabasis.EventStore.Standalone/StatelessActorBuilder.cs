@@ -1,12 +1,9 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using Lamar;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.EventStore.Standalone
 {

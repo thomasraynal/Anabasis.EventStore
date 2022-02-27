@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Connection
 {
-    public class EventstoreConnectionStatusMonitor : IConnectionStatusMonitor<IEventStoreConnection>
+    public class EventStoreConnectionStatusMonitor : IConnectionStatusMonitor<IEventStoreConnection>
     {
         private readonly IConnectableObservable<ConnectionInfo> _connectionInfoChanged;
         private readonly IEventStoreConnection _eventStoreConnection;
@@ -23,11 +23,11 @@ namespace Anabasis.EventStore.Connection
 
         public IEventStoreConnection Connection => _eventStoreConnection;
 
-        public EventstoreConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory = null)
+        public EventStoreConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory = null)
         {
             _eventStoreConnection = connection;
 
-            _logger = loggerFactory?.CreateLogger(nameof(EventstoreConnectionStatusMonitor));
+            _logger = loggerFactory?.CreateLogger(nameof(EventStoreConnectionStatusMonitor));
 
             _isConnected = new BehaviorSubject<bool>(false);
 
@@ -36,8 +36,10 @@ namespace Anabasis.EventStore.Connection
                 return ConnectionStatus.Connected;
             });
 
-            var disconnected = Observable.FromEventPattern<ClientConnectionEventArgs>(h => connection.Disconnected += h, h => connection.Disconnected -= h).Select(_ =>
+            var disconnected = Observable.FromEventPattern<ClientConnectionEventArgs>(h => connection.Disconnected += h, h => connection.Disconnected -= h).Select(arg =>
             {
+                _logger?.LogInformation($"{nameof(EventStoreConnectionStatusMonitor)} => Connection lost - [{arg.EventArgs.RemoteEndPoint}]");
+
                 return ConnectionStatus.Disconnected;
             });
 
@@ -48,21 +50,21 @@ namespace Anabasis.EventStore.Connection
 
             var closed = Observable.FromEventPattern<ClientClosedEventArgs>(h => connection.Closed += h, h => connection.Closed -= h).Select(arg =>
             {
-                _logger?.LogWarning($"{nameof(EventstoreConnectionStatusMonitor)} => Connection closed - [{arg.EventArgs.Reason}]");
+                _logger?.LogInformation($"{nameof(EventStoreConnectionStatusMonitor)} => Connection closed - [{arg.EventArgs.Reason}]");
 
                 return ConnectionStatus.Closed;
             });
 
             var errorOccurred = Observable.FromEventPattern<ClientErrorEventArgs>(h => connection.ErrorOccurred += h, h => connection.ErrorOccurred -= h).Select(arg =>
             {
-                _logger?.LogError(arg.EventArgs.Exception, $"{nameof(EventstoreConnectionStatusMonitor)} => An error occured while connected to EventStore");
+                _logger?.LogError(arg.EventArgs.Exception, $"{nameof(EventStoreConnectionStatusMonitor)} => An error occured while connected to EventStore");
 
                 return ConnectionStatus.ErrorOccurred;
             });
 
             var authenticationFailed = Observable.FromEventPattern<ClientAuthenticationFailedEventArgs>(h => connection.AuthenticationFailed += h, h => connection.AuthenticationFailed -= h).Select(arg =>
             {
-                _logger?.LogError($"{nameof(EventstoreConnectionStatusMonitor)} => Authentication failed while connecting to EventStore - [{arg.EventArgs.Reason}]");
+                _logger?.LogError($"{nameof(EventStoreConnectionStatusMonitor)} => Authentication failed while connecting to EventStore - [{arg.EventArgs.Reason}]");
 
                 return ConnectionStatus.AuthenticationFailed;
             });
@@ -74,7 +76,7 @@ namespace Anabasis.EventStore.Connection
                                                {
 
                                                    ConnectionInfo = connectionInfo;
-                                                   _logger?.LogInformation($"{nameof(EventstoreConnectionStatusMonitor)} => ConnectionInfo - {connectionInfo}");
+                                                   _logger?.LogInformation($"{nameof(EventStoreConnectionStatusMonitor)} => ConnectionInfo - {connectionInfo}");
                                                    _isConnected.OnNext(connectionInfo.Status == ConnectionStatus.Connected);
 
                                                })

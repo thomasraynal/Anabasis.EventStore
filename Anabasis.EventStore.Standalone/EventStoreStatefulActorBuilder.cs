@@ -127,7 +127,7 @@ namespace Anabasis.EventStore.Standalone
             var builder = new EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>
             {
                 LoggerFactory = loggerFactory ?? new DummyLoggerFactory(),
-                ConnectionMonitor = new EventstoreConnectionStatusMonitor(eventStoreConnection, loggerFactory),
+                ConnectionMonitor = new EventStoreConnectionStatusMonitor(eventStoreConnection, loggerFactory),
                 ActorConfiguration = actorConfiguration
             };
 

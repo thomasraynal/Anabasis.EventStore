@@ -55,11 +55,11 @@ namespace Anabasis.EventStore.Tests
     }
     public class TestBusRegistrationEventStoreStatelessActorMvc: BaseEventStoreStatelessActor
     {
-        public TestBusRegistrationEventStoreStatelessActorMvc(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
+        public TestBusRegistrationEventStoreStatelessActorMvc(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 
-        public TestBusRegistrationEventStoreStatelessActorMvc(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, loggerFactory)
+        public TestBusRegistrationEventStoreStatelessActorMvc(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 
@@ -75,7 +75,7 @@ namespace Anabasis.EventStore.Tests
     }
     public class TestBusRegistrationEventStoreStatefullActorMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestBusRegistrationEventStoreStatefullActorMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
+        public TestBusRegistrationEventStoreStatefullActorMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
         {
         }
 

@@ -358,7 +358,8 @@ namespace Anabasis.EventStore.Cache
 
                         if (catchupCacheSubscriptionHolder.DoAppCrashIfSubscriptionFail)
                         {
-                            Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
+                            ExceptionDispatchInfo.Capture(exception).Throw();
+                        //    Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
                         }
                         else
                         {

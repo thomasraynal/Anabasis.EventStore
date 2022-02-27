@@ -16,6 +16,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Anabasis.Common;
+using Anabasis.Common.Configuration;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -38,11 +39,16 @@ namespace Anabasis.EventStore.Tests
 
     public class TestActorAutoBuildOne : BaseEventStoreStatelessActor
     {
-        public List<IEvent> Events { get; } = new List<IEvent>();
-
-        public TestActorAutoBuildOne(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
+        public TestActorAutoBuildOne(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
+
+        public TestActorAutoBuildOne(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        {
+        }
+
+        public List<IEvent> Events { get; } = new List<IEvent>();
+
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)
         {
@@ -62,12 +68,17 @@ namespace Anabasis.EventStore.Tests
 
     public class TestActorAutoBuildTwo : BaseEventStoreStatelessActor
     {
+        public TestActorAutoBuildTwo(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        {
+        }
+
+        public TestActorAutoBuildTwo(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        {
+        }
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestActorAutoBuildTwo(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ISomeDependency _, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
-        {
-        }
+   
         public async Task Handle(SomeCommand someCommand)
         {
             await EmitEventStore(new SomeCommandResponse(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
@@ -169,7 +180,7 @@ namespace Anabasis.EventStore.Tests
         {
 
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventProvider = new ConsumerBasedEventProvider<TestActorAutoBuildOne>();
 
@@ -201,8 +212,8 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(1000);
 
-            var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
-            var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, new SomeDependency(), _loggerFactory);
+            var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, connectionMonitor, _loggerFactory);
+            var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository,  connectionMonitor, _loggerFactory);
 
             testActorAutoBuildOne.SubscribeToEventStream(persistentSubscriptionEventStoreStream);
             testActorAutoBuildOne.SubscribeToEventStream(volatileEventStoreStream);

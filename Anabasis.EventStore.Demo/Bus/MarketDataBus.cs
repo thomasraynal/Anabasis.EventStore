@@ -7,6 +7,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo.Bus
@@ -30,7 +31,7 @@ namespace Anabasis.EventStore.Demo.Bus
             _cleanUp.Dispose();
         }
 
-        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(HealthCheckResult.Healthy("healthcheck from MarketDataBus", new Dictionary<string, object>()
             {

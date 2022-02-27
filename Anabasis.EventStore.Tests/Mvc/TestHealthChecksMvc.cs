@@ -20,6 +20,7 @@ using Anabasis.Common.Actor;
 using Anabasis.EventStore.Tests.Mvc;
 using Anabasis.EventStore.AspNet.Factories;
 using EventStore.ClientAPI;
+using System.Threading;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -44,14 +45,15 @@ namespace Anabasis.EventStore.Tests
 
         public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
 
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            return Task.FromResult(HealthCheckResult.Healthy($"{nameof(TestWorkingBus)}"));
+        }
+
         public void Dispose()
         {
         }
 
-        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
-        {
-            return Task.FromResult(HealthCheckResult.Healthy($"{nameof(TestWorkingBus)}"));
-        }
 
         public Task Initialize()
         {
@@ -71,25 +73,26 @@ namespace Anabasis.EventStore.Tests
 
         public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
 
-        public void Dispose()
-        {
-        }
-
-        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             var data = new Dictionary<string, object>()
             {
                 { "ConnectivityIssue", "boom!" }
             };
 
-            if (shouldThrowIfUnhealthy)
-                throw new InvalidOperationException("not healthy");
+            //if (shouldThrowIfUnhealthy)
+            //    throw new InvalidOperationException("not healthy");
 
             if (IsFailing)
                 return Task.FromResult(HealthCheckResult.Unhealthy($"{nameof(TestFailingBus)}", data: data));
 
             return Task.FromResult(HealthCheckResult.Healthy($"{nameof(TestFailingBus)}"));
         }
+
+        public void Dispose()
+        {
+        }
+
 
         public Task Initialize()
         {
@@ -99,11 +102,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestStatelessActorOneHealthChecksMvc : BaseEventStoreStatelessActor
     {
-        public TestStatelessActorOneHealthChecksMvc(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
+        public TestStatelessActorOneHealthChecksMvc(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 
-        public TestStatelessActorOneHealthChecksMvc(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, loggerFactory)
+        public TestStatelessActorOneHealthChecksMvc(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 
@@ -127,11 +130,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestStatefulActorOneHealthChecksMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestStatefulActorOneHealthChecksMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, loggerFactory)
+        public TestStatefulActorOneHealthChecksMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 
-        public TestStatefulActorOneHealthChecksMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActorOneHealthChecksMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
         {
         }
 

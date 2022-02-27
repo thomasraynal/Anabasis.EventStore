@@ -63,9 +63,9 @@ namespace Anabasis.EventStore.Tests
         private UserCredentials _userCredentials;
         private ConnectionSettings _connectionSettings;
         private ClusterVNode _clusterVNode;
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository eventStoreRepository) _eventRepository;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository eventStoreRepository) _eventRepository;
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor,
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor,
           SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache,
           InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore,
           DefaultSnapshotStrategy defaultSnapshotStrategy,
@@ -73,7 +73,7 @@ namespace Anabasis.EventStore.Tests
 
         private Guid _correlationId = Guid.NewGuid();
         private Guid _firstAggregateId = Guid.NewGuid();
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _secondCache;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _secondCache;
         private ILoggerFactory _loggerFactory;
 
         [OneTimeSetUp]
@@ -108,11 +108,11 @@ namespace Anabasis.EventStore.Tests
             await _clusterVNode.StopAsync();
         }
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
         {
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
@@ -123,11 +123,11 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var cacheConfiguration = new SingleStreamCatchupCacheConfiguration<SomeDataAggregate>($"{_firstAggregateId}", _userCredentials)
             {

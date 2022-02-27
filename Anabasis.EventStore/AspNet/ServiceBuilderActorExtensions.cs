@@ -105,7 +105,7 @@ namespace Anabasis.EventStore
 
             var connectionSettings = connectionSettingsBuilder.Build();
 
-            services.AddSingleton<IConnectionStatusMonitor<IEventStoreConnection>, EventstoreConnectionStatusMonitor>();
+            services.AddSingleton<IConnectionStatusMonitor<IEventStoreConnection>, EventStoreConnectionStatusMonitor>();
             services.AddSingleton(eventStoreConnection);
             services.AddSingleton(connectionSettings);
 
@@ -132,7 +132,7 @@ namespace Anabasis.EventStore
 
             var eventStoreConnection = EventStoreConnection.Create(connectionSettings, eventStoreUrl);
 
-            services.AddSingleton<IConnectionStatusMonitor<IEventStoreConnection>, EventstoreConnectionStatusMonitor>();
+            services.AddSingleton<IConnectionStatusMonitor<IEventStoreConnection>, EventStoreConnectionStatusMonitor>();
             services.AddSingleton(eventStoreConnection);
             services.AddSingleton(connectionSettings);
 
@@ -160,7 +160,7 @@ namespace Anabasis.EventStore
 
             var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
-            services.AddSingleton<IConnectionStatusMonitor<IEventStoreConnection>, EventstoreConnectionStatusMonitor>();
+            services.AddSingleton<IConnectionStatusMonitor<IEventStoreConnection>, EventStoreConnectionStatusMonitor>();
             services.AddSingleton(eventStoreConnection);
             services.AddSingleton(connectionSettings);
 

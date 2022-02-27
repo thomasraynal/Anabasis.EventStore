@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Anabasis.Common;
+using Anabasis.Common.Configuration;
 
 [assembly: NonParallelizable]
 
@@ -52,9 +53,12 @@ namespace Anabasis.EventStore.Tests
 
     public class TestActorReceiver : BaseEventStoreStatelessActor
     {
-        public TestActorReceiver(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration,eventStoreRepository, loggerFactory)
+        public TestActorReceiver(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
+        }
 
+        public TestActorReceiver(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        {
         }
 
         public async Task Handle(SomeCommand2 someCommand)
@@ -71,12 +75,15 @@ namespace Anabasis.EventStore.Tests
 
     public class TestActor : BaseEventStoreStatelessActor
     {
-        public TestActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, loggerFactory)
+        public TestActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
-            Events = new List<SomeRandomEvent>();
         }
 
-        public List<SomeRandomEvent> Events { get; }
+        public TestActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        {
+        }
+
+        public List<SomeRandomEvent> Events { get; } = new List<SomeRandomEvent>();
 
         public Task Handle(SomeRandomEvent someMoreData)
         {
@@ -102,11 +109,11 @@ namespace Anabasis.EventStore.Tests
 
         private IActorConfiguration _actorConfiguration = new ActorConfiguration();
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreRepository eventStoreRepository) _eventRepository;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreRepository eventStoreRepository) _eventRepository;
         private TestActor _testActorOne;
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamOne;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamOne;
         private TestActor _testActorTwo;
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamTwo;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamTwo;
 
         private Guid _correlationId = Guid.NewGuid();
         private readonly string _streamId = "streamId";
@@ -168,11 +175,11 @@ namespace Anabasis.EventStore.Tests
                  _userCredentials);
         }
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreStream volatileEventStoreStream) CreateVolatileEventStoreStream()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreStream volatileEventStoreStream) CreateVolatileEventStoreStream()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var volatileEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration(_userCredentials);
 
@@ -186,11 +193,11 @@ namespace Anabasis.EventStore.Tests
 
         }
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreRepository eventStoreRepository) CreateEventRepository()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreRepository eventStoreRepository) CreateEventRepository()
         {
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventStoreRepository = new EventStoreRepository(
               eventStoreRepositoryConfiguration,
@@ -201,11 +208,11 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) CreatePersistentEventStoreStream(string streamId, string groupId)
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) CreatePersistentEventStoreStream(string streamId, string groupId)
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId, _userCredentials);
 
@@ -226,7 +233,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            _testActorOne = new TestActor(_actorConfiguration,_eventRepository.eventStoreRepository, _loggerFactory);
+            _testActorOne = new TestActor(_actorConfiguration,_eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -239,7 +246,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            _testActorOne = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
+            _testActorOne = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -259,7 +266,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldCreateASecondAndLoadBalanceEvents()
         {
 
-            _testActorTwo = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
+            _testActorTwo = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -292,10 +299,10 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(500);
 
-            var sender = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
+            var sender = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
             sender.SubscribeToEventStream(volatileEventStoreStream);
 
-            var receiver = new TestActorReceiver(_actorConfiguration, _eventRepository.eventStoreRepository, _loggerFactory);
+            var receiver = new TestActorReceiver(_actorConfiguration, _eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
             receiver.SubscribeToEventStream(volatileEventStoreStream);
 
             await Task.Delay(2000);

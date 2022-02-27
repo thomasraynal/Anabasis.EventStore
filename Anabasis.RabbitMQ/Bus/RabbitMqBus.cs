@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ
@@ -222,7 +223,7 @@ namespace Anabasis.RabbitMQ
             subscriberDescriptor.Subscriptions.Remove(subscription);
         }
 
-        public Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false)
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             var healthCheckDescription = $"{nameof(RabbitMqBus)} healthcheck";
             
@@ -233,10 +234,6 @@ namespace Anabasis.RabbitMQ
 
                 if (!model.IsOpen)
                 {
-
-                    if (shouldThrowIfUnhealthy)
-                        throw new InvalidOperationException("RabbitMq connection not opened");
-
                     var healthCheckMessages = new Dictionary<string, object>()
                     {
                         { "ConnectivityIssue", "RabbitMQ channel is not open" }
@@ -261,7 +258,7 @@ namespace Anabasis.RabbitMQ
         {
             if (IsInitialized) return;
 
-            var healthCheck = await GetHealthCheck();
+            var healthCheck = await CheckHealthAsync(null);
 
             if (healthCheck.Status != HealthStatus.Healthy)
             {

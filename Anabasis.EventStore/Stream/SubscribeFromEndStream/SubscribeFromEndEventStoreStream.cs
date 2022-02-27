@@ -78,7 +78,7 @@ namespace Anabasis.EventStore.Stream
 
                         if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
                         {
-                            Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
+                            KillSwitch.KillMe(exception);
                         }
                         else
                         {

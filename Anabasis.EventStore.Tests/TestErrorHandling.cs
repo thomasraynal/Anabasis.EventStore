@@ -19,18 +19,22 @@ using Anabasis.EventStore.Stream;
 using DynamicData;
 using Microsoft.Reactive.Testing;
 using System.Reactive.Concurrency;
+using Anabasis.EventStore.AspNet.Factories;
+using System.Threading;
 
 namespace Anabasis.EventStore.Tests
 {
     public class TestErrorHandlingStatefulActor : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestErrorHandlingStatefulActor(IActorConfiguration actorConfiguration, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache,
-          IEventStoreAggregateRepository eventStoreRepository) : base(actorConfiguration, eventStoreRepository, catchupEventStoreCache)
+        public TestErrorHandlingStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
-            Events = new List<SomeRandomEvent>();
         }
 
-        public List<SomeRandomEvent> Events { get; }
+        public TestErrorHandlingStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        {
+        }
+
+        public List<SomeRandomEvent> Events { get; } = new List<SomeRandomEvent>();
 
         public Task Handle(SomeRandomEvent someMoreData)
         {
@@ -64,16 +68,17 @@ namespace Anabasis.EventStore.Tests
         private LoggerFactory _loggerFactory;
         private ClusterVNode _clusterVNode;
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cacheOne;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cacheOne;
 
         private Guid _firstAggregateId = Guid.NewGuid();
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) _eventRepository;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) _eventRepository;
         private TestErrorHandlingStatefulActor _testActorOne;
 
         [OneTimeSetUp]
         public async Task Setup()
         {
+    
 
             _userCredentials = new UserCredentials("admin", "changeit");
             _connectionSettings = ConnectionSettings.Create()
@@ -102,11 +107,11 @@ namespace Anabasis.EventStore.Tests
             await _clusterVNode.StopAsync();
         }
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
         {
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
@@ -117,11 +122,11 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var cacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start)
             {
@@ -160,7 +165,7 @@ namespace Anabasis.EventStore.Tests
                 new ConsumerBasedEventProvider<TestStatefulActor>(),
                 _loggerFactory);
 
-            _testActorOne = new TestErrorHandlingStatefulActor(ActorConfiguration.Default, _cacheOne.catchupEventStoreCache, _eventRepository.eventStoreRepository);
+            _testActorOne = new TestErrorHandlingStatefulActor(ActorConfiguration.Default, _eventRepository.eventStoreRepository, _cacheOne.catchupEventStoreCache, _cacheOne.connectionStatusMonitor);
 
             _testActorOne.SubscribeToEventStream(subscribeToAllStream);
 
@@ -197,7 +202,7 @@ namespace Anabasis.EventStore.Tests
         {
             await _testActorOne.EmitEventStore(new SomeRandomEvent(Guid.NewGuid()));
 
-            await Task.Delay(500);
+            await Task.Delay(3000);
         }
     }
 }

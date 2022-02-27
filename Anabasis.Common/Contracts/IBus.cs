@@ -4,11 +4,10 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public interface IBus : IDisposable
+    public interface IBus : IHealthCheck, IDisposable
     {
         string BusId { get; }
         bool IsInitialized { get; }
-        Task<HealthCheckResult> GetHealthCheck(bool shouldThrowIfUnhealthy = false);
         Task Initialize();
         IConnectionStatusMonitor ConnectionStatusMonitor { get; }
     }

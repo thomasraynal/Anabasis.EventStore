@@ -17,6 +17,8 @@ namespace Anabasis.Poc
 
         public bool IsInitialized => throw new NotImplementedException();
 
+        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+
         public void Dispose()
         {
             throw new NotImplementedException();
@@ -120,6 +122,13 @@ namespace Anabasis.Poc
         public string BusId => throw new NotImplementedException();
 
         public bool IsInitialized => throw new NotImplementedException();
+
+        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            throw new NotImplementedException();
+        }
 
         public void Dispose()
         {

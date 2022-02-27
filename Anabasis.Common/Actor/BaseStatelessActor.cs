@@ -181,7 +181,7 @@ namespace Anabasis.Common
 
             await bus.Initialize();
 
-            var healthCheckResult = await bus.GetHealthCheck();
+            var healthCheckResult = await bus.CheckHealthAsync(null);
 
             if (healthCheckResult.Status == HealthStatus.Unhealthy)
                 throw new BusUnhealthyException($"Bus {bus.BusId} is unhealthy", healthCheckResult);
@@ -215,16 +215,16 @@ namespace Anabasis.Common
 
             Exception exception = null;
 
-            var anabasisHealthChecks = new HealthCheckResult[0];
+            var healthChecksResults = new HealthCheckResult[0];
             var healthStatus = HealthStatus.Healthy;
             var data = new Dictionary<string, object>();
 
             try
             {
-                anabasisHealthChecks = await Task.WhenAll(_connectedBus.Select(bus => bus.Value.GetHealthCheck()));
-                healthStatus = anabasisHealthChecks.Select(anabasisHealthCheck => anabasisHealthCheck.Status).Min();
+                healthChecksResults = await Task.WhenAll(_connectedBus.Select(bus => bus.Value.CheckHealthAsync(context)));
+                healthStatus = healthChecksResults.Select(anabasisHealthCheck => anabasisHealthCheck.Status).Min();
 
-                foreach (var anabasisHealthCheck in anabasisHealthChecks.SelectMany(anabasisHealthCheck => anabasisHealthCheck.Data))
+                foreach (var anabasisHealthCheck in healthChecksResults.SelectMany(anabasisHealthCheck => anabasisHealthCheck.Data))
                 {
                     data.Add(anabasisHealthCheck.Key, anabasisHealthCheck.Value);
                 }
