@@ -1,7 +1,7 @@
 ﻿using Anabasis.Common;
 using System;
 
-namespace Anabasis.EventStore.Mvc
+namespace Anabasis.EventStore.AspNet.Builders
 {
     public interface IStatelessActorBuilder
     {

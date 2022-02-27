@@ -1,14 +1,16 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.AspNet.Factories;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
+using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
 
-namespace Anabasis.EventStore.Mvc.Factories
+namespace Anabasis.EventStore.AspNet.Factories
 {
     public class EventStoreActorConfiguration<TAggregate> : IEventStoreActorConfiguration<TAggregate> where TAggregate : IAggregate, new()
     {
-        public EventStoreActorConfiguration(IActorConfiguration actorConfiguration, Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TAggregate>> getEventStoreCache)
+        public EventStoreActorConfiguration(IActorConfiguration actorConfiguration, Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreCache<TAggregate>> getEventStoreCache)
         {
             ActorConfiguration = actorConfiguration;
             GetEventStoreCache = getEventStoreCache;
@@ -16,6 +18,6 @@ namespace Anabasis.EventStore.Mvc.Factories
 
         public IActorConfiguration ActorConfiguration { get; }
 
-        public Func<IConnectionStatusMonitor, ILoggerFactory, IEventStoreCache<TAggregate>> GetEventStoreCache { get; }
+        public Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreCache<TAggregate>> GetEventStoreCache { get; }
     }
 }

@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
@@ -16,7 +17,7 @@ namespace Anabasis.EventStore.Stream
         private readonly PersistentSubscriptionEventStoreStreamConfiguration _persistentEventStoreStreamConfiguration;
         private EventStorePersistentSubscriptionBase _eventStorePersistentSubscription;
 
-        public PersistentSubscriptionEventStoreStream(IConnectionStatusMonitor connectionMonitor,
+        public PersistentSubscriptionEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           PersistentSubscriptionEventStoreStreamConfiguration persistentEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
           ILoggerFactory loggerFactory) : base(connectionMonitor,

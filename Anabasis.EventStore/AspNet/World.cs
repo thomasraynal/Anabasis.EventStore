@@ -2,9 +2,8 @@
 using Anabasis.Common.Configuration;
 using Anabasis.Common.HealthChecks;
 using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Mvc;
-using Anabasis.EventStore.Mvc.Builders;
-using Anabasis.EventStore.Mvc.Factories;
+using Anabasis.EventStore.AspNet.Builders;
+using Anabasis.EventStore.AspNet.Factories;
 using Anabasis.EventStore.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using System;

@@ -9,9 +9,14 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Serilog.Sinks.Debug" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\Anabasis.EventStore.Demo\Anabasis.EventStore.Demo.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
+    <ProjectReference Include="..\Anabasis.RabbitMQ\Anabasis.RabbitMQ.csproj" />
   </ItemGroup>
 
 </Project>

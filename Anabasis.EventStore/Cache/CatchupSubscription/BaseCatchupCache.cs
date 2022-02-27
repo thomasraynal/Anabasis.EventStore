@@ -14,7 +14,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Runtime.ExceptionServices;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
@@ -25,11 +24,10 @@ namespace Anabasis.EventStore.Cache
         private readonly object _catchUpSyncLock = new();
 
         private CatchupCacheSubscriptionHolder<TAggregate>[] _catchupCacheSubscriptionHolders;
-   
 
         private readonly ISnapshotStrategy _snapshotStrategy;
         private readonly ISnapshotStore<TAggregate> _snapshotStore;
-        private readonly IConnectionStatusMonitor _connectionMonitor;
+        private readonly IConnectionStatusMonitor<IEventStoreConnection> _connectionMonitor;
         private readonly DateTime _lastProcessedEventUtcTimestamp;
         private readonly CompositeDisposable _cleanUp;
         private readonly SourceCache<TAggregate, string> _cache;
@@ -56,7 +54,7 @@ namespace Anabasis.EventStore.Cache
         }
 
         public BaseCatchupCache(
-           IConnectionStatusMonitor connectionMonitor,
+           IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
            IEventStoreCacheConfiguration<TAggregate> catchupCacheConfiguration,
            IEventTypeProvider<TAggregate> eventTypeProvider,
            ILoggerFactory loggerFactory,
@@ -244,7 +242,7 @@ namespace Anabasis.EventStore.Cache
                 if (null != catchupCacheSubscriptionHolder.EventStreamConnectionDisposable) 
                     catchupCacheSubscriptionHolder.EventStreamConnectionDisposable.Dispose();
 
-                catchupCacheSubscriptionHolder.EventStreamConnectionDisposable = ConnectToEventStream(_connectionMonitor.EventStoreConnection, catchupCacheSubscriptionHolder);
+                catchupCacheSubscriptionHolder.EventStreamConnectionDisposable = ConnectToEventStream(_connectionMonitor.Connection, catchupCacheSubscriptionHolder);
 
                 _cleanUp.Add(catchupCacheSubscriptionHolder.EventStreamConnectionDisposable);
 
@@ -364,6 +362,8 @@ namespace Anabasis.EventStore.Cache
                         }
                         else
                         {
+                            Task.Delay(200).Wait();
+
                             createNewCatchupSubscription();
                         }
 

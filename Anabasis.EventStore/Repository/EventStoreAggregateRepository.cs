@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Repository
     {
         public EventStoreAggregateRepository(IEventStoreRepositoryConfiguration eventStoreRepositoryConfiguration,
           IEventStoreConnection eventStoreConnection,
-          IConnectionStatusMonitor connectionMonitor,
+          IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           ILoggerFactory loggerFactory) : base(eventStoreRepositoryConfiguration, eventStoreConnection, connectionMonitor, loggerFactory)
         {
         }

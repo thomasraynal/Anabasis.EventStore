@@ -1,10 +1,10 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.AspNet.Factories;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Mvc.Factories;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Tests.Mvc;
 using EventStore.ClientAPI;
@@ -79,7 +79,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestBusRegistrationEventStoreStatefullActorMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationEventStoreStatefullActorMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 

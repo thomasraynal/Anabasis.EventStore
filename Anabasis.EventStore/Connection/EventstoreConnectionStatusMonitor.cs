@@ -1,17 +1,16 @@
 using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using Anabasis.EventStore.Shared;
+using Anabasis.Common;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Connection
 {
-    public class ConnectionStatusMonitor : IConnectionStatusMonitor
+    public class EventstoreConnectionStatusMonitor : IConnectionStatusMonitor<IEventStoreConnection>
     {
         private readonly IConnectableObservable<ConnectionInfo> _connectionInfoChanged;
         private readonly IEventStoreConnection _eventStoreConnection;
-        private readonly Subject<ConnectionStatus> _forceConnectionStatus;
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
         private readonly BehaviorSubject<bool> _isConnected;
         private readonly IDisposable _cleanUp;
@@ -22,15 +21,13 @@ namespace Anabasis.EventStore.Connection
         public IObservable<ConnectionInfo> OnConnectionChanged => _connectionInfoChanged.AsObservable();
         public IObservable<bool> OnConnected => _isConnected.AsObservable();
 
-        public IEventStoreConnection EventStoreConnection => _eventStoreConnection;
+        public IEventStoreConnection Connection => _eventStoreConnection;
 
-        public ConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory = null)
+        public EventstoreConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory = null)
         {
             _eventStoreConnection = connection;
 
-            _logger = loggerFactory?.CreateLogger(nameof(ConnectionStatusMonitor));
-
-            _forceConnectionStatus = new Subject<ConnectionStatus>();
+            _logger = loggerFactory?.CreateLogger(nameof(EventstoreConnectionStatusMonitor));
 
             _isConnected = new BehaviorSubject<bool>(false);
 
@@ -51,35 +48,33 @@ namespace Anabasis.EventStore.Connection
 
             var closed = Observable.FromEventPattern<ClientClosedEventArgs>(h => connection.Closed += h, h => connection.Closed -= h).Select(arg =>
             {
-                _logger?.LogWarning($"{nameof(ConnectionStatusMonitor)} => Connection closed - [{arg.EventArgs.Reason}]");
+                _logger?.LogWarning($"{nameof(EventstoreConnectionStatusMonitor)} => Connection closed - [{arg.EventArgs.Reason}]");
 
                 return ConnectionStatus.Closed;
             });
 
             var errorOccurred = Observable.FromEventPattern<ClientErrorEventArgs>(h => connection.ErrorOccurred += h, h => connection.ErrorOccurred -= h).Select(arg =>
             {
-                _logger?.LogError(arg.EventArgs.Exception, $"{nameof(ConnectionStatusMonitor)} => An error occured while connected to EventStore");
+                _logger?.LogError(arg.EventArgs.Exception, $"{nameof(EventstoreConnectionStatusMonitor)} => An error occured while connected to EventStore");
 
                 return ConnectionStatus.ErrorOccurred;
             });
 
             var authenticationFailed = Observable.FromEventPattern<ClientAuthenticationFailedEventArgs>(h => connection.AuthenticationFailed += h, h => connection.AuthenticationFailed -= h).Select(arg =>
             {
-                _logger?.LogError($"{nameof(ConnectionStatusMonitor)} => Authentication failed while connecting to EventStore - [{arg.EventArgs.Reason}]");
+                _logger?.LogError($"{nameof(EventstoreConnectionStatusMonitor)} => Authentication failed while connecting to EventStore - [{arg.EventArgs.Reason}]");
 
                 return ConnectionStatus.AuthenticationFailed;
             });
 
-            var forceConnectionStatus =
-
-            _connectionInfoChanged = Observable.Merge(connected, disconnected, reconnecting, closed, errorOccurred, authenticationFailed, _forceConnectionStatus)
-                                               .Scan(ConnectionInfo.Initial, UpdateConnectionInfo)
-                                               .StartWith(ConnectionInfo.Initial)
+            _connectionInfoChanged = Observable.Merge(connected, disconnected, reconnecting, closed, errorOccurred, authenticationFailed)
+                                               .Scan(ConnectionInfo.InitialDisconnected, UpdateConnectionInfo)
+                                               .StartWith(ConnectionInfo.InitialDisconnected)
                                                .Do(connectionInfo =>
                                                {
 
                                                    ConnectionInfo = connectionInfo;
-                                                   _logger?.LogInformation($"{nameof(ConnectionStatusMonitor)} => ConnectionInfo - {connectionInfo}");
+                                                   _logger?.LogInformation($"{nameof(EventstoreConnectionStatusMonitor)} => ConnectionInfo - {connectionInfo}");
                                                    _isConnected.OnNext(connectionInfo.Status == ConnectionStatus.Connected);
 
                                                })
@@ -98,7 +93,7 @@ namespace Anabasis.EventStore.Connection
             _cleanUp.Dispose();
         }
 
-        public IObservable<IConnected<IEventStoreConnection>> GetEvenStoreConnectionStatus()
+        public IObservable<IConnected<IEventStoreConnection>> GetConnectionStatus()
         {
             return _connectionInfoChanged
                           .Where(connectionInfo => connectionInfo.Status == ConnectionStatus.Connected || connectionInfo.Status == ConnectionStatus.Disconnected)

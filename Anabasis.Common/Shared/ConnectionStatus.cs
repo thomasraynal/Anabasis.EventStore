@@ -1,4 +1,4 @@
-namespace Anabasis.EventStore.Connection
+namespace Anabasis.Common
 {
     public enum ConnectionStatus
     {

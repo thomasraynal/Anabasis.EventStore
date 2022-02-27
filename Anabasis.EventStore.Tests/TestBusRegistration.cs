@@ -1,10 +1,10 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.AspNet.Factories;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Mvc.Factories;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
@@ -58,6 +58,8 @@ namespace Anabasis.EventStore.Tests
 
         public bool IsInitialized => true;
 
+        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+
         public void Dispose()
         {
         }
@@ -99,6 +101,8 @@ namespace Anabasis.EventStore.Tests
         public bool IsConnected => true;
 
         public bool IsInitialized => true;
+
+        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
 
         public void Dispose()
         {
@@ -182,7 +186,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 
@@ -325,7 +329,7 @@ namespace Anabasis.EventStore.Tests
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,

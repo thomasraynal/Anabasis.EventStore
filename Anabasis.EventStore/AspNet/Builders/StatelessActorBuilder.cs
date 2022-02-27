@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Mvc.Builders
+namespace Anabasis.EventStore.AspNet.Builders
 {
     public class StatelessActorBuilder<TActor> : IStatelessActorBuilder
         where TActor : IActor

@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Standalone
 
         private IEventStoreRepository EventStoreRepository { get; set; }
         private ILoggerFactory LoggerFactory { get;  set; }
-        private IConnectionStatusMonitor ConnectionMonitor { get; set; }
+        private IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; set; }
         private IActorConfiguration ActorConfiguration { get; set; }
 
         private readonly List<IEventStoreStream> _streamsToRegisterTo;
@@ -40,7 +40,7 @@ namespace Anabasis.EventStore.Standalone
                 configuration.For<IActorConfiguration>().Use(ActorConfiguration);
                 configuration.For<ILoggerFactory>().Use(LoggerFactory);
                 configuration.For<IEventStoreRepository>().Use(EventStoreRepository);
-                configuration.For<IConnectionStatusMonitor>().Use(ConnectionMonitor);
+                configuration.For<IConnectionStatusMonitor<IEventStoreConnection>>().Use(ConnectionMonitor);
                 configuration.IncludeRegistry<TRegistry>();
             });
 
@@ -82,7 +82,7 @@ namespace Anabasis.EventStore.Standalone
 
             var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>
             {
-                ConnectionMonitor = new ConnectionStatusMonitor(connection, loggerFactory),
+                ConnectionMonitor = new EventstoreConnectionStatusMonitor(connection, loggerFactory),
                 LoggerFactory = loggerFactory,
                 ActorConfiguration = actorConfiguration
             };
@@ -114,7 +114,7 @@ namespace Anabasis.EventStore.Standalone
 
             var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>
             {
-                ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, loggerFactory),
+                ConnectionMonitor = new EventstoreConnectionStatusMonitor(eventStoreConnection, loggerFactory),
                 LoggerFactory = loggerFactory,
                 ActorConfiguration = actorConfiguration
             };
@@ -148,7 +148,7 @@ namespace Anabasis.EventStore.Standalone
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
 
-            var connectionStatusMonitor = new ConnectionStatusMonitor(connection, loggerFactory);
+            var connectionStatusMonitor = new EventstoreConnectionStatusMonitor(connection, loggerFactory);
 
             var eventStoreRepository = new EventStoreRepository(
                 eventStoreRepositoryConfiguration,

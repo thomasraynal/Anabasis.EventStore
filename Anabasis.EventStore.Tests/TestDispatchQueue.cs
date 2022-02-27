@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Queue;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
@@ -19,14 +20,19 @@ namespace Anabasis.EventStore.Tests
             
             var messages = new List<int>();
 
-            var dispatchQueue = new DispatchQueue<int>(async (m) =>
-            {
-               
-                messages.Add(m);
-                await Task.Delay(messageConsumptionWait +5);
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration<int>(
+                async (m) =>
+                {
 
-            }, batchSize, queueMaxSize);
+                    messages.Add(m);
+                    await Task.Delay(messageConsumptionWait + 5);
 
+                },
+                batchSize,
+                queueMaxSize
+                );
+
+            var dispatchQueue = new DispatchQueue<int>(dispatchQueueConfiguration);
 
             Assert.True(dispatchQueue.CanEnqueue());
 
@@ -51,11 +57,18 @@ namespace Anabasis.EventStore.Tests
         [Test]
         public void ShouldTryToEnqueueAndFail()
         {
-            var dispatchQueue = new DispatchQueue<int>(async (m) =>
-            {
-                await Task.Delay(10);
 
-            }, 10, 10);
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration<int>(
+                async (m) =>
+                {
+                    await Task.Delay(10);
+
+                },
+                10,
+                10
+                );
+
+            var dispatchQueue = new DispatchQueue<int>(dispatchQueueConfiguration);
 
             dispatchQueue.Dispose();
 

@@ -1,11 +1,10 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Mvc.Factories;
 using System;
 using System.Collections.Generic;
 
-namespace Anabasis.EventStore.Mvc
+namespace Anabasis.EventStore.AspNet.Factories
 {
     public class EventStoreCacheFactory : ActorConfigurationFactory, IEventStoreActorConfigurationFactory
     {

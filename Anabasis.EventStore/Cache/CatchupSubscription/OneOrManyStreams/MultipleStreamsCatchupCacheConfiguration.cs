@@ -1,10 +1,7 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.EventStore.Cache
 {
@@ -21,7 +18,6 @@ namespace Anabasis.EventStore.Cache
         public bool KeepAppliedEventsOnAggregate { get; set; } = false;
         public UserCredentials UserCredentials { get; set; }
         public ISerializer Serializer { get; set; } = new DefaultSerializer();
-        public bool UseSnapshot { get; set; }
         public CatchUpSubscriptionFilteredSettings CatchUpSubscriptionFilteredSettings { get; set; } = CatchUpSubscriptionFilteredSettings.Default;
         public bool IsSubscribeAll => false;
 

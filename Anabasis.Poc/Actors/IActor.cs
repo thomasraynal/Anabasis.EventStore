@@ -187,6 +187,8 @@ namespace Anabasis.Poc
 
         public bool IsConnected => throw new NotImplementedException();
 
+        public bool IsDisposed => throw new NotImplementedException();
+
         public Task EmitEventStore<TEvent>(TEvent @event, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
         {
             throw new NotImplementedException();

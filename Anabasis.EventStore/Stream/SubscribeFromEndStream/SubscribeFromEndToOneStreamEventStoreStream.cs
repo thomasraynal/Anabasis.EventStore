@@ -1,4 +1,5 @@
-﻿using Anabasis.EventStore.Connection;
+﻿using Anabasis.Common;
+using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
@@ -10,7 +11,7 @@ namespace Anabasis.EventStore.Stream
 {
     public class SubscribeFromEndToOneStreamEventStoreStream : BaseSubscribeToOneStreamEventStoreStream
     {
-        public SubscribeFromEndToOneStreamEventStoreStream(IConnectionStatusMonitor connectionMonitor, SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration subscribeToOneStreamEventStoreStreamConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null) : base(0, connectionMonitor, subscribeToOneStreamEventStoreStreamConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndToOneStreamEventStoreStream>())
+        public SubscribeFromEndToOneStreamEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration subscribeToOneStreamEventStoreStreamConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null) : base(0, connectionMonitor, subscribeToOneStreamEventStoreStreamConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndToOneStreamEventStoreStream>())
         {
         }
     }

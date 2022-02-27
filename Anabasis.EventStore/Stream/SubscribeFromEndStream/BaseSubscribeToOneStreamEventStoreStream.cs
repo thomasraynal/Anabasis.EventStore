@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
@@ -19,7 +20,7 @@ namespace Anabasis.EventStore.Stream
 
         public BaseSubscribeToOneStreamEventStoreStream(
           int streamPosition,
-          IConnectionStatusMonitor connectionMonitor,
+          IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration subscribeToOneStreamEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
           Microsoft.Extensions.Logging.ILogger logger = null)

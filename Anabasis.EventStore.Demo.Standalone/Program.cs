@@ -2,6 +2,11 @@ using Anabasis.Common;
 using Anabasis.EventStore.Demo.Bus;
 using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Standalone;
+using Anabasis.RabbitMQ;
+using Anabasis.RabbitMQ.Connection;
+using Microsoft.Extensions.Logging;
+using Serilog;
+using Serilog.Events;
 using System;
 using System.Threading.Tasks;
 
@@ -13,50 +18,76 @@ namespace Anabasis.EventStore.Demo
         static void Main(string[] args)
         {
 
-            Task.Run(() =>
+
+            var rabbitMqConnectionOptions = new RabbitMqConnectionOptions()
             {
+                HostName = "localhost",
+                Password = "password",
+                Username = "username",
+            };
 
-                var connectionSettings = StaticData.GetConnectionSettings();
 
-                var tradeDataEventProvider = new DefaultEventTypeProvider<Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
-                var marketDataEventProvider = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
+            Log.Logger = new LoggerConfiguration()
+              .MinimumLevel.Information()
+              .MinimumLevel.Override("Microsoft", LogEventLevel.Debug)
+              .WriteTo.Console()
+              .CreateLogger();
 
-                var tradeService = EventStoreStatelessActorBuilder<TradeService, DemoSystemRegistry>
-                                                .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
-                                                .WithSubscribeFromEndToAllStream()
-                                                .Build();
+            var loggerFactory = new LoggerFactory().AddSerilog(Log.Logger);
 
-                var tradePriceUpdateService = EventStoreStatefulActorBuilder<TradePriceUpdateService, Trade, DemoSystemRegistry>
-                                                .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
-                                                .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                                .WithSubscribeFromEndToAllStream()
-                                                .WithBus<IMarketDataBus>((actor, bus) =>
-                                                {
-                                                    actor.SubscribeMarketDataBus();
-                                                })
-                                                .Build();
+            var anabasisAppContext = new AnabasisAppContext("appName", "appGroup", new Version(1, 0));
 
-                var tradeSink = EventStoreStatefulActorBuilder<TradeSink, Trade, DemoSystemRegistry>
-                                                .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
-                                                .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                                .Build();
+            var defaultSerializer = new DefaultSerializer();
 
-                var marketDataSink = StatelessActorBuilder<MarketDataSink, DemoSystemRegistry>
-                                                .Create(ActorConfiguration.Default)
-                                                .WithBus<IMarketDataBus>((actor, bus) =>
-                                                {
-                                                    actor.SubscribeMarketDataBus();
-                                                })
-                                                .Build();
+            var connection = new RabbitMqConnection(rabbitMqConnectionOptions, anabasisAppContext, loggerFactory);
 
-                var marketDataCache = marketDataSink.CurrentPrices.Connect();
-                var tradeCache = tradeSink.State.AsObservableCache().Connect();
+            var monitor = new RabbitMqConnectionStatusMonitor(connection, loggerFactory);
 
-                tradeCache.PrintTradeChanges();
 
-                marketDataCache.PrintMarketDataChanges();
+            //Task.Run(() =>
+            //{
 
-            });
+            //    var connectionSettings = StaticData.GetConnectionSettings();
+
+            //    var tradeDataEventProvider = new DefaultEventTypeProvider<Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
+            //    var marketDataEventProvider = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
+
+            //    var tradeService = EventStoreStatelessActorBuilder<TradeService, DemoSystemRegistry>
+            //                                    .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
+            //                                    .WithSubscribeFromEndToAllStream()
+            //                                    .Build();
+
+            //    var tradePriceUpdateService = EventStoreStatefulActorBuilder<TradePriceUpdateService, Trade, DemoSystemRegistry>
+            //                                    .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
+            //                                    .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+            //                                    .WithSubscribeFromEndToAllStream()
+            //                                    .WithBus<IMarketDataBus>((actor, bus) =>
+            //                                    {
+            //                                        actor.SubscribeMarketDataBus();
+            //                                    })
+            //                                    .Build();
+
+            //    var tradeSink = EventStoreStatefulActorBuilder<TradeSink, Trade, DemoSystemRegistry>
+            //                                    .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
+            //                                    .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+            //                                    .Build();
+
+            //    var marketDataSink = StatelessActorBuilder<MarketDataSink, DemoSystemRegistry>
+            //                                    .Create(ActorConfiguration.Default)
+            //                                    .WithBus<IMarketDataBus>((actor, bus) =>
+            //                                    {
+            //                                        actor.SubscribeMarketDataBus();
+            //                                    })
+            //                                    .Build();
+
+            //    var marketDataCache = marketDataSink.CurrentPrices.Connect();
+            //    var tradeCache = tradeSink.State.AsObservableCache().Connect();
+
+            //    tradeCache.PrintTradeChanges();
+
+            //    marketDataCache.PrintMarketDataChanges();
+
+            //});
 
             Console.Read();
 

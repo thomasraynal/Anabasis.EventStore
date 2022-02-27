@@ -39,16 +39,19 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class SomeFaultyData : BaseAggregateEvent<SomeDataAggregate>
+    public class SomeFaultyAggregateData : BaseAggregateEvent<SomeDataAggregate>
     {
 
-        public SomeFaultyData(string entityId, Guid correlationId) : base(entityId, correlationId)
+        public static bool ShouldFail = true;
+
+        public SomeFaultyAggregateData(string entityId, Guid correlationId) : base(entityId, correlationId)
         {
         }
 
         public override void Apply(SomeDataAggregate entity)
         {
-            throw new Exception("boom");
+            if (ShouldFail)
+                throw new Exception("boom");
         }
     }
 
@@ -61,11 +64,11 @@ namespace Anabasis.EventStore.Tests
         private LoggerFactory _loggerFactory;
         private ClusterVNode _clusterVNode;
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cacheOne;
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cacheOne;
 
         private Guid _firstAggregateId = Guid.NewGuid();
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) _eventRepository;
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) _eventRepository;
         private TestErrorHandlingStatefulActor _testActorOne;
 
         [OneTimeSetUp]
@@ -99,11 +102,11 @@ namespace Anabasis.EventStore.Tests
             await _clusterVNode.StopAsync();
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
         {
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
@@ -114,11 +117,11 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var cacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start)
             {
@@ -130,7 +133,7 @@ namespace Anabasis.EventStore.Tests
             var catchUpCache = new AllStreamsCatchupCache<SomeDataAggregate>(
               connectionMonitor,
               cacheConfiguration,
-             new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeFaultyData) }),
+             new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeFaultyAggregateData) }),
              _loggerFactory);
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
@@ -161,48 +164,40 @@ namespace Anabasis.EventStore.Tests
 
             _testActorOne.SubscribeToEventStream(subscribeToAllStream);
 
-            
-
             Assert.NotNull(_testActorOne);
         }
 
         [Test, Order(1)]
-        public async Task ShouldEmitEventsAndUpdateCache()
+        public async Task ShouldEmitAnAggregateEventAndFailThenSucceedAndUpdateCache()
         {
-            //var exp = Assert.ThrowsAsync<Exception>(async () =>
-            //{
-            //try
-            //{
-            //  await  Task.Run(async() =>
-            //     {
-            //         await _testActorOne.EmitEventStore(new SomeFaultyData($"{_firstAggregateId}", Guid.NewGuid()));
+            SomeFaultyAggregateData.ShouldFail = true;
 
+            await _testActorOne.EmitEventStore(new SomeFaultyAggregateData($"{_firstAggregateId}", Guid.NewGuid()));
 
+            await Task.Delay(500);
 
-            //         var current = _testActorOne.State.GetCurrent($"{_firstAggregateId}");
+            var current = _testActorOne.State.GetCurrent($"{_firstAggregateId}");
 
-            //     });
+            Assert.Null(current);
 
-            //}
-            //catch(Exception ex)
-            //{
+            SomeFaultyAggregateData.ShouldFail = false;
 
-            //}
+            await Task.Delay(500);
 
-            //});
+            current = _testActorOne.State.GetCurrent($"{_firstAggregateId}");
 
+            Assert.NotNull(current);
 
-            //Assert.NotNull(current);
-            //Assert.AreEqual(1, current.AppliedEvents.Length);
+            Assert.AreEqual(1, current.AppliedEvents.Length);
 
-            //await _testActorOne.EmitEventStore(new SomeRandomEvent(Guid.NewGuid()));
+        }
 
-            await Task.Delay(5000);
+        [Test, Order(2)]
+        public async Task ShouldEmitAnEventAndFailToConsumeIt()
+        {
+            await _testActorOne.EmitEventStore(new SomeRandomEvent(Guid.NewGuid()));
 
-            //Assert.AreEqual(1, _testActorOne.Events.Count);
-
-            //_testActorOne.Dispose();
-
+            await Task.Delay(500);
         }
     }
 }

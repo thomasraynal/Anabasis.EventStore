@@ -1,9 +1,9 @@
-using Anabasis.EventStore.Shared;
+
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Connection
+namespace Anabasis.Common
 {
     public class Connected<T> : IConnected<T>
     {

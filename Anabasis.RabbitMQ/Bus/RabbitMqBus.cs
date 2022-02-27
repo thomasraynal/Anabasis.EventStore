@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Actor;
+using Anabasis.RabbitMQ.Connection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Polly.Retry;
@@ -20,15 +21,12 @@ namespace Anabasis.RabbitMQ
         private readonly ISerializer _serializer;
         private readonly ILogger _logger;
         private readonly TimeSpan _defaultPublishConfirmTimeout;
-        private readonly BehaviorSubject<bool> _connectionStatusSubject;
-
-        private IDisposable _isConnectedDisposable;
 
         public bool IsInitialized { get; private set; }
         public string BusId { get; }
         public IRabbitMqConnection RabbitMqConnection { get; }
 
-        public bool IsConnected => _connectionStatusSubject.Value;
+        public IConnectionStatusMonitor ConnectionStatusMonitor { get; }
 
         public RabbitMqBus(RabbitMqConnectionOptions settings,
                    AnabasisAppContext appContext,
@@ -37,14 +35,14 @@ namespace Anabasis.RabbitMQ
                    RetryPolicy retryPolicy = null)
         {
             BusId = $"{nameof(RabbitMqBus)}_{Guid.NewGuid()}";
-            RabbitMqConnection = new RabbitMqConnection(settings, appContext, loggerFactory, retryPolicy);
 
             _logger = loggerFactory.CreateLogger<RabbitMqBus>();
             _serializer = serializer;
             _defaultPublishConfirmTimeout = TimeSpan.FromSeconds(10);
             _existingSubscriptions = new Dictionary<string, IRabbitMqSubscription>();
 
-            _connectionStatusSubject = new BehaviorSubject<bool>(false);
+            RabbitMqConnection = new RabbitMqConnection(settings, appContext, loggerFactory, retryPolicy);
+            ConnectionStatusMonitor = new RabbitMqConnectionStatusMonitor(RabbitMqConnection, loggerFactory);
 
         }
 
@@ -235,7 +233,6 @@ namespace Anabasis.RabbitMQ
 
                 if (!model.IsOpen)
                 {
-                    _connectionStatusSubject.OnNext(false);
 
                     if (shouldThrowIfUnhealthy)
                         throw new InvalidOperationException("RabbitMq connection not opened");
@@ -247,11 +244,6 @@ namespace Anabasis.RabbitMQ
 
                     healthCheckResult = HealthCheckResult.Unhealthy(healthCheckDescription, data: healthCheckMessages);
                 }
-                else
-                {
-                    if (!IsConnected)
-                        _connectionStatusSubject.OnNext(true);
-                }
 
             });
 
@@ -262,8 +254,6 @@ namespace Anabasis.RabbitMQ
 
         public void Dispose()
         {
-            _isConnectedDisposable.Dispose();
-            _connectionStatusSubject.Dispose();
             RabbitMqConnection.Dispose();
         }
 
@@ -277,12 +267,6 @@ namespace Anabasis.RabbitMQ
             {
                 throw new BusUnhealthyException("RabbitMQ bus is not healthy", healthCheck);
             }
-
-            _isConnectedDisposable = Observable.Interval(TimeSpan.FromSeconds(1)).Subscribe(async _ =>
-            {
-                var healthCheck = await GetHealthCheck();
-                _connectionStatusSubject.OnNext(healthCheck.Status != HealthStatus.Unhealthy);
-            });
 
             IsInitialized = true;
         }

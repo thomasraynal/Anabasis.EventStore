@@ -28,7 +28,7 @@ namespace Anabasis.EventStore.Repository
         public EventStoreRepository(
             IEventStoreRepositoryConfiguration eventStoreRepositoryConfiguration,
             IEventStoreConnection eventStoreConnection,
-            IConnectionStatusMonitor connectionMonitor,
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
             ILoggerFactory loggerFactory)
         {
             Logger = loggerFactory?.CreateLogger<EventStoreRepository>();

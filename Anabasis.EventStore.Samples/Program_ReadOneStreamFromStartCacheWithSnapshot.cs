@@ -28,7 +28,6 @@ namespace Anabasis.EventStore.Samples
                                             getMultipleStreamsCatchupCacheConfiguration: builder =>
                                             {
                                                 builder.KeepAppliedEventsOnAggregate = true;
-                                                builder.UseSnapshot = true;
                                             },
                                            snapshotStore: fileSystemSnapshotProvider,
                                            snapshotStrategy: defaultSnapshotStrategy)

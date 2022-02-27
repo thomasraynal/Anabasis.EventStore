@@ -42,6 +42,8 @@ namespace Anabasis.EventStore.Tests
 
         public bool IsInitialized => true;
 
+        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+
         public void Dispose()
         {
         }

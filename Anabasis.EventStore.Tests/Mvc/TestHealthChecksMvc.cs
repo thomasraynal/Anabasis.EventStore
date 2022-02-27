@@ -7,11 +7,6 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Cache;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Embedded;
-using EventStore.Common.Options;
-using EventStore.Core;
-using EventStore.ClientAPI.SystemData;
 using Anabasis.EventStore.EventProvider;
 using Microsoft.AspNetCore.Builder;
 using System.Collections.Generic;
@@ -19,12 +14,12 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
 using Microsoft.Extensions.Hosting;
 using Anabasis.Common;
-using Anabasis.EventStore.Mvc.Factories;
 using Anabasis.Common.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using System.Net.Http;
 using Anabasis.Common.Actor;
 using Anabasis.EventStore.Tests.Mvc;
+using Anabasis.EventStore.AspNet.Factories;
+using EventStore.ClientAPI;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -46,6 +41,8 @@ namespace Anabasis.EventStore.Tests
         public string BusId => nameof(TestWorkingBus);
 
         public bool IsInitialized => true;
+
+        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
 
         public void Dispose()
         {
@@ -71,6 +68,8 @@ namespace Anabasis.EventStore.Tests
         public string BusId => nameof(TestFailingBus);
 
         public bool IsInitialized => false;
+
+        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
 
         public void Dispose()
         {
@@ -132,7 +131,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestStatefulActorOneHealthChecksMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActorOneHealthChecksMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
 

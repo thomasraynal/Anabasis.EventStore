@@ -1,3 +1,4 @@
+using Anabasis.Common;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
@@ -18,7 +19,7 @@ namespace Anabasis.EventStore.Stream
         private EventStoreAllFilteredCatchUpSubscription _eventStoreAllFilteredCatchUpSubscription;
 
         public SubscribeFromEndEventStoreStream(
-          IConnectionStatusMonitor connectionMonitor,
+          IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           SubscribeFromEndEventStoreStreamConfiguration volatileEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
           ILoggerFactory loggerFactory)

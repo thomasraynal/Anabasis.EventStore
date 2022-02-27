@@ -169,7 +169,7 @@ namespace Anabasis.EventStore.Tests
         {
 
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventProvider = new ConsumerBasedEventProvider<TestActorAutoBuildOne>();
 

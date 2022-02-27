@@ -1,6 +1,7 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Standalone;
+using EventStore.ClientAPI;
 using Lamar;
 using Microsoft.Extensions.Logging;
 using System;
@@ -15,7 +16,7 @@ namespace Anabasis.EventStore.Standalone
     {
 
         private ILoggerFactory LoggerFactory { get; set; }
-        private IConnectionStatusMonitor ConnectionMonitor { get; set; }
+        private IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; set; }
         private IActorConfiguration ActorConfiguration { get; set; }
 
         private readonly Dictionary<Type, Action<Container, IActor>> _busToRegisterTo;
@@ -48,7 +49,7 @@ namespace Anabasis.EventStore.Standalone
             {
                 configuration.For<IActorConfiguration>().Use(ActorConfiguration);
                 configuration.For<ILoggerFactory>().Use(LoggerFactory);
-                configuration.For<IConnectionStatusMonitor>().Use(ConnectionMonitor);
+                configuration.For<IConnectionStatusMonitor<IEventStoreConnection>>().Use(ConnectionMonitor);
                 configuration.IncludeRegistry<TRegistry>();
             });
 

@@ -16,8 +16,8 @@ namespace Anabasis.RabbitMQ
 {
     public class RabbitMqConnection : IRabbitMqConnection
     {
-        private readonly IModel _model;
-        private readonly IAutorecoveringConnection _connection;
+        private IModel _model;
+        private IAutorecoveringConnection _connection;
         private readonly ILogger<RabbitMqConnection> _logger;
 
         private readonly object _syncRoot = new object();
@@ -27,11 +27,11 @@ namespace Anabasis.RabbitMQ
         private readonly RetryPolicy _retryPolicy;
         private readonly AnabasisAppContext _appContext;
 
-        private readonly bool _mustReconnect = false;
-
         private string _blockedConnectionReason = null;
 
         public bool IsBlocked => _blockedConnectionReason != null;
+
+        public IAutorecoveringConnection AutoRecoveringConnection => _connection;
 
         public RabbitMqConnection(RabbitMqConnectionOptions rabbitMqConnectionOptions,
             AnabasisAppContext appContext,
@@ -48,56 +48,53 @@ namespace Anabasis.RabbitMQ
                                     .Or<IOException>()
                                     .Or<TimeoutException>()
                                     .Or<AlreadyClosedException>()
-                                    .Retry();
+                                    .Or<BrokerUnreachableException>()
+                                    .RetryForever();
             }
 
             _retryPolicy = retryPolicy;
-
             _appContext = appContext;
-
             _logger = loggerFactory.CreateLogger<RabbitMqConnection>();
             _returnQueue = new ConcurrentQueue<BasicReturnEventArgs>();
 
-            var connectionFactory = new ConnectionFactory()
+        }
+
+        public void Connect()
+        {
+            _retryPolicy.Execute(() =>
             {
-                HostName = _rabbitMqConnectionOptions.HostName,
-                UserName = _rabbitMqConnectionOptions.Username,
-                Password = _rabbitMqConnectionOptions.Password,
-                Port = _rabbitMqConnectionOptions.Port,
-                AutomaticRecoveryEnabled = true,
-                NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
-            };
+                try
+                {
+                    var connectionFactory = new ConnectionFactory()
+                    {
+                        HostName = _rabbitMqConnectionOptions.HostName,
+                        UserName = _rabbitMqConnectionOptions.Username,
+                        Password = _rabbitMqConnectionOptions.Password,
+                        Port = _rabbitMqConnectionOptions.Port,
+                        AutomaticRecoveryEnabled = true,
+                        NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
+                    };
 
-            _connection = (IAutorecoveringConnection)connectionFactory.CreateConnection(appContext.ApplicationName);
+                    _connection = (IAutorecoveringConnection)connectionFactory.CreateConnection(_appContext.ApplicationName);
 
-            _connection.ConnectionBlocked += ConnectionBlocked;
-            _connection.ConnectionUnblocked += ConnectionUnblocked;
-            _connection.CallbackException += CallbackException;
+                    _connection.ConnectionBlocked += ConnectionBlocked;
+                    _connection.ConnectionUnblocked += ConnectionUnblocked;
 
-            _connection.RecoverySucceeded += RecoverySucceeded;
-            _connection.ConnectionShutdown += ConnectionShutdown;
+                    _model = _connection.CreateModel();
+                    _model.BasicReturn += (sender, args) => _returnQueue.Enqueue(args);
+                    _model.BasicQos(prefetchSize: 0, prefetchCount: _rabbitMqConnectionOptions.PrefetchCount, global: true);
+                    _model.ConfirmSelect();
 
+                }
 
-            _model = _connection.CreateModel();
-            _model.BasicReturn += (sender, args) => _returnQueue.Enqueue(args);
-            _model.BasicQos(prefetchSize: 0, prefetchCount: _rabbitMqConnectionOptions.PrefetchCount, global: true);
-            _model.ConfirmSelect();
+                catch (Exception exception)
+                {
+                    _logger.LogError(exception, "Error trying to create RabbitMQ connection");
 
-        }
+                    throw;
+                }
 
-        private void ConnectionShutdown(object sender, ShutdownEventArgs e)
-        {
-            _logger.LogInformation($"AMQP connection shutdown - {nameof(ShutdownEventArgs)} => {e?.ToJson()}");
-        }
-
-        private void RecoverySucceeded(object sender, EventArgs e)
-        {
-            _logger.LogInformation($"AMQP connection recovery success - {nameof(EventArgs)} => {e?.ToJson()}");
-        }
-
-        private void CallbackException(object sender, CallbackExceptionEventArgs e)
-        {
-            _logger.LogError(e.Exception, "An exception occured in an AMQP connection process");
+            });
         }
 
         public IBasicProperties GetBasicProperties()
@@ -112,15 +109,14 @@ namespace Anabasis.RabbitMQ
 
         private void ConnectionUnblocked(object sender, EventArgs e)
         {
-            _logger.LogInformation($"AMQP connection unblocked - {nameof(EventArgs)} => {e?.ToJson()}");
             _blockedConnectionReason = null;
         }
 
         private void ConnectionBlocked(object sender, ConnectionBlockedEventArgs e)
         {
-            _logger.LogInformation($"AMQP connection blocked - {nameof(ConnectionBlockedEventArgs)} => {e?.ToJson()}");
             _blockedConnectionReason = e.Reason;
         }
+
         public void DoWithChannel(Action<IModel> action)
         {
             DoWithChannel(channel => { action(channel); return 0; });
@@ -166,6 +162,9 @@ namespace Anabasis.RabbitMQ
 
         public void Dispose()
         {
+            _connection.ConnectionBlocked += ConnectionBlocked;
+            _connection.ConnectionUnblocked += ConnectionUnblocked;
+
             if (_model != null)
             {
                 _model.Dispose();

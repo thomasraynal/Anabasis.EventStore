@@ -24,7 +24,7 @@ namespace Anabasis.EventStore.Standalone
         private IEventStoreCache<TAggregate> EventStoreCache { get; set; }
         private IEventStoreAggregateRepository EventStoreRepository { get; set; }
         private ILoggerFactory LoggerFactory { get; set; }
-        private IConnectionStatusMonitor ConnectionMonitor { get; set; }
+        private IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; set; }
         private IActorConfiguration ActorConfiguration { get; set; }
 
         private readonly List<IEventStoreStream> _streamsToRegisterTo;
@@ -47,7 +47,7 @@ namespace Anabasis.EventStore.Standalone
                 configuration.For<ILoggerFactory>().Use(LoggerFactory);
                 configuration.For<IEventStoreCache<TAggregate>>().Use(EventStoreCache);
                 configuration.For<IEventStoreAggregateRepository>().Use(EventStoreRepository);
-                configuration.For<IConnectionStatusMonitor>().Use(ConnectionMonitor);
+                configuration.For<IConnectionStatusMonitor<IEventStoreConnection>>().Use(ConnectionMonitor);
                 configuration.IncludeRegistry<TRegistry>();
 
             });
@@ -127,7 +127,7 @@ namespace Anabasis.EventStore.Standalone
             var builder = new EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>
             {
                 LoggerFactory = loggerFactory ?? new DummyLoggerFactory(),
-                ConnectionMonitor = new ConnectionStatusMonitor(eventStoreConnection, loggerFactory),
+                ConnectionMonitor = new EventstoreConnectionStatusMonitor(eventStoreConnection, loggerFactory),
                 ActorConfiguration = actorConfiguration
             };
 

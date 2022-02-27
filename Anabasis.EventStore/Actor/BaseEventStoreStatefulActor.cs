@@ -1,11 +1,10 @@
 using Anabasis.Common;
-using Anabasis.Common.Configuration;
+using Anabasis.EventStore.AspNet.Factories;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Mvc.Factories;
 using Anabasis.EventStore.Repository;
+using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
-using System;
 
 namespace Anabasis.EventStore.Actor
 {
@@ -17,7 +16,7 @@ namespace Anabasis.EventStore.Actor
             Initialize(eventStoreCache);
         }
 
-        public BaseEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor connectionStatusMonitor, ILoggerFactory loggerFactory =null) : base(eventStoreCacheFactory, eventStoreRepository, loggerFactory)
+        public BaseEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory =null) : base(eventStoreCacheFactory, eventStoreRepository, loggerFactory)
         {
             var eventStoreActorConfiguration = eventStoreCacheFactory.GetConfiguration<TAggregate>(GetType());
             var eventStoreCache = eventStoreActorConfiguration.GetEventStoreCache(connectionStatusMonitor, loggerFactory);
@@ -31,6 +30,8 @@ namespace Anabasis.EventStore.Actor
             State = eventStoreCache;
 
             eventStoreCache.Connect().Wait();
+
+            AddDisposable(eventStoreCache);
         }
 
         public IEventStoreCache<TAggregate> State { get; internal set; }

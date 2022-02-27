@@ -25,6 +25,8 @@ namespace Anabasis.EventStore.Demo
                                     .DisableServerCertificateValidation()
                                     .EnableVerboseLogging()
                                     .UseDebugLogger()
+                                    .KeepReconnecting()
+                                    .KeepRetrying()
                                     .SetDefaultUserCredentials(StaticData.UserCredentials);
                                 
 

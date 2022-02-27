@@ -63,9 +63,9 @@ namespace Anabasis.EventStore.Tests
         private UserCredentials _userCredentials;
         private ConnectionSettings _connectionSettings;
         private ClusterVNode _clusterVNode;
-        private (ConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository eventStoreRepository) _eventRepository;
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository eventStoreRepository) _eventRepository;
 
-        private (ConnectionStatusMonitor connectionStatusMonitor,
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor,
           SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache,
           InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore,
           DefaultSnapshotStrategy defaultSnapshotStrategy,
@@ -73,7 +73,7 @@ namespace Anabasis.EventStore.Tests
 
         private Guid _correlationId = Guid.NewGuid();
         private Guid _firstAggregateId = Guid.NewGuid();
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _secondCache;
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _secondCache;
         private ILoggerFactory _loggerFactory;
 
         [OneTimeSetUp]
@@ -108,11 +108,11 @@ namespace Anabasis.EventStore.Tests
             await _clusterVNode.StopAsync();
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) CreateEventRepository()
         {
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
@@ -123,18 +123,17 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (ConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
+        private (EventstoreConnectionStatusMonitor connectionStatusMonitor, SingleStreamCatchupCache<SomeDataAggregate> catchupEventStoreCache, InMemorySnapshotStore<SomeDataAggregate> inMemorySnapshotStore, DefaultSnapshotStrategy defaultSnapshotStrategy, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-            var connectionMonitor = new ConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventstoreConnectionStatusMonitor(connection, _loggerFactory);
 
             var cacheConfiguration = new SingleStreamCatchupCacheConfiguration<SomeDataAggregate>($"{_firstAggregateId}", _userCredentials)
             {
                 UserCredentials = _userCredentials,
                 KeepAppliedEventsOnAggregate = true,
                 IsStaleTimeSpan = TimeSpan.FromSeconds(1),
-                UseSnapshot = true
             };
 
             var defaultSnapshotStrategy = new DefaultSnapshotStrategy();

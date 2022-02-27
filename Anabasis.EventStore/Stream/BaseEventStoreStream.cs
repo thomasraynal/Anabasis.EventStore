@@ -16,7 +16,7 @@ namespace Anabasis.EventStore.Stream
     {
         protected readonly IEventStoreStreamConfiguration _eventStoreStreamConfiguration;
         protected readonly IEventTypeProvider _eventTypeProvider;
-        private readonly IConnectionStatusMonitor _connectionMonitor;
+        private readonly IConnectionStatusMonitor<IEventStoreConnection> _connectionMonitor;
 
         private IDisposable _eventStreamConnectionDisposable;
 
@@ -27,7 +27,7 @@ namespace Anabasis.EventStore.Stream
         protected ILogger Logger { get; }
         public bool IsWiredUp { get; protected set; }
 
-        public BaseEventStoreStream(IConnectionStatusMonitor connectionMonitor,
+        public BaseEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           IEventStoreStreamConfiguration cacheConfiguration,
           IEventTypeProvider eventTypeProvider,
           ILogger logger = null)
@@ -76,7 +76,7 @@ namespace Anabasis.EventStore.Stream
             if (null != _eventStreamConnectionDisposable)
                 _eventStreamConnectionDisposable.Dispose();
 
-            _eventStreamConnectionDisposable = ConnectToEventStream(_connectionMonitor.EventStoreConnection);
+            _eventStreamConnectionDisposable = ConnectToEventStream(_connectionMonitor.Connection);
 
         }
 

@@ -1,10 +1,12 @@
 ﻿using Anabasis.Common.Actor;
 using Anabasis.Common.Configuration;
+using Anabasis.Common.Queue;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -22,6 +24,7 @@ namespace Anabasis.Common
         private IDispatchQueue<IEvent> _dispatchQueue;
 
         public string Id { get; private set; }
+        public bool IsDisposed { get; private set; }
         protected Dictionary<Guid, TaskCompletionSource<ICommandResponse>> PendingCommands { get; private set; }
         public ILogger Logger { get; private set; }
 
@@ -43,9 +46,14 @@ namespace Anabasis.Common
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
             _connectedBus = new Dictionary<Type, IBus>();
             _actorConfiguration = actorConfiguration;
-            _dispatchQueue = new DispatchQueue<IEvent>(OnEventReceivedInternal,
+
+            var dispachQueueConfiguration = new DispatchQueueConfiguration<IEvent>(
+                OnEventReceivedInternal,
                 _actorConfiguration.ActorMailBoxMessageBatchSize,
-                _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize);
+                _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize
+            );
+
+            _dispatchQueue = new DispatchQueue<IEvent>(dispachQueueConfiguration);
 
             _cleanUp.Add(_dispatchQueue);
 
@@ -53,7 +61,7 @@ namespace Anabasis.Common
             Logger = loggerFactory?.CreateLogger(GetType());
         }
 
-        public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.IsConnected);
+        public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.ConnectionStatusMonitor.IsConnected);
 
         public virtual Task OnError(IEvent source, Exception exception)
         {
@@ -131,6 +139,8 @@ namespace Anabasis.Common
         public virtual void Dispose()
         {
             _cleanUp.Dispose();
+
+            IsDisposed = true;
         }
         public async Task WaitUntilConnected(TimeSpan? timeout = null)
         {

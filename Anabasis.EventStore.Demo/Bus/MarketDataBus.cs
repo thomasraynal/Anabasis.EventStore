@@ -23,6 +23,8 @@ namespace Anabasis.EventStore.Demo.Bus
 
         public bool IsInitialized { get; internal set; } = false;
 
+        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+
         public void Dispose()
         {
             _cleanUp.Dispose();
