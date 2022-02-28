@@ -20,7 +20,7 @@ namespace Anabasis.RabbitMQ
             _eventPropertyTokenCache = new ConcurrentDictionary<Type, PropertyToken[]>();
         }
 
-        public static string GetRoutingKeyFromEvent(IRabbitMqMessage @event)
+        public static string GetRoutingKeyFromEvent(IRabbitMqEvent @event)
         {
 
             var eventType = @event.GetType();

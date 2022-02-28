@@ -8,15 +8,15 @@ namespace Anabasis.RabbitMQ
 {
 
     public class RabbitMqEventSubscription<TEvent> : IRabbitMqEventSubscription<TEvent>
-        where TEvent: class, IRabbitMqMessage
+        where TEvent : class, IRabbitMqEvent
     {
         public string Exchange { get; }
         public string RoutingKey { get; protected set; }
         public string SubscriptionId { get; }
-        public Func<TEvent,Task> OnEvent { get; }
+        public Func<IRabbitMqQueueMessage, Task> OnMessage { get; }
 
 
-        public RabbitMqEventSubscription(string exchange, Func<TEvent, Task> onEvent, Expression<Func<TEvent, bool>> routingStrategy = null)
+        public RabbitMqEventSubscription(string exchange, Func<IRabbitMqQueueMessage, Task> onEvent, Expression<Func<TEvent, bool>> routingStrategy = null)
         {
             if (null == routingStrategy)
                 routingStrategy = (_) => true;
@@ -25,7 +25,7 @@ namespace Anabasis.RabbitMQ
 
             rabbitMQSubjectExpressionVisitor.Visit(routingStrategy);
 
-            OnEvent = onEvent;
+            OnMessage = onEvent;
             RoutingKey = rabbitMQSubjectExpressionVisitor.Resolve();
             Exchange = exchange;
 
@@ -38,14 +38,14 @@ namespace Anabasis.RabbitMQ
             return eventType == typeof(TEvent);
         }
 
-        public Task Handle(IRabbitMqMessage rabbitMqEvent)
+        public Task Handle(IRabbitMqQueueMessage rabbitMqQueueMessage)
         {
-            var eventType = rabbitMqEvent.GetType();
+            var eventType = rabbitMqQueueMessage.Content.GetType();
 
             if (!CanHandle(eventType))
                 throw new InvalidOperationException($"{SubscriptionId} cannot handle event {eventType}");
 
-            return OnEvent((TEvent)rabbitMqEvent);
+            return OnMessage(rabbitMqQueueMessage);
         }
     }
 }

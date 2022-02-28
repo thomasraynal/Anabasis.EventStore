@@ -6,7 +6,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Runtime.ExceptionServices;
 using System.Threading;
@@ -21,7 +20,7 @@ namespace Anabasis.Common
         private CompositeDisposable _cleanUp;
         private Dictionary<Type, IBus> _connectedBus;
         private IActorConfiguration _actorConfiguration;
-        private IDispatchQueue<IEvent> _dispatchQueue;
+        private IDispatchQueue _dispatchQueue;
 
         public string Id { get; private set; }
         public bool IsDisposed { get; private set; }
@@ -47,13 +46,13 @@ namespace Anabasis.Common
             _connectedBus = new Dictionary<Type, IBus>();
             _actorConfiguration = actorConfiguration;
 
-            var dispachQueueConfiguration = new DispatchQueueConfiguration<IEvent>(
+            var dispachQueueConfiguration = new DispatchQueueConfiguration(
                 OnEventReceivedInternal,
                 _actorConfiguration.ActorMailBoxMessageBatchSize,
                 _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize
             );
 
-            _dispatchQueue = new DispatchQueue<IEvent>(dispachQueueConfiguration);
+            _dispatchQueue = new DispatchQueue(dispachQueueConfiguration);
 
             _cleanUp.Add(_dispatchQueue);
 
@@ -91,7 +90,7 @@ namespace Anabasis.Common
 
                         task.SetResult(commandResponse);
 
-                        PendingCommands.Remove(commandResponse.EventID, out _);
+                        PendingCommands.Remove(commandResponse.EventId, out _);
                     }
 
                 }
@@ -110,7 +109,7 @@ namespace Anabasis.Common
             }
         }
 
-        public void OnEventReceived(IEvent @event, TimeSpan? timeout = null)
+        public void OnMessageReceived(IMessage @event, TimeSpan? timeout = null)
         {
              timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
 

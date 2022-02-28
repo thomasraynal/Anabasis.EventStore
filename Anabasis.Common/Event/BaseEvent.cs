@@ -1,6 +1,7 @@
 using Anabasis.Common;
 using Newtonsoft.Json;
 using System;
+using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
@@ -13,16 +14,16 @@ namespace Anabasis.Common
 
         public BaseEvent(Guid correlationId, string streamId)
         {
-            EventID = Guid.NewGuid();
+            EventId = Guid.NewGuid();
             Timestamp = DateTime.UtcNow;
-            CorrelationID = correlationId;
+            CorrelationId = correlationId;
             EntityId = streamId;
         }
 
         [JsonProperty]
-        public Guid EventID { get; internal set; }
+        public Guid EventId { get; internal set; }
         [JsonProperty]
-        public Guid CorrelationID { get; internal set; }
+        public Guid CorrelationId { get; internal set; }
         [JsonProperty]
         public string EntityId { get; internal set; }
         [JsonProperty]
@@ -31,5 +32,9 @@ namespace Anabasis.Common
         public DateTime Timestamp { get; internal set; }
 
         public string Name => GetType().Name;
+
+        public abstract Task Ack();
+
+        public abstract Task Nack();
     }
 }

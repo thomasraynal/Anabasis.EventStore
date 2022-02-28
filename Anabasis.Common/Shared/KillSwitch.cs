@@ -12,5 +12,5 @@ namespace Anabasis.Common
         {
             Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
         }
-    } }
+    } 
 }

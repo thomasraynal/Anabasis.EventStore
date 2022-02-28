@@ -63,7 +63,7 @@ namespace Anabasis.EventStore.Tests
 
         public async Task Handle(SomeCommand2 someCommand)
         {
-            await EmitEventStore(new SomeCommandResponse2(someCommand.EventID, someCommand.CorrelationID, someCommand.EntityId));
+            await EmitEventStore(new SomeCommandResponse2(someCommand.EventId, someCommand.CorrelationId, someCommand.EntityId));
         }
 
         public override void Dispose()
@@ -288,7 +288,7 @@ namespace Anabasis.EventStore.Tests
 
             var consumedEvents = _testActorOne.Events.Concat(_testActorTwo.Events).ToArray();
 
-            Assert.True(events.All(ev => consumedEvents.Any(e => e.EventID == ev.EventID)));
+            Assert.True(events.All(ev => consumedEvents.Any(e => e.EventId == ev.EventId)));
 
         }
 

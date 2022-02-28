@@ -15,10 +15,32 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
+    public class TestActorMessage : IMessage
+    {
+        public TestActorMessage(IEvent @event)
+        {
+            Content = @event;
+        }
+
+        public Guid MessageId => Guid.NewGuid();
+
+        public IEvent Content { get; }
+
+        public Task Acknowledge()
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task NotAcknowledge()
+        {
+            return Task.CompletedTask;
+        }
+    }
+
     public interface ITestActorBuilderDummyBus : IBus
     {
         void Push(IEvent push);
-        void Subscribe(Action<IEvent> onEventReceived);
+        void Subscribe(Action<IMessage> onEventReceived);
     }
     public class TestActorBuilderDummyBusRegistry : ServiceRegistry
     {
@@ -38,17 +60,17 @@ namespace Anabasis.EventStore.Tests
 
         public void Dispose()
         {
-          
+
         }
     }
 
     public class TestActorDummyBus : ITestActorBuilderDummyBus
     {
-        private readonly List<Action<IEvent>> _subscribers;
+        private readonly List<Action<IMessage>> _subscribers;
 
         public TestActorDummyBus()
         {
-            _subscribers = new List<Action<IEvent>>();
+            _subscribers = new List<Action<IMessage>>();
         }
 
         public string BusId => nameof(TestActorDummyBus);
@@ -67,19 +89,19 @@ namespace Anabasis.EventStore.Tests
         {
             foreach (var subscriber in _subscribers)
             {
-                subscriber(push);
+                subscriber(new TestActorMessage(push));
             }
         }
 
- 
+
         public Task Initialize()
         {
             return Task.CompletedTask;
         }
 
-        public void Subscribe(Action<IEvent> onEventReceived)
+        public void Subscribe(Action<IMessage> onMessageReceived)
         {
-            _subscribers.Add(onEventReceived);
+            _subscribers.Add(onMessageReceived);
         }
 
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
@@ -88,15 +110,15 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public static class TestActorDummyBussExtensions
+    public static class TestActorDummyBusExtensions
     {
         public static void SubscribeTestActorDummyBus(this IActor actor, string subject)
         {
             var dummyBus = actor.GetConnectedBus<TestActorDummyBus>();
 
-            void onEventReceived(IEvent @event)
+            void onEventReceived(IMessage message)
             {
-                actor.OnEventReceived(@event);
+                actor.OnMessageReceived(message);
             }
 
             dummyBus.Subscribe(onEventReceived);

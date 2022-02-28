@@ -55,8 +55,6 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EntityFramework", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EntityFramework.Tests.Integration", "Anabasis.EntityFramework.Tests.Integration\Anabasis.EntityFramework.Tests.Integration.csproj", "{600DBE8A-0B06-46E2-9453-971DCAE12646}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Poc", "Poc", "{EDF7A985-E9C3-42D3-90EE-803A6888A429}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Deployment.Tests", "Anabasis.Deployment.Tests\Anabasis.Deployment.Tests.csproj", "{ADFBD07B-ABB3-4688-89CD-B743DE9880FB}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Deployment.Test.App", "Anabasis.Deployment.Test.App\Anabasis.Deployment.Test.App.csproj", "{11548DDB-82E0-4AEE-BB02-2DF4099C905B}"

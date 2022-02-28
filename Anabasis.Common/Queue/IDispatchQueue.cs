@@ -3,9 +3,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public interface IDispatchQueue<TMessage> : IDisposable
+    public interface IDispatchQueue : IDisposable
     {
         bool CanEnqueue();
-        void Enqueue(TMessage message);
+        void Enqueue(IMessage message);
     }
 }

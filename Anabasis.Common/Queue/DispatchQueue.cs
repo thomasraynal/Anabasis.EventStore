@@ -1,22 +1,20 @@
 using Anabasis.Common.Queue;
 using System;
-using System.Reactive.Concurrency;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public class DispatchQueue<TMessage> : IDispatchQueue<TMessage>, IDisposable
+    public class DispatchQueue : IDispatchQueue
     {
 
-        private readonly Func<TMessage, Task> _onEventReceived;
-        private readonly FlushableBlockingCollection<TMessage> _workQueue;
+        private readonly Func<IEvent, Task> _onEventReceived;
+        private readonly FlushableBlockingCollection<IMessage> _workQueue;
         private readonly Task _workProc;
 
-        public DispatchQueue(DispatchQueueConfiguration<TMessage> dispatchQueueConfiguration)
+        public DispatchQueue(DispatchQueueConfiguration dispatchQueueConfiguration)
         {
-            _workQueue = new FlushableBlockingCollection<TMessage>(dispatchQueueConfiguration.MessageBatchSize, dispatchQueueConfiguration.QueueMaxSize);
+            _workQueue = new FlushableBlockingCollection<IMessage>(dispatchQueueConfiguration.MessageBatchSize, dispatchQueueConfiguration.QueueMaxSize);
 
             _onEventReceived = dispatchQueueConfiguration.OnEventReceived;
 
@@ -28,18 +26,19 @@ namespace Anabasis.Common
 
         }
 
-        public void Enqueue(TMessage message)
+        public void Enqueue(IMessage message)
         {
             _workQueue.Add(message);
         }
 
-        private void HandleWork()
+        private async void HandleWork()
         {
             foreach (var messages in _workQueue.GetConsumingEnumerable())
             {
                 foreach (var message in messages)
                 {
-                    _onEventReceived(message).Wait();
+                    await _onEventReceived(message.Content);
+                    await message.Acknowledge();
                 }
             }
         }
@@ -54,5 +53,6 @@ namespace Anabasis.Common
         {
             return _workQueue.CanAdd;
         }
+
     }
 }

@@ -12,7 +12,7 @@ namespace Anabasis.RabbitMQ
     public static class RabbitMqBusExtensions
     {
         public static void EmitRabbitMq<TEvent>(this IActor actor, IEnumerable<TEvent> events, string exchange, TimeSpan? initialVisibilityDelay = null)
-              where TEvent : class, IRabbitMqMessage
+              where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
@@ -20,7 +20,7 @@ namespace Anabasis.RabbitMQ
         }
 
         public static void EmitRabbitMq<TEvent>(this IActor actor, TEvent @event, string exchange, TimeSpan? initialVisibilityDelay = null)
-                where TEvent : class, IRabbitMqMessage
+                where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
@@ -28,7 +28,7 @@ namespace Anabasis.RabbitMQ
         }
 
         public static TEvent[] PullRabbitMq<TEvent>(this IActor actor, string queueName, int? chunkSize = null)
-                where TEvent : class, IRabbitMqMessage
+                where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
@@ -38,13 +38,13 @@ namespace Anabasis.RabbitMQ
         }
 
         public static void SubscribeRabbitMq<TEvent>(this IActor actor, string exchange, Expression<Func<TEvent, bool>> routingStrategy = null)
-            where TEvent : class, IRabbitMqMessage
+            where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
             var rabbitMqSubscription = new RabbitMqEventSubscription<TEvent>(exchange, (@event) =>
             {
-                 actor.OnEventReceived(@event);
+                actor.OnMessageReceived(@event);
 
                 return Task.CompletedTask;
 
@@ -58,14 +58,14 @@ namespace Anabasis.RabbitMQ
         }
 
         public static IObservable<TEvent> SubscribeRabbitMq<TEvent>(this IRabbitMqBus rabbitMqBus, string exchange, Expression<Func<TEvent, bool>> routingStrategy = null)
-        where TEvent : class, IRabbitMqMessage
+        where TEvent : class, IRabbitMqEvent
         {
 
             var observable = Observable.Create<TEvent>((observer) =>
             {
                 var rabbitMqSubscription = new RabbitMqEventSubscription<TEvent>(exchange, (@event) =>
                  {
-                     observer.OnNext(@event);
+                     observer.OnNext((TEvent)@event.Content);
 
                      return Task.CompletedTask;
 

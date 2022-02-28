@@ -15,16 +15,23 @@ using Anabasis.EventStore.Actor;
 using System.Collections.Generic;
 using Anabasis.Common;
 using Anabasis.EventStore.Repository;
+using Anabasis.Common.Configuration;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
 {
     public class TestRabbitMqActor : BaseEventStoreStatelessActor
     {
-        public List<IEvent> Events { get; } = new();
-
-        public TestRabbitMqActor(IEventStoreRepository eventStoreRepository, ILoggerFactory loggerFactory = null) : base(new ActorConfiguration(), eventStoreRepository, loggerFactory)
+        public TestRabbitMqActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
         {
         }
+
+        public TestRabbitMqActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        {
+        }
+
+        public List<IEvent> Events { get; } = new();
+
+ 
 
         public Task Handle(TestEventOne testEventOne)
         {
@@ -100,7 +107,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             await Task.Delay(500);
 
             Assert.IsNotNull(testEventZero);
-            Assert.AreEqual(eventZero.EventID, testEventZero.EventID);
+            Assert.AreEqual(eventZero.MessageId, testEventZero.MessageId);
 
             disposable.Dispose();
 

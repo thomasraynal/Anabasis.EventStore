@@ -9,6 +9,54 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
+    public class TestEvent : IEvent
+    {
+        public TestEvent(int value)
+        {
+            Value = value;
+        }
+
+        public int Value { get; }
+        public Guid EventId => Guid.NewGuid();
+
+        public Guid CorrelationId => Guid.NewGuid();
+
+        public string Name => nameof(TestEvent);
+
+        public bool IsCommand => false;
+
+        public DateTime Timestamp => DateTime.UtcNow;
+
+        public string EntityId => nameof(TestEvent);
+    }
+
+
+    public class TestMessage : IMessage
+    {
+        public int Value { get; }
+
+        public int DequeueCount => 0;
+
+        public Guid MessageId => Guid.NewGuid();
+
+        public IEvent Content { get; }
+
+        public TestMessage(int value)
+        {
+            Content = new TestEvent(value);
+        }
+
+        public Task Acknowledge()
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task NotAcknowledge()
+        {
+            throw new NotImplementedException();
+        }
+    }
+
     [TestFixture]
     public class TestDispatchQueue
     {
@@ -18,9 +66,9 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldCreateADispatchQueueAndEnqueueMessagesThenDispose(int batchSize, int queueMaxSize, int messageCount, int messageConsumptionWait)
         {
             
-            var messages = new List<int>();
+            var messages = new List<IEvent>();
 
-            var dispatchQueueConfiguration = new DispatchQueueConfiguration<int>(
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
                 async (m) =>
                 {
 
@@ -32,7 +80,7 @@ namespace Anabasis.EventStore.Tests
                 queueMaxSize
                 );
 
-            var dispatchQueue = new DispatchQueue<int>(dispatchQueueConfiguration);
+            var dispatchQueue = new DispatchQueue(dispatchQueueConfiguration);
 
             Assert.True(dispatchQueue.CanEnqueue());
 
@@ -40,7 +88,7 @@ namespace Anabasis.EventStore.Tests
 
             for (var i = 0; i < messageCount; i++)
             {
-                dispatchQueue.Enqueue(i);
+                dispatchQueue.Enqueue(new TestMessage(i));
             }
 
             await Task.Delay(messageConsumptionWait * batchSize);
@@ -58,7 +106,7 @@ namespace Anabasis.EventStore.Tests
         public void ShouldTryToEnqueueAndFail()
         {
 
-            var dispatchQueueConfiguration = new DispatchQueueConfiguration<int>(
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
                 async (m) =>
                 {
                     await Task.Delay(10);
@@ -68,13 +116,13 @@ namespace Anabasis.EventStore.Tests
                 10
                 );
 
-            var dispatchQueue = new DispatchQueue<int>(dispatchQueueConfiguration);
+            var dispatchQueue = new DispatchQueue(dispatchQueueConfiguration);
 
             dispatchQueue.Dispose();
 
             Assert.IsFalse(dispatchQueue.CanEnqueue());
 
-            Assert.Throws<InvalidOperationException>(() => dispatchQueue.Enqueue(1));
+            Assert.Throws<InvalidOperationException>(() => dispatchQueue.Enqueue(new TestMessage(1)));
 
         }
 

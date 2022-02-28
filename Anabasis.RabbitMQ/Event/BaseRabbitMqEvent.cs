@@ -1,16 +1,17 @@
 ﻿using Anabasis.Common;
 using Anabasis.RabbitMQ;
 using System;
+using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ.Event
 {
-    public class BaseRabbitMqEvent : IRabbitMqMessage
+    public class BaseRabbitMqEvent : IRabbitMqEvent
     {
 
-        public BaseRabbitMqEvent(Guid? eventID, Guid? correlationId)
+        public BaseRabbitMqEvent(Guid? messageId, Guid? correlationId)
         {
-            EventID = eventID ?? Guid.NewGuid();
-            CorrelationID = correlationId ?? Guid.NewGuid();
+            EventId = messageId ?? Guid.NewGuid();
+            CorrelationId = correlationId ?? Guid.NewGuid();
         }
 
         public string Subject
@@ -21,9 +22,11 @@ namespace Anabasis.RabbitMQ.Event
             }
         }
 
-        public Guid EventID { get; }
+        public ulong DeliveryTag { get; }
 
-        public Guid CorrelationID { get; }
+        public Guid EventId { get; }
+
+        public Guid CorrelationId { get; }
 
         public bool IsCommand => false;
 
@@ -32,5 +35,6 @@ namespace Anabasis.RabbitMQ.Event
         public DateTime Timestamp { get; }
 
         public string Name => GetType().Name;
+
     }
 }

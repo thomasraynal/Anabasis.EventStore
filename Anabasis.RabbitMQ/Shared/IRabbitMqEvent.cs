@@ -3,8 +3,9 @@ using System;
 
 namespace Anabasis.RabbitMQ
 {
-    public interface IRabbitMqMessage : IEvent
+    public interface IRabbitMqEvent : IEvent
     {
+        Guid MessageId { get; }
         string Subject { get; }
     }
 }

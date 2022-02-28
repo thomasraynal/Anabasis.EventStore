@@ -40,6 +40,14 @@ namespace Anabasis.Common
             _addSignal.Set();
         }
 
+        public void Add(T[] items)
+        {
+            foreach(var item in items)
+            {
+                Add(item);
+            }
+        }
+
         public IEnumerable<List<T>> GetConsumingEnumerable()
         {
 

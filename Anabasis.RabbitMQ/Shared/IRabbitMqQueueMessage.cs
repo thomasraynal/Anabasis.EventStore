@@ -1,13 +1,10 @@
-﻿using System;
+﻿using Anabasis.Common;
+using System;
 
 namespace Anabasis.RabbitMQ
 {
-    public interface IRabbitMqQueueMessage
+    public interface IRabbitMqQueueMessage: IMessage
     {
-        IRabbitMqMessage Content { get; }
-        int DequeueCount { get; }
         Type Type { get; }
-        void Acknowledge();
-        void NotAcknowledge();
     }
 }

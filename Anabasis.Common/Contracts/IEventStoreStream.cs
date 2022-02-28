@@ -7,6 +7,6 @@ namespace Anabasis.Common
 {
     public interface IEventStoreStream : IMessageQueue
     {
-        IObservable<IEvent> OnEvent();
+        IObservable<IMessage> OnMessage();
     }
 }

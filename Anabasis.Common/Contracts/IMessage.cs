@@ -1,12 +1,15 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
     public interface IMessage
     {
-        Guid EventID { get; }
-        Guid CorrelationID { get; }
+        Guid MessageId { get; }
+        Task Acknowledge();
+        Task NotAcknowledge();
+        IEvent Content { get; } 
     }
 }

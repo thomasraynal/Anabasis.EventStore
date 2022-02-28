@@ -28,12 +28,12 @@ namespace Anabasis.EventStore.Tests
     public interface IDummyBus2 : IBus
     {
         void Push(IEvent push);
-        void Subscribe(Action<IEvent> onEventReceived);
+        void Subscribe(Action<IMessage> onMessageReceived);
     }
     public interface IDummyBus: IBus
     {
         void Push(IEvent push);
-        void Subscribe(Action<IEvent> onEventReceived);
+        void Subscribe(Action<IMessage> onMessageReceived);
     }
     public class DummyBusRegistry : ServiceRegistry
     {
@@ -60,11 +60,11 @@ namespace Anabasis.EventStore.Tests
 
     public class DummyBus :  IDummyBus
     {
-        private readonly List<Action<IEvent>> _subscribers;
+        private readonly List<Action<IMessage>> _subscribers;
 
         public DummyBus()
         {
-            _subscribers = new List<Action<IEvent>>();
+            _subscribers = new List<Action<IMessage>>();
         }
 
         public string BusId => nameof(DummyBus);
@@ -83,7 +83,7 @@ namespace Anabasis.EventStore.Tests
         {
             foreach (var subscriber in _subscribers)
             {
-                subscriber(push);
+                subscriber(new TestActorMessage(push));
             }
         }
 
@@ -97,18 +97,18 @@ namespace Anabasis.EventStore.Tests
             return Task.CompletedTask;
         }
 
-        public void Subscribe(Action<IEvent> onEventReceived)
+        public void Subscribe(Action<IMessage> onMessageReceived)
         {
-            _subscribers.Add(onEventReceived);
+            _subscribers.Add(onMessageReceived);
         }
     }
     public class DummyBus2 : IDummyBus2
     {
-        private readonly List<Action<IEvent>> _subscribers;
+        private readonly List<Action<IMessage>> _subscribers;
 
         public DummyBus2()
         {
-            _subscribers = new List<Action<IEvent>>();
+            _subscribers = new List<Action<IMessage>>();
         }
 
         public string BusId => nameof(DummyBus);
@@ -127,7 +127,7 @@ namespace Anabasis.EventStore.Tests
         {
             foreach (var subscriber in _subscribers)
             {
-                subscriber(push);
+                subscriber(new TestActorMessage(push));
             }
         }
 
@@ -141,9 +141,9 @@ namespace Anabasis.EventStore.Tests
             return Task.CompletedTask;
         }
 
-        public void Subscribe(Action<IEvent> onEventReceived)
+        public void Subscribe(Action<IMessage> onMessageReceived)
         {
-            _subscribers.Add(onEventReceived);
+            _subscribers.Add(onMessageReceived);
         }
     }
     public static class DummyBusExtensions
@@ -152,21 +152,21 @@ namespace Anabasis.EventStore.Tests
         {
             var dummyBus = actor.GetConnectedBus<IDummyBus>();
 
-            void onEventReceived(IEvent @event)
+            void onMessageReceived(IMessage message)
             {
-                actor.OnEventReceived(@event);
+                actor.OnMessageReceived(message);
             }
 
-            dummyBus.Subscribe(onEventReceived);
+            dummyBus.Subscribe(onMessageReceived);
         }
 
         public static void SubscribeDummyBus2(this IActor actor, string subject)
         {
             var dummyBus = actor.GetConnectedBus<IDummyBus2>();
 
-            void onEventReceived(IEvent @event)
+            void onEventReceived(IMessage message)
             {
-                actor.OnEventReceived(@event);
+                actor.OnMessageReceived(message);
             }
 
             dummyBus.Subscribe(onEventReceived);

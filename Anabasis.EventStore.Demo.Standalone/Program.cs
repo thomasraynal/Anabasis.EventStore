@@ -19,13 +19,13 @@ namespace Anabasis.EventStore.Demo
         static void Main(string[] args)
         {
 
-            var dispatchQueue = new DispatchQueue<int>(new DispatchQueueConfiguration<int>((i=>
-            {
-                throw new Exception("boom");
+            //var dispatchQueue = new DispatchQueue<int>(new DispatchQueueConfiguration<int>((i=>
+            //{
+            //    throw new Exception("boom");
 
-            }),1,1));
+            //}),1,1));
 
-            dispatchQueue.Enqueue(1);
+            //dispatchQueue.Enqueue(1);
 
 
             //Task.Run(() =>

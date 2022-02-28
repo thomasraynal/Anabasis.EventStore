@@ -8,8 +8,6 @@ using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
 using System;
 using System.Collections.Generic;
-using System.Reactive.Linq;
-using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -47,11 +45,11 @@ namespace Anabasis.RabbitMQ
 
         }
 
-        public void Emit(IRabbitMqMessage @event, string exchange, TimeSpan? initialVisibilityDelay = default)
+        public void Emit(IRabbitMqEvent @event, string exchange, TimeSpan? initialVisibilityDelay = default)
         {
             Emit(new[] { @event }, exchange, initialVisibilityDelay);
         }
-        public void Emit(IEnumerable<IRabbitMqMessage> events, string exchange, TimeSpan? initialVisibilityDelay = default)
+        public void Emit(IEnumerable<IRabbitMqEvent> events, string exchange, TimeSpan? initialVisibilityDelay = default)
         {
 
             foreach (var @event in events)
@@ -64,8 +62,8 @@ namespace Anabasis.RabbitMQ
                 basicProperties.ContentType = _serializer.ContentMIMEType;
                 basicProperties.ContentEncoding = _serializer.ContentEncoding;
 
-                basicProperties.CorrelationId = $"{@event.CorrelationID}";
-                basicProperties.MessageId = $"{@event.EventID}";
+                basicProperties.CorrelationId = $"{@event.CorrelationId}";
+                basicProperties.MessageId = $"{@event.EventId}";
                 basicProperties.Type = @event.GetReadableNameFromType();
 
                 RabbitMqConnection.DoWithChannel(channel =>
@@ -129,13 +127,13 @@ namespace Anabasis.RabbitMQ
         private IRabbitMqQueueMessage DeserializeRabbitMqQueueMessage(IBasicProperties basicProperties, byte[] body, bool redelivered, ulong deliveryTag)
         {
             var type = basicProperties.Type.GetTypeFromReadableName();
-            var message = (IRabbitMqMessage)_serializer.DeserializeObject(body, type);
+            var message = (IRabbitMqEvent)_serializer.DeserializeObject(body, type);
 
-            return new RabbitMqQueueMessage(RabbitMqConnection, type, message, redelivered, deliveryTag);
+            return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag);
         }
 
         public void Subscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription)
-            where TEvent : class, IRabbitMqMessage
+            where TEvent : class, IRabbitMqEvent
         {
             var doesSubscriptionExist = _existingSubscriptions.ContainsKey(subscription.SubscriptionId);
 
@@ -186,7 +184,7 @@ namespace Anabasis.RabbitMQ
                             //that would mean SOME subscriber may have to process twice but we want to ensure the consumer keep failing until the message is correctly processed
                             foreach (var subscriber in rabbitMqSubscription.Subscriptions)
                             {
-                                subscriber.Handle(rabbitMqQueueMessage.Content).Wait();
+                                subscriber.Handle(rabbitMqQueueMessage).Wait();
                             }
 
                             channel.BasicAck(deliveryTag: basicDeliveryEventArg.DeliveryTag, multiple: false);
@@ -212,7 +210,7 @@ namespace Anabasis.RabbitMQ
 
         }
         public void Unsubscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription)
-           where TEvent : class, IRabbitMqMessage
+           where TEvent : class, IRabbitMqEvent
         {
 
             if (!_existingSubscriptions.ContainsKey(subscription.SubscriptionId))

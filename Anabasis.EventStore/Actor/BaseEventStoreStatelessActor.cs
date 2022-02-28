@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.Actor
 
             _eventStoreStreams.Add(eventStoreStream);
 
-            var onEventReceivedDisposable = eventStoreStream.OnEvent().Subscribe(@event => OnEventReceived(@event));
+            var onEventReceivedDisposable = eventStoreStream.OnMessage().Subscribe(@event => OnMessageReceived(@event));
 
             if (closeSubscriptionOnDispose)
             {
@@ -81,7 +81,7 @@ namespace Anabasis.EventStore.Actor
 
             cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
 
-            PendingCommands[command.EventID] = taskSource;
+            PendingCommands[command.EventId] = taskSource;
 
             _eventStoreRepository.Emit(command).Wait();
 

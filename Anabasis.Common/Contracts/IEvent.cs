@@ -4,9 +4,9 @@ namespace Anabasis.Common
 {
     public interface IEvent: IHaveEntityId
     {
+        Guid EventId { get; }
+        Guid CorrelationId { get; }
         string Name { get; }
-        Guid EventID { get; }
-        Guid CorrelationID { get; }
         bool IsCommand { get; }
         DateTime Timestamp { get; }
     }

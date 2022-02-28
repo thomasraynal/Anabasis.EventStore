@@ -17,8 +17,8 @@ namespace Anabasis.Common
         protected BaseAggregateEvent(string entityId, Guid correlationId):base(correlationId, entityId)
         {
             Timestamp = DateTime.UtcNow;
-            EventID = Guid.NewGuid();
-            CorrelationID = correlationId;
+            EventId = Guid.NewGuid();
+            CorrelationId = correlationId;
             EntityId = entityId;
         }
 
