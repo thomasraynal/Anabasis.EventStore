@@ -1,0 +1,156 @@
+﻿using Anabasis.Common;
+using Anabasis.EventStore.Repository;
+using EventStore.ClientAPI;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
+using System;
+using System.Collections.Generic;
+using System.Reactive.Disposables;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace Anabasis.EventStore
+{
+    public class EventStoreBus : IEventStoreBus
+    {
+        private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
+        private readonly Microsoft.Extensions.Logging.ILogger _logger;
+        private readonly IEventStoreRepository _eventStoreRepository;
+        private readonly List<IEventStoreStream> _eventStoreStreams;
+        private readonly CompositeDisposable _cleanUp;
+
+        public EventStoreBus(IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
+            IEventStoreRepository eventStoreRepository,
+            ILoggerFactory loggerFactory = null)
+        {
+            BusId = $"{nameof(EventStoreBus)}_{Guid.NewGuid()}";
+            ConnectionStatusMonitor = connectionStatusMonitor;
+
+            _eventStoreRepository = eventStoreRepository;
+            _eventStoreStreams = new List<IEventStoreStream>();
+            _cleanUp = new CompositeDisposable();
+            _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
+            _logger = loggerFactory?.CreateLogger(typeof(EventStoreBus));
+        }
+
+        public string BusId { get; }
+
+        public bool IsInitialized => true;
+
+        public IConnectionStatusMonitor ConnectionStatusMonitor { get; }
+
+        public async Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            if (ConnectionStatusMonitor.IsConnected) return;
+
+            var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
+
+            while (!ConnectionStatusMonitor.IsConnected || DateTime.UtcNow > waitUntilMax)
+            {
+                await Task.Delay(100);
+            }
+
+            if (!ConnectionStatusMonitor.IsConnected) throw new InvalidOperationException("Unable to connect");
+        }
+
+        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            var isConnected = ConnectionStatusMonitor.IsConnected;
+
+            var healthCheckResult = HealthCheckResult.Healthy();
+
+            if (!isConnected) healthCheckResult = HealthCheckResult.Unhealthy("EventStore connection is down");
+
+            return Task.FromResult(healthCheckResult);
+        }
+
+        public void Dispose()
+        {
+            _cleanUp.Dispose();
+        }
+
+        public Task Initialize()
+        {
+            return Task.CompletedTask;
+        }
+
+        public void SubscribeToEventStream(IEventStoreStream eventStoreStream, Action<IMessage, TimeSpan?> onMessageReceived, bool closeSubscriptionOnDispose = false)
+        {
+            eventStoreStream.Connect();
+
+            _logger?.LogDebug($"{BusId} => Subscribing to {eventStoreStream.Id}");
+
+            _eventStoreStreams.Add(eventStoreStream);
+
+            var onEventReceivedDisposable = eventStoreStream.OnMessage().Subscribe(message =>
+            {
+
+                if (message.Content is ICommandResponse)
+                {
+
+                    var commandResponse = message.Content as ICommandResponse;
+
+                    if (_pendingCommands.ContainsKey(commandResponse.CommandId))
+                    {
+
+                        var task = _pendingCommands[commandResponse.CommandId];
+
+                        task.SetResult(commandResponse);
+
+                        _pendingCommands.Remove(commandResponse.EventId, out _);
+                    }
+
+                }
+                else
+                {
+                    onMessageReceived(message, null);
+                }
+            });
+
+            if (closeSubscriptionOnDispose)
+            {
+                _cleanUp.Add(eventStoreStream);
+            }
+
+            _cleanUp.Add(onEventReceivedDisposable);
+        }
+
+        public async Task EmitEventStore<TEvent>(TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
+        {
+
+            if (!_eventStoreRepository.IsConnected)
+            {
+                await WaitUntilConnected(timeout);
+            }
+
+            _logger?.LogDebug($"{BusId} => Emitting {@event.EntityId} - {@event.GetType()}");
+
+            await _eventStoreRepository.Emit(@event, extraHeaders);
+        }
+
+        public async Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
+        {
+            _logger?.LogDebug($"{BusId} => Sending command {command.EntityId} - {command.GetType()}");
+
+            var taskSource = new TaskCompletionSource<ICommandResponse>();
+
+            var cancellationTokenSource = null != timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
+
+            cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
+
+            _pendingCommands[command.EventId] = taskSource;
+
+            await _eventStoreRepository.Emit(command);
+
+            return await taskSource.Task.ContinueWith(task =>
+            {
+                if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
+                if (task.IsCanceled) throw new TimeoutException($"Command {command.EntityId} timeout");
+
+                throw task.Exception;
+
+            }, cancellationTokenSource.Token);
+
+        }
+    }
+}

@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.Standalone
 
             foreach (var stream in _streamsToRegisterTo)
             {
-                actor.SubscribeToEventStream(stream, closeUnderlyingSubscriptionOnDispose: true);
+                actor.SubscribeToEventStream(stream, closeSubscriptionOnDispose: true);
             }
 
             foreach (var busRegistration in _busToRegisterTo)

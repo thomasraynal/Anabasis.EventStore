@@ -85,6 +85,11 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
+        public Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            return Task.CompletedTask;
+        }
+
         public void Push(IEvent push)
         {
             foreach (var subscriber in _subscribers)

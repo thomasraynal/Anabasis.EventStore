@@ -28,7 +28,7 @@ namespace Anabasis.EventStore.Demo
 
             foreach (var trade in State.GetCurrents().Where(trade => trade.CurrencyPair == marketDataChanged.EntityId))
             {
-                await EmitEventStore(new TradePriceChanged(trade.EntityId, Guid.NewGuid())
+                await this.EmitEventStore(new TradePriceChanged(trade.EntityId, Guid.NewGuid())
                 {
                     MarketPrice = marketDataChanged.Bid,
                     PercentFromMarket = Math.Round(((trade.TradePrice - trade.MarketPrice) / trade.MarketPrice) * 100, 4)

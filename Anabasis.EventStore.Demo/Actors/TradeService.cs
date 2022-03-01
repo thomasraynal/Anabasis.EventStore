@@ -107,7 +107,7 @@ namespace Anabasis.EventStore.Demo
                 {
                     await WaitUntilConnected();
 
-                    await EmitEventStore(new TradeCreated(trade.EntityId, Guid.NewGuid())
+                    await this.EmitEventStore(new TradeCreated(trade.EntityId, Guid.NewGuid())
                     {
                         Amount = trade.Amount,
                         BuyOrSell = trade.BuyOrSell,
@@ -136,7 +136,7 @@ namespace Anabasis.EventStore.Demo
 
                       await WaitUntilConnected();
 
-                          await EmitEventStore(new TradeCreated(trade.EntityId, Guid.NewGuid())
+                          await this.EmitEventStore(new TradeCreated(trade.EntityId, Guid.NewGuid())
                           {
                               Amount = trade.Amount,
                               BuyOrSell = trade.BuyOrSell,
@@ -172,7 +172,7 @@ namespace Anabasis.EventStore.Demo
                         {
                         WaitUntilConnected().Wait();
 
-                        EmitEventStore(new TradeStatusChanged(trade.EntityId, Guid.NewGuid())
+                        this.EmitEventStore(new TradeStatusChanged(trade.EntityId, Guid.NewGuid())
                             {
                                 Status = trade.Status
                             }).Wait();

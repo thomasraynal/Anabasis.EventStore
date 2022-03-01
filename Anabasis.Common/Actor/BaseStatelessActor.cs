@@ -24,7 +24,6 @@ namespace Anabasis.Common
 
         public string Id { get; private set; }
         public bool IsDisposed { get; private set; }
-        protected Dictionary<Guid, TaskCompletionSource<ICommandResponse>> PendingCommands { get; private set; }
         public ILogger Logger { get; private set; }
 
         protected BaseStatelessActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null)
@@ -57,7 +56,6 @@ namespace Anabasis.Common
 
             _cleanUp.Add(_dispatchQueue);
 
-            PendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             Logger = loggerFactory?.CreateLogger(GetType());
         }
 
@@ -79,28 +77,9 @@ namespace Anabasis.Common
 
                 var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), @event.GetType());
 
-                if (@event is ICommandResponse)
+                if (null != candidateHandler)
                 {
-
-                    var commandResponse = @event as ICommandResponse;
-
-                    if (PendingCommands.ContainsKey(commandResponse.CommandId))
-                    {
-
-                        var task = PendingCommands[commandResponse.CommandId];
-
-                        task.SetResult(commandResponse);
-
-                        PendingCommands.Remove(commandResponse.EventId, out _);
-                    }
-
-                }
-                else
-                {
-                    if (null != candidateHandler)
-                    {
-                        ((Task)candidateHandler.Invoke(this, new object[] { @event })).Wait();
-                    }
+                    ((Task)candidateHandler.Invoke(this, new object[] { @event })).Wait();
                 }
 
             }

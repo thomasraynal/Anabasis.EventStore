@@ -12,10 +12,6 @@ namespace Anabasis.EventStore.Actor
 {
     public abstract class BaseEventStoreStatelessActor : BaseStatelessActor, IEventStoreStatelessActor
     {
-
-        private IEventStoreRepository _eventStoreRepository;
-        private List<IEventStoreStream> _eventStoreStreams;
-
         protected BaseEventStoreStatelessActor(IActorConfiguration actorConfiguration, 
             IEventStoreRepository eventStoreRepository,
             IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
@@ -32,68 +28,9 @@ namespace Anabasis.EventStore.Actor
             Initialize(eventStoreRepository, connectionStatusMonitor);
         }
 
-        public void Initialize(IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor)
+        public void Initialize(IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null)
         {
-            _eventStoreRepository = eventStoreRepository;
-            _eventStoreStreams = new List<IEventStoreStream>();
-
-            ConnectTo(new EventStoreBus(connectionStatusMonitor)).Wait();
-        }
-
-        public void SubscribeToEventStream(IEventStoreStream eventStoreStream, bool closeSubscriptionOnDispose = false)
-        {
-            eventStoreStream.Connect();
-
-            Logger?.LogDebug($"{Id} => Subscribing to {eventStoreStream.Id}");
-
-            _eventStoreStreams.Add(eventStoreStream);
-
-            var onEventReceivedDisposable = eventStoreStream.OnMessage().Subscribe(@event => OnMessageReceived(@event));
-
-            if (closeSubscriptionOnDispose)
-            {
-                AddDisposable(eventStoreStream);
-            }
-
-            AddDisposable(onEventReceivedDisposable);
-        }
-
-        public async Task EmitEventStore<TEvent>(TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
-        {
-
-            if (!_eventStoreRepository.IsConnected)
-            {
-                await WaitUntilConnected(timeout);
-            }
-
-            Logger?.LogDebug($"{Id} => Emitting {@event.EntityId} - {@event.GetType()}");
-
-            await _eventStoreRepository.Emit(@event, extraHeaders);
-        }
-
-        public async Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
-        {
-            Logger?.LogDebug($"{Id} => Sending command {command.EntityId} - {command.GetType()}");
-
-            var taskSource = new TaskCompletionSource<ICommandResponse>();
-
-            var cancellationTokenSource = null != timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
-
-            cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
-
-            PendingCommands[command.EventId] = taskSource;
-
-            await _eventStoreRepository.Emit(command);
-
-            return await taskSource.Task.ContinueWith(task =>
-            {
-                if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
-                if (task.IsCanceled) throw new TimeoutException($"Command {command.EntityId} timeout");
-
-                throw task.Exception;
-
-            }, cancellationTokenSource.Token);
-
+            ConnectTo(new EventStoreBus(connectionStatusMonitor, eventStoreRepository, loggerFactory)).Wait();
         }
 
     }

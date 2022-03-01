@@ -31,6 +31,11 @@ namespace Anabasis.EventStore.Demo.Bus
             _cleanUp.Dispose();
         }
 
+        public Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            return Task.CompletedTask;
+        }
+
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(HealthCheckResult.Healthy("healthcheck from MarketDataBus", new Dictionary<string, object>()

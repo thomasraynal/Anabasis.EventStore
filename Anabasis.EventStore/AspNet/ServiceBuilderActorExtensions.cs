@@ -31,7 +31,7 @@ namespace Anabasis.EventStore
                  {
                      var eventStoreStream = getStream(connectionStatusMonitor, loggerFactory);
 
-                     actor.SubscribeToEventStream(eventStoreStream, closeUnderlyingSubscriptionOnDispose: true);
+                     actor.SubscribeToEventStream(eventStoreStream, closeSubscriptionOnDispose: true);
                  }
 
              });

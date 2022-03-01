@@ -75,6 +75,10 @@ namespace Anabasis.EventStore.Tests
 
         public IConnectionStatusMonitor ConnectionStatusMonitor => new DummyBusConnectionMonitor();
 
+        public Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            return Task.CompletedTask;
+        }
         public void Dispose()
         {
         }
@@ -110,7 +114,10 @@ namespace Anabasis.EventStore.Tests
         {
             _subscribers = new List<Action<IMessage>>();
         }
-
+        public Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            return Task.CompletedTask;
+        }
         public string BusId => nameof(DummyBus);
 
         public bool IsConnected => true;

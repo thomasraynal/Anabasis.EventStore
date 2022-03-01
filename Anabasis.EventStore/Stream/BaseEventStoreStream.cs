@@ -97,6 +97,7 @@ namespace Anabasis.EventStore.Stream
         }
 
         protected abstract IDisposable ConnectToEventStream(IEventStoreConnection connection);
+
         public virtual void Dispose()
         {
             _onMessageSubject.OnCompleted();

@@ -40,13 +40,12 @@ namespace Anabasis.EventStore.Cache
 
         public IEventTypeProvider<TAggregate> EventTypeProvider { get; }
         public string Id { get; }
-        public bool IsWiredUp { get; private set; }
         public bool UseSnapshot { get; private set; }
         public IObservable<bool> OnStale => _isStaleSubject.AsObservable();
         public IObservable<bool> OnCaughtUp => _isCaughtUpSubject.AsObservable();
         public bool IsStale => _isStaleSubject.Value;
         public bool IsCaughtUp => _isCaughtUpSubject.Value;
-        public bool IsConnected => _connectionMonitor.IsConnected && IsWiredUp;
+        public bool IsConnected => _connectionMonitor.IsConnected;
 
         public ICatchupCacheSubscriptionHolder[] GetSubscriptionStates()
         {
@@ -70,7 +69,6 @@ namespace Anabasis.EventStore.Cache
 
             UseSnapshot = snapshotStore != null && snapshotStrategy != null;
 
-            IsWiredUp = false;
             Id = $"{GetType()}-{Guid.NewGuid()}";
             EventTypeProvider = eventTypeProvider;
 
@@ -231,10 +229,7 @@ namespace Anabasis.EventStore.Cache
 
         public async Task Connect()
         {
-            if (IsWiredUp) return;
-
-            IsWiredUp = true;
-
+   
             await OnLoadSnapshot(_catchupCacheSubscriptionHolders, _snapshotStrategy, _snapshotStore);
 
             foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
@@ -257,8 +252,6 @@ namespace Anabasis.EventStore.Cache
             {
                 catchupCacheSubscriptionHolder.EventStreamConnectionDisposable.Dispose();
             }
-
-            IsWiredUp = false;
 
             return Task.CompletedTask;
         }

@@ -45,6 +45,20 @@ namespace Anabasis.RabbitMQ
 
         }
 
+        public async Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            if (ConnectionStatusMonitor.IsConnected) return;
+
+            var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
+
+            while (!ConnectionStatusMonitor.IsConnected || DateTime.UtcNow > waitUntilMax)
+            {
+                await Task.Delay(100);
+            }
+
+            if (!ConnectionStatusMonitor.IsConnected) throw new InvalidOperationException("Unable to connect");
+        }
+
         public void Emit(IRabbitMqEvent @event, string exchange, TimeSpan? initialVisibilityDelay = default)
         {
             Emit(new[] { @event }, exchange, initialVisibilityDelay);
@@ -87,6 +101,7 @@ namespace Anabasis.RabbitMQ
                 });
             }
         }
+
 
         public IRabbitMqQueueMessage[] Pull(string queueName, int? chunkSize = default)
         {

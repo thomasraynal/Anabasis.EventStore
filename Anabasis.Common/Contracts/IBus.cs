@@ -10,5 +10,6 @@ namespace Anabasis.Common
         bool IsInitialized { get; }
         Task Initialize();
         IConnectionStatusMonitor ConnectionStatusMonitor { get; }
+        Task WaitUntilConnected(TimeSpan? timeout = null);
     }
 }

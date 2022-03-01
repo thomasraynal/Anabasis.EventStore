@@ -59,6 +59,11 @@ namespace Anabasis.EventStore.Tests
         {
             return Task.CompletedTask;
         }
+
+        public Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            return Task.CompletedTask;
+        }
     }
 
     public class TestFailingBus : IBus
@@ -95,6 +100,11 @@ namespace Anabasis.EventStore.Tests
 
 
         public Task Initialize()
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task WaitUntilConnected(TimeSpan? timeout = null)
         {
             return Task.CompletedTask;
         }
