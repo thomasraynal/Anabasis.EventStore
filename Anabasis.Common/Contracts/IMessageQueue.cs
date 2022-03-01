@@ -7,7 +7,6 @@ namespace Anabasis.Common
     public interface IMessageQueue : IDisposable
     {
         string Id { get; }
-        bool IsWiredUp { get; }
         void Connect();
         void Disconnect();
     }

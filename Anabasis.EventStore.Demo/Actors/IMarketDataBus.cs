@@ -6,6 +6,6 @@ namespace Anabasis.EventStore.Demo.Bus
 {
     public interface IMarketDataBus: IBus
     {
-        IDisposable Subscribe(string consumerId, Func<MarketDataChanged, Task> subscriber);
+        IDisposable Subscribe(string consumerId, Func<MarketDataBusMessage, Task> subscriber);
     }
 }

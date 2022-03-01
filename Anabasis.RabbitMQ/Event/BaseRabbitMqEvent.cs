@@ -1,16 +1,14 @@
-﻿using Anabasis.Common;
-using Anabasis.RabbitMQ;
-using System;
-using System.Threading.Tasks;
+﻿using System;
 
 namespace Anabasis.RabbitMQ.Event
 {
     public class BaseRabbitMqEvent : IRabbitMqEvent
     {
 
-        public BaseRabbitMqEvent(Guid? messageId, Guid? correlationId)
+        public BaseRabbitMqEvent(Guid? messageId = null, Guid? eventId = null, Guid? correlationId=null)
         {
-            EventId = messageId ?? Guid.NewGuid();
+            MessageId = messageId ?? Guid.NewGuid();
+            EventId = eventId ?? Guid.NewGuid();
             CorrelationId = correlationId ?? Guid.NewGuid();
         }
 
@@ -36,5 +34,6 @@ namespace Anabasis.RabbitMQ.Event
 
         public string Name => GetType().Name;
 
+        public Guid MessageId { get; }
     }
 }

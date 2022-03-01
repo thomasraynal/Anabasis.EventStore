@@ -136,7 +136,7 @@ namespace Anabasis.EventStore.Tests
 
             var eventCount = 0;
 
-            _streamOne.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
+            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
             {
                 eventCount++;
             });
@@ -161,7 +161,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(200);
 
-            _streamOne.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
+            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
             {
                 eventCount++;
             });
@@ -190,14 +190,14 @@ namespace Anabasis.EventStore.Tests
             var eventCountOne = 0;
             var eventCountTwo = 0;
 
-            _streamOne.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
+            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
             {
                 eventCountOne++;
             });
 
             _streamTwo = CreatePersistentEventStoreStream(_streamId, _groupIdTwo);
 
-            _streamTwo.persistentEventStoreStream.OnEvent().Subscribe((@event) =>
+            _streamTwo.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
             {
                 eventCountTwo++;
             });

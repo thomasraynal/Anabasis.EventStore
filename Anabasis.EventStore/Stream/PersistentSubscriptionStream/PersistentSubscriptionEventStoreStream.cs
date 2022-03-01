@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
@@ -24,24 +25,9 @@ namespace Anabasis.EventStore.Stream
             _persistentEventStoreStreamConfiguration = persistentEventStoreStreamConfiguration;
         }
 
-        public void Acknowledge(ResolvedEvent resolvedEvent)
-        {
-            Logger?.LogDebug($"{Id} => ACK event - {resolvedEvent.Event.EventId}");
-
-            _eventStorePersistentSubscription.Acknowledge(resolvedEvent);
-        }
-
         public override void Disconnect()
         {
             _eventStorePersistentSubscription.Stop(TimeSpan.FromSeconds(5));
-            IsWiredUp = false;
-        }
-
-        public void NotAcknowledge(ResolvedEvent resolvedEvent, PersistentSubscriptionNakEventAction persistentSubscriptionNakEventAction, string reason = null)
-        {
-            Logger?.LogDebug($"{Id} => NACK event - {resolvedEvent.Event.EventId} - reason : {reason}");
-
-            _eventStorePersistentSubscription.Fail(resolvedEvent, persistentSubscriptionNakEventAction, reason);
         }
 
         protected override IDisposable ConnectToEventStream(IEventStoreConnection connection)
@@ -122,6 +108,9 @@ namespace Anabasis.EventStore.Stream
 
         }
 
-
+        protected override IMessage CreateMessage(IEvent @event, ResolvedEvent resolvedEvent)
+        {
+            return new EventStorePersistentSubscriptionMessage(@event.EventId, @event, resolvedEvent, _eventStorePersistentSubscription);
+        }
     }
 }

@@ -71,7 +71,7 @@ namespace Anabasis.EventStore.Actor
             await _eventStoreRepository.Emit(@event, extraHeaders);
         }
 
-        public Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
+        public async Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
         {
             Logger?.LogDebug($"{Id} => Sending command {command.EntityId} - {command.GetType()}");
 
@@ -83,9 +83,9 @@ namespace Anabasis.EventStore.Actor
 
             PendingCommands[command.EventId] = taskSource;
 
-            _eventStoreRepository.Emit(command).Wait();
+            await _eventStoreRepository.Emit(command);
 
-            return taskSource.Task.ContinueWith(task =>
+            return await taskSource.Task.ContinueWith(task =>
             {
                 if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
                 if (task.IsCanceled) throw new TimeoutException($"Command {command.EntityId} timeout");

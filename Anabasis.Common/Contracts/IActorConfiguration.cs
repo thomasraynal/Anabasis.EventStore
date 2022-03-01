@@ -4,5 +4,6 @@
     {
         int ActorMailBoxMessageMessageQueueMaxSize { get; }
         int ActorMailBoxMessageBatchSize { get; }
+        bool CrashAppOnError { get; }
     }
 }

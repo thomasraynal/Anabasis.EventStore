@@ -197,12 +197,12 @@ namespace Anabasis.EventStore.Tests
 
         }
 
-        [Test, Order(2)]
-        public async Task ShouldEmitAnEventAndFailToConsumeIt()
-        {
-            await _testActorOne.EmitEventStore(new SomeRandomEvent(Guid.NewGuid()));
+        //[Test, Order(2)]
+        //public async Task ShouldEmitAnEventAndFailToConsumeIt()
+        //{
+        //    await _testActorOne.EmitEventStore(new SomeRandomEvent(Guid.NewGuid()));
 
-            await Task.Delay(3000);
-        }
+        //    await Task.Delay(3000);
+        //}
     }
 }

@@ -32,9 +32,5 @@ namespace Anabasis.Common
         public DateTime Timestamp { get; internal set; }
 
         public string Name => GetType().Name;
-
-        public abstract Task Ack();
-
-        public abstract Task Nack();
     }
 }

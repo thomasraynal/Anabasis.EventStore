@@ -48,12 +48,12 @@ namespace Anabasis.EventStore.Tests
 
         public Task Acknowledge()
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
 
-        public Task NotAcknowledge()
+        public Task NotAcknowledge(string reason = null)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 
@@ -80,7 +80,7 @@ namespace Anabasis.EventStore.Tests
                 queueMaxSize
                 );
 
-            var dispatchQueue = new DispatchQueue(dispatchQueueConfiguration);
+            var dispatchQueue = new DispatchQueue(dispatchQueueConfiguration, new DummyLoggerFactory());
 
             Assert.True(dispatchQueue.CanEnqueue());
 
@@ -116,7 +116,7 @@ namespace Anabasis.EventStore.Tests
                 10
                 );
 
-            var dispatchQueue = new DispatchQueue(dispatchQueueConfiguration);
+            var dispatchQueue = new DispatchQueue(dispatchQueueConfiguration, new DummyLoggerFactory());
 
             dispatchQueue.Dispose();
 

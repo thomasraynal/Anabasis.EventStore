@@ -356,10 +356,9 @@ namespace Anabasis.EventStore.Cache
 
                         Logger?.LogError(exception, $"{nameof(SubscriptionDropReason)}: [{subscriptionDropReason}] throwed the consumer in an invalid state");
 
-                        if (catchupCacheSubscriptionHolder.DoAppCrashIfSubscriptionFail)
+                        if (catchupCacheSubscriptionHolder.CrashAppIfSubscriptionFail)
                         {
                             ExceptionDispatchInfo.Capture(exception).Throw();
-                        //    Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
                         }
                         else
                         {

@@ -55,9 +55,9 @@ namespace Anabasis.EventStore.Repository
                 {
                     var commitHeaders = CreateCommitHeaders(null, @event, extraHeaders);
 
-                    Logger?.LogDebug($"{Id} => Emitting event: {@event.MessageId} {@event.EntityId} {@event.GetType()}");
+                    Logger?.LogDebug($"{Id} => Emitting event: {@event.EventId} {@event.EntityId} {@event.GetType()}");
 
-                    return ToEventData(@event.MessageId, @event, commitHeaders);
+                    return ToEventData(@event.EventId, @event, commitHeaders);
 
                 });
 

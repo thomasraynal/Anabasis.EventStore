@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Demo.Bus
     public class MarketDataBus : IMarketDataBus
     {
         private readonly Dictionary<string, IObservable<MarketData>> _prices = new();
-        private readonly ConcurrentDictionary<string, Func<MarketDataChanged, Task>> _subscribers = new();
+        private readonly ConcurrentDictionary<string, Func<MarketDataBusMessage, Task>> _subscribers = new();
         private CompositeDisposable _cleanUp;
 
         public string BusId => $"{nameof(MarketDataBus)}{Guid.NewGuid()}";
@@ -38,7 +38,7 @@ namespace Anabasis.EventStore.Demo.Bus
                 {"MarketDataBus", "ok"}
             }));
         }
-        public IDisposable Subscribe(string consumerId,Func<MarketDataChanged, Task> subscriber)
+        public IDisposable Subscribe(string consumerId,Func<MarketDataBusMessage, Task> subscriber)
         {
             _subscribers.AddOrUpdate(consumerId, subscriber, (key, value) =>
              {
@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.Demo.Bus
             return Disposable.Create(() => _subscribers.Remove(consumerId, out _));
         }
 
-        private void SendSubscriber(MarketDataChanged marketDataChanged)
+        private void SendSubscriber(MarketDataBusMessage marketDataChanged)
         {
             foreach (var subscriber in _subscribers)
             {
@@ -88,11 +88,11 @@ namespace Anabasis.EventStore.Demo.Bus
 
                 observer.OnNext(initial);
 
-                SendSubscriber(new MarketDataChanged(currentPrice.EntityId, Guid.NewGuid())
+                SendSubscriber(new MarketDataBusMessage(new MarketDataChanged(currentPrice.EntityId, Guid.NewGuid())
                 {
                     Bid = currentPrice.Bid,
                     Offer = currentPrice.Offer
-                });
+                }));
 
                 var random = new Random();
 
@@ -108,11 +108,11 @@ namespace Anabasis.EventStore.Demo.Bus
 
                       observer.OnNext(currentPrice);
 
-                      SendSubscriber(new MarketDataChanged(currentPrice.EntityId, Guid.NewGuid())
+                      SendSubscriber(new MarketDataBusMessage(new MarketDataChanged(currentPrice.EntityId, Guid.NewGuid())
                       {
                           Bid = currentPrice.Bid,
                           Offer = currentPrice.Offer
-                      });
+                      }));
 
                   });
             });

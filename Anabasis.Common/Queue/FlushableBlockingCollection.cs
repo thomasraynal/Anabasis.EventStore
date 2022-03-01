@@ -83,8 +83,13 @@ namespace Anabasis.Common
 
         public void Dispose()
         {
-            _isAddingCompleted = true;
+            SetAddingCompleted();
             _addSignal.Set();
+        }
+
+        public void SetAddingCompleted()
+        {
+            _isAddingCompleted = true;
         }
 
         public ConcurrentQueue<T> Flush()

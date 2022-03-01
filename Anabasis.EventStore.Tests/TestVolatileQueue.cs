@@ -111,7 +111,7 @@ namespace Anabasis.EventStore.Tests
 
             var eventCount = 0;
 
-            _streamOne.volatileEventStoreStream.OnEvent().Subscribe((@event) =>
+            _streamOne.volatileEventStoreStream.OnMessage().Subscribe((@event) =>
             {
                 eventCount++;
             });
@@ -136,7 +136,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(200);
 
-            _streamOne.volatileEventStoreStream.OnEvent().Subscribe((@event) =>
+            _streamOne.volatileEventStoreStream.OnMessage().Subscribe((@event) =>
              {
                  eventCount++;
              });
@@ -165,14 +165,14 @@ namespace Anabasis.EventStore.Tests
             var eventCountOne = 0;
             var eventCountTwo = 0;
 
-            _streamOne.volatileEventStoreStream.OnEvent().Subscribe((@event) =>
+            _streamOne.volatileEventStoreStream.OnMessage().Subscribe((@event) =>
             {
                 eventCountOne++;
             });
 
             _streamTwo = CreateVolatileEventStoreStream();
 
-            _streamTwo.volatileEventStoreStream.OnEvent().Subscribe((@event) =>
+            _streamTwo.volatileEventStoreStream.OnMessage().Subscribe((@event) =>
             {
                 eventCountTwo++;
             });

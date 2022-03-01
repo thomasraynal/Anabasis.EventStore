@@ -49,10 +49,11 @@ namespace Anabasis.Common
             var dispachQueueConfiguration = new DispatchQueueConfiguration(
                 OnEventReceivedInternal,
                 _actorConfiguration.ActorMailBoxMessageBatchSize,
-                _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize
+                _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize,
+               _actorConfiguration.CrashAppOnError
             );
 
-            _dispatchQueue = new DispatchQueue(dispachQueueConfiguration);
+            _dispatchQueue = new DispatchQueue(dispachQueueConfiguration, loggerFactory);
 
             _cleanUp.Add(_dispatchQueue);
 
@@ -205,7 +206,6 @@ namespace Anabasis.Common
             _cleanUp.Add(disposable);
         }
 
-        //todo: add event store bus
         public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             var healthCheckDescription = $"{Id} HealthChecks";

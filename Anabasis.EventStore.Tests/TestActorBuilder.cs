@@ -31,7 +31,7 @@ namespace Anabasis.EventStore.Tests
             return Task.CompletedTask;
         }
 
-        public Task NotAcknowledge()
+        public Task NotAcknowledge(string reason=null)
         {
             return Task.CompletedTask;
         }

@@ -1,6 +1,7 @@
 using Anabasis.Common;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.EventProvider;
+using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
@@ -33,7 +34,6 @@ namespace Anabasis.EventStore.Stream
         public override void Disconnect()
         {
             _eventStoreCatchupSubscription.Stop();
-            IsWiredUp = false;
         }
 
         protected override IDisposable ConnectToEventStream(IEventStoreConnection connection)
@@ -120,6 +120,11 @@ namespace Anabasis.EventStore.Stream
               });
 
 
+        }
+
+        protected override IMessage CreateMessage(IEvent @event, ResolvedEvent resolvedEvent)
+        {
+            return new EventStoreCatchupSubscriptionMessage(@event.EventId, @event, resolvedEvent);
         }
     }
 }

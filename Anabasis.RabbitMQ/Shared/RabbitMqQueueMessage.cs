@@ -37,7 +37,7 @@ namespace Anabasis.RabbitMQ
 
             return Task.CompletedTask;
         }
-        public Task NotAcknowledge()
+        public Task NotAcknowledge(string reason = null)
         {
             _rabbitMqConnection.DoWithChannel(channel => channel.BasicNack(_deliveryTag, multiple: false, requeue: true));
 

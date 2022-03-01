@@ -1,8 +1,30 @@
 using Anabasis.Common;
 using System;
+using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo
 {
+    public class MarketDataBusMessage : IMessage
+    {
+        public MarketDataBusMessage(IEvent content)
+        {
+            Content = content;
+        }
+
+        public Guid MessageId => Guid.NewGuid();
+
+        public IEvent Content { get; }
+
+        public Task Acknowledge()
+        {
+            return Task.CompletedTask;
+        }
+
+        public Task NotAcknowledge(string reason=null)
+        {
+            return Task.CompletedTask;
+        }
+    }
     public class MarketDataChanged : BaseAggregateEvent<MarketData>
     {
         public decimal Bid { get; set; }

@@ -13,19 +13,19 @@ namespace Anabasis.EventStore.Cache
         internal CatchupCacheSubscriptionHolder(bool doAppCrashIfSubscriptionFail)
         {
             IsSuscribeToAll = true;
-            DoAppCrashIfSubscriptionFail = doAppCrashIfSubscriptionFail;
+            CrashAppIfSubscriptionFail = doAppCrashIfSubscriptionFail;
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
         }
 
         internal CatchupCacheSubscriptionHolder(string streamId, bool doAppCrashIfSubscriptionFail)
         {
             StreamId = streamId;
-            DoAppCrashIfSubscriptionFail = doAppCrashIfSubscriptionFail;
+            CrashAppIfSubscriptionFail = doAppCrashIfSubscriptionFail;
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
         }
 
         public EventStoreCatchUpSubscription EventStoreCatchUpSubscription { get;  set; }
-        public bool DoAppCrashIfSubscriptionFail { get; private set; }
+        public bool CrashAppIfSubscriptionFail { get; private set; }
         public bool IsSuscribeToAll { get; private set; }
         public bool IsCaughtUp => _isCaughtUpSubject.Value;
         internal BehaviorSubject<bool> OnCaughtUpSubject => _isCaughtUpSubject;

@@ -11,6 +11,27 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
+    public class EventMessage : IMessage
+    {
+        public EventMessage(IEvent @event)
+        {
+            Content = @event;
+        }
+
+        public Guid MessageId => throw new NotImplementedException();
+
+        public IEvent Content { get; }
+
+        public Task Acknowledge()
+        {
+            return Task.CompletedTask;
+        }
+        public Task NotAcknowledge(string reason = null)
+        {
+            return Task.CompletedTask;
+        }
+    }
+
     public class EventA : BaseEvent
     {
         public EventA(Guid correlationId, string streamId) : base(correlationId, streamId)
@@ -61,8 +82,8 @@ namespace Anabasis.EventStore.Tests
         {
             var testStatelessActor = new TestStatelessActor(new ActorConfiguration(2, 10));
 
-            var getEventA = new Func<EventA>(() => new EventA(Guid.NewGuid(), "eventA"));
-            var getEventB = new Func<EventB>(() => new EventB(Guid.NewGuid(), "eventB"));
+            var getEventA = new Func<EventMessage>(() => new EventMessage(new EventA(Guid.NewGuid(), "eventA")));
+            var getEventB = new Func<EventMessage>(() => new EventMessage(new EventB(Guid.NewGuid(), "eventB")));
 
             var cancellationTokenSource = new CancellationTokenSource();
 
@@ -70,7 +91,7 @@ namespace Anabasis.EventStore.Tests
             {
                 while (true)
                 {
-                     testStatelessActor.OnEventReceived(getEventA());
+                     testStatelessActor.OnMessageReceived(getEventA());
                 }
 
             }, cancellationTokenSource.Token);
@@ -79,7 +100,7 @@ namespace Anabasis.EventStore.Tests
             {
                 while (true)
                 {
-                     testStatelessActor.OnEventReceived(getEventB());
+                     testStatelessActor.OnMessageReceived(getEventB());
 
                 }
             }, cancellationTokenSource.Token);
