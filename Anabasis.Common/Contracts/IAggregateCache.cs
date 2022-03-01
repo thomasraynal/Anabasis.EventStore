@@ -1,13 +1,10 @@
-using Anabasis.Common;
-using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Shared;
 using DynamicData;
 using System;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Cache
+namespace Anabasis.Common
 {
-    public interface IEventStoreCache<TAggregate> : IDisposable where TAggregate : IAggregate, new()
+    public interface IAggregateCache<TAggregate> : IDisposable where TAggregate : IAggregate, new()
     {
         string Id { get; }
         bool IsStale { get; }

@@ -1,23 +1,18 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Repository;
-using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Samples
 {
-    public class EventCountStatelessActor : BaseEventStoreStatelessActor
+    public class EventCountStatelessActor : BaseStatelessActor
     {
-        public EventCountStatelessActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public EventCountStatelessActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
         }
 
-        public EventCountStatelessActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public EventCountStatelessActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
         }
 

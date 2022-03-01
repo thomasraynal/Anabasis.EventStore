@@ -1,7 +1,6 @@
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using DynamicData;
@@ -27,7 +26,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
         {
         }
 

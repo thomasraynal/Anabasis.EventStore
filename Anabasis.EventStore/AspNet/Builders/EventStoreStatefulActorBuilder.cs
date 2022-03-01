@@ -1,9 +1,6 @@
 ﻿using System;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.EventProvider;
 using System.Collections.Generic;
 using Anabasis.EventStore.Stream;
 using Microsoft.Extensions.Logging;
@@ -16,7 +13,7 @@ namespace Anabasis.EventStore.AspNet.Builders
 {
 
     public class EventStoreStatefulActorBuilder<TActor, TAggregate> : IEventStoreStatefulActorBuilder
-        where TActor : class, IEventStoreStatefulActor<TAggregate>
+        where TActor : class, IStatefulActor<TAggregate>
         where TAggregate : class, IAggregate, new()
     {
         private readonly World _world;
@@ -50,7 +47,7 @@ namespace Anabasis.EventStore.AspNet.Builders
           ISnapshotStrategy snapshotStrategy = null)
         {
 
-            var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreCache<TAggregate>>((connectionMonitor, loggerFactory) =>
+            var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
                {
                    var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.Start);
 
@@ -95,7 +92,7 @@ namespace Anabasis.EventStore.AspNet.Builders
           ISnapshotStrategy snapshotStrategy = null)
         {
 
-            var getSubscribeFromEndMultipleStreamsEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreCache<TAggregate>>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndMultipleStreamsEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
            {
                var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<TAggregate>(streamIds);
 
@@ -117,7 +114,7 @@ namespace Anabasis.EventStore.AspNet.Builders
           IEventTypeProvider<TAggregate> eventTypeProvider = null,
           Action<AllStreamsCatchupCacheConfiguration<TAggregate>> volatileCacheConfigurationBuilder = null)
         {
-            var getSubscribeFromEndEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreCache<TAggregate>>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
            {
                var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.End);
 
@@ -139,90 +136,6 @@ namespace Anabasis.EventStore.AspNet.Builders
 
 
             return this;
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithSubscribeFromEndToAllStreams(
-            Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null,
-            IEventTypeProvider eventTypeProvider = null)
-        {
-
-            var getSubscribeFromEndEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
-            {
-                var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
-
-                getSubscribeFromEndEventStoreStreamConfiguration?.Invoke(subscribeFromEndEventStoreStreamConfiguration);
-
-                var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
-
-                var subscribeFromEndEventStoreStream = new SubscribeFromEndEventStoreStream(
-                  connectionMonitor,
-                  subscribeFromEndEventStoreStreamConfiguration,
-                  eventProvider, loggerFactory);
-
-                return subscribeFromEndEventStoreStream;
-
-            });
-
-            _streamsToRegisterTo.Add(getSubscribeFromEndEventStoreStream);
-
-            return this;
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithPersistentSubscriptionStream(
-            string streamId,
-            string groupId,
-            Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
-        {
-            var getPersistentSubscriptionEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
-            {
-                var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
-
-                getPersistentSubscriptionEventStoreStreamConfiguration?.Invoke(persistentEventStoreStreamConfiguration);
-
-                var eventProvider = new ConsumerBasedEventProvider<TActor>();
-
-                var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
-                  connectionMonitor,
-                  persistentEventStoreStreamConfiguration,
-                  eventProvider,
-                  loggerFactory);
-
-                return persistentSubscriptionEventStoreStream;
-
-            });
-
-            _streamsToRegisterTo.Add(getPersistentSubscriptionEventStoreStream);
-
-            return this;
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithSubscribeFromStartToOneStream(
-            string streamId,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
-            IEventTypeProvider eventTypeProvider = null)
-        {
-            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
-            {
-
-                var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
-
-                getSubscribeFromEndToOneStreamEventStoreStreamConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreStreamConfiguration);
-
-                var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
-
-                var subscribeFromEndToOneStreamEventStoreStream = new SubscribeFromStartOrLaterToOneStreamEventStoreStream(
-                  connectionMonitor,
-                  subscribeFromEndToOneStreamEventStoreStreamConfiguration,
-                  eventProvider, loggerFactory);
-
-                return subscribeFromEndToOneStreamEventStoreStream;
-
-            });
-
-            _streamsToRegisterTo.Add(getSubscribeFromEndToOneStreamStream);
-
-            return this;
-
         }
 
         public EventStoreStatefulActorBuilder<TActor, TAggregate> WithSubscribeFromEndToOneStream(

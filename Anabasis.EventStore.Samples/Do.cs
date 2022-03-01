@@ -1,4 +1,5 @@
-﻿using Anabasis.EventStore.Actor;
+﻿using Anabasis.Common;
+using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using System;
@@ -23,7 +24,7 @@ namespace Anabasis.EventStore.Samples
                 .Build();
         }
 
-        public static void Run(IEventStoreStatelessActor statelessActor)
+        public static void Run(IActor statelessActor)
         {
             var rand = new Random();
             var position = 0;
@@ -63,7 +64,7 @@ namespace Anabasis.EventStore.Samples
             }
         }
 
-        public static void Run(params IEventStoreStatefulActor<EventCountAggregate>[] statefulActors)
+        public static void Run(params IStatefulActor<EventCountAggregate>[] statefulActors)
         {
             foreach(var statefulActor in statefulActors)
             {
@@ -76,7 +77,7 @@ namespace Anabasis.EventStore.Samples
                 });
             }
 
-            Run(statefulActors.First() as IEventStoreStatelessActor);
+            Run(statefulActors.First() as IActor);
 
         }
     }

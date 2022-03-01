@@ -1,6 +1,4 @@
-﻿using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Standalone;
-using Anabasis.EventStore.Tests;
+﻿using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -11,21 +9,20 @@ using NUnit.Framework;
 using System.Threading.Tasks;
 using System;
 using System.Reactive.Linq;
-using Anabasis.EventStore.Actor;
 using System.Collections.Generic;
 using Anabasis.Common;
-using Anabasis.EventStore.Repository;
 using Anabasis.Common.Configuration;
+using Lamar;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
 {
-    public class TestRabbitMqActor : BaseEventStoreStatelessActor
+    public class TestRabbitMqActor : BaseStatelessActor
     {
-        public TestRabbitMqActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestRabbitMqActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
         }
 
-        public TestRabbitMqActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestRabbitMqActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
         }
 
@@ -41,6 +38,13 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         }
 
 
+    }
+
+    public class SomeRegistry : ServiceRegistry
+    {
+        public SomeRegistry()
+        {
+        }
     }
 
     [TestFixture]

@@ -10,7 +10,7 @@ namespace Anabasis.EventStore.AspNet.Factories
 {
     public class EventStoreActorConfiguration<TAggregate> : IEventStoreActorConfiguration<TAggregate> where TAggregate : IAggregate, new()
     {
-        public EventStoreActorConfiguration(IActorConfiguration actorConfiguration, Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreCache<TAggregate>> getEventStoreCache)
+        public EventStoreActorConfiguration(IActorConfiguration actorConfiguration, Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>> getEventStoreCache)
         {
             ActorConfiguration = actorConfiguration;
             GetEventStoreCache = getEventStoreCache;
@@ -18,6 +18,6 @@ namespace Anabasis.EventStore.AspNet.Factories
 
         public IActorConfiguration ActorConfiguration { get; }
 
-        public Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreCache<TAggregate>> GetEventStoreCache { get; }
+        public Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>> GetEventStoreCache { get; }
     }
 }

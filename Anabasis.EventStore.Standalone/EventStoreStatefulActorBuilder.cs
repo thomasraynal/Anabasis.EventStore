@@ -1,7 +1,5 @@
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Snapshot;
@@ -17,11 +15,11 @@ using Anabasis.Common;
 namespace Anabasis.EventStore.Standalone
 {
     public class EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>
-      where TActor : IEventStoreStatefulActor<TAggregate>
+      where TActor : IStatefulActor<TAggregate>
       where TAggregate : class, IAggregate, new()
       where TRegistry : ServiceRegistry, new()
     {
-        private IEventStoreCache<TAggregate> EventStoreCache { get; set; }
+        private IAggregateCache<TAggregate> EventStoreCache { get; set; }
         private IEventStoreAggregateRepository EventStoreRepository { get; set; }
         private ILoggerFactory LoggerFactory { get; set; }
         private IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; set; }
@@ -45,7 +43,7 @@ namespace Anabasis.EventStore.Standalone
             {
                 configuration.For<IActorConfiguration>().Use(ActorConfiguration);
                 configuration.For<ILoggerFactory>().Use(LoggerFactory);
-                configuration.For<IEventStoreCache<TAggregate>>().Use(EventStoreCache);
+                configuration.For<IAggregateCache<TAggregate>>().Use(EventStoreCache);
                 configuration.For<IEventStoreAggregateRepository>().Use(EventStoreRepository);
                 configuration.For<IConnectionStatusMonitor<IEventStoreConnection>>().Use(ConnectionMonitor);
                 configuration.IncludeRegistry<TRegistry>();

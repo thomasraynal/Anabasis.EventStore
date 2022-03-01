@@ -1,8 +1,6 @@
 using Anabasis.Common;
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Snapshot.InMemory;

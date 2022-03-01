@@ -1,13 +1,10 @@
 using Anabasis.Api.Tests.Common;
 using Anabasis.Common;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 using NUnit.Framework;
 using System;
-using System.Net;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Integration.Tests

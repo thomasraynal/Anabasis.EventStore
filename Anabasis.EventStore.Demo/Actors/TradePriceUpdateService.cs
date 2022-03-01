@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Demo
 {
     public class TradePriceUpdateService : BaseEventStoreStatefulActor<Trade>
     {
-        public TradePriceUpdateService(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<Trade> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        public TradePriceUpdateService(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<Trade> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
         {
         }
 

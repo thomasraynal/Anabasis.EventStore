@@ -9,6 +9,6 @@ namespace Anabasis.EventStore.AspNet.Factories
 {
     public interface IEventStoreActorConfiguration<TAggregate> where TAggregate : IAggregate, new()
     {
-        Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreCache<TAggregate>> GetEventStoreCache { get; }
+        Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>> GetEventStoreCache { get; }
     }
 }

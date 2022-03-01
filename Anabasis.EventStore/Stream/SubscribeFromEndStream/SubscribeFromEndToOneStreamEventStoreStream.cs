@@ -1,11 +1,6 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
-using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.EventStore.Stream
 {

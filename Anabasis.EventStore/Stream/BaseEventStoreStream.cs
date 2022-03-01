@@ -1,5 +1,4 @@
 using Anabasis.Common;
-using Anabasis.EventStore.EventProvider;
 using EventStore.ClientAPI;
 using System;
 using System.Reactive.Linq;
@@ -75,7 +74,6 @@ namespace Anabasis.EventStore.Stream
 
         public void Connect()
         {
-            OnInitialize();
 
             if (null != _eventStreamConnectionDisposable)
                 _eventStreamConnectionDisposable.Dispose();
@@ -105,8 +103,6 @@ namespace Anabasis.EventStore.Stream
 
             if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
         }
-
-        protected virtual void OnInitialize() { }
 
         public abstract void Disconnect();
     }

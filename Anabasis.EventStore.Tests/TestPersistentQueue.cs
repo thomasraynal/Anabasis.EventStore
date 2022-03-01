@@ -1,5 +1,4 @@
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using EventStore.ClientAPI;
@@ -11,6 +10,7 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System;
 using System.Threading.Tasks;
+using Anabasis.Common;
 
 namespace Anabasis.EventStore.Tests
 {

@@ -1,7 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.Common.HealthChecks;
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.AspNet.Builders;
 using Anabasis.EventStore.AspNet.Factories;
 using Anabasis.EventStore.Repository;
@@ -74,7 +73,7 @@ namespace Anabasis.EventStore
         }
 
         public EventStoreStatelessActorBuilder<TActor> AddEventStoreStatelessActor<TActor>(IActorConfiguration actorConfiguration)
-            where TActor : class, IEventStoreStatelessActor
+            where TActor : class, IActor
         {
 
             EnsureIsEventStoreWorld();
@@ -92,7 +91,7 @@ namespace Anabasis.EventStore
         }
 
         public EventStoreStatefulActorBuilder<TActor, TAggregate> AddEventStoreStatefulActor<TActor, TAggregate>(IActorConfiguration actorConfiguration)
-            where TActor : class, IEventStoreStatefulActor<TAggregate>
+            where TActor : class, IStatefulActor<TAggregate>
             where TAggregate : class, IAggregate, new()
         {
 

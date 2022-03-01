@@ -1,6 +1,4 @@
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using EventStore.ClientAPI;
@@ -15,7 +13,7 @@ using Anabasis.Common;
 namespace Anabasis.EventStore.Standalone
 {
     public class EventStoreStatelessActorBuilder<TActor, TRegistry>
-      where TActor : IEventStoreStatelessActor
+      where TActor : IActor
       where TRegistry : ServiceRegistry, new()
     {
 

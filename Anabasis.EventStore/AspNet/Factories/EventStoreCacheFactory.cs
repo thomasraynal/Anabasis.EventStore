@@ -16,7 +16,7 @@ namespace Anabasis.EventStore.AspNet.Factories
         }
 
         public void AddConfiguration<TActor, TAggregate>(IEventStoreActorConfiguration<TAggregate> eventStoreActorConfiguration)
-            where TActor : IEventStoreStatefulActor<TAggregate>
+            where TActor : IStatefulActor<TAggregate>
             where TAggregate : IAggregate, new()
         {
             _eventStoreCaches.Add(typeof(TActor), eventStoreActorConfiguration);

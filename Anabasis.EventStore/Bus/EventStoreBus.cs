@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Stream;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
@@ -14,22 +15,23 @@ namespace Anabasis.EventStore
     public class EventStoreBus : IEventStoreBus
     {
         private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
+        private readonly ILoggerFactory _loggerFactory;
         private readonly Microsoft.Extensions.Logging.ILogger _logger;
         private readonly IEventStoreRepository _eventStoreRepository;
-        private readonly List<IEventStoreStream> _eventStoreStreams;
         private readonly CompositeDisposable _cleanUp;
+        private readonly IConnectionStatusMonitor<IEventStoreConnection> _connectionStatusMonitor;
 
         public EventStoreBus(IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
             IEventStoreRepository eventStoreRepository,
             ILoggerFactory loggerFactory = null)
         {
             BusId = $"{nameof(EventStoreBus)}_{Guid.NewGuid()}";
-            ConnectionStatusMonitor = connectionStatusMonitor;
 
+            _connectionStatusMonitor = connectionStatusMonitor;
             _eventStoreRepository = eventStoreRepository;
-            _eventStoreStreams = new List<IEventStoreStream>();
             _cleanUp = new CompositeDisposable();
             _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
+            _loggerFactory = loggerFactory;
             _logger = loggerFactory?.CreateLogger(typeof(EventStoreBus));
         }
 
@@ -37,7 +39,7 @@ namespace Anabasis.EventStore
 
         public bool IsInitialized => true;
 
-        public IConnectionStatusMonitor ConnectionStatusMonitor { get; }
+        public IConnectionStatusMonitor ConnectionStatusMonitor => _connectionStatusMonitor;
 
         public async Task WaitUntilConnected(TimeSpan? timeout = null)
         {
@@ -79,8 +81,6 @@ namespace Anabasis.EventStore
             eventStoreStream.Connect();
 
             _logger?.LogDebug($"{BusId} => Subscribing to {eventStoreStream.Id}");
-
-            _eventStoreStreams.Add(eventStoreStream);
 
             var onEventReceivedDisposable = eventStoreStream.OnMessage().Subscribe(message =>
             {
@@ -152,5 +152,72 @@ namespace Anabasis.EventStore
             }, cancellationTokenSource.Token);
 
         }
+
+        public SubscribeFromEndEventStoreStream SubscribeFromEndToAllStreams(
+            Action<IMessage, TimeSpan?> onMessageReceived, 
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null)
+        {
+
+            var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
+
+            getSubscribeFromEndEventStoreStreamConfiguration?.Invoke(subscribeFromEndEventStoreStreamConfiguration);
+
+            var subscribeFromEndEventStoreStream = new SubscribeFromEndEventStoreStream(
+              _connectionStatusMonitor,
+              subscribeFromEndEventStoreStreamConfiguration,
+              eventTypeProvider, _loggerFactory);
+
+            SubscribeToEventStream(subscribeFromEndEventStoreStream, onMessageReceived, true);
+
+            return subscribeFromEndEventStoreStream;
+        }
+
+        public PersistentSubscriptionEventStoreStream SubscribeToPersistentSubscriptionStream<TActor>(
+            string streamId,
+            string groupId,
+            Action<IMessage, TimeSpan?> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
+        {
+
+            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
+
+            getPersistentSubscriptionEventStoreStreamConfiguration?.Invoke(persistentEventStoreStreamConfiguration);
+
+            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
+              _connectionStatusMonitor,
+              persistentEventStoreStreamConfiguration,
+              eventTypeProvider,
+              _loggerFactory);
+
+            SubscribeToEventStream(persistentSubscriptionEventStoreStream, onMessageReceived, true);
+
+            return persistentSubscriptionEventStoreStream;
+        }
+
+        public SubscribeFromStartOrLaterToOneStreamEventStoreStream SubscribeFromStartToOneStream(
+            string streamId,
+            Action<IMessage, TimeSpan?> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null)
+        {
+
+            var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
+
+            getSubscribeFromEndToOneStreamEventStoreStreamConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreStreamConfiguration);
+
+            var subscribeFromEndToOneStreamEventStoreStream = new SubscribeFromStartOrLaterToOneStreamEventStoreStream(
+              _connectionStatusMonitor,
+              subscribeFromEndToOneStreamEventStoreStreamConfiguration,
+              eventTypeProvider, _loggerFactory);
+
+
+            SubscribeToEventStream(subscribeFromEndToOneStreamEventStoreStream, onMessageReceived, true);
+
+            return subscribeFromEndToOneStreamEventStoreStream;
+
+        }
+
     }
 }

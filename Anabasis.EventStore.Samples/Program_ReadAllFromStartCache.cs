@@ -1,15 +1,9 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Standalone;
-using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
-using EventStore.ClientAPI.SystemData;
-using Lamar;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
-using System;
 
 namespace Anabasis.EventStore.Samples
 {

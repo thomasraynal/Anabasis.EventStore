@@ -1,15 +1,9 @@
 using Anabasis.Common;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Shared;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
-using System.Runtime.ExceptionServices;
-using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Stream
 {

@@ -4,8 +4,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using System.Reactive.Linq;
-using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Connection;
 using Microsoft.Extensions.Logging;
 using Anabasis.Common;
 

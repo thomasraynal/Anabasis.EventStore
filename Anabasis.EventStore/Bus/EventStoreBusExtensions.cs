@@ -1,4 +1,7 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.Stream;
+using EventStore.ClientAPI;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -26,6 +29,33 @@ namespace Anabasis.EventStore
             var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
 
             return await eventStoreBus.SendEventStore<TCommandResult>(command, timeout);
+        }
+
+        public static void SubscribeFromEndToAllStreams(
+            Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null,
+            IEventTypeProvider eventTypeProvider = null)
+        {
+
+            var getSubscribeFromEndEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
+            {
+                var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
+
+                getSubscribeFromEndEventStoreStreamConfiguration?.Invoke(subscribeFromEndEventStoreStreamConfiguration);
+
+                var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+
+                var subscribeFromEndEventStoreStream = new SubscribeFromEndEventStoreStream(
+                  connectionMonitor,
+                  subscribeFromEndEventStoreStreamConfiguration,
+                  eventProvider, loggerFactory);
+
+                return subscribeFromEndEventStoreStream;
+
+            });
+
+            _streamsToRegisterTo.Add(getSubscribeFromEndEventStoreStream);
+
+            return this;
         }
     }
 }

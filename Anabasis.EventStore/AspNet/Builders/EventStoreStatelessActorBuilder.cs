@@ -1,7 +1,4 @@
 ﻿using System;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Stream;
 using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
@@ -12,7 +9,7 @@ using EventStore.ClientAPI;
 namespace Anabasis.EventStore.AspNet.Builders
 {
     public class EventStoreStatelessActorBuilder<TActor> : IEventStoreStatelessActorBuilder
-        where TActor : IEventStoreStatelessActor
+        where TActor : IActor
     {
         private readonly World _world;
         private readonly List<Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>> _streamsToRegisterTo;

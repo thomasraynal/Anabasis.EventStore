@@ -6,7 +6,7 @@ using System;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class AllStreamsCatchupCacheConfiguration< TAggregate> : IEventStoreCacheConfiguration< TAggregate> where TAggregate : IAggregate
+    public class AllStreamsCatchupCacheConfiguration< TAggregate> : IAggregateCacheConfiguration< TAggregate> where TAggregate : IAggregate
     {
         public Position Checkpoint { get; set; } = Position.Start;
 

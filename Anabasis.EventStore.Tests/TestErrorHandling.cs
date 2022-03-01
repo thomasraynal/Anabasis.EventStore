@@ -14,13 +14,9 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Anabasis.Common;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using DynamicData;
-using Microsoft.Reactive.Testing;
-using System.Reactive.Concurrency;
 using Anabasis.EventStore.AspNet.Factories;
-using System.Threading;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -30,7 +26,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestErrorHandlingStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        public TestErrorHandlingStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
         {
         }
 

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace Anabasis.EventStore.EventProvider
+namespace Anabasis.Common
 {
     public class AllowAllAvailableEventTypeProvider : IEventTypeProvider
     {

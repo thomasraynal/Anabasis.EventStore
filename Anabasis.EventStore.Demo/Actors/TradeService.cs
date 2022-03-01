@@ -16,18 +16,18 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class TradeService : BaseEventStoreStatelessActor, IDisposable
+    public class TradeService : BaseStatelessActor
     {
         private readonly Random _random = new();
         private readonly IDictionary<string, MarketData> _latestPrices = new Dictionary<string, MarketData>();
         private readonly object _locker = new();
         private int _counter = 0;
 
-        public TradeService(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TradeService(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
         }
 
-        public TradeService(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TradeService(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
         }
 

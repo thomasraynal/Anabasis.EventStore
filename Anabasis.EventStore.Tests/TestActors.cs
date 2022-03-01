@@ -1,6 +1,4 @@
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using EventStore.ClientAPI;
@@ -51,13 +49,13 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestActorReceiver : BaseEventStoreStatelessActor
+    public class TestActorReceiver : BaseStatelessActor
     {
-        public TestActorReceiver(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestActorReceiver(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
         }
 
-        public TestActorReceiver(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestActorReceiver(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
         }
 
@@ -73,13 +71,13 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class TestActor : BaseEventStoreStatelessActor
+    public class TestActor : BaseStatelessActor
     {
-        public TestActor(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
         }
 
-        public TestActor(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
         }
 
@@ -233,7 +231,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            _testActorOne = new TestActor(_actorConfiguration,_eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
+            _testActorOne = new TestActor(_actorConfiguration, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -246,7 +244,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            _testActorOne = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
+            _testActorOne = new TestActor(_actorConfiguration, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -266,7 +264,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldCreateASecondAndLoadBalanceEvents()
         {
 
-            _testActorTwo = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
+            _testActorTwo = new TestActor(_actorConfiguration, _loggerFactory);
 
             Assert.NotNull(_testActorOne);
 
@@ -299,10 +297,10 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(500);
 
-            var sender = new TestActor(_actorConfiguration, _eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
+            var sender = new TestActor(_actorConfiguration, _loggerFactory);
             sender.SubscribeToEventStream(volatileEventStoreStream);
 
-            var receiver = new TestActorReceiver(_actorConfiguration, _eventRepository.eventStoreRepository, _eventRepository.connectionStatusMonitor, _loggerFactory);
+            var receiver = new TestActorReceiver(_actorConfiguration,  _loggerFactory);
             receiver.SubscribeToEventStream(volatileEventStoreStream);
 
             await Task.Delay(2000);

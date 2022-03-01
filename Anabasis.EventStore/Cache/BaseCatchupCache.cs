@@ -1,6 +1,4 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
@@ -9,7 +7,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Linq;
 using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -18,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseCatchupCache<TAggregate> : IEventStoreCache<TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class BaseCatchupCache<TAggregate> : IAggregateCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
 
         private readonly object _catchUpSyncLock = new();
@@ -34,7 +31,7 @@ namespace Anabasis.EventStore.Cache
         private readonly SourceCache<TAggregate, string> _caughtingUpCache;
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
         private readonly BehaviorSubject<bool> _isStaleSubject;
-        private readonly IEventStoreCacheConfiguration<TAggregate> _catchupCacheConfiguration;
+        private readonly IAggregateCacheConfiguration<TAggregate> _catchupCacheConfiguration;
 
         protected Microsoft.Extensions.Logging.ILogger Logger { get; }
 
@@ -54,7 +51,7 @@ namespace Anabasis.EventStore.Cache
 
         public BaseCatchupCache(
            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-           IEventStoreCacheConfiguration<TAggregate> catchupCacheConfiguration,
+           IAggregateCacheConfiguration<TAggregate> catchupCacheConfiguration,
            IEventTypeProvider<TAggregate> eventTypeProvider,
            ILoggerFactory loggerFactory,
            ISnapshotStore<TAggregate> snapshotStore = null,

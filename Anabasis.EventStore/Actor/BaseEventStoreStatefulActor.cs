@@ -8,15 +8,15 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Actor
 {
-    public abstract class BaseEventStoreStatefulActor<TAggregate> : BaseEventStoreStatelessActor, IEventStoreStatefulActor<TAggregate> where TAggregate : IAggregate, new()
+    public abstract class BaseEventStoreStatefulActor<TAggregate> : BaseStatelessActor, IStatefulActor<TAggregate> where TAggregate : IAggregate, new()
     {
 
-        public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IEventStoreCache<TAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<TAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration,  loggerFactory)
         {
             Initialize(eventStoreCache);
         }
 
-        public BaseEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public BaseEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, loggerFactory)
         {
             var eventStoreActorConfiguration = eventStoreCacheFactory.GetConfiguration<TAggregate>(GetType());
             var eventStoreCache = eventStoreActorConfiguration.GetEventStoreCache(connectionStatusMonitor, loggerFactory);
@@ -24,7 +24,7 @@ namespace Anabasis.EventStore.Actor
             Initialize(eventStoreCache);
         }
 
-        private void Initialize(IEventStoreCache<TAggregate> eventStoreCache)
+        private void Initialize(IAggregateCache<TAggregate> eventStoreCache)
         {
 
             State = eventStoreCache;
@@ -34,7 +34,7 @@ namespace Anabasis.EventStore.Actor
             AddDisposable(eventStoreCache);
         }
 
-        public IEventStoreCache<TAggregate> State { get; internal set; }
+        public IAggregateCache<TAggregate> State { get; internal set; }
 
 
     }

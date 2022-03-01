@@ -1,10 +1,8 @@
-using Anabasis.Common;
-using Anabasis.EventStore.Shared;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Anabasis.EventStore.EventProvider
+namespace Anabasis.Common
 {
     public class DefaultEventTypeProvider : IEventTypeProvider
     {

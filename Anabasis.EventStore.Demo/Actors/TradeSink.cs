@@ -13,7 +13,7 @@ namespace Anabasis.EventStore.Demo
     {
         public TradeSink(IActorConfiguration actorConfiguration, 
             IEventStoreAggregateRepository eventStoreRepository, 
-            IEventStoreCache<Trade> eventStoreCache, 
+            IAggregateCache<Trade> eventStoreCache, 
             IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, 
             ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
         {

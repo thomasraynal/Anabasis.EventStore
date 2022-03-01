@@ -1,6 +1,4 @@
-using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.EventProvider;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Standalone;
@@ -37,13 +35,13 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestActorAutoBuildOne : BaseEventStoreStatelessActor
+    public class TestActorAutoBuildOne : BaseStatelessActor
     {
-        public TestActorAutoBuildOne(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestActorAutoBuildOne(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
         }
 
-        public TestActorAutoBuildOne(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestActorAutoBuildOne(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
         }
 
@@ -66,13 +64,13 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class TestActorAutoBuildTwo : BaseEventStoreStatelessActor
+    public class TestActorAutoBuildTwo : BaseStatelessActor
     {
-        public TestActorAutoBuildTwo(IActorConfiguration actorConfiguration, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestActorAutoBuildTwo(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
         }
 
-        public TestActorAutoBuildTwo(IActorConfigurationFactory actorConfigurationFactory, IEventStoreRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestActorAutoBuildTwo(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
         }
 
@@ -212,8 +210,8 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(1000);
 
-            var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository, connectionMonitor, _loggerFactory);
-            var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, eventStoreRepository,  connectionMonitor, _loggerFactory);
+            var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, _loggerFactory);
+            var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, _loggerFactory);
 
             testActorAutoBuildOne.SubscribeToEventStream(persistentSubscriptionEventStoreStream);
             testActorAutoBuildOne.SubscribeToEventStream(volatileEventStoreStream);
