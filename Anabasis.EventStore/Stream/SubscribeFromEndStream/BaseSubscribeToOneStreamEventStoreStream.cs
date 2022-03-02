@@ -11,6 +11,7 @@ namespace Anabasis.EventStore.Stream
     {
         private readonly SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration _volatileSubscribeToOneStreamEventStoreStreamConfiguration;
         private readonly int _streamPosition;
+        private readonly IKillSwitch _killSwitch;
         private EventStoreStreamCatchUpSubscription _eventStoreCatchupSubscription;
 
         public BaseSubscribeToOneStreamEventStoreStream(
@@ -18,11 +19,13 @@ namespace Anabasis.EventStore.Stream
           IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration subscribeToOneStreamEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
-          Microsoft.Extensions.Logging.ILogger logger = null)
+          Microsoft.Extensions.Logging.ILogger logger = null,
+          IKillSwitch killSwitch = null)
           : base(connectionMonitor, subscribeToOneStreamEventStoreStreamConfiguration, eventTypeProvider, logger)
         {
             _volatileSubscribeToOneStreamEventStoreStreamConfiguration = subscribeToOneStreamEventStoreStreamConfiguration;
             _streamPosition = streamPosition;
+            _killSwitch = killSwitch ?? new KillSwitch();
         }
 
         public override void Disconnect()
@@ -53,8 +56,8 @@ namespace Anabasis.EventStore.Stream
                 switch (subscriptionDropReason)
                 {
                     case SubscriptionDropReason.UserInitiated:
-                        break;
                     case SubscriptionDropReason.ConnectionClosed:
+                        break;
                     case SubscriptionDropReason.NotAuthenticated:
                     case SubscriptionDropReason.AccessDenied:
                     case SubscriptionDropReason.SubscribingError:
@@ -72,7 +75,7 @@ namespace Anabasis.EventStore.Stream
 
                         if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
                         {
-                            KillSwitch.KillMe(exception);
+                            _killSwitch.KillMe(exception);
                         }
                         else
                         {

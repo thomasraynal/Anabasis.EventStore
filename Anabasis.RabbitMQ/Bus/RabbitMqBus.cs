@@ -266,19 +266,5 @@ namespace Anabasis.RabbitMQ
         {
             RabbitMqConnection.Dispose();
         }
-
-        public async Task Initialize()
-        {
-            if (IsInitialized) return;
-
-            var healthCheck = await CheckHealthAsync(null);
-
-            if (healthCheck.Status != HealthStatus.Healthy)
-            {
-                throw new BusUnhealthyException("RabbitMQ bus is not healthy", healthCheck);
-            }
-
-            IsInitialized = true;
-        }
     }
 }

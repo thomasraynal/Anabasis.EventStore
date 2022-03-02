@@ -13,16 +13,19 @@ namespace Anabasis.EventStore.Stream
     public class SubscribeFromEndEventStoreStream : BaseEventStoreStream
     {
         private readonly SubscribeFromEndEventStoreStreamConfiguration _volatileEventStoreStreamConfiguration;
+        private readonly IKillSwitch _killSwitch;
         private EventStoreAllFilteredCatchUpSubscription _eventStoreAllFilteredCatchUpSubscription;
 
         public SubscribeFromEndEventStoreStream(
           IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           SubscribeFromEndEventStoreStreamConfiguration volatileEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILoggerFactory loggerFactory)
+          ILoggerFactory loggerFactory,
+          IKillSwitch killSwitch = null)
           : base(connectionMonitor, volatileEventStoreStreamConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndEventStoreStream>())
         {
             _volatileEventStoreStreamConfiguration = volatileEventStoreStreamConfiguration;
+            _killSwitch = killSwitch ?? new KillSwitch();
         }
 
         public override void Disconnect()
@@ -55,8 +58,8 @@ namespace Anabasis.EventStore.Stream
                 switch (subscriptionDropReason)
                 {
                     case SubscriptionDropReason.UserInitiated:
-                        break;
                     case SubscriptionDropReason.ConnectionClosed:
+                        break;
                     case SubscriptionDropReason.NotAuthenticated:
                     case SubscriptionDropReason.AccessDenied:
                     case SubscriptionDropReason.SubscribingError:
@@ -74,7 +77,7 @@ namespace Anabasis.EventStore.Stream
 
                         if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
                         {
-                            KillSwitch.KillMe(exception);
+                            _killSwitch.KillMe(exception);
                         }
                         else
                         {

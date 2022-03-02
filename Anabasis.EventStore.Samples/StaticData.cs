@@ -10,6 +10,7 @@ namespace Anabasis.EventStore.Samples
     {
         public DemoSystemRegistry()
         {
+            For<IEventStoreBus>().Use<EventStoreBus>();
         }
     }
 

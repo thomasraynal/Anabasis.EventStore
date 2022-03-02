@@ -37,13 +37,19 @@ namespace Anabasis.EventStore.Demo
 
                 var tradeService = EventStoreStatelessActorBuilder<TradeService, DemoSystemRegistry>
                                                 .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
-                                                .WithSubscribeFromEndToAllStream()
+                                                .WithBus<IEventStoreBus>((actor, bus) =>
+                                                {
+                                                    actor.SubscribeFromEndToAllStreams();
+                                                })
                                                 .Build();
 
                 var tradePriceUpdateService = EventStoreStatefulActorBuilder<TradePriceUpdateService, Trade, DemoSystemRegistry>
                                                 .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
                                                 .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                                .WithSubscribeFromEndToAllStream()
+                                                .WithBus<IEventStoreBus>((actor, bus) =>
+                                                {
+                                                    actor.SubscribeFromEndToAllStreams();
+                                                })
                                                 .WithBus<IMarketDataBus>((actor, bus) =>
                                                 {
                                                     actor.SubscribeMarketDataBus();
@@ -67,7 +73,6 @@ namespace Anabasis.EventStore.Demo
                 var tradeCache = tradeSink.State.AsObservableCache().Connect();
 
                 tradeCache.PrintTradeChanges();
-
                 marketDataCache.PrintMarketDataChanges();
 
             });

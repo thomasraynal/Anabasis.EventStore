@@ -155,15 +155,8 @@ namespace Anabasis.Common
             return (TBus)_connectedBus[busType];
         }
 
-        public async Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
+        public Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
         {
-
-            await bus.Initialize();
-
-            var healthCheckResult = await bus.CheckHealthAsync(null);
-
-            if (healthCheckResult.Status == HealthStatus.Unhealthy)
-                throw new BusUnhealthyException($"Bus {bus.BusId} is unhealthy", healthCheckResult);
 
             var busType = bus.GetType();
 
@@ -178,6 +171,8 @@ namespace Anabasis.Common
             {
                 _cleanUp.Add(bus);
             }
+
+            return Task.CompletedTask;
         }
 
         public void AddDisposable(IDisposable disposable)

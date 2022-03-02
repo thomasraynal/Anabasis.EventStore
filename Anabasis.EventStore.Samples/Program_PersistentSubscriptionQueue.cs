@@ -49,12 +49,18 @@ namespace Anabasis.EventStore.Samples
 
             var eventCountActorOne = EventStoreStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
                                        .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default)
-                                       .WithPersistentSubscriptionStream(streamId: StaticData.PersistentStreamOne,StaticData.GroupIdOne)
+                                        .WithBus<IEventStoreBus>((actor, bus) =>
+                                        {
+                                            actor.SubscribeToPersistentSubscriptionStream(StaticData.PersistentStreamOne, StaticData.GroupIdOne);
+                                        })
                                        .Build();
 
             var eventCountActorTwo = EventStoreStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
                            .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default)
-                           .WithPersistentSubscriptionStream(streamId: StaticData.PersistentStreamOne, StaticData.GroupIdOne)
+                            .WithBus<IEventStoreBus>((actor, bus) =>
+                            {
+                                actor.SubscribeToPersistentSubscriptionStream(StaticData.PersistentStreamOne, StaticData.GroupIdOne);
+                            })
                            .Build();
 
             var position = 0;

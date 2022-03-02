@@ -11,17 +11,20 @@ namespace Anabasis.EventStore.Stream
     public class PersistentSubscriptionEventStoreStream : BaseEventStoreStream
     {
         private readonly PersistentSubscriptionEventStoreStreamConfiguration _persistentEventStoreStreamConfiguration;
+        private readonly IKillSwitch _killSwitch;
         private EventStorePersistentSubscriptionBase _eventStorePersistentSubscription;
 
         public PersistentSubscriptionEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           PersistentSubscriptionEventStoreStreamConfiguration persistentEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILoggerFactory loggerFactory) : base(connectionMonitor,
+          ILoggerFactory loggerFactory,
+          IKillSwitch killSwitch = null) : base(connectionMonitor,
               persistentEventStoreStreamConfiguration,
               eventTypeProvider,
               loggerFactory.CreateLogger<PersistentSubscriptionEventStoreStream>())
         {
             _persistentEventStoreStreamConfiguration = persistentEventStoreStreamConfiguration;
+            _killSwitch = killSwitch?? new KillSwitch();
         }
 
         public override void Disconnect()
@@ -52,8 +55,8 @@ namespace Anabasis.EventStore.Stream
                 switch (subscriptionDropReason)
                 {
                     case SubscriptionDropReason.UserInitiated:
-                        break;
                     case SubscriptionDropReason.ConnectionClosed:
+                        break;
                     case SubscriptionDropReason.NotAuthenticated:
                     case SubscriptionDropReason.AccessDenied:
                     case SubscriptionDropReason.SubscribingError:
@@ -71,7 +74,7 @@ namespace Anabasis.EventStore.Stream
 
                         if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
                         {
-                            KillSwitch.KillMe(exception);
+                            _killSwitch.KillMe(exception);
                         }
                         else
                         {

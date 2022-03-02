@@ -154,7 +154,6 @@ namespace Anabasis.EventStore.AspNet.Builders
                 if (null == bus)
                     throw new InvalidOperationException($"No bus of type {busType} has been registered");
 
-                bus.Initialize().Wait();
                 actor.ConnectTo(bus).Wait();
 
                 onStartup((TActor)actor, bus);

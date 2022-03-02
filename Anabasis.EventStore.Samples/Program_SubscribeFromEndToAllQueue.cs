@@ -12,7 +12,10 @@ namespace Anabasis.EventStore.Samples
 
             var eventCountActor = EventStoreStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
                                        .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
-                                       .WithSubscribeFromEndToAllStream()
+                                        .WithBus<IEventStoreBus>((actor, bus) =>
+                                        {
+                                            actor.SubscribeFromEndToAllStreams();
+                                        })
                                        .Build();
 
             Do.Run(eventCountActor);

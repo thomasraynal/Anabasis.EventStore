@@ -18,6 +18,17 @@ namespace Anabasis.EventStore.Demo.Bus
         private readonly ConcurrentDictionary<string, Func<MarketDataBusMessage, Task>> _subscribers = new();
         private CompositeDisposable _cleanUp;
 
+        public MarketDataBus()
+        {
+            _cleanUp = new CompositeDisposable();
+
+            foreach (var item in StaticData.CurrencyPairs)
+            {
+                _prices[item.EntityId] = GenerateMarketDataStream(item).Replay(1).RefCount();
+                _cleanUp.Add(_prices[item.EntityId].Subscribe());
+            }
+        }
+
         public string BusId => $"{nameof(MarketDataBus)}{Guid.NewGuid()}";
 
         public bool IsConnected => true;
@@ -61,22 +72,6 @@ namespace Anabasis.EventStore.Demo.Bus
             }
         }
 
-        public Task Initialize()
-        {
-            if (IsInitialized) return Task.CompletedTask;
-
-            _cleanUp = new CompositeDisposable();
-
-            foreach (var item in StaticData.CurrencyPairs)
-            {
-                _prices[item.EntityId] = GenerateMarketDataStream(item).Replay(1).RefCount();
-                _cleanUp.Add(_prices[item.EntityId].Subscribe());
-            }
-
-            IsInitialized = true;
-
-            return Task.CompletedTask;
-        }
 
         private IObservable<MarketData> GenerateMarketDataStream(CurrencyPair currencyPair)
         {

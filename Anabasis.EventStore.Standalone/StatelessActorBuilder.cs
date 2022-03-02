@@ -56,7 +56,6 @@ namespace Anabasis.EventStore.Standalone
             {
                 var bus = (IBus)container.GetInstance(busRegistration.Key);
 
-                bus.Initialize().Wait();
                 actor.ConnectTo(bus).Wait();
 
                 var onBusRegistration = busRegistration.Value;
@@ -64,6 +63,8 @@ namespace Anabasis.EventStore.Standalone
                 onBusRegistration(container, actor);
 
             }
+
+            actor.OnInitialized().Wait();
 
             return actor;
 

@@ -13,14 +13,17 @@ namespace Anabasis.Common
         private readonly DispatchQueueConfiguration _dispatchQueueConfiguration;
         private readonly FlushableBlockingCollection<IMessage> _workQueue;
         private readonly Task _workProc;
+        private readonly IKillSwitch _killSwitch;
 
         public bool IsFaulted { get; private set; }
-        public ILogger Logger { get; private set; }
+        public ILogger Logger { get; }
 
-        public DispatchQueue(DispatchQueueConfiguration dispatchQueueConfiguration, ILoggerFactory loggerFactory)
+        public DispatchQueue(DispatchQueueConfiguration dispatchQueueConfiguration, ILoggerFactory loggerFactory, IKillSwitch killSwitch = null)
         {
 
             Logger = loggerFactory?.CreateLogger(GetType());
+
+            _killSwitch = killSwitch ?? new KillSwitch();
 
             _workQueue = new FlushableBlockingCollection<IMessage>(dispatchQueueConfiguration.MessageBatchSize, dispatchQueueConfiguration.QueueMaxSize);
 
@@ -28,13 +31,7 @@ namespace Anabasis.Common
 
             _dispatchQueueConfiguration = dispatchQueueConfiguration;
 
-            _workProc = Task.Run(HandleWork, CancellationToken.None).ContinueWith(task =>
-               {
-                   _workQueue.Dispose();
-
-                   KillSwitch.KillMe(task.Exception);
-
-               }, TaskContinuationOptions.OnlyOnFaulted);
+            _workProc = Task.Run(HandleWork, CancellationToken.None);
 
         }
 
@@ -64,17 +61,27 @@ namespace Anabasis.Common
                     }
                     catch(Exception exception)
                     {
+
+                        await message.NotAcknowledge();
+
                         if (_dispatchQueueConfiguration.CrashAppOnError)
                         {
                             IsFaulted = true;
 
-                            throw;
+                            _workQueue.SetAddingCompleted();
+
+                            var remainingMessages = _workQueue.Flush();
+
+                            while (remainingMessages.TryDequeue(out var remainingMessage))
+                            {
+                               await remainingMessage.NotAcknowledge();
+                            }
+
+                            _killSwitch.KillMe(exception);
                         }
                         else
                         {
                             Logger?.LogError(exception, "An error occured during the message consumption process.");
-
-                            await message.NotAcknowledge();
                         }
 
                     }

@@ -10,7 +10,8 @@ namespace Anabasis.EventStore.Demo
     {
         public DemoSystemRegistry()
         {
-            For<IMarketDataBus>().Use<MarketDataBus>();
+            For<IMarketDataBus>().Use<MarketDataBus>().Singleton();
+            For<IEventStoreBus>().Use<EventStoreBus>().Singleton();
         }
     }
 }

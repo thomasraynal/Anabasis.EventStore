@@ -33,17 +33,24 @@ namespace Anabasis.EventStore.Demo
                             var marketDataEventProvider = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
 
                             serviceCollection.AddSingleton<IMarketDataBus, MarketDataBus>();
+                            serviceCollection.AddSingleton<IEventStoreBus, EventStoreBus>();
 
                             serviceCollection.AddWorld("ConnectTo=tcp://admin:changeit@localhost:1113; HeartBeatTimeout=1500; VerboseLogging=false; OperationTimeout=60000; UseSslConnection=false;", connectionSettings)
 
 
                                     .AddStatelessActor<TradeService>(ActorConfiguration.Default)
-                                        .WithSubscribeFromEndToAllStreams()
+                                        .WithBus<IEventStoreBus>((actor, bus) =>
+                                        {
+                                            actor.SubscribeFromEndToAllStreams();
+                                        })
                                         .CreateActor()
 
                                     .AddEventStoreStatefulActor<TradePriceUpdateService, Trade>(ActorConfiguration.Default)
                                         .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
-                                        .WithSubscribeFromEndToAllStreams()
+                                        .WithBus<IEventStoreBus>((actor, bus) =>
+                                        {
+                                            actor.SubscribeFromEndToAllStreams();
+                                        })
                                         .WithBus<IMarketDataBus>((actor, bus) =>
                                         {
                                             actor.SubscribeMarketDataBus();

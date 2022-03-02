@@ -22,12 +22,10 @@ namespace Anabasis.EventStore.Standalone
         private IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; set; }
         private IActorConfiguration ActorConfiguration { get; set; }
 
-        private readonly List<IEventStoreStream> _streamsToRegisterTo;
         private readonly Dictionary<Type,Action<Container,IActor>> _busToRegisterTo;
 
         private EventStoreStatelessActorBuilder()
         {
-            _streamsToRegisterTo = new List<IEventStoreStream>();
             _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
         }
 
@@ -44,16 +42,12 @@ namespace Anabasis.EventStore.Standalone
 
             var actor = container.GetInstance<TActor>();
 
-            foreach (var stream in _streamsToRegisterTo)
-            {
-                actor.SubscribeToEventStream(stream, closeSubscriptionOnDispose: true);
-            }
+       
 
             foreach (var busRegistration in _busToRegisterTo)
             {
                 var bus = (IBus)container.GetInstance(busRegistration.Key);
 
-                bus.Initialize().Wait();
                 actor.ConnectTo(bus).Wait();
 
                 var onBusRegistration = busRegistration.Value;
@@ -61,6 +55,8 @@ namespace Anabasis.EventStore.Standalone
                 onBusRegistration(container, actor);
 
             }
+
+            actor.OnInitialized().Wait();
 
             return actor;
 
