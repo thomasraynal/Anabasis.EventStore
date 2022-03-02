@@ -98,8 +98,11 @@ namespace Anabasis.EventStore.Stream
 
         public virtual void Dispose()
         {
-            _onMessageSubject.OnCompleted();
-            _onMessageSubject.Dispose();
+            if (!_onMessageSubject.IsDisposed)
+            {
+                _onMessageSubject.OnCompleted();
+                _onMessageSubject.Dispose();
+            }
 
             if (null != _eventStreamConnectionDisposable) _eventStreamConnectionDisposable.Dispose();
         }

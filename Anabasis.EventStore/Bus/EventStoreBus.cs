@@ -66,11 +66,6 @@ namespace Anabasis.EventStore
             return Task.FromResult(healthCheckResult);
         }
 
-        public void Dispose()
-        {
-            _cleanUp.Dispose();
-        }
-
         public Task Initialize()
         {
             return Task.CompletedTask;
@@ -95,7 +90,10 @@ namespace Anabasis.EventStore
 
                         var task = _pendingCommands[commandResponse.CommandId];
 
-                        task.SetResult(commandResponse);
+                        if (!task.Task.IsCompleted)
+                        {
+                            task.SetResult(commandResponse);
+                        }
 
                         _pendingCommands.Remove(commandResponse.EventId, out _);
                     }
@@ -173,7 +171,7 @@ namespace Anabasis.EventStore
             return subscribeFromEndEventStoreStream;
         }
 
-        public PersistentSubscriptionEventStoreStream SubscribeToPersistentSubscriptionStream<TActor>(
+        public PersistentSubscriptionEventStoreStream SubscribeToPersistentSubscriptionStream(
             string streamId,
             string groupId,
             Action<IMessage, TimeSpan?> onMessageReceived,
@@ -218,6 +216,35 @@ namespace Anabasis.EventStore
             return subscribeFromEndToOneStreamEventStoreStream;
 
         }
+
+        public SubscribeFromEndToOneStreamEventStoreStream SubscribeFromEndToOneStream(
+            string streamId,
+            Action<IMessage, TimeSpan?> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null)
+        {
+
+            var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
+
+            getSubscribeFromEndToOneStreamEventStoreStreamConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreStreamConfiguration);
+
+            var subscribeFromEndToOneStreamEventStoreStream = new SubscribeFromEndToOneStreamEventStoreStream(
+              _connectionStatusMonitor,
+              subscribeFromEndToOneStreamEventStoreStreamConfiguration,
+              eventTypeProvider, _loggerFactory);
+
+
+            SubscribeToEventStream(subscribeFromEndToOneStreamEventStoreStream, onMessageReceived, true);
+
+            return subscribeFromEndToOneStreamEventStoreStream;
+
+        }
+
+        public void Dispose()
+        {
+            _cleanUp.Dispose();
+        }
+
 
     }
 }

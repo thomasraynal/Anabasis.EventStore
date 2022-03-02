@@ -165,14 +165,21 @@ namespace Anabasis.EventStore.Tests
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
-                                                                                         .WithSubscribeFromEndToAllStream()
-                                                                                         .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
+                                                                                         .WithBus<IEventStoreBus>((actor, bus) =>
+                                                                                         {
+                                                                                             actor.SubscribeFromEndToAllStreams();
+                                                                                             actor.SubscribeToPersistentSubscriptionStream(_streamId2, _groupIdOne);
+                                                                                         })
                                                                                          .Build();
 
             var testActorAutoBuildTwo = EventStoreStatefulActorBuilder<TestAggregatedActorTwo, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .WithReadAllFromStartCache(
                                                                                             getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
                                                                                             eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
+                                                                                        .WithBus<IEventStoreBus>((actor, bus) =>
+                                                                                        {
+                                                                                            actor.SubscribeFromEndToAllStreams();
+                                                                                        })
                                                                                          .Build();
 
             await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));

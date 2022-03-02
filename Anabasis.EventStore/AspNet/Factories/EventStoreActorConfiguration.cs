@@ -1,7 +1,4 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.AspNet.Factories;
-using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Connection;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;

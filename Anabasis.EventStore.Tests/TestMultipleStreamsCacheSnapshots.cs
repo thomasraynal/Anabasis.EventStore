@@ -191,7 +191,6 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(500);
 
-            Assert.AreEqual(false, _multipleStreamsCatchupCacheOne.catchupEventStoreCache.IsConnected);
             Assert.AreEqual(false, _multipleStreamsCatchupCacheOne.catchupEventStoreCache.IsCaughtUp);
 
             await _eventStoreRepositoryAndConnectionMonitor.eventStoreRepository.Emit(new SomeData(_streamIdOne, Guid.NewGuid()));

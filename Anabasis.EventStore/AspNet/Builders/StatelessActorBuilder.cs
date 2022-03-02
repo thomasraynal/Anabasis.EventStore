@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.AspNet.Builders
 {
-    public class StatelessActorBuilder<TActor> : IStatelessActorBuilder
+    public class StatelessActorBuilder<TActor> : IActorBuilder
         where TActor : IActor
     {
         private readonly World _world;
@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.AspNet.Builders
 
         public World CreateActor()
         {
-            _world.StatelessActorBuilders.Add((typeof(TActor), this));
+            _world.AddBuilder<TActor>(this);
             return _world;
         }
 

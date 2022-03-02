@@ -37,7 +37,7 @@ namespace Anabasis.EventStore.Demo
                             serviceCollection.AddWorld("ConnectTo=tcp://admin:changeit@localhost:1113; HeartBeatTimeout=1500; VerboseLogging=false; OperationTimeout=60000; UseSslConnection=false;", connectionSettings)
 
 
-                                    .AddEventStoreStatelessActor<TradeService>(ActorConfiguration.Default)
+                                    .AddStatelessActor<TradeService>(ActorConfiguration.Default)
                                         .WithSubscribeFromEndToAllStreams()
                                         .CreateActor()
 

@@ -188,7 +188,6 @@ namespace Anabasis.EventStore.Tests
 
             Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
             Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
 
             await _repositoryOne.eventStoreRepository.Emit(new SomeData(_streamIdOne, Guid.NewGuid()));
             await _repositoryOne.eventStoreRepository.Emit(new SomeData(_streamIdOne, Guid.NewGuid()));

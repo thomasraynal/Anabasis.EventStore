@@ -39,6 +39,7 @@ namespace Anabasis.EventStore.Tests
         {
             For<IDummyBus>().Use<DummyBus>().Singleton();
             For<IDummyBus2>().Use<DummyBus2>().Singleton();
+            For<IEventStoreBus>().Use<EventStoreBus>().Singleton();
         }
     }
 
@@ -335,14 +336,13 @@ namespace Anabasis.EventStore.Tests
         {
 
             var testBusRegistrationActor = EventStoreStatelessActorBuilder<TestBusRegistrationStatelessActor, DummyBusRegistry>
-                                       .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
-                                       .WithSubscribeFromEndToAllStream()
-                                       .WithBus<IDummyBus>((actor, bus) =>
-                                       {
-                                           actor.SubscribeDummyBus("somesubject");
-                                       })
-                                       .Build();
-
+                                               .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+                                               .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeFromEndToAllStreams())
+                                               .WithBus<IDummyBus>((actor, bus) =>
+                                               {
+                                                   actor.SubscribeDummyBus("somesubject");
+                                               })
+                                               .Build();
 
             await Task.Delay(500);
 

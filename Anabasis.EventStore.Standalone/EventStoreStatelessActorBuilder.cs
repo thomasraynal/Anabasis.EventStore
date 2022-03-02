@@ -166,56 +166,6 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public EventStoreStatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToAllStream(IEventTypeProvider eventTypeProvider = null)
-        {
-            var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
-
-            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
-
-            var subscribeFromEndEventStoreStream = new SubscribeFromEndEventStoreStream(
-              ConnectionMonitor,
-              subscribeFromEndEventStoreStreamConfiguration,
-              eventProvider,
-              LoggerFactory);
-
-            _streamsToRegisterTo.Add(subscribeFromEndEventStoreStream);
-
-            return this;
-        }
-
-        public EventStoreStatelessActorBuilder<TActor, TRegistry> WithSubscribeFromEndToOneStream(string streamId,  IEventTypeProvider eventTypeProvider = null)
-        {
-            var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
-
-            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
-
-            var subscribeFromEndToOneStreamEventStoreStream = new SubscribeFromEndToOneStreamEventStoreStream(
-              ConnectionMonitor,
-              subscribeFromEndToOneStreamEventStoreStreamConfiguration,
-              eventProvider,
-              LoggerFactory);
-
-            _streamsToRegisterTo.Add(subscribeFromEndToOneStreamEventStoreStream);
-
-            return this;
-        }
-
-        public EventStoreStatelessActorBuilder<TActor, TRegistry> WithPersistentSubscriptionStream(string streamId, string groupId)
-        {
-            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
-
-            var eventProvider = new ConsumerBasedEventProvider<TActor>();
-
-            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
-              ConnectionMonitor,
-              persistentEventStoreStreamConfiguration,
-              eventProvider,
-              LoggerFactory);
-
-            _streamsToRegisterTo.Add(persistentSubscriptionEventStoreStream);
-
-            return this;
-        }
 
         public EventStoreStatelessActorBuilder<TActor, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup =null) where TBus : IBus
         {

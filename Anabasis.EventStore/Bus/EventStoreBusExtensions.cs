@@ -1,7 +1,5 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Stream;
-using EventStore.ClientAPI;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -32,30 +30,79 @@ namespace Anabasis.EventStore
         }
 
         public static void SubscribeFromEndToAllStreams(
+            this IActor actor,
             Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null,
             IEventTypeProvider eventTypeProvider = null)
         {
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
-            var getSubscribeFromEndEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
-            {
-                var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
 
-                getSubscribeFromEndEventStoreStreamConfiguration?.Invoke(subscribeFromEndEventStoreStreamConfiguration);
+            var subscribeFromEndEventStoreStream = eventStoreBus.SubscribeFromEndToAllStreams(
+                actor.OnMessageReceived,
+                eventProvider,
+                getSubscribeFromEndEventStoreStreamConfiguration);
 
-                var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
+            actor.AddDisposable(subscribeFromEndEventStoreStream);
+        }
 
-                var subscribeFromEndEventStoreStream = new SubscribeFromEndEventStoreStream(
-                  connectionMonitor,
-                  subscribeFromEndEventStoreStreamConfiguration,
-                  eventProvider, loggerFactory);
+        public static void SubscribeToPersistentSubscriptionStream(
+            this IActor actor,
+            string streamId,
+            string groupId,
+            IEventTypeProvider eventTypeProvider=null,
+            Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
+        {
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
-                return subscribeFromEndEventStoreStream;
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
 
-            });
+            var persistentSubscriptionEventStoreStream = eventStoreBus.SubscribeToPersistentSubscriptionStream(
+                streamId,
+                groupId,
+                actor.OnMessageReceived,
+                eventProvider,
+                getPersistentSubscriptionEventStoreStreamConfiguration);
+            
+            actor.AddDisposable(persistentSubscriptionEventStoreStream);
+        }
 
-            _streamsToRegisterTo.Add(getSubscribeFromEndEventStoreStream);
+        public static void SubscribeFromStartToOneStream(
+            this IActor actor,
+            string streamId,
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration = null,
+            IEventTypeProvider eventTypeProvider = null)
+        {
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
-            return this;
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+
+            var subscribeFromStartOrLaterToOneStreamEventStoreStream = eventStoreBus.SubscribeFromStartToOneStream(
+                streamId,
+                actor.OnMessageReceived,
+                eventProvider,
+                subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration);
+
+            actor.AddDisposable(subscribeFromStartOrLaterToOneStreamEventStoreStream);
+        }
+
+        public static void SubscribeFromEndToOneStream(
+        this IActor actor,
+        string streamId,
+        Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration = null,
+        IEventTypeProvider eventTypeProvider = null)
+        {
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
+
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+
+            var subscribeFromEndToOneStreamEventStoreStream = eventStoreBus.SubscribeFromEndToOneStream(
+                streamId,
+                actor.OnMessageReceived,
+                eventProvider,
+                subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration);
+
+            actor.AddDisposable(subscribeFromEndToOneStreamEventStoreStream);
         }
     }
 }

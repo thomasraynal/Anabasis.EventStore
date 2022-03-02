@@ -34,7 +34,7 @@ namespace Anabasis.EventStore.AspNet.Builders
 
         public World CreateActor()
         {
-            _world.EventStoreStatefulActorBuilders.Add((typeof(TActor), this));
+            _world.AddBuilder<TActor>(this);
             _eventStoreCacheFactory.AddConfiguration<TActor>(_actorConfiguration);
             _eventStoreCacheFactory.AddConfiguration<TActor, TAggregate>(_eventStoreActorConfiguration);
             return _world;
@@ -136,36 +136,6 @@ namespace Anabasis.EventStore.AspNet.Builders
 
 
             return this;
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithSubscribeFromEndToOneStream(
-            string streamId,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null,
-            IEventTypeProvider eventTypeProvider = null)
-        {
-            var getSubscribeFromEndToOneStreamStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>((connectionMonitor, loggerFactory) =>
-            {
-
-                var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
-
-                getSubscribeFromEndToOneStreamEventStoreStreamConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreStreamConfiguration);
-
-                var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TActor>();
-
-                var subscribeFromEndToOneStreamEventStoreStream = new SubscribeFromEndToOneStreamEventStoreStream(
-                  connectionMonitor,
-                  subscribeFromEndToOneStreamEventStoreStreamConfiguration,
-                  eventProvider,
-                  loggerFactory);
-
-                return subscribeFromEndToOneStreamEventStoreStream;
-
-            });
-
-            _streamsToRegisterTo.Add(getSubscribeFromEndToOneStreamStream);
-
-            return this;
-
         }
 
         public EventStoreStatefulActorBuilder<TActor, TAggregate> WithBus<TBus>(Action<TActor, TBus> onStartup = null) where TBus : IBus

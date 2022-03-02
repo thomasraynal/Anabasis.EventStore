@@ -32,6 +32,7 @@ namespace Anabasis.EventStore.Tests
         public SomeRegistry()
         {
             For<ISomeDependency>().Use<SomeDependency>();
+            For<IEventStoreBus>().Use<EventStoreBus>();
         }
     }
 
@@ -210,8 +211,12 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(1000);
 
+            var eventStoreBus = new EventStoreBus(connectionMonitor, eventStoreRepository);
+
             var testActorAutoBuildOne = new TestActorAutoBuildOne(actorConfiguration, _loggerFactory);
+            await testActorAutoBuildOne.ConnectTo(eventStoreBus);
             var testActorAutoBuildTwo = new TestActorAutoBuildOne(actorConfiguration, _loggerFactory);
+            await testActorAutoBuildTwo.ConnectTo(eventStoreBus);
 
             testActorAutoBuildOne.SubscribeToEventStream(persistentSubscriptionEventStoreStream);
             testActorAutoBuildOne.SubscribeToEventStream(volatileEventStoreStream);
@@ -230,6 +235,7 @@ namespace Anabasis.EventStore.Tests
 
             Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
 
+            eventStoreBus.Dispose();
             testActorAutoBuildOne.Dispose();
             testActorAutoBuildTwo.Dispose();
         }
@@ -239,11 +245,17 @@ namespace Anabasis.EventStore.Tests
         {
 
             var testActorAutoBuildOne = EventStoreStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
-                                                                                         .WithSubscribeFromEndToAllStream()
-                                                                                         .WithPersistentSubscriptionStream(_streamId2, _groupIdOne)
+                                                                                         .WithBus<IEventStoreBus>((actor, bus) => {
+                                                                                             actor.SubscribeFromEndToAllStreams();
+                                                                                             actor.SubscribeToPersistentSubscriptionStream(_streamId2, _groupIdOne);
+                                                                                          })
                                                                                          .Build();
 
             var testActorAutoBuildTwo = EventStoreStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+                                                                                         .WithBus<IEventStoreBus>((actor, bus) => {
+                                                                                             actor.SubscribeFromEndToAllStreams();
+                                                                                            
+                                                                                         })
                                                                                          .Build();
 
 

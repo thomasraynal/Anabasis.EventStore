@@ -45,6 +45,7 @@ namespace Anabasis.EventStore.Standalone
                 configuration.For<ILoggerFactory>().Use(LoggerFactory);
                 configuration.For<IAggregateCache<TAggregate>>().Use(EventStoreCache);
                 configuration.For<IEventStoreAggregateRepository>().Use(EventStoreRepository);
+                configuration.For<IEventStoreRepository>().Use(EventStoreRepository);
                 configuration.For<IConnectionStatusMonitor<IEventStoreConnection>>().Use(ConnectionMonitor);
                 configuration.IncludeRegistry<TRegistry>();
 
@@ -205,40 +206,6 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithSubscribeFromEndToAllStream(
-            Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null)
-        {
-            var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
-
-            getSubscribeFromEndEventStoreStreamConfiguration?.Invoke(subscribeFromEndEventStoreStreamConfiguration);
-
-            var eventProvider = new ConsumerBasedEventProvider<TActor>();
-
-            var volatileEventStoreStream = new SubscribeFromEndEventStoreStream(
-              ConnectionMonitor,
-              subscribeFromEndEventStoreStreamConfiguration,
-              eventProvider, LoggerFactory);
-
-            _streamsToRegisterTo.Add(volatileEventStoreStream);
-
-            return this;
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithPersistentSubscriptionStream(string streamId, string groupId)
-        {
-            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
-
-            var eventProvider = new ConsumerBasedEventProvider<TActor>();
-
-            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
-              ConnectionMonitor,
-              persistentEventStoreStreamConfiguration,
-              eventProvider, LoggerFactory);
-
-            _streamsToRegisterTo.Add(persistentSubscriptionEventStoreStream);
-
-            return this;
-        }
 
         public EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup = null) where TBus : IBus
         {

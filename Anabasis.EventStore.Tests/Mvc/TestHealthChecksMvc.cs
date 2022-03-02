@@ -170,24 +170,26 @@ namespace Anabasis.EventStore.Tests
 
             var eventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
+            services.AddSingleton<IEventStoreBus, EventStoreBus>();
+
             services.AddWorld(TestHealthChecksMvcTestBed.TestBed.ClusterVNode, TestHealthChecksMvcTestBed.TestBed.ConnectionSettings)
 
-                    .AddEventStoreStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>(ActorConfiguration.Default)
+                   .AddEventStoreStatefulActor<TestStatefulActorOneMvc, SomeDataAggregate>(ActorConfiguration.Default)
                     .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
-                    .WithSubscribeFromEndToAllStreams()
+                    .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeFromEndToAllStreams())
                     .CreateActor()
 
                    .AddEventStoreStatefulActor<TestBusRegistrationStatefullActor, SomeDataAggregate>(ActorConfiguration.Default)
-                   .WithReadAllFromStartCache(
+                    .WithReadAllFromStartCache(
                             catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
                             eventTypeProvider: eventTypeProvider)
-                    .WithSubscribeFromEndToAllStreams()
+                    .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeFromEndToAllStreams())
                     .CreateActor()
 
-                   .AddEventStoreStatelessActor<TestStatelessActorOneMvc>(ActorConfiguration.Default)
-                    .WithSubscribeFromEndToAllStreams()
+                   .AddStatelessActor<TestStatelessActorOneMvc>(ActorConfiguration.Default)
+                    .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeFromEndToAllStreams())
                     .CreateActor();
         }
 

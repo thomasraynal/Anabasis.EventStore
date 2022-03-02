@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.Stream;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -10,5 +11,30 @@ namespace Anabasis.EventStore
         Task EmitEventStore<TEvent>(TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent;
         Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse;
         void SubscribeToEventStream(IEventStoreStream eventStoreStream, Action<IMessage,TimeSpan?> onMessageReceived, bool closeSubscriptionOnDispose = false);
+
+        SubscribeFromStartOrLaterToOneStreamEventStoreStream SubscribeFromStartToOneStream(
+            string streamId,
+            Action<IMessage, TimeSpan?> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
+
+        SubscribeFromEndToOneStreamEventStoreStream SubscribeFromEndToOneStream(
+            string streamId,
+            Action<IMessage, TimeSpan?> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
+
+        SubscribeFromEndEventStoreStream SubscribeFromEndToAllStreams(
+            Action<IMessage, TimeSpan?> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null);
+
+        PersistentSubscriptionEventStoreStream SubscribeToPersistentSubscriptionStream(
+            string streamId,
+            string groupId,
+            Action<IMessage, TimeSpan?> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null);
+
     }
 }

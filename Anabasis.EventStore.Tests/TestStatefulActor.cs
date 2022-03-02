@@ -51,7 +51,7 @@ namespace Anabasis.EventStore.Tests
         private ClusterVNode _clusterVNode;
 
         private (EventStoreConnectionStatusMonitor connectionStatusMonitor,AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cacheOne;
-
+        private EventStoreBus _eventStoreBus;
         private Guid _firstAggregateId = Guid.NewGuid();
 
         private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreAggregateRepository eventStoreRepository) _eventRepository;
@@ -84,6 +84,7 @@ namespace Anabasis.EventStore.Tests
         [OneTimeTearDown]
         public async Task TearDown()
         {
+            _eventStoreBus.Dispose();
             _testActorOne.Dispose();
             await _clusterVNode.StopAsync();
         }
@@ -138,6 +139,7 @@ namespace Anabasis.EventStore.Tests
         {
             _eventRepository = CreateEventRepository();
             _cacheOne = CreateCatchupEventStoreCache();
+            _eventStoreBus = new EventStoreBus(_eventRepository.connectionStatusMonitor, _eventRepository.eventStoreRepository);
 
             await Task.Delay(100);
 
@@ -147,6 +149,8 @@ namespace Anabasis.EventStore.Tests
                 _loggerFactory);
 
             _testActorOne = new TestStatefulActor(ActorConfiguration.Default, _eventRepository.eventStoreRepository, _cacheOne.catchupEventStoreCache,  _eventRepository.connectionStatusMonitor);
+
+            await _testActorOne.ConnectTo(_eventStoreBus);
 
             _testActorOne.SubscribeToEventStream(subscribeToAllStream);
 

@@ -99,22 +99,20 @@ namespace Anabasis.EventStore.Tests
             var eventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
             services.AddSingleton<IDummyBus, DummyBus>();
+            services.AddSingleton<IEventStoreBus, EventStoreBus>();
 
             services.AddWorld(TestBusRegistrationMvcTestBed.TestBed.ClusterVNode, TestBusRegistrationMvcTestBed.TestBed.ConnectionSettings)
 
                    .AddEventStoreStatefulActor<TestBusRegistrationEventStoreStatefullActorMvc, SomeDataAggregate>(ActorConfiguration.Default)
-                    .WithReadAllFromStartCache(
-                            catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
-                            eventTypeProvider: eventTypeProvider)
-                    .WithSubscribeFromEndToAllStreams()
-                    .WithBus<IDummyBus>((actor, bus) =>
-                    {
-                        actor.SubscribeDummyBus("somesubject");
-                    })
-                    .CreateActor()
+                       .WithReadAllFromStartCache(
+                                catchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true,
+                                eventTypeProvider: eventTypeProvider)
+                       .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeFromEndToAllStreams())
+                       .WithBus<IDummyBus>((actor, bus) => actor.SubscribeDummyBus("somesubject"))
+                       .CreateActor()
 
-                   .AddEventStoreStatelessActor<TestBusRegistrationEventStoreStatelessActorMvc>(ActorConfiguration.Default)
-                   .WithSubscribeFromEndToAllStreams()
+                   .AddStatelessActor<TestBusRegistrationEventStoreStatelessActorMvc>(ActorConfiguration.Default)
+                   .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeFromEndToAllStreams())
                    .WithBus<IDummyBus>((actor, bus) =>
                     {
                         actor.SubscribeDummyBus("somesubject");

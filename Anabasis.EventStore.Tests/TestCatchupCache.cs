@@ -202,7 +202,6 @@ namespace Anabasis.EventStore.Tests
 
             Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
             Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
-            Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsConnected);
 
             _thirdAggregateId = Guid.NewGuid();
 

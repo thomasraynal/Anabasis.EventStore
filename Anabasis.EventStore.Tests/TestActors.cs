@@ -109,6 +109,7 @@ namespace Anabasis.EventStore.Tests
 
         private (EventStoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreRepository eventStoreRepository) _eventRepository;
         private TestActor _testActorOne;
+        private EventStoreBus _eventStoreBus;
         private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamOne;
         private TestActor _testActorTwo;
         private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamTwo;
@@ -148,6 +149,7 @@ namespace Anabasis.EventStore.Tests
         [OneTimeTearDown]
         public async Task TearDown()
         {
+            _eventStoreBus.Dispose();
             _testActorOne.Dispose();
             _testActorTwo.Dispose();
 
@@ -232,6 +234,9 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(100);
 
             _testActorOne = new TestActor(_actorConfiguration, _loggerFactory);
+            _eventStoreBus = new EventStoreBus(_eventRepository.connectionStatusMonitor, _eventRepository.eventStoreRepository);
+
+            await _testActorOne.ConnectTo(_eventStoreBus);
 
             Assert.NotNull(_testActorOne);
 
@@ -245,6 +250,8 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(100);
 
             _testActorOne = new TestActor(_actorConfiguration, _loggerFactory);
+
+            await _testActorOne.ConnectTo(_eventStoreBus);
 
             Assert.NotNull(_testActorOne);
 
@@ -265,6 +272,8 @@ namespace Anabasis.EventStore.Tests
         {
 
             _testActorTwo = new TestActor(_actorConfiguration, _loggerFactory);
+
+            await _testActorTwo.ConnectTo(_eventStoreBus);
 
             Assert.NotNull(_testActorOne);
 
@@ -298,9 +307,13 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(500);
 
             var sender = new TestActor(_actorConfiguration, _loggerFactory);
+            await sender.ConnectTo(_eventStoreBus);
+
             sender.SubscribeToEventStream(volatileEventStoreStream);
 
             var receiver = new TestActorReceiver(_actorConfiguration,  _loggerFactory);
+            await receiver.ConnectTo(_eventStoreBus);
+
             receiver.SubscribeToEventStream(volatileEventStoreStream);
 
             await Task.Delay(2000);

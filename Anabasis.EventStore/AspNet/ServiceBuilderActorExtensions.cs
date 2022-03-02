@@ -21,22 +21,8 @@ namespace Anabasis.EventStore
 
         public static IApplicationBuilder UseWorld(this IApplicationBuilder applicationBuilder)
         {
-            var registerStreams = new Action<IConnectionStatusMonitor<IEventStoreConnection>, IEventStoreStatelessActorBuilder, Type>((connectionStatusMonitor, builder, actorType) =>
-             {
-                 var actor = (IActor)applicationBuilder.ApplicationServices.GetService(actorType);
 
-                 var loggerFactory = applicationBuilder.ApplicationServices.GetService<ILoggerFactory>();
-
-                 foreach (var getStream in builder.GetStreamFactories())
-                 {
-                     var eventStoreStream = getStream(connectionStatusMonitor, loggerFactory);
-
-                     actor.SubscribeToEventStream(eventStoreStream, closeSubscriptionOnDispose: true);
-                 }
-
-             });
-
-            var registerHealthChecksAndBus = new Action<IStatelessActorBuilder, Type>((builder, actorType) =>
+            var registerHealthChecksAndBus = new Action<IActorBuilder, Type>((builder, actorType) =>
             {
                 var actor = (IActor)applicationBuilder.ApplicationServices.GetService(actorType);
 
@@ -50,7 +36,7 @@ namespace Anabasis.EventStore
 
             });
 
-            var initializeActor = new Action<IStatelessActorBuilder, Type>((builder, actorType) =>
+            var initializeActor = new Action<IActorBuilder, Type>((builder, actorType) =>
             {
                 var actor = (IActor)applicationBuilder.ApplicationServices.GetService(actorType);
 
@@ -62,21 +48,7 @@ namespace Anabasis.EventStore
 
             var world = applicationBuilder.ApplicationServices.GetService<World>();
 
-            foreach (var (actorType, builder) in world.EventStoreStatelessActorBuilders)
-            {
-                registerHealthChecksAndBus(builder, actorType);
-                registerStreams(connectionStatusMonitor, builder, actorType);
-                initializeActor(builder, actorType);
-            }
-
-            foreach (var (actorType, builder) in world.EventStoreStatefulActorBuilders)
-            {
-                registerHealthChecksAndBus(builder, actorType);
-                registerStreams(connectionStatusMonitor, builder, actorType);
-                initializeActor(builder, actorType);
-            }
-
-            foreach (var (actorType, builder) in world.StatelessActorBuilders)
+            foreach (var (actorType, builder) in world.GetBuilders())
             {
                 registerHealthChecksAndBus(builder, actorType);
                 initializeActor(builder, actorType);

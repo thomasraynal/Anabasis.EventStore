@@ -5,7 +5,7 @@ using System;
 
 namespace Anabasis.EventStore.AspNet.Builders
 {
-    public interface IEventStoreStatelessActorBuilder: IStatelessActorBuilder
+    public interface IEventStoreStatelessActorBuilder: IActorBuilder
     {
         Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>[] GetStreamFactories();
     }
