@@ -2,14 +2,14 @@
 using Anabasis.Common.Configuration;
 using Anabasis.Common.HealthChecks;
 using Anabasis.EventStore.AspNet.Builders;
-using Anabasis.EventStore.AspNet.Factories;
+using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.AspNet
 {
     public class World
     {

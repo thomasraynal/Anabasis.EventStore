@@ -16,17 +16,16 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Anabasis.Common;
-using Anabasis.EventStore.AspNet.Factories;
 
 namespace Anabasis.EventStore.Tests
 {
     public class TestStatefulActor : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActor(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
         {
         }
 
@@ -70,12 +69,12 @@ namespace Anabasis.EventStore.Tests
             _loggerFactory = new LoggerFactory();
 
             _clusterVNode = EmbeddedVNodeBuilder
-              .AsSingleNode()
-              .RunInMemory()
-              .RunProjections(ProjectionType.All)
-              .StartStandardProjections()
-              .WithWorkerThreads(1)
-              .Build();
+                .AsSingleNode()
+                .RunInMemory()
+                .RunProjections(ProjectionType.All)
+                .StartStandardProjections()
+                .WithWorkerThreads(1)
+                .Build();
 
             await _clusterVNode.StartAsync(true);
 
@@ -148,7 +147,7 @@ namespace Anabasis.EventStore.Tests
                 new ConsumerBasedEventProvider<TestStatefulActor>(),
                 _loggerFactory);
 
-            _testActorOne = new TestStatefulActor(ActorConfiguration.Default, _eventRepository.eventStoreRepository, _cacheOne.catchupEventStoreCache,  _eventRepository.connectionStatusMonitor);
+            _testActorOne = new TestStatefulActor(ActorConfiguration.Default,  _cacheOne.catchupEventStoreCache);
 
             await _testActorOne.ConnectTo(_eventStoreBus);
 

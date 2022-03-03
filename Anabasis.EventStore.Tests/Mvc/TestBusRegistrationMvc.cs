@@ -1,8 +1,9 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.AspNet.Factories;
-using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.AspNet;
+using Anabasis.EventStore.AspNet.Embedded;
+using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Tests.Mvc;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -18,7 +19,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Anabasis.EventStore.Embedded;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -73,11 +73,11 @@ namespace Anabasis.EventStore.Tests
     }
     public class TestBusRegistrationEventStoreStatefullActorMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestBusRegistrationEventStoreStatefullActorMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationEventStoreStatefullActorMvc(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestBusRegistrationEventStoreStatefullActorMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationEventStoreStatefullActorMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
         {
         }
 

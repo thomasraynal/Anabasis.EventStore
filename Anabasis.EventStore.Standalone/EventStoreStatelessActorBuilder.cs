@@ -77,23 +77,7 @@ namespace Anabasis.EventStore.Standalone
 
             var connection = EventStoreConnection.Create(connectionSettings, eventStoreUrl);
 
-            loggerFactory ??= new DummyLoggerFactory();
-
-            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
-
-            getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
-
-            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory);
-
-            var eventStoreRepository = new EventStoreRepository(
-              eventStoreRepositoryConfiguration,
-              connection,
-              connectionMonitor,
-              loggerFactory);
-
-            var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>(actorConfiguration, eventStoreRepository, connectionMonitor, loggerFactory);       
-
-            return builder;
+            return CreateInternal(actorConfiguration, connection, loggerFactory, getEventStoreRepositoryConfiguration);
 
         }
 
@@ -106,27 +90,38 @@ namespace Anabasis.EventStore.Standalone
 
             var connection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettingsBuilder);
 
+            return CreateInternal(actorConfiguration, connection, loggerFactory, getEventStoreRepositoryConfiguration);
+
+        }
+
+        private static EventStoreStatelessActorBuilder<TActor, TRegistry> CreateInternal(
+          IActorConfiguration actorConfiguration,
+          IEventStoreConnection eventStoreConnection,
+          ILoggerFactory loggerFactory = null,
+          Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
+        {
+
             loggerFactory ??= new DummyLoggerFactory();
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
-            getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
+            eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
 
-            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(eventStoreConnection, loggerFactory);
 
-            var eventStoreRepository = new EventStoreRepository(
+            var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
-              connection,
+              eventStoreConnection,
               connectionMonitor,
               loggerFactory);
 
             var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>(actorConfiguration, eventStoreRepository, connectionMonitor, loggerFactory);
 
             return builder;
-
         }
 
-        public EventStoreStatelessActorBuilder<TActor, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup =null) where TBus : IBus
+
+        public EventStoreStatelessActorBuilder<TActor, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup = null) where TBus : IBus
         {
             var busType = typeof(TBus);
 

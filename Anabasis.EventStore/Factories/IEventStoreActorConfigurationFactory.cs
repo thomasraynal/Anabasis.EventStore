@@ -3,7 +3,7 @@ using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
 using System;
 
-namespace Anabasis.EventStore.AspNet.Factories
+namespace Anabasis.EventStore.Factories
 {
     public interface IEventStoreActorConfigurationFactory: IActorConfigurationFactory
     {

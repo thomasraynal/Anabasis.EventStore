@@ -3,7 +3,7 @@ using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
 
-namespace Anabasis.EventStore.AspNet.Factories
+namespace Anabasis.EventStore.Factories
 {
     public class EventStoreActorConfiguration<TAggregate> : IEventStoreActorConfiguration<TAggregate> where TAggregate : IAggregate, new()
     {

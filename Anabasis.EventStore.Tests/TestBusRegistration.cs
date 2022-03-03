@@ -1,10 +1,8 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.AspNet.Factories;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Standalone;
 using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -203,11 +201,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestBusRegistrationStatefulActor : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestBusRegistrationStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationStatefulActor(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
         {
         }
 

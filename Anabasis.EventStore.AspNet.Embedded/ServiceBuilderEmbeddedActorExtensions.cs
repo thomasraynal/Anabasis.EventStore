@@ -3,21 +3,16 @@ using Microsoft.Extensions.DependencyInjection;
 using System;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Anabasis.Common.HealthChecks;
 using Anabasis.Common;
-using Anabasis.EventStore.AspNet.Builders;
 using EventStore.Core;
 using EventStore.ClientAPI.Embedded;
 
-namespace Anabasis.EventStore.Embedded
+namespace Anabasis.EventStore.AspNet.Embedded
 {
 
     public static class ServiceBuilderEmbeddedActorExtensions
     {
 
-  
         public static World AddWorld(this IServiceCollection services,
             ClusterVNode clusterVNode,
             ConnectionSettings connectionSettings,

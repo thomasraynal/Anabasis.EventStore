@@ -9,7 +9,7 @@ using Anabasis.Common.HealthChecks;
 using Anabasis.Common;
 using Anabasis.EventStore.AspNet.Builders;
 
-namespace Anabasis.EventStore
+namespace Anabasis.EventStore.AspNet
 {
 
     public static class ServiceBuilderActorExtensions

@@ -16,17 +16,16 @@ using System.Threading.Tasks;
 using Anabasis.Common;
 using Anabasis.EventStore.Stream;
 using DynamicData;
-using Anabasis.EventStore.AspNet.Factories;
 
 namespace Anabasis.EventStore.Tests
 {
     public class TestErrorHandlingStatefulActor : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestErrorHandlingStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestErrorHandlingStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestErrorHandlingStatefulActor(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        public TestErrorHandlingStatefulActor(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
         {
         }
 
@@ -163,7 +162,7 @@ namespace Anabasis.EventStore.Tests
                 new ConsumerBasedEventProvider<TestStatefulActor>(),
                 _loggerFactory);
 
-            _testActorOne = new TestErrorHandlingStatefulActor(ActorConfiguration.Default, _eventRepository.eventStoreRepository, _cacheOne.catchupEventStoreCache, _cacheOne.connectionStatusMonitor);
+            _testActorOne = new TestErrorHandlingStatefulActor(ActorConfiguration.Default, _cacheOne.catchupEventStoreCache);
             await _testActorOne.ConnectTo(_eventStoreBus);
             _testActorOne.SubscribeToEventStream(subscribeToAllStream);
 

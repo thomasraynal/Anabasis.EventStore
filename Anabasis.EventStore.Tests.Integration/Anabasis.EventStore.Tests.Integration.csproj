@@ -44,7 +44,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.Api.Tests.Common\Anabasis.Api.Tests.Common.csproj" />
-    <ProjectReference Include="..\Anabasis.EventStore.Embedded\Anabasis.EventStore.Embedded.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.AspNet.Embedded\Anabasis.EventStore.AspNet.Embedded.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>

@@ -2,12 +2,11 @@
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Cache;
 using System.Collections.Generic;
-using Anabasis.EventStore.Stream;
 using Microsoft.Extensions.Logging;
 using EventStore.ClientAPI;
 using Anabasis.Common;
 using System.Linq;
-using Anabasis.EventStore.AspNet.Factories;
+using Anabasis.EventStore.Factories;
 
 namespace Anabasis.EventStore.AspNet.Builders
 {

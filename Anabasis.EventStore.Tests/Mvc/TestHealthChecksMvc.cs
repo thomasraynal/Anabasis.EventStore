@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using System;
 using Microsoft.Extensions.DependencyInjection;
-using Anabasis.EventStore.Repository;
 using Microsoft.AspNetCore.Builder;
 using System.Collections.Generic;
 using Anabasis.EventStore.Actor;
@@ -13,12 +12,11 @@ using Microsoft.Extensions.Hosting;
 using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
-using Anabasis.Common.Actor;
 using Anabasis.EventStore.Tests.Mvc;
-using Anabasis.EventStore.AspNet.Factories;
 using EventStore.ClientAPI;
 using System.Threading;
-using Anabasis.EventStore.Embedded;
+using Anabasis.EventStore.AspNet.Embedded;
+using Anabasis.EventStore.AspNet;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -138,11 +136,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestStatefulActorOneHealthChecksMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestStatefulActorOneHealthChecksMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActorOneHealthChecksMvc(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
         {
         }
 
-        public TestStatefulActorOneHealthChecksMvc(IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<SomeDataAggregate> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActorOneHealthChecksMvc(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
         {
         }
 

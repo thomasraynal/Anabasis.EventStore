@@ -4,7 +4,7 @@ using Anabasis.EventStore.Actor;
 using System;
 using System.Collections.Generic;
 
-namespace Anabasis.EventStore.AspNet.Factories
+namespace Anabasis.EventStore.Factories
 {
     public class EventStoreCacheFactory : ActorConfigurationFactory, IEventStoreActorConfigurationFactory
     {

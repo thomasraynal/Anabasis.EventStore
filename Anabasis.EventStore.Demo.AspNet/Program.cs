@@ -6,6 +6,7 @@ using Anabasis.Common;
 using Anabasis.EventStore.Demo.AspNet;
 using Microsoft.AspNetCore.Builder;
 using Anabasis.EventStore.Demo.Bus;
+using Anabasis.EventStore.AspNet;
 
 namespace Anabasis.EventStore.Demo
 {

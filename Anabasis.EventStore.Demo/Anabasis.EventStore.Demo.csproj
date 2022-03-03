@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Anabasis.EventStore.Embedded\Anabasis.EventStore.Embedded.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.AspNet.Embedded\Anabasis.EventStore.AspNet.Embedded.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 

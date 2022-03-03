@@ -4,9 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common;
 using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.AspNet.Factories;
-using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Factories;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
@@ -24,6 +22,16 @@ namespace Anabasis.EventStore.Integration.Tests
 
         private TraderConfiguration _configuration;
 
+        public Trader(TraderConfiguration traderConfiguration, IActorConfiguration actorConfiguration, IAggregateCache<CurrencyPair> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
+        {
+            Initialize(traderConfiguration);
+        }
+
+        public Trader(TraderConfiguration traderConfiguration, IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        {
+            Initialize(traderConfiguration);
+        }
+
         public void Initialize(TraderConfiguration traderConfiguration)
         {
             _cancel = new CancellationTokenSource();
@@ -33,15 +41,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
         }
 
-        public Trader(TraderConfiguration traderConfiguration, IActorConfiguration actorConfiguration, IEventStoreAggregateRepository eventStoreRepository, IAggregateCache<CurrencyPair> eventStoreCache, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreRepository, eventStoreCache, connectionStatusMonitor, loggerFactory)
-        {
-            Initialize(traderConfiguration);
-        }
 
-        public Trader(TraderConfiguration traderConfiguration, IEventStoreActorConfigurationFactory eventStoreCacheFactory, IEventStoreAggregateRepository eventStoreRepository, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, eventStoreRepository, connectionStatusMonitor, loggerFactory)
-        {
-            Initialize(traderConfiguration);
-        }
 
         public CurrencyPairPriceChanged Next()
         {
