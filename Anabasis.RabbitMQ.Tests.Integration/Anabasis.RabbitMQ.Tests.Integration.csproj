@@ -17,6 +17,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.EventStore.Demo.Standalone\Anabasis.EventStore.Demo.Standalone.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.Standalone.Embedded\Anabasis.EventStore.Standalone.Embedded.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
     <ProjectReference Include="..\Anabasis.RabbitMQ\Anabasis.RabbitMQ.csproj" />
   </ItemGroup>

@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Standalone;
+using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI.Embedded;
 
 namespace Anabasis.EventStore.Samples
@@ -22,7 +23,7 @@ namespace Anabasis.EventStore.Samples
 
             var eventTypeProvider = new DefaultEventTypeProvider<EventCountAggregate>(() => new[] { typeof(EventCountOne), typeof(EventCountTwo) }); ;
 
-            var eventCountActor = EventStoreStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
+            var eventCountActor = EventStoreEmbeddedStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
                                        .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default)
                                        .WithReadAllFromEndCache(
                                             eventTypeProvider: eventTypeProvider,

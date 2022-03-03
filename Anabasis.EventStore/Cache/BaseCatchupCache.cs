@@ -10,7 +10,6 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
@@ -32,6 +31,7 @@ namespace Anabasis.EventStore.Cache
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
         private readonly BehaviorSubject<bool> _isStaleSubject;
         private readonly IAggregateCacheConfiguration<TAggregate> _catchupCacheConfiguration;
+        private readonly IKillSwitch _killSwitch;
 
         protected Microsoft.Extensions.Logging.ILogger Logger { get; }
 
@@ -55,7 +55,8 @@ namespace Anabasis.EventStore.Cache
            IEventTypeProvider<TAggregate> eventTypeProvider,
            ILoggerFactory loggerFactory,
            ISnapshotStore<TAggregate> snapshotStore = null,
-           ISnapshotStrategy snapshotStrategy = null)
+           ISnapshotStrategy snapshotStrategy = null,
+           IKillSwitch killSwitch = null)
         {
 
             if (snapshotStore == null && snapshotStrategy != null || snapshotStore != null && snapshotStrategy == null)
@@ -71,6 +72,7 @@ namespace Anabasis.EventStore.Cache
 
             Logger = loggerFactory?.CreateLogger(this.GetType());
 
+            _killSwitch = killSwitch ?? new KillSwitch();
             _cache = new SourceCache<TAggregate, string>(item => item.EntityId);
             _caughtingUpCache = new SourceCache<TAggregate, string>(item => item.EntityId);
             _catchupCacheConfiguration = catchupCacheConfiguration;
@@ -86,9 +88,9 @@ namespace Anabasis.EventStore.Cache
 
         protected void Initialize()
         {
-            _catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder<TAggregate>(_catchupCacheConfiguration.DoAppCrashIfSubscriptionFail) };
+            var catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder<TAggregate>(_catchupCacheConfiguration.DoAppCrashIfSubscriptionFail) };
 
-            Initialize(_catchupCacheSubscriptionHolders);
+            Initialize(catchupCacheSubscriptionHolders);
         }
 
         protected void Initialize(CatchupCacheSubscriptionHolder<TAggregate>[] catchupCacheSubscriptionHolders)
@@ -348,7 +350,7 @@ namespace Anabasis.EventStore.Cache
 
                         if (catchupCacheSubscriptionHolder.CrashAppIfSubscriptionFail)
                         {
-                            ExceptionDispatchInfo.Capture(exception).Throw();
+                            _killSwitch.KillMe(exception);
                         }
                         else
                         {

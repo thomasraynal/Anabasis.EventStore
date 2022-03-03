@@ -1,6 +1,7 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Standalone;
+using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.Core;
@@ -47,7 +48,7 @@ namespace Anabasis.EventStore.Samples
 
             CreateSubscriptionGroups(clusterVNode).Wait();
 
-            var eventCountActorOne = EventStoreStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
+            var eventCountActorOne = EventStoreEmbeddedStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
                                        .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default)
                                         .WithBus<IEventStoreBus>((actor, bus) =>
                                         {
@@ -55,13 +56,13 @@ namespace Anabasis.EventStore.Samples
                                         })
                                        .Build();
 
-            var eventCountActorTwo = EventStoreStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
-                           .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default)
-                            .WithBus<IEventStoreBus>((actor, bus) =>
-                            {
-                                actor.SubscribeToPersistentSubscriptionStream(StaticData.PersistentStreamOne, StaticData.GroupIdOne);
-                            })
-                           .Build();
+            var eventCountActorTwo = EventStoreEmbeddedStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
+                                       .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default)
+                                        .WithBus<IEventStoreBus>((actor, bus) =>
+                                        {
+                                            actor.SubscribeToPersistentSubscriptionStream(StaticData.PersistentStreamOne, StaticData.GroupIdOne);
+                                        })
+                                       .Build();
 
             var position = 0;
 

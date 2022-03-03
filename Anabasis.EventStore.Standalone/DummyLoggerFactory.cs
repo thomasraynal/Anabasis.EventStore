@@ -6,7 +6,7 @@ using System.Text;
 
 namespace Anabasis.EventStore.Standalone
 {
-    internal class DummyLogger : ILogger
+    public class DummyLogger : ILogger
     {
         public IDisposable BeginScope<TState>(TState state)
         {
@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Standalone
         }
     }
 
-    internal class DummyLoggerFactory : ILoggerFactory
+    public class DummyLoggerFactory : ILoggerFactory
     {
         public void AddProvider(ILoggerProvider provider)
         {

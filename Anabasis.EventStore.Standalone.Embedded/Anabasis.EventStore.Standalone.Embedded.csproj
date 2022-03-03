@@ -1,4 +1,5 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
@@ -11,16 +12,14 @@
     <Product />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="EventStore.Client" Version="20.10.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
-  </ItemGroup>
-  
 
+  <ItemGroup>
+    <PackageReference Include="EventStore.Client.Embedded" Version="20.6.0" />
+  </ItemGroup>
+
+
+  <ItemGroup>
+    <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />
+  </ItemGroup>
 
 </Project>

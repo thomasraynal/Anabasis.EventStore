@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Lamar;
+using Anabasis.EventStore.Standalone.Embedded;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
 {
@@ -87,7 +88,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         public async Task ShouldCreateSusbscriptionAndConsumeAnEvent()
         {
 
-             _testRabbitMqActor = EventStoreStatelessActorBuilder<TestRabbitMqActor, SomeRegistry>
+             _testRabbitMqActor = EventStoreEmbeddedStatelessActorBuilder<TestRabbitMqActor, SomeRegistry>
                                             .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                             .Build();
 

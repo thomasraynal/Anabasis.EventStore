@@ -15,6 +15,7 @@ using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Tests.Mvc;
 using Anabasis.EventStore.AspNet.Factories;
 using EventStore.ClientAPI;
+using Anabasis.EventStore.Embedded;
 
 namespace Anabasis.EventStore.Tests
 {

@@ -19,7 +19,7 @@ namespace Anabasis.EventStore
         private readonly IEventStoreActorConfigurationFactory _eventStoreCacheFactory;
         private readonly bool _useEventStore;
 
-        internal World(IServiceCollection services, bool useEventStore)
+        public World(IServiceCollection services, bool useEventStore)
         {
             _useEventStore = useEventStore;
 

@@ -4,8 +4,6 @@ using System;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
 using Microsoft.AspNetCore.Builder;
-using EventStore.Core;
-using EventStore.ClientAPI.Embedded;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Anabasis.Common.HealthChecks;
 using Anabasis.Common;
@@ -101,34 +99,6 @@ namespace Anabasis.EventStore
         {
 
             var eventStoreConnection = EventStoreConnection.Create(connectionSettings, eventStoreUrl);
-
-            services.AddSingleton<IConnectionStatusMonitor<IEventStoreConnection>, EventStoreConnectionStatusMonitor>();
-            services.AddSingleton(eventStoreConnection);
-            services.AddSingleton(connectionSettings);
-
-            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
-
-            getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
-
-            services.AddSingleton<IEventStoreRepositoryConfiguration>(eventStoreRepositoryConfiguration);
-
-            services.AddTransient<IEventStoreRepository, EventStoreRepository>();
-
-            var world = new World(services, true);
-
-            services.AddSingleton(world);
-
-            return world;
-
-        }
-
-        public static World AddWorld(this IServiceCollection services,
-            ClusterVNode clusterVNode,
-            ConnectionSettings connectionSettings,
-            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
-        {
-
-            var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
 
             services.AddSingleton<IConnectionStatusMonitor<IEventStoreConnection>, EventStoreConnectionStatusMonitor>();
             services.AddSingleton(eventStoreConnection);

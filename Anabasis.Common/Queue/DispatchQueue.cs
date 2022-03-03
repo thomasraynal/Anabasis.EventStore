@@ -59,7 +59,7 @@ namespace Anabasis.Common
                         await message.Acknowledge();
 
                     }
-                    catch(Exception exception)
+                    catch (Exception exception)
                     {
 
                         await message.NotAcknowledge();
@@ -74,14 +74,14 @@ namespace Anabasis.Common
 
                             while (remainingMessages.TryDequeue(out var remainingMessage))
                             {
-                               await remainingMessage.NotAcknowledge();
+                                await remainingMessage.NotAcknowledge();
                             }
 
                             _killSwitch.KillMe(exception);
                         }
                         else
                         {
-                            Logger?.LogError(exception, "An error occured during the message consumption process.");
+                            Logger?.LogError(exception, $"An error occured during the message consumption process: {message.ToJson()}");
                         }
 
                     }

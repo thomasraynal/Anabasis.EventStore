@@ -1,11 +1,8 @@
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.Embedded;
-using EventStore.Core;
 using Lamar;
 using Microsoft.Extensions.Logging;
 using System;
@@ -19,16 +16,25 @@ namespace Anabasis.EventStore.Standalone
       where TAggregate : class, IAggregate, new()
       where TRegistry : ServiceRegistry, new()
     {
-        private IAggregateCache<TAggregate> EventStoreCache { get; set; }
-        private IEventStoreAggregateRepository EventStoreRepository { get; set; }
-        private ILoggerFactory LoggerFactory { get; set; }
-        private IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; set; }
-        private IActorConfiguration ActorConfiguration { get; set; }
+        public IAggregateCache<TAggregate> EventStoreCache { get; private set; }
+        public IEventStoreAggregateRepository EventStoreRepository { get; private set; }
+        public ILoggerFactory LoggerFactory { get; private set; }
+        public IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; private set; }
+        public IActorConfiguration ActorConfiguration { get; private set; }
 
         private readonly Dictionary<Type, Action<Container, IActor>> _busToRegisterTo;
 
-        private EventStoreStatefulActorBuilder()
+        public EventStoreStatefulActorBuilder(IActorConfiguration actorConfiguration,
+            IEventStoreAggregateRepository eventStoreRepository,
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
+            ILoggerFactory loggerFactory
+            )
         {
+            ActorConfiguration = actorConfiguration;
+            EventStoreRepository = eventStoreRepository;
+            LoggerFactory = loggerFactory;
+            ConnectionMonitor = connectionMonitor;
+
             _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
         }
 
@@ -97,19 +103,6 @@ namespace Anabasis.EventStore.Standalone
 
         }
 
-        public static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> Create(ClusterVNode clusterVNode,
-          ConnectionSettings connectionSettings,
-          IActorConfiguration actorConfiguration,
-          ILoggerFactory loggerFactory = null,
-          Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
-        {
-
-            var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
-
-            return CreateInternal(actorConfiguration, connection, loggerFactory, eventStoreRepositoryConfigurationBuilder);
-
-        }
-
         private static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> CreateInternal(
           IActorConfiguration actorConfiguration,
           IEventStoreConnection eventStoreConnection,
@@ -117,22 +110,21 @@ namespace Anabasis.EventStore.Standalone
           Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
         {
 
-            var builder = new EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>
-            {
-                LoggerFactory = loggerFactory ?? new DummyLoggerFactory(),
-                ConnectionMonitor = new EventStoreConnectionStatusMonitor(eventStoreConnection, loggerFactory),
-                ActorConfiguration = actorConfiguration
-            };
+            loggerFactory ??= new DummyLoggerFactory();
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
             eventStoreRepositoryConfigurationBuilder?.Invoke(eventStoreRepositoryConfiguration);
 
-            builder.EventStoreRepository = new EventStoreAggregateRepository(
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(eventStoreConnection, loggerFactory);
+
+            var eventStoreRepository = new EventStoreAggregateRepository(
               eventStoreRepositoryConfiguration,
               eventStoreConnection,
-              builder.ConnectionMonitor,
+              connectionMonitor,
               loggerFactory);
+
+            var builder = new EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>(actorConfiguration, eventStoreRepository, connectionMonitor, loggerFactory);
 
             return builder;
 

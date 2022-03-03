@@ -1,9 +1,6 @@
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using EventStore.ClientAPI;
-using EventStore.ClientAPI.Embedded;
-using EventStore.Core;
 using Lamar;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,15 +14,25 @@ namespace Anabasis.EventStore.Standalone
       where TRegistry : ServiceRegistry, new()
     {
 
-        private IEventStoreRepository EventStoreRepository { get; set; }
-        private ILoggerFactory LoggerFactory { get;  set; }
-        private IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; set; }
-        private IActorConfiguration ActorConfiguration { get; set; }
+        public IEventStoreRepository EventStoreRepository { get; private set; }
+        public ILoggerFactory LoggerFactory { get; private set; }
+        public IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; private set; }
+        public IActorConfiguration ActorConfiguration { get; private set; }
 
         private readonly Dictionary<Type,Action<Container,IActor>> _busToRegisterTo;
 
-        private EventStoreStatelessActorBuilder()
+        public EventStoreStatelessActorBuilder(
+            IActorConfiguration actorConfiguration,
+            IEventStoreRepository eventStoreRepository,
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
+            ILoggerFactory loggerFactory
+            )
         {
+            EventStoreRepository = eventStoreRepository;
+            LoggerFactory = loggerFactory;
+            ActorConfiguration = actorConfiguration;
+            ConnectionMonitor = connectionMonitor;
+
             _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
         }
 
@@ -41,8 +48,6 @@ namespace Anabasis.EventStore.Standalone
             });
 
             var actor = container.GetInstance<TActor>();
-
-       
 
             foreach (var busRegistration in _busToRegisterTo)
             {
@@ -74,22 +79,19 @@ namespace Anabasis.EventStore.Standalone
 
             loggerFactory ??= new DummyLoggerFactory();
 
-            var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>
-            {
-                ConnectionMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory),
-                LoggerFactory = loggerFactory,
-                ActorConfiguration = actorConfiguration
-            };
-
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
             getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
 
-            builder.EventStoreRepository = new EventStoreRepository(
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory);
+
+            var eventStoreRepository = new EventStoreRepository(
               eventStoreRepositoryConfiguration,
               connection,
-              builder.ConnectionMonitor,
+              connectionMonitor,
               loggerFactory);
+
+            var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>(actorConfiguration, eventStoreRepository, connectionMonitor, loggerFactory);       
 
             return builder;
 
@@ -102,66 +104,27 @@ namespace Anabasis.EventStore.Standalone
              Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
         {
 
-            var eventStoreConnection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettingsBuilder);
+            var connection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettingsBuilder);
 
             loggerFactory ??= new DummyLoggerFactory();
-
-            var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>
-            {
-                ConnectionMonitor = new EventStoreConnectionStatusMonitor(eventStoreConnection, loggerFactory),
-                LoggerFactory = loggerFactory,
-                ActorConfiguration = actorConfiguration
-            };
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
 
             getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
 
-            builder.EventStoreRepository = new EventStoreRepository(
-              eventStoreRepositoryConfiguration,
-              eventStoreConnection,
-              builder.ConnectionMonitor,
-              loggerFactory);
-
-            return builder;
-
-        }
-
-        public static EventStoreStatelessActorBuilder<TActor, TRegistry> Create(ClusterVNode clusterVNode,
-            ConnectionSettings connectionSettings,
-            IActorConfiguration actorConfiguration,
-            ILoggerFactory loggerFactory = null,
-            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null
-            )
-        {
-
-            var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);
-
-            loggerFactory ??= new DummyLoggerFactory();
-
-            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
-            getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
-
-            var connectionStatusMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory);
 
             var eventStoreRepository = new EventStoreRepository(
-                eventStoreRepositoryConfiguration,
-                connection,
-                connectionStatusMonitor,
-                loggerFactory);
+              eventStoreRepositoryConfiguration,
+              connection,
+              connectionMonitor,
+              loggerFactory);
 
-            var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>()
-            {
-                ActorConfiguration = actorConfiguration,
-                LoggerFactory = loggerFactory,
-                ConnectionMonitor = connectionStatusMonitor,
-                EventStoreRepository = eventStoreRepository
-            };
+            var builder = new EventStoreStatelessActorBuilder<TActor, TRegistry>(actorConfiguration, eventStoreRepository, connectionMonitor, loggerFactory);
 
             return builder;
 
         }
-
 
         public EventStoreStatelessActorBuilder<TActor, TRegistry> WithBus<TBus>(Action<TActor, TBus> onStartup =null) where TBus : IBus
         {

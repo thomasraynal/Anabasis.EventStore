@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Standalone.Embedded;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -244,14 +245,14 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldBuildFromActorBuilderAndRunActors()
         {
 
-            var testActorAutoBuildOne = EventStoreStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+            var testActorAutoBuildOne = EventStoreEmbeddedStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .WithBus<IEventStoreBus>((actor, bus) => {
                                                                                              actor.SubscribeFromEndToAllStreams();
                                                                                              actor.SubscribeToPersistentSubscriptionStream(_streamId2, _groupIdOne);
                                                                                           })
                                                                                          .Build();
 
-            var testActorAutoBuildTwo = EventStoreStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+            var testActorAutoBuildTwo = EventStoreEmbeddedStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                                                                          .WithBus<IEventStoreBus>((actor, bus) => {
                                                                                              actor.SubscribeFromEndToAllStreams();
                                                                                             
