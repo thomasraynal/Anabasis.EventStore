@@ -20,14 +20,15 @@ namespace Anabasis.RabbitMQ
         private readonly ISerializer _serializer;
         private readonly ILogger _logger;
         private readonly TimeSpan _defaultPublishConfirmTimeout;
+        private readonly List<string> _ensureExchangeCreated;
+        private readonly RabbitMqConnectionOptions _rabbitMqConnectionOptions;
 
         public bool IsInitialized { get; private set; }
         public string BusId { get; }
         public IRabbitMqConnection RabbitMqConnection { get; }
-
         public IConnectionStatusMonitor ConnectionStatusMonitor { get; }
 
-        public RabbitMqBus(RabbitMqConnectionOptions settings,
+        public RabbitMqBus(RabbitMqConnectionOptions rabbitMqConnectionOptions,
                    AnabasisAppContext appContext,
                    ILoggerFactory loggerFactory,
                    ISerializer serializer,
@@ -39,8 +40,10 @@ namespace Anabasis.RabbitMQ
             _serializer = serializer;
             _defaultPublishConfirmTimeout = TimeSpan.FromSeconds(10);
             _existingSubscriptions = new Dictionary<string, IRabbitMqSubscription>();
+            _ensureExchangeCreated = new List<string>();
+            _rabbitMqConnectionOptions = rabbitMqConnectionOptions;
 
-            RabbitMqConnection = new RabbitMqConnection(settings, appContext, loggerFactory, retryPolicy);
+            RabbitMqConnection = new RabbitMqConnection(rabbitMqConnectionOptions, appContext, loggerFactory, retryPolicy);
             ConnectionStatusMonitor = new RabbitMqConnectionStatusMonitor(RabbitMqConnection, loggerFactory);
 
         }
@@ -68,6 +71,8 @@ namespace Anabasis.RabbitMQ
 
             foreach (var @event in events)
             {
+                EnsureCreateExchange(exchange);
+
                 var body = _serializer.SerializeObject(@event);
                 var routingKey = @event.Subject;
 
@@ -120,7 +125,7 @@ namespace Anabasis.RabbitMQ
                 {
                     BasicGetResult result;
 
-                    result = channel.BasicGet(queueName, autoAck: false);
+                    result = channel.BasicGet(queueName, autoAck: _rabbitMqConnectionOptions.IsAutoAck);
 
                     if (result == null)
                         break;
@@ -144,7 +149,28 @@ namespace Anabasis.RabbitMQ
             var type = basicProperties.Type.GetTypeFromReadableName();
             var message = (IRabbitMqEvent)_serializer.DeserializeObject(body, type);
 
-            return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag);
+            return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag, _rabbitMqConnectionOptions.IsAutoAck);
+        }
+
+        private void EnsureCreateExchange(string exchange)
+        {
+            if (_ensureExchangeCreated.Contains(exchange)) return;
+
+            RabbitMqConnection.DoWithChannel(channel =>
+            {
+
+                channel.ExchangeDeclare(exchange, type: "x-delayed-message", durable: true, autoDelete: false, new Dictionary<string, object>()
+                    {
+                        {"x-delayed-type", "topic"}
+                    });
+
+                var deadletterExchangeForThisSubscription = $"{exchange}-deadletters";
+
+                channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: true, autoDelete: false);
+
+                _ensureExchangeCreated.Add(exchange);
+
+            });
         }
 
         public void Subscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription)
@@ -157,14 +183,7 @@ namespace Anabasis.RabbitMQ
                 RabbitMqConnection.DoWithChannel(channel =>
                 {
 
-                    channel.ExchangeDeclare(subscription.Exchange, type: "x-delayed-message", durable: true, autoDelete: false, new Dictionary<string, object>()
-                    {
-                        {"x-delayed-type", "topic"}
-                    });
-
-                    var deadletterExchangeForThisSubscription = $"{subscription.Exchange}-deadletters";
-
-                    channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: true, autoDelete: false);
+                    EnsureCreateExchange(subscription.Exchange);
 
                     var queueName = channel.QueueDeclare(exclusive: true, autoDelete: true, arguments: new Dictionary<string, object>
                     {
@@ -179,39 +198,25 @@ namespace Anabasis.RabbitMQ
                                       routingKey: subscription.RoutingKey);
 
                     channel.BasicConsume(queue: queueName,
-                                         autoAck: false,
+                                         autoAck: _rabbitMqConnectionOptions.IsAutoAck,
                                          consumer: consumer);
 
                     var rabbitMqSubscription = new RabbitMqSubscription(subscription.Exchange, subscription.RoutingKey, queueName, consumer);
 
                     consumer.Received += (model, basicDeliveryEventArg) =>
                     {
-                        try
+                        var rabbitMqQueueMessage = DeserializeRabbitMqQueueMessage(
+                            basicDeliveryEventArg.BasicProperties,
+                            basicDeliveryEventArg.Body.ToArray(),
+                            basicDeliveryEventArg.Redelivered,
+                            basicDeliveryEventArg.DeliveryTag);
+
+                        foreach (var subscriber in rabbitMqSubscription.Subscriptions)
                         {
-
-                            var rabbitMqQueueMessage = DeserializeRabbitMqQueueMessage(
-                                basicDeliveryEventArg.BasicProperties,
-                                basicDeliveryEventArg.Body.ToArray(),
-                                basicDeliveryEventArg.Redelivered,
-                                basicDeliveryEventArg.DeliveryTag);
-
-                            //if there is an exception in message in the consumer, we immediatly fail and nack the message
-                            //that would mean SOME subscriber may have to process twice but we want to ensure the consumer keep failing until the message is correctly processed
-                            foreach (var subscriber in rabbitMqSubscription.Subscriptions)
-                            {
-                                subscriber.Handle(rabbitMqQueueMessage).Wait();
-                            }
-
-                            channel.BasicAck(deliveryTag: basicDeliveryEventArg.DeliveryTag, multiple: false);
-
+                            subscriber.Handle(rabbitMqQueueMessage).Wait();
                         }
-                        catch (Exception ex)
-                        {
-                            channel.BasicNack(deliveryTag: basicDeliveryEventArg.DeliveryTag, multiple: true, requeue: false);
-                            _logger.LogError($"Error while handling event {basicDeliveryEventArg.BasicProperties.Type}", ex);
-                        }
-
                     };
+
 
                     _existingSubscriptions[rabbitMqSubscription.SubscriptionId] = rabbitMqSubscription;
 
@@ -222,8 +227,10 @@ namespace Anabasis.RabbitMQ
 
             rabbitMqSubscription.Subscriptions.Add(subscription);
 
-
         }
+
+
+
         public void Unsubscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription)
            where TEvent : class, IRabbitMqEvent
         {

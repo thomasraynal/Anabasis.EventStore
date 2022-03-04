@@ -62,6 +62,8 @@ namespace Anabasis.Common
                     catch (Exception exception)
                     {
 
+                        Logger?.LogError(exception, $"An error occured during the message consumption process: {message.ToJson()}");
+
                         await message.NotAcknowledge();
 
                         if (_dispatchQueueConfiguration.CrashAppOnError)
@@ -79,11 +81,7 @@ namespace Anabasis.Common
 
                             _killSwitch.KillMe(exception);
                         }
-                        else
-                        {
-                            Logger?.LogError(exception, $"An error occured during the message consumption process: {message.ToJson()}");
-                        }
-
+             
                     }
                 }
             }

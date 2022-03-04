@@ -8,6 +8,7 @@ namespace Anabasis.RabbitMQ
     {
         private readonly IRabbitMqConnection _rabbitMqConnection;
         private readonly ulong _deliveryTag;
+        private readonly bool _isAutoAck;
 
         public RabbitMqQueueMessage(
             Guid messageId,
@@ -15,10 +16,12 @@ namespace Anabasis.RabbitMQ
             Type type, 
             IRabbitMqEvent content, 
             bool redelivered, 
-            ulong deliveryTag)
+            ulong deliveryTag,
+            bool isAutoAck)
         {
             _rabbitMqConnection = rabbitMqConnection;
             _deliveryTag = deliveryTag;
+            _isAutoAck = isAutoAck;
 
             MessageId = messageId;
             Type = type;
@@ -33,13 +36,19 @@ namespace Anabasis.RabbitMQ
 
         public Task Acknowledge()
         {
-            _rabbitMqConnection.DoWithChannel(channel => channel.BasicAck(_deliveryTag, multiple: false));
+            if (!_isAutoAck)
+            {
+                _rabbitMqConnection.DoWithChannel(channel => channel.BasicAck(_deliveryTag, multiple: false));
+            }
 
             return Task.CompletedTask;
         }
         public Task NotAcknowledge(string reason = null)
         {
-            _rabbitMqConnection.DoWithChannel(channel => channel.BasicNack(_deliveryTag, multiple: false, requeue: true));
+            if (!_isAutoAck)
+            {
+                _rabbitMqConnection.Acknowledge(_deliveryTag);
+            }
 
             return Task.CompletedTask;
         }

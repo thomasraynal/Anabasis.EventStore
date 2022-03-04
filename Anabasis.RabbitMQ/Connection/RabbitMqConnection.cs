@@ -26,6 +26,7 @@ namespace Anabasis.RabbitMQ
         private readonly RabbitMqConnectionOptions _rabbitMqConnectionOptions;
         private readonly RetryPolicy _retryPolicy;
         private readonly AnabasisAppContext _appContext;
+        private readonly List<ulong> _deliveredMessages;
 
         private string _blockedConnectionReason = null;
 
@@ -56,6 +57,7 @@ namespace Anabasis.RabbitMQ
             _appContext = appContext;
             _logger = loggerFactory.CreateLogger<RabbitMqConnection>();
             _returnQueue = new ConcurrentQueue<BasicReturnEventArgs>();
+            _deliveredMessages = new List<ulong>();
 
         }
 
@@ -120,6 +122,24 @@ namespace Anabasis.RabbitMQ
         public void DoWithChannel(Action<IModel> action)
         {
             DoWithChannel(channel => { action(channel); return 0; });
+        }
+
+        public void Acknowledge(ulong deliveryTag)
+        {
+            if (_deliveredMessages.Contains(deliveryTag)) return;
+
+            _model.BasicAck(deliveryTag, multiple: false);
+
+            _deliveredMessages.Add(deliveryTag);
+        }
+
+        public void NotAcknowledge(ulong deliveryTag)
+        {
+            if (_deliveredMessages.Contains(deliveryTag)) return;
+
+            _model.BasicNack(deliveryTag, multiple: false, requeue: true);
+
+            _deliveredMessages.Add(deliveryTag);
         }
 
         public T DoWithChannel<T>(Func<IModel, T> function)

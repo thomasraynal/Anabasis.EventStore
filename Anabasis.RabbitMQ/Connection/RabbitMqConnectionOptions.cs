@@ -25,6 +25,8 @@ namespace Anabasis.RabbitMQ
 
         public int ManagerPort { get; set; } = RABBIT_MQ_DEFAULT_MANAGER_PORT;
 
+        public bool IsAutoAck { get; set; }
+
 
     }
 }
