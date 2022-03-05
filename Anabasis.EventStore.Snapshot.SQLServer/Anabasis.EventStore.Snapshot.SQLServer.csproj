@@ -1,9 +1,6 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-<<<<<<< HEAD
-    <TargetFramework>netcoreapp3.1</TargetFramework>
-=======
     <TargetFramework>net5.0</TargetFramework>
     <LangVersion>Latest</LangVersion>
     <Platforms>AnyCPU;x64</Platforms>
@@ -14,16 +11,12 @@
     <Company />
     <Product />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
->>>>>>> master
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+    <ProjectReference Include="..\Anabasis.EntityFramework\Anabasis.EntityFramework.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
-  </ItemGroup>
-  
-  <ItemGroup>
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="5.0.10" />
   </ItemGroup>
 
 </Project>

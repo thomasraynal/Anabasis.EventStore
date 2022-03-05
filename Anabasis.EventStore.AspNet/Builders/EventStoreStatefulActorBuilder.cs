@@ -11,7 +11,7 @@ using Anabasis.EventStore.Factories;
 namespace Anabasis.EventStore.AspNet.Builders
 {
 
-    public class EventStoreStatefulActorBuilder<TActor, TAggregate> : IEventStoreStatefulActorBuilder
+    public class EventStoreStatefulActorBuilder<TActor, TAggregate>: IActorBuilder
         where TActor : class, IStatefulActor<TAggregate>
         where TAggregate : class, IAggregate, new()
     {
@@ -48,7 +48,10 @@ namespace Anabasis.EventStore.AspNet.Builders
 
             var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
                {
-                   var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.Start);
+                   var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.Start)
+                   {
+                       CrashAppIfSubscriptionFail = _actorConfiguration.CrashAppOnError
+                   };
 
                    catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
 
@@ -93,7 +96,10 @@ namespace Anabasis.EventStore.AspNet.Builders
 
             var getSubscribeFromEndMultipleStreamsEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
            {
-               var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<TAggregate>(streamIds);
+               var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<TAggregate>(streamIds)
+               {
+                   CrashAppIfSubscriptionFail = _actorConfiguration.CrashAppOnError
+               };
 
                getMultipleStreamsCatchupCacheConfiguration?.Invoke(multipleStreamsCatchupCacheConfiguration);
 
@@ -115,7 +121,10 @@ namespace Anabasis.EventStore.AspNet.Builders
         {
             var getSubscribeFromEndEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
            {
-               var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.End);
+               var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.End)
+               {
+                   CrashAppIfSubscriptionFail = _actorConfiguration.CrashAppOnError
+               };
 
                volatileCacheConfigurationBuilder?.Invoke(subscribeFromEndCacheConfiguration);
 

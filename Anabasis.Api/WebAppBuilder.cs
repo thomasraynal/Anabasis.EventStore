@@ -37,6 +37,7 @@ namespace Anabasis.Api
             int apiPort = 80,
             int? memoryCheckTresholdInMB = 200,
             bool useCors = false,
+            ISerializer serializer = null,
             Action<MvcOptions> configureMvcBuilder = null,
             Action<IMvcBuilder> configureMvc = null,
             Action<MvcNewtonsoftJsonOptions> configureJson = null,
@@ -109,7 +110,7 @@ namespace Anabasis.Api
                 .ConfigureServices((context, services) =>
                 {
 
-                    ConfigureServices<THost>(services, useCors, appContext, configureMvcBuilder, configureMvc, configureJson);
+                    ConfigureServices<THost>(services, useCors, appContext, serializer, configureMvcBuilder, configureMvc, configureJson);
 
                     configureServiceCollection?.Invoke(services, configurationRoot);
 
@@ -130,6 +131,7 @@ namespace Anabasis.Api
             IServiceCollection services,
             bool useCors,
             AnabasisAppContext appContext,
+            ISerializer serializer = null,
             Action<MvcOptions> configureMvcBuilder = null,
             Action<IMvcBuilder> configureMvc = null,
             Action<MvcNewtonsoftJsonOptions> configureJson = null)
@@ -141,6 +143,8 @@ namespace Anabasis.Api
 
             services.AddHealthChecks()
                     .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Working set", HealthStatus.Unhealthy);
+
+            services.AddSingleton(serializer ?? new DefaultSerializer());
 
             services.AddHostedService<HealthCheckHostedService>();
 

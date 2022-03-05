@@ -88,7 +88,7 @@ namespace Anabasis.EventStore.Cache
 
         protected void Initialize()
         {
-            var catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder<TAggregate>(_catchupCacheConfiguration.DoAppCrashIfSubscriptionFail) };
+            var catchupCacheSubscriptionHolders = new[] { new CatchupCacheSubscriptionHolder<TAggregate>(_catchupCacheConfiguration.CrashAppIfSubscriptionFail) };
 
             Initialize(catchupCacheSubscriptionHolders);
         }

@@ -11,7 +11,7 @@ namespace Anabasis.EventStore.Cache
     {
         protected BaseOneOrManyStreamCatchupCache(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, IEventTypeProvider<TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<TAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
-            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, catchupCacheConfiguration.DoAppCrashIfSubscriptionFail)).ToArray();
+            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, catchupCacheConfiguration.CrashAppIfSubscriptionFail)).ToArray();
 
             Initialize(catchupCacheSubscriptionHolders);
 

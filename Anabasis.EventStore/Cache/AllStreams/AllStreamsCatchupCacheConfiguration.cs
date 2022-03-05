@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Cache
             Checkpoint = checkpoint;
         }
 
-        public bool DoAppCrashIfSubscriptionFail { get; set; }
+        public bool CrashAppIfSubscriptionFail { get; set; }
         public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.FromHours(1);
         public bool KeepAppliedEventsOnAggregate { get; set; } = false;
         public UserCredentials UserCredentials { get; set; }

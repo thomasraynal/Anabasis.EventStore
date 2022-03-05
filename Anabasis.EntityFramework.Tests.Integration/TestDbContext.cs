@@ -4,7 +4,7 @@ using System;
 
 namespace Anabasis.EntityFramework.Tests.Integration
 {
-    public class TestDbContext : AnabasisDbContext
+    public class TestDbContext : BaseAnabasisDbContext
     {
         private static readonly string _connectionString = $"Server=tcp:localhost,5434;Initial Catalog=tempdb;Persist Security Info=False;User ID=SA;Password=Your_password123;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;";
 

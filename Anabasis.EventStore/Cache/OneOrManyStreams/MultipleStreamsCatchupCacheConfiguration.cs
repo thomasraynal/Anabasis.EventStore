@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Cache
 
         public string[] StreamIds { get; }
         public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.FromHours(1);
-        public bool DoAppCrashIfSubscriptionFail { get; set; }
+        public bool CrashAppIfSubscriptionFail { get; set; } = false;
         public bool KeepAppliedEventsOnAggregate { get; set; } = false;
         public UserCredentials UserCredentials { get; set; }
         public ISerializer Serializer { get; set; } = new DefaultSerializer();

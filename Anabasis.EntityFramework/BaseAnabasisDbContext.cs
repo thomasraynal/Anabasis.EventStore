@@ -4,12 +4,12 @@ using System;
 namespace Anabasis.EntityFramework
 {
 
-    public abstract class AnabasisDbContext : DbContext
+    public abstract class BaseAnabasisDbContext : DbContext
     {
-        protected AnabasisDbContext(DbContextOptionsBuilder dbContextOptionsBuilder) : base(dbContextOptionsBuilder.Options)
+        protected BaseAnabasisDbContext(DbContextOptionsBuilder dbContextOptionsBuilder) : base(dbContextOptionsBuilder.Options)
         { }
 
-        public AnabasisDbContext(DbContextOptions options) : base(new DbContextOptionsBuilder(options).Options)
+        public BaseAnabasisDbContext(DbContextOptions options) : base(new DbContextOptionsBuilder(options).Options)
         { }
 
         protected override sealed void OnModelCreating(ModelBuilder modelBuilder)

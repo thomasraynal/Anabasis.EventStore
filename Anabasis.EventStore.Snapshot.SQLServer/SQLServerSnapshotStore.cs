@@ -1,33 +1,30 @@
+﻿using Anabasis.Common;
+using Anabasis.EntityFramework;
 using Microsoft.EntityFrameworkCore;
-using Anabasis.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Snapshot.InMemory
+namespace Anabasis.EventStore.Snapshot.SQLServer
 {
-    public class InMemorySnapshotStore<TAggregate> : ISnapshotStore<TAggregate> where TAggregate : IAggregate, new()
+
+    public class SQLServerSnapshotStore<TAggregate> : ISnapshotStore<TAggregate> where TAggregate : IAggregate, new()
     {
-        private readonly DbContextOptions<AggregateSnapshotContext> _entityFrameworkOptions;
+        private readonly SQLServerSnapshotStoreOptions _sQLServerSnapshotStoreOptions;
 
-        class AggregateSnapshotContext : DbContext
+        class AggregateSnapshotContext : BaseAnabasisDbContext
         {
-            public AggregateSnapshotContext(DbContextOptions<AggregateSnapshotContext> options)
-                : base(options)
+            public AggregateSnapshotContext(DbContextOptions<AggregateSnapshotContext> dbContextOptions)
+                : base(dbContextOptions)
             { }
-            public DbSet<AggregateSnapshot> AggregateSnapshots { get; set; }
-
-            protected override void OnModelCreating(ModelBuilder modelBuilder)
+            public AggregateSnapshotContext(SQLServerSnapshotStoreOptions sQLServerSnapshotStoreOptions) 
+                : base(new DbContextOptionsBuilder().UseSqlServer(sQLServerSnapshotStoreOptions.ConnectionString).Options)
             {
-                modelBuilder.Entity<AggregateSnapshot>().HasKey(aggregateSnapshot => new
-                {
-                    aggregateSnapshot.StreamId,
-                    aggregateSnapshot.EventFilter,
-                    aggregateSnapshot.Version
-                });
             }
+
+            public DbSet<AggregateSnapshot> AggregateSnapshots { get; set; }
 
             public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
             {
@@ -49,21 +46,28 @@ namespace Anabasis.EventStore.Snapshot.InMemory
                 return base.SaveChangesAsync(cancellationToken);
             }
 
+            protected override void OnModelCreatingInternal(ModelBuilder modelBuilder)
+            {
+                modelBuilder.Entity<AggregateSnapshot>().HasKey(aggregateSnapshot => new
+                {
+                    aggregateSnapshot.StreamId,
+                    aggregateSnapshot.EventFilter,
+                    aggregateSnapshot.Version
+                });
+            }
         }
 
-        public InMemorySnapshotStore()
+        public SQLServerSnapshotStore(SQLServerSnapshotStoreOptions sQLServerSnapshotStoreOptions)
         {
+            sQLServerSnapshotStoreOptions.Validate();
 
-            _entityFrameworkOptions = new DbContextOptionsBuilder<AggregateSnapshotContext>()
-                            .UseInMemoryDatabase(databaseName: "AggregateSnapshots")
-                            .Options;
-
+            _sQLServerSnapshotStoreOptions = sQLServerSnapshotStoreOptions;
         }
 
         public async Task<TAggregate> GetByVersionOrLast(string streamId, string[] eventFilters, int? version = null)
         {
 
-            using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
+            using var context = new AggregateSnapshotContext(_sQLServerSnapshotStoreOptions);
 
             var eventFilter = string.Concat(eventFilters);
 
@@ -90,7 +94,7 @@ namespace Anabasis.EventStore.Snapshot.InMemory
 
         public async Task<TAggregate[]> GetByVersionOrLast(string[] eventFilters, int? version = null)
         {
-            using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
+            using var context = new AggregateSnapshotContext(_sQLServerSnapshotStoreOptions);
 
             var eventFilter = string.Concat(eventFilters);
 
@@ -125,7 +129,7 @@ namespace Anabasis.EventStore.Snapshot.InMemory
 
         public async Task Save(string[] eventFilters, TAggregate aggregate)
         {
-            using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
+            using var context = new AggregateSnapshotContext(_sQLServerSnapshotStoreOptions);
 
             var aggregateSnapshot = new AggregateSnapshot
             {
@@ -145,7 +149,7 @@ namespace Anabasis.EventStore.Snapshot.InMemory
         {
             var results = new List<TAggregate>();
 
-            using var context = new AggregateSnapshotContext(_entityFrameworkOptions);
+            using var context = new AggregateSnapshotContext(_sQLServerSnapshotStoreOptions);
 
             foreach (var aggregateSnapshot in await context.AggregateSnapshots.AsQueryable().ToListAsync())
             {

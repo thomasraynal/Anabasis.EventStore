@@ -8,6 +8,8 @@ namespace Anabasis.EventStore.Snapshot
 {
     public class DefaultSnapshotStrategy : ISnapshotStrategy
     {
+        public static readonly ISnapshotStrategy Instance = new DefaultSnapshotStrategy();
+
         public DefaultSnapshotStrategy(int snapshotIntervalInEvents = 10)
         {
             SnapshotIntervalInEvents = snapshotIntervalInEvents;

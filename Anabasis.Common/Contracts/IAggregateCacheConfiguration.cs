@@ -7,6 +7,6 @@ namespace Anabasis.Common
         TimeSpan IsStaleTimeSpan { get; }
         bool KeepAppliedEventsOnAggregate { get; }
         ISerializer Serializer { get; }
-        public bool DoAppCrashIfSubscriptionFail { get; set; }
+        public bool CrashAppIfSubscriptionFail { get; set; }
     }
 }
