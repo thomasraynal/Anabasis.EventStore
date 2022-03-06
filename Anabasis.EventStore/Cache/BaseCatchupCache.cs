@@ -34,7 +34,6 @@ namespace Anabasis.EventStore.Cache
         private readonly IKillSwitch _killSwitch;
 
         protected Microsoft.Extensions.Logging.ILogger Logger { get; }
-
         public IEventTypeProvider<TAggregate> EventTypeProvider { get; }
         public string Id { get; }
         public bool UseSnapshot { get; private set; }
