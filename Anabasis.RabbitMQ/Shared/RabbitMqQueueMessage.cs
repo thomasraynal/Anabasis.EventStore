@@ -38,7 +38,7 @@ namespace Anabasis.RabbitMQ
         {
             if (!_isAutoAck)
             {
-                _rabbitMqConnection.DoWithChannel(channel => channel.BasicAck(_deliveryTag, multiple: false));
+                _rabbitMqConnection.Acknowledge(_deliveryTag);
             }
 
             return Task.CompletedTask;
@@ -47,7 +47,7 @@ namespace Anabasis.RabbitMQ
         {
             if (!_isAutoAck)
             {
-                _rabbitMqConnection.Acknowledge(_deliveryTag);
+                _rabbitMqConnection.NotAcknowledge(_deliveryTag);
             }
 
             return Task.CompletedTask;

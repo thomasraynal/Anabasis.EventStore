@@ -10,19 +10,19 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Stream
 {
-    public class SubscribeFromEndEventStoreStream : BaseEventStoreStream
+    public class SubscribeFromEndToAllEventStoreStream : BaseEventStoreStream
     {
         private readonly SubscribeFromEndEventStoreStreamConfiguration _volatileEventStoreStreamConfiguration;
         private readonly IKillSwitch _killSwitch;
         private EventStoreAllFilteredCatchUpSubscription _eventStoreAllFilteredCatchUpSubscription;
 
-        public SubscribeFromEndEventStoreStream(
+        public SubscribeFromEndToAllEventStoreStream(
           IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           SubscribeFromEndEventStoreStreamConfiguration volatileEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
           ILoggerFactory loggerFactory,
           IKillSwitch killSwitch = null)
-          : base(connectionMonitor, volatileEventStoreStreamConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndEventStoreStream>())
+          : base(connectionMonitor, volatileEventStoreStreamConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndToAllEventStoreStream>())
         {
             _volatileEventStoreStreamConfiguration = volatileEventStoreStreamConfiguration;
             _killSwitch = killSwitch ?? new KillSwitch();
@@ -58,8 +58,8 @@ namespace Anabasis.EventStore.Stream
                 switch (subscriptionDropReason)
                 {
                     case SubscriptionDropReason.UserInitiated:
-                    case SubscriptionDropReason.ConnectionClosed:
                         break;
+                    case SubscriptionDropReason.ConnectionClosed:
                     case SubscriptionDropReason.NotAuthenticated:
                     case SubscriptionDropReason.AccessDenied:
                     case SubscriptionDropReason.SubscribingError:
@@ -75,7 +75,7 @@ namespace Anabasis.EventStore.Stream
 
                         Logger?.LogError(exception, $"{nameof(SubscriptionDropReason)}: [{subscriptionDropReason}] throwed the consumer in an invalid state");
 
-                        if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
+                        if (_eventStoreStreamConfiguration.DoAppCrashOnFailure)
                         {
                             _killSwitch.KillMe(exception);
                         }
@@ -102,7 +102,7 @@ namespace Anabasis.EventStore.Stream
 
                 var position = Position.End;
 
-                Logger?.LogInformation($"{Id} => ConnectToEventStream - FilteredSubscribeToAllFrom - Position: {position} Filters: [{string.Join("|", eventTypeFilter)}]");
+                Logger?.LogInformation($"{Id} => {nameof(SubscribeFromEndToAllEventStoreStream)} - FilteredSubscribeToAllFrom - Position: {position} Filters: [{string.Join("|", eventTypeFilter)}]");
 
                 _eventStoreAllFilteredCatchUpSubscription = connection.FilteredSubscribeToAllFrom(
                     position,

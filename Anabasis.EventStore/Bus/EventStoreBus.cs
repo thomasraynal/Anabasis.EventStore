@@ -47,7 +47,7 @@ namespace Anabasis.EventStore
 
             var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
 
-            while (!ConnectionStatusMonitor.IsConnected || DateTime.UtcNow > waitUntilMax)
+            while (!ConnectionStatusMonitor.IsConnected && DateTime.UtcNow > waitUntilMax)
             {
                 await Task.Delay(100);
             }
@@ -151,7 +151,7 @@ namespace Anabasis.EventStore
 
         }
 
-        public SubscribeFromEndEventStoreStream SubscribeFromEndToAllStreams(
+        public SubscribeFromEndToAllEventStoreStream SubscribeFromEndToAllStreams(
             Action<IMessage, TimeSpan?> onMessageReceived, 
             IEventTypeProvider eventTypeProvider,
             Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null)
@@ -161,7 +161,7 @@ namespace Anabasis.EventStore
 
             getSubscribeFromEndEventStoreStreamConfiguration?.Invoke(subscribeFromEndEventStoreStreamConfiguration);
 
-            var subscribeFromEndEventStoreStream = new SubscribeFromEndEventStoreStream(
+            var subscribeFromEndEventStoreStream = new SubscribeFromEndToAllEventStoreStream(
               _connectionStatusMonitor,
               subscribeFromEndEventStoreStreamConfiguration,
               eventTypeProvider, _loggerFactory);

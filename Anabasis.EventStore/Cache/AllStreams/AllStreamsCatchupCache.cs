@@ -32,7 +32,7 @@ namespace Anabasis.EventStore.Cache
 
             var filter = Filter.EventType.Prefix(eventTypeFilter);
 
-            Logger?.LogInformation($"{Id} => ConnectToEventStream - FilteredSubscribeToAllFrom - Filters [{string.Join("|", eventTypeFilter)}]");
+            Logger?.LogInformation($"{Id} => {nameof(AllStreamsCatchupCache<TAggregate>)} - {nameof(GetEventStoreCatchUpSubscription)} - FilteredSubscribeToAllFrom - Filters [{string.Join("|", eventTypeFilter)}]");
 
             var subscription = connection.FilteredSubscribeToAllFrom(
              _catchupCacheConfiguration.Checkpoint,

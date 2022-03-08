@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Stream
         public int BufferSize { get; set; } = EventStorePersistentSubscriptionBase.DefaultBufferSize;
         public bool AutoAck { get; set; } = true;
         public bool IgnoreUnknownEvent => true;
-        public bool DoAppCrashIfSubscriptionFail { get; set; } = true;
+        public bool DoAppCrashOnFailure { get; set; } = false;
     }
 }
 

@@ -56,8 +56,8 @@ namespace Anabasis.EventStore.Stream
                 switch (subscriptionDropReason)
                 {
                     case SubscriptionDropReason.UserInitiated:
-                    case SubscriptionDropReason.ConnectionClosed:
                         break;
+                    case SubscriptionDropReason.ConnectionClosed:
                     case SubscriptionDropReason.NotAuthenticated:
                     case SubscriptionDropReason.AccessDenied:
                     case SubscriptionDropReason.SubscribingError:
@@ -73,7 +73,7 @@ namespace Anabasis.EventStore.Stream
 
                         Logger?.LogError(exception, $"{nameof(SubscriptionDropReason)}: [{subscriptionDropReason}] throwed the consumer in an invalid state");
 
-                        if (_eventStoreStreamConfiguration.DoAppCrashIfSubscriptionFail)
+                        if (_eventStoreStreamConfiguration.DoAppCrashOnFailure)
                         {
                             _killSwitch.KillMe(exception);
                         }

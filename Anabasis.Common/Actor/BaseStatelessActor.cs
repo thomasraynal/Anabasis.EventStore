@@ -127,7 +127,7 @@ namespace Anabasis.Common
 
             var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
 
-            while (!IsConnected || DateTime.UtcNow > waitUntilMax)
+            while (!IsConnected && DateTime.UtcNow > waitUntilMax)
             {
                 await Task.Delay(100);
             }

@@ -65,7 +65,7 @@ namespace Anabasis.EventStore.Cache
             long? subscribeFromPosition = catchupCacheSubscriptionHolder.CurrentSnapshotEventVersion == null ?
                 null : catchupCacheSubscriptionHolder.CurrentSnapshotEventVersion;
 
-            Logger?.LogInformation($"{Id} => GetEventStoreCatchUpSubscription - SubscribeToStreamFrom {catchupCacheSubscriptionHolder.StreamId} " +
+            Logger?.LogInformation($"{Id} => {nameof(MultipleStreamsCatchupCache<TAggregate>)} - {nameof(GetEventStoreCatchUpSubscription)} - SubscribeToStreamFrom {catchupCacheSubscriptionHolder.StreamId} " +
                 $"v.{subscribeFromPosition}]");
 
             var subscription = connection.SubscribeToStreamFrom(

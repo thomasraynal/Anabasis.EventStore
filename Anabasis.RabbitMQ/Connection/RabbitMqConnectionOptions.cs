@@ -27,6 +27,6 @@ namespace Anabasis.RabbitMQ
 
         public bool IsAutoAck { get; set; }
 
-
+        public bool DoAppCrashOnFailure { get; set; }
     }
 }

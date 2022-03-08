@@ -24,7 +24,7 @@ namespace Anabasis.EventStore
             IEventTypeProvider eventTypeProvider,
             Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
 
-        SubscribeFromEndEventStoreStream SubscribeFromEndToAllStreams(
+        SubscribeFromEndToAllEventStoreStream SubscribeFromEndToAllStreams(
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
             Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null);

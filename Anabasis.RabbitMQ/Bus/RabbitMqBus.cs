@@ -1,11 +1,11 @@
 ﻿using Anabasis.Common;
-using Anabasis.Common.Actor;
 using Anabasis.RabbitMQ.Connection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
+using RabbitMQ.Client.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -22,6 +22,7 @@ namespace Anabasis.RabbitMQ
         private readonly TimeSpan _defaultPublishConfirmTimeout;
         private readonly List<string> _ensureExchangeCreated;
         private readonly RabbitMqConnectionOptions _rabbitMqConnectionOptions;
+        private readonly IKillSwitch _killSwitch;
 
         public bool IsInitialized { get; private set; }
         public string BusId { get; }
@@ -32,6 +33,7 @@ namespace Anabasis.RabbitMQ
                    AnabasisAppContext appContext,
                    ILoggerFactory loggerFactory,
                    ISerializer serializer,
+                   IKillSwitch killSwitch = null,
                    RetryPolicy retryPolicy = null)
         {
             BusId = $"{nameof(RabbitMqBus)}_{Guid.NewGuid()}";
@@ -42,6 +44,7 @@ namespace Anabasis.RabbitMQ
             _existingSubscriptions = new Dictionary<string, IRabbitMqSubscription>();
             _ensureExchangeCreated = new List<string>();
             _rabbitMqConnectionOptions = rabbitMqConnectionOptions;
+            _killSwitch = killSwitch ?? new KillSwitch();
 
             RabbitMqConnection = new RabbitMqConnection(rabbitMqConnectionOptions, appContext, loggerFactory, retryPolicy);
             ConnectionStatusMonitor = new RabbitMqConnectionStatusMonitor(RabbitMqConnection, loggerFactory);
@@ -54,7 +57,7 @@ namespace Anabasis.RabbitMQ
 
             var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
 
-            while (!ConnectionStatusMonitor.IsConnected || DateTime.UtcNow > waitUntilMax)
+            while (!ConnectionStatusMonitor.IsConnected && DateTime.UtcNow > waitUntilMax)
             {
                 await Task.Delay(100);
             }
@@ -68,7 +71,7 @@ namespace Anabasis.RabbitMQ
         }
         public void Emit(IEnumerable<IRabbitMqEvent> events, string exchange, TimeSpan? initialVisibilityDelay = default)
         {
-
+            //todo: handle batch emit
             foreach (var @event in events)
             {
                 EnsureCreateExchange(exchange);
@@ -87,22 +90,28 @@ namespace Anabasis.RabbitMQ
 
                 RabbitMqConnection.DoWithChannel(channel =>
                 {
-
-                    if (initialVisibilityDelay.HasValue && initialVisibilityDelay.Value > TimeSpan.Zero)
+                    try
                     {
-                        var delayInMilliseconds = Math.Max(1, (int)initialVisibilityDelay.Value.TotalMilliseconds);
 
-                        basicProperties.Headers = new Dictionary<string, object>()
+                        if (initialVisibilityDelay.HasValue && initialVisibilityDelay.Value > TimeSpan.Zero)
                         {
-                            { "x-delay", delayInMilliseconds }
-                        };
+                            var delayInMilliseconds = Math.Max(1, (int)initialVisibilityDelay.Value.TotalMilliseconds);
+
+                            basicProperties.Headers = new Dictionary<string, object>()
+                            {
+                                { "x-delay", delayInMilliseconds }
+                            };
+                        }
+
+                        channel.BasicPublish(exchange: exchange, routingKey: routingKey, basicProperties: basicProperties, body: body);
+
+                        channel.WaitForConfirmsOrDie(_defaultPublishConfirmTimeout);
 
                     }
-
-                    channel.BasicPublish(exchange: exchange, routingKey: routingKey, basicProperties: basicProperties, body: body);
-
-                    channel.WaitForConfirmsOrDie(_defaultPublishConfirmTimeout);
-
+                    catch (OperationInterruptedException operationInterruptedException)
+                    {
+                        _logger.LogError(operationInterruptedException, $"{nameof(OperationInterruptedException)} occured - ShutdownReason => {operationInterruptedException.ShutdownReason?.ToJson()}");
+                    }
                 });
             }
         }
@@ -211,12 +220,24 @@ namespace Anabasis.RabbitMQ
                             basicDeliveryEventArg.Redelivered,
                             basicDeliveryEventArg.DeliveryTag);
 
+
                         foreach (var subscriber in rabbitMqSubscription.Subscriptions)
                         {
-                            subscriber.Handle(rabbitMqQueueMessage).Wait();
+                            try
+                            {
+                                subscriber.Handle(rabbitMqQueueMessage).Wait();
+                            }
+                            catch (Exception ex)
+                            {
+                                _logger.LogError(ex, $"An error occured during the delivering of a message - BasicDeliveryEventArg => {basicDeliveryEventArg.ToJson()}");
+
+                                if (_rabbitMqConnectionOptions.DoAppCrashOnFailure)
+                                {
+                                    _killSwitch.KillMe(ex);
+                                }
+                            }
                         }
                     };
-
 
                     _existingSubscriptions[rabbitMqSubscription.SubscriptionId] = rabbitMqSubscription;
 
@@ -228,8 +249,6 @@ namespace Anabasis.RabbitMQ
             rabbitMqSubscription.Subscriptions.Add(subscription);
 
         }
-
-
 
         public void Unsubscribe<TEvent>(IRabbitMqEventSubscription<TEvent> subscription)
            where TEvent : class, IRabbitMqEvent
@@ -263,7 +282,6 @@ namespace Anabasis.RabbitMQ
                 }
 
             });
-
 
             return Task.FromResult(healthCheckResult);
 

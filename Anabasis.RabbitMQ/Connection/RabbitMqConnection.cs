@@ -17,10 +17,10 @@ namespace Anabasis.RabbitMQ
     public class RabbitMqConnection : IRabbitMqConnection
     {
         private IModel _model;
-        private IAutorecoveringConnection _connection;
+        private IAutorecoveringConnection _autorecoveringConnection;
         private readonly ILogger<RabbitMqConnection> _logger;
 
-        private readonly object _syncRoot = new object();
+        private readonly object _syncRoot = new();
 
         private readonly ConcurrentQueue<BasicReturnEventArgs> _returnQueue;
         private readonly RabbitMqConnectionOptions _rabbitMqConnectionOptions;
@@ -31,8 +31,9 @@ namespace Anabasis.RabbitMQ
         private string _blockedConnectionReason = null;
 
         public bool IsBlocked => _blockedConnectionReason != null;
+        public bool IsOpen => _autorecoveringConnection.IsOpen;
 
-        public IAutorecoveringConnection AutoRecoveringConnection => _connection;
+        public IAutorecoveringConnection AutoRecoveringConnection => _autorecoveringConnection;
 
         public RabbitMqConnection(RabbitMqConnectionOptions rabbitMqConnectionOptions,
             AnabasisAppContext appContext,
@@ -40,7 +41,6 @@ namespace Anabasis.RabbitMQ
             RetryPolicy retryPolicy = null)
         {
             _rabbitMqConnectionOptions = rabbitMqConnectionOptions;
-
             if (null == retryPolicy)
             {
                 retryPolicy = Policy.Handle<OperationInterruptedException>()
@@ -77,12 +77,12 @@ namespace Anabasis.RabbitMQ
                         NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
                     };
 
-                    _connection = (IAutorecoveringConnection)connectionFactory.CreateConnection(_appContext.ApplicationName);
+                    _autorecoveringConnection = (IAutorecoveringConnection)connectionFactory.CreateConnection(_appContext.ApplicationName);
 
-                    _connection.ConnectionBlocked += ConnectionBlocked;
-                    _connection.ConnectionUnblocked += ConnectionUnblocked;
+                    _autorecoveringConnection.ConnectionBlocked += ConnectionBlocked;
+                    _autorecoveringConnection.ConnectionUnblocked += ConnectionUnblocked;
 
-                    _model = _connection.CreateModel();
+                    _model = _autorecoveringConnection.CreateModel();
                     _model.BasicReturn += (sender, args) => _returnQueue.Enqueue(args);
                     _model.BasicQos(prefetchSize: 0, prefetchCount: _rabbitMqConnectionOptions.PrefetchCount, global: true);
                     _model.ConfirmSelect();
@@ -144,6 +144,7 @@ namespace Anabasis.RabbitMQ
 
         public T DoWithChannel<T>(Func<IModel, T> function)
         {
+
             if (IsBlocked)
                 throw new InvalidOperationException($"Connection is blocked : {_blockedConnectionReason}");
 
@@ -178,12 +179,13 @@ namespace Anabasis.RabbitMQ
 
                 return returnedValue;
             }
+
         }
 
         public void Dispose()
         {
-            _connection.ConnectionBlocked += ConnectionBlocked;
-            _connection.ConnectionUnblocked += ConnectionUnblocked;
+            _autorecoveringConnection.ConnectionBlocked += ConnectionBlocked;
+            _autorecoveringConnection.ConnectionUnblocked += ConnectionUnblocked;
 
             if (_model != null)
             {
@@ -192,11 +194,11 @@ namespace Anabasis.RabbitMQ
 
             try
             {
-                _connection.Abort(TimeSpan.FromMilliseconds(10));
+                _autorecoveringConnection.Abort(TimeSpan.FromMilliseconds(10));
             }
             finally
             {
-                _connection.Close(TimeSpan.FromMilliseconds(10));
+                _autorecoveringConnection.Close(TimeSpan.FromMilliseconds(10));
             }
         }
     }

@@ -8,6 +8,6 @@ namespace Anabasis.EventStore.Stream
         UserCredentials UserCredentials { get; }
         ISerializer Serializer { get; }
         bool IgnoreUnknownEvent { get; }
-        bool DoAppCrashIfSubscriptionFail { get; }
+        bool DoAppCrashOnFailure { get; }
     }
 }
