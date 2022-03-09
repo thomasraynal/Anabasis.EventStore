@@ -8,6 +8,7 @@ namespace Anabasis.Common
 {
     public abstract class BaseAggregateEvent<TAggregate> : BaseEvent, IAggregateEvent<TAggregate> where TAggregate : class, IAggregate
     {
+        public long EventNumber { get; set; } = -1;
 
         [JsonConstructor]
         private protected BaseAggregateEvent()

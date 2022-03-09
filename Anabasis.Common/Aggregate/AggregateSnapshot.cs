@@ -1,10 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Anabasis.Common
 {
-    public class AggregateSnapshot
+    public class AggregateSnapshot : IAggregateSnapshot
     {
         public AggregateSnapshot()
         {
@@ -18,10 +17,16 @@ namespace Anabasis.Common
             SerializedAggregate = serializedAggregate;
         }
 
+        [Required]
         public string StreamId { get; set; }
+        [Required]
         public string EventFilter { get; set; }
-        public int Version { get; set; }
+        [Required]
+        public long Version { get; set; }
+        [Required]
         public DateTime LastModifiedUtc { get; set; }
+        [Required]
+        [StringLength(int.MaxValue)]
         public string SerializedAggregate { get; set; }
 
         public override bool Equals(object obj)

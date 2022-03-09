@@ -14,6 +14,7 @@ namespace Anabasis.EntityFramework
         { 
         }
 
+
         protected override sealed void OnModelCreating(ModelBuilder modelBuilder)
         {
             OnModelCreatingInternal(modelBuilder);

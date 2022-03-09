@@ -135,6 +135,8 @@ namespace Anabasis.EventStore.Snapshot.InMemory
                 SerializedAggregate = aggregate.ToJson(),
             };
 
+            if (await context.AggregateSnapshots.ContainsAsync(aggregateSnapshot)) return;
+
             context.AggregateSnapshots.Add(aggregateSnapshot);
 
             await context.SaveChangesAsync();

@@ -66,7 +66,7 @@ namespace Anabasis.EventStore.Repository
 
         }
 
-        protected async Task SaveEventBatch(string streamId, int expectedVersion, IEnumerable<EventData> eventsToSave)
+        protected async Task SaveEventBatch(string streamId, long expectedVersion, IEnumerable<EventData> eventsToSave)
         {
             WriteResult writeResult;
 

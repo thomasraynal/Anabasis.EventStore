@@ -41,12 +41,14 @@ namespace Anabasis.EventStore.AspNet.Builders
 
         public EventStoreStatefulActorBuilder<TActor, TAggregate> WithReadAllFromStartCache(
           IEventTypeProvider<TAggregate> eventTypeProvider = null,
-          Action<AllStreamsCatchupCacheConfiguration<TAggregate>> catchupEventStoreCacheConfigurationBuilder = null,
-          ISnapshotStore<TAggregate> snapshotStore = null,
-          ISnapshotStrategy snapshotStrategy = null)
+          Action<AllStreamsCatchupCacheConfiguration<TAggregate>> catchupEventStoreCacheConfigurationBuilder = null)
         {
 
-            var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
+            var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, ISnapshotStore<TAggregate>, ISnapshotStrategy, IAggregateCache<TAggregate>>((
+                connectionMonitor, 
+                loggerFactory,
+                snapshotStore,
+                snapshotStrategy) =>
                {
                    var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.Start)
                    {
@@ -79,22 +81,18 @@ namespace Anabasis.EventStore.AspNet.Builders
         public EventStoreStatefulActorBuilder<TActor, TAggregate> WithReadOneStreamFromStartCache(
           string streamId,
           IEventTypeProvider<TAggregate> eventTypeProvider = null,
-          Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
-          ISnapshotStore<TAggregate> snapshotStore = null,
-          ISnapshotStrategy snapshotStrategy = null)
+          Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null)
         {
-            return WithReadManyStreamFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration, snapshotStore, snapshotStrategy);
+            return WithReadManyStreamFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration);
         }
 
         public EventStoreStatefulActorBuilder<TActor, TAggregate> WithReadManyStreamFromStartCache(
           string[] streamIds,
           IEventTypeProvider<TAggregate> eventTypeProvider = null,
-          Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null,
-          ISnapshotStore<TAggregate> snapshotStore = null,
-          ISnapshotStrategy snapshotStrategy = null)
+          Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null)
         {
 
-            var getSubscribeFromEndMultipleStreamsEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndMultipleStreamsEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, ISnapshotStore<TAggregate>, ISnapshotStrategy, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy) =>
            {
                var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<TAggregate>(streamIds)
                {
@@ -119,7 +117,7 @@ namespace Anabasis.EventStore.AspNet.Builders
           IEventTypeProvider<TAggregate> eventTypeProvider = null,
           Action<AllStreamsCatchupCacheConfiguration<TAggregate>> volatileCacheConfigurationBuilder = null)
         {
-            var getSubscribeFromEndEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory) =>
+            var getSubscribeFromEndEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, ISnapshotStore<TAggregate>, ISnapshotStrategy, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy) =>
            {
                var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.End)
                {

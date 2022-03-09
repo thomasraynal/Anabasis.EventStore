@@ -8,5 +8,6 @@ namespace Anabasis.Common
         bool KeepAppliedEventsOnAggregate { get; }
         ISerializer Serializer { get; }
         public bool CrashAppIfSubscriptionFail { get; set; }
+        public bool UseSnapshot { get; set; }
     }
 }

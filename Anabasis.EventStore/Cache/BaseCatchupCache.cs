@@ -36,7 +36,7 @@ namespace Anabasis.EventStore.Cache
         protected Microsoft.Extensions.Logging.ILogger Logger { get; }
         public IEventTypeProvider<TAggregate> EventTypeProvider { get; }
         public string Id { get; }
-        public bool UseSnapshot { get; private set; }
+        public bool UseSnapshot => _catchupCacheConfiguration.UseSnapshot;
         public IObservable<bool> OnStale => _isStaleSubject.AsObservable();
         public IObservable<bool> OnCaughtUp => _isCaughtUpSubject.AsObservable();
         public bool IsStale => _isStaleSubject.Value;
@@ -58,14 +58,6 @@ namespace Anabasis.EventStore.Cache
            IKillSwitch killSwitch = null)
         {
 
-            if (snapshotStore == null && snapshotStrategy != null || snapshotStore != null && snapshotStrategy == null)
-            {
-                throw new InvalidOperationException($"To use snapshots both a snapshotStore and a snapshotStrategy are required " +
-                    $"[snapshotStore is null = {snapshotStore == null}, snapshotStrategy is null ={snapshotStrategy == null}]");
-            }
-
-            UseSnapshot = snapshotStore != null && snapshotStrategy != null;
-
             Id = $"{GetType()}-{Guid.NewGuid()}";
             EventTypeProvider = eventTypeProvider;
 
@@ -82,6 +74,12 @@ namespace Anabasis.EventStore.Cache
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
             _isStaleSubject = new BehaviorSubject<bool>(true);
             _cleanUp = new CompositeDisposable();
+
+            if (UseSnapshot && (_snapshotStore == null && _snapshotStrategy != null || _snapshotStore != null && _snapshotStrategy == null))
+            {
+                throw new InvalidOperationException($"Snapshots are activated on {GetType().Name}. To use snapshots both a snapshotStore and a snapshotStrategy are required " +
+                    $"[snapshotStore is null = {snapshotStore == null}, snapshotStrategy is null = {snapshotStrategy == null}]");
+            }
 
         }
 
@@ -383,7 +381,12 @@ namespace Anabasis.EventStore.Cache
 
             if (null == targetType) throw new InvalidOperationException($"{recordedEvent.EventType} cannot be handled");
 
-            return _catchupCacheConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IAggregateEvent<TAggregate>;
+            var aggregateEvent = _catchupCacheConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IAggregateEvent<TAggregate>;
+            aggregateEvent.EventNumber = recordedEvent.EventNumber;
+
+            return aggregateEvent;
+
+
         }
 
         public void Dispose()

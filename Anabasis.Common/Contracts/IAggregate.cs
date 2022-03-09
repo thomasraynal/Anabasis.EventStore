@@ -4,8 +4,8 @@ namespace Anabasis.Common
 {
     public interface IAggregate : IHaveEntityId
     {
-        int Version { get; }
-        int VersionFromSnapshot { get; set; }
+        long Version { get; }
+        long VersionFromSnapshot { get; set; }
         void ApplyEvent<TAggregate>(IAggregateEvent<TAggregate> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = false)
             where TAggregate : class, IAggregate;
         [JsonIgnore]

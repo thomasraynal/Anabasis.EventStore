@@ -15,12 +15,16 @@ namespace Anabasis.Common
         [JsonProperty]
         public string EntityId { get; protected set; }
 
-        public int Version { get; set; } = -1;
+        public long Version { get; set; } = -1;
 
         [JsonProperty]
-        public int VersionFromSnapshot { get; set; } = -1;
+        public long VersionFromSnapshot { get; set; } = -1;
 
-        public void ApplyEvent<TAggregate>(IAggregateEvent<TAggregate> @event, bool saveAsPendingEvent = true, bool keepAppliedEventsOnAggregate = true) 
+        public void ApplyEvent<TAggregate>(
+            IAggregateEvent<TAggregate> @event, 
+            
+            bool saveAsPendingEvent = true, 
+            bool keepAppliedEventsOnAggregate = true) 
             where TAggregate : class, IAggregate
         {
             //we only save applied events
@@ -37,7 +41,7 @@ namespace Anabasis.Common
 
             @event.Apply(this as TAggregate);
 
-            Version++;
+            Version = @event.EventNumber;
         }
 
         public void ClearPendingEvents()

@@ -20,6 +20,7 @@ namespace Anabasis.EventStore.Cache
         public bool KeepAppliedEventsOnAggregate { get; set; } = false;
         public UserCredentials UserCredentials { get; set; }
         public ISerializer Serializer { get; set; } = new DefaultSerializer();
+        public bool UseSnapshot { get; set; }
         public CatchUpSubscriptionFilteredSettings CatchUpSubscriptionFilteredSettings { get; set; } = CatchUpSubscriptionFilteredSettings.Default;
     }
 }

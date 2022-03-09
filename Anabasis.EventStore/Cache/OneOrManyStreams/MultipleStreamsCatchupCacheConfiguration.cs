@@ -20,6 +20,6 @@ namespace Anabasis.EventStore.Cache
         public ISerializer Serializer { get; set; } = new DefaultSerializer();
         public CatchUpSubscriptionFilteredSettings CatchUpSubscriptionFilteredSettings { get; set; } = CatchUpSubscriptionFilteredSettings.Default;
         public bool IsSubscribeAll => false;
-
+        public bool UseSnapshot { get; set; }
     }
 }

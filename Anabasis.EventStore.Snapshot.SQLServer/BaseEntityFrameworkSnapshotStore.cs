@@ -7,32 +7,30 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Snapshot.SQLServer
 {
 
-    public abstract class BaseSQLServerSnapshotStore<TAggregate,TDbContext, TAggregateSnapshot> : ISnapshotStore<TAggregate> 
-        where TDbContext: BaseAggregateSnapshotDbContext<TAggregateSnapshot>
+    public abstract class BaseEntityFrameworkSnapshotStore<TAggregate, TDbContext, TAggregateSnapshot> : ISnapshotStore<TAggregate>
+        where TDbContext : BaseAggregateSnapshotDbContext<TAggregateSnapshot>
         where TAggregate : IAggregate, new()
-        where TAggregateSnapshot : AggregateSnapshot, new()
+        where TAggregateSnapshot : class, IAggregateSnapshot, new()
     {
-        private readonly SQLServerSnapshotStoreOptions _sQLServerSnapshotStoreOptions;
 
-        public BaseSQLServerSnapshotStore(SQLServerSnapshotStoreOptions sQLServerSnapshotStoreOptions)
+        private readonly IDbContextFactory<TDbContext> _aggregateSnapshotDbContextFactory;
+
+        public BaseEntityFrameworkSnapshotStore(IDbContextFactory<TDbContext> aggregateSnapshotDbContextFactory)
         {
-            sQLServerSnapshotStoreOptions.Validate();
-
-            _sQLServerSnapshotStoreOptions = sQLServerSnapshotStoreOptions;
+            _aggregateSnapshotDbContextFactory = aggregateSnapshotDbContextFactory;
         }
 
-        public abstract TDbContext GetDbContext(SQLServerSnapshotStoreOptions sQLServerSnapshotStoreOptions);
 
         public async Task<TAggregate> GetByVersionOrLast(string streamId, string[] eventFilters, int? version = null)
         {
 
-            using var context = GetDbContext(_sQLServerSnapshotStoreOptions);
+            using var context = _aggregateSnapshotDbContextFactory.CreateDbContext();
 
             var eventFilter = string.Concat(eventFilters);
 
-            var aggregateSnapshotQueryable = context.GetAggregateDbSet().AsQueryable().OrderByDescending(p => p.LastModifiedUtc);
+            var aggregateSnapshotQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(p => p.LastModifiedUtc);
 
-            AggregateSnapshot aggregateSnapshot = null;
+            TAggregateSnapshot aggregateSnapshot = null;
 
             if (null == version)
             {
@@ -53,21 +51,21 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
 
         public async Task<TAggregate[]> GetByVersionOrLast(string[] eventFilters, int? version = null)
         {
-            using var context = GetDbContext(_sQLServerSnapshotStoreOptions);
+            using var context = _aggregateSnapshotDbContextFactory.CreateDbContext();
 
             var eventFilter = string.Concat(eventFilters);
 
             var isLatest = version == null;
 
-            AggregateSnapshot[] aggregateSnapshots = null;
+            TAggregateSnapshot[] aggregateSnapshots = null;
 
             if (isLatest)
             {
 
-                var orderByDescendingQueryable = context.GetAggregateDbSet().AsQueryable().OrderByDescending(snapshot => snapshot.LastModifiedUtc);
+                var orderByDescendingQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(snapshot => snapshot.LastModifiedUtc);
 
                 //https://github.com/dotnet/efcore/issues/13805
-                aggregateSnapshots = await context.GetAggregateDbSet().AsQueryable()
+                aggregateSnapshots = await context.AggregateSnapshots.AsQueryable()
                                                                     .Where(snapshot => snapshot.EventFilter == eventFilter)
                                                                     .OrderByDescending(snapshot => snapshot.LastModifiedUtc)
                                                                     .Select(snapshot => snapshot.StreamId)
@@ -77,10 +75,10 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
             }
             else
             {
-                aggregateSnapshots = await context.GetAggregateDbSet().AsQueryable().Where(snapshot => snapshot.EventFilter == eventFilter && snapshot.Version == version).ToArrayAsync();
+                aggregateSnapshots = await context.AggregateSnapshots.AsQueryable().Where(snapshot => snapshot.EventFilter == eventFilter && snapshot.Version == version).ToArrayAsync();
             }
 
-            if (aggregateSnapshots.Length == 0) return new TAggregate[0];
+            if (aggregateSnapshots.Length == 0) return System.Array.Empty<TAggregate>();
 
             return aggregateSnapshots.Select(aggregateSnapshot => aggregateSnapshot.SerializedAggregate.JsonTo<TAggregate>()).ToArray();
 
@@ -88,7 +86,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
 
         public async Task Save(string[] eventFilters, TAggregate aggregate)
         {
-            using var context = GetDbContext(_sQLServerSnapshotStoreOptions);
+            using var context = _aggregateSnapshotDbContextFactory.CreateDbContext();
 
             var aggregateSnapshot = new TAggregateSnapshot
             {
@@ -98,7 +96,9 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
                 SerializedAggregate = aggregate.ToJson(),
             };
 
-            context.GetAggregateDbSet().Add(aggregateSnapshot);
+            if (await context.AggregateSnapshots.ContainsAsync(aggregateSnapshot)) return;
+
+            context.AggregateSnapshots.Add(aggregateSnapshot);
 
             await context.SaveChangesAsync();
 
@@ -108,9 +108,9 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
         {
             var results = new List<TAggregate>();
 
-            using var context = GetDbContext(_sQLServerSnapshotStoreOptions);
+            using var context = _aggregateSnapshotDbContextFactory.CreateDbContext();
 
-            foreach (var aggregateSnapshot in await context.GetAggregateDbSet().AsQueryable().ToListAsync())
+            foreach (var aggregateSnapshot in await context.AggregateSnapshots.AsQueryable().ToListAsync())
             {
                 var aggregate = aggregateSnapshot.SerializedAggregate.JsonTo<TAggregate>();
 
