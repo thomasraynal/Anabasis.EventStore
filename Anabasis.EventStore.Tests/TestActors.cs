@@ -175,7 +175,7 @@ namespace Anabasis.EventStore.Tests
                  _userCredentials);
         }
 
-        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreStream volatileEventStoreStream) CreateVolatileEventStoreStream()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndToAllEventStoreStream volatileEventStoreStream) CreateVolatileEventStoreStream()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
@@ -183,7 +183,7 @@ namespace Anabasis.EventStore.Tests
 
             var volatileEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration(_userCredentials);
 
-            var volatileEventStoreStream = new SubscribeFromEndEventStoreStream(
+            var volatileEventStoreStream = new SubscribeFromEndToAllEventStoreStream(
               connectionMonitor,
               volatileEventStoreStreamConfiguration,
               new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent), typeof(SomeCommandResponse), typeof(SomeCommand), typeof(SomeCommand2), typeof(SomeCommandResponse2) }),

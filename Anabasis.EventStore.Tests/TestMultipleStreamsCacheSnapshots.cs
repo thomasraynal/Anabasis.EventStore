@@ -96,6 +96,7 @@ namespace Anabasis.EventStore.Tests
             {
                 KeepAppliedEventsOnAggregate = true,
                 IsStaleTimeSpan = TimeSpan.FromSeconds(1),
+                UseSnapshot = true
             };
 
             var catchUpCache = new MultipleStreamsCatchupCache<SomeDataAggregate>(

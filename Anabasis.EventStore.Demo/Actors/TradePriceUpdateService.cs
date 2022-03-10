@@ -2,6 +2,7 @@ using Anabasis.Common;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
@@ -17,7 +18,7 @@ namespace Anabasis.EventStore.Demo
         {
         }
 
-        public TradePriceUpdateService(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TradePriceUpdateService(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<Trade> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 

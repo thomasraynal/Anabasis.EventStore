@@ -22,9 +22,9 @@ namespace Anabasis.EventStore.Tests
         private ConnectionSettings _connectionSettings;
         private LoggerFactory _loggerFactory;
         private ClusterVNode _clusterVNode;
-        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreStream volatileEventStoreStream) _streamOne;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndToAllEventStoreStream volatileEventStoreStream) _streamOne;
         private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) _repositoryOne;
-        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreStream volatileEventStoreStream) _streamTwo;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndToAllEventStoreStream volatileEventStoreStream) _streamTwo;
 
         private Guid _correlationId = Guid.NewGuid();
 
@@ -74,7 +74,7 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndEventStoreStream volatileEventStoreStream) CreateVolatileEventStoreStream()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, SubscribeFromEndToAllEventStoreStream volatileEventStoreStream) CreateVolatileEventStoreStream()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
@@ -82,7 +82,7 @@ namespace Anabasis.EventStore.Tests
 
             var volatileEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration(_userCredentials);
 
-            var volatileEventStoreStream = new SubscribeFromEndEventStoreStream(
+            var volatileEventStoreStream = new SubscribeFromEndToAllEventStoreStream(
               connectionMonitor,
               volatileEventStoreStreamConfiguration,
               new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }),

@@ -204,7 +204,7 @@ namespace Anabasis.EventStore.Tests
 
             var volatileEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration(_userCredentials);
 
-            var volatileEventStoreStream = new SubscribeFromEndEventStoreStream(
+            var volatileEventStoreStream = new SubscribeFromEndToAllEventStoreStream(
               connectionMonitor,
               volatileEventStoreStreamConfiguration,
               eventProvider,

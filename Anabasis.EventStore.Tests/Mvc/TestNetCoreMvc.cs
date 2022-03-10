@@ -15,6 +15,8 @@ using Anabasis.EventStore.Tests.Mvc;
 using EventStore.ClientAPI;
 using Anabasis.EventStore.AspNet.Embedded;
 using Anabasis.EventStore.AspNet;
+using Anabasis.EventStore.Factories;
+using Anabasis.EventStore.Snapshot;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -63,7 +65,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestStatefulActorOneMvc(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActorOneMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 
@@ -91,7 +93,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestBusRegistrationStatefullActor(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationStatefullActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 

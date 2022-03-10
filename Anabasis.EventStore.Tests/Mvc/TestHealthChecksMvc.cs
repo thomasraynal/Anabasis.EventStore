@@ -17,6 +17,8 @@ using EventStore.ClientAPI;
 using System.Threading;
 using Anabasis.EventStore.AspNet.Embedded;
 using Anabasis.EventStore.AspNet;
+using Anabasis.EventStore.Factories;
+using Anabasis.EventStore.Snapshot;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -140,7 +142,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestStatefulActorOneHealthChecksMvc(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActorOneHealthChecksMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 

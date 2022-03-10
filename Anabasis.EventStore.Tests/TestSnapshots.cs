@@ -25,7 +25,10 @@ namespace Anabasis.EventStore.Tests
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 0);
 
-            someDataAggregate.ApplyEvent(new SomeData(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
+            someDataAggregate.ApplyEvent(new SomeData(entityA, Guid.NewGuid())
+            {
+                EventNumber = 0
+            }, saveAsPendingEvent: false);
 
             await snaphotRepository.Save(eventFilterOne, someDataAggregate);
 
@@ -46,7 +49,10 @@ namespace Anabasis.EventStore.Tests
             Assert.NotNull(snapshots);
             Assert.True(snapshots.Length == 0);
 
-            someDataAggregate.ApplyEvent(new SomeData(entityA, Guid.NewGuid()), saveAsPendingEvent: false);
+            someDataAggregate.ApplyEvent(new SomeData(entityA, Guid.NewGuid())
+            {
+                EventNumber = 1
+            }, saveAsPendingEvent: false);
 
             Assert.True(someDataAggregate.Version == 1);
 

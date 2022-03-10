@@ -4,6 +4,7 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.AspNet;
 using Anabasis.EventStore.AspNet.Embedded;
 using Anabasis.EventStore.Factories;
+using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Tests.Mvc;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -77,12 +78,11 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestBusRegistrationEventStoreStatefullActorMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationEventStoreStatefullActorMvc(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 
         public List<IEvent> Events { get; } = new List<IEvent>();
-
 
         public Task Handle(SomeData someData)
         {

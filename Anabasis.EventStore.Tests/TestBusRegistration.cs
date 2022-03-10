@@ -2,7 +2,9 @@
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -205,13 +207,11 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestBusRegistrationStatefulActor(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 
         public List<SomeData> Events { get; } = new List<SomeData>();
-
-
 
         public Task Handle(SomeData someData)
         {

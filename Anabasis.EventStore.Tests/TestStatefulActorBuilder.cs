@@ -1,5 +1,7 @@
 using Anabasis.Common;
 using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Factories;
+using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
@@ -22,13 +24,11 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestStatefulActorOne(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActorOne(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 
         public List<IEvent> Events { get; } = new List<IEvent>();
-
-
 
         public Task Handle(AgainSomeMoreData againSomeMoreData)
         {
@@ -52,7 +52,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestAggregatedActorTwo(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TestAggregatedActorTwo(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 

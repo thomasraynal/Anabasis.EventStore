@@ -16,6 +16,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Anabasis.Common;
+using Anabasis.EventStore.Factories;
+using Anabasis.EventStore.Snapshot;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -25,7 +27,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestStatefulActor(Factories.IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, loggerFactory)
+        public TestStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
         {
         }
 
@@ -142,7 +144,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            var subscribeToAllStream = new SubscribeFromEndEventStoreStream(_cacheOne.connectionStatusMonitor,
+            var subscribeToAllStream = new SubscribeFromEndToAllEventStoreStream(_cacheOne.connectionStatusMonitor,
                 new SubscribeFromEndEventStoreStreamConfiguration(),
                 new ConsumerBasedEventProvider<TestStatefulActor>(),
                 _loggerFactory);

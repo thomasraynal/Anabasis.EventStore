@@ -132,6 +132,7 @@ namespace Anabasis.EventStore.Tests
                 UserCredentials = _userCredentials,
                 KeepAppliedEventsOnAggregate = true,
                 IsStaleTimeSpan = TimeSpan.FromSeconds(1),
+                UseSnapshot = true
             };
 
             var defaultSnapshotStrategy = new DefaultSnapshotStrategy();
