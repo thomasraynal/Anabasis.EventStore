@@ -1,21 +1,19 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
     public class AnabasisAppContext
     {
-        public const string AppConfigurationFile = "config.app.json";
-        public const string GroupConfigurationFile = "config.group.json";
+
+
+
 
         public AnabasisAppContext(
             string applicationName,
             string applicationGroup,
             Version apiVersion,
             string sentryDsn = null,
-            string environnement = "PROD",
+            AnabasisEnvironment environnement = AnabasisEnvironment.Development,
             Uri docUrl = null,
             int apiPort = 80,
             int memoryCheckTresholdInMB = 200,
@@ -40,6 +38,7 @@ namespace Anabasis.Common
         public int MemoryCheckTresholdInMB { get; }
         public string MachineName { get;  }
         public string SentryDsn { get; }
-        public string Environment { get; }
+        public AnabasisEnvironment Environment { get; }
+
     }
 }

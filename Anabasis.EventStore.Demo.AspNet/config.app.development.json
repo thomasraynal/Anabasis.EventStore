@@ -1,6 +1,6 @@
 {
   "appConfigurationOptions": {
-    "applicationName": "ProdApp",
+    "applicationName": "DevApp",
     "sentryDsn": "https://d35eb7346892458899aac2541a20115f@o1067128.ingest.sentry.io/6060457",
     "apiVersion": "1.0",
     "docUrl": "https://apidocjs.com/example/"

@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
@@ -18,10 +19,10 @@ namespace Anabasis.Deployment
             AppName = appName;
             AppRelease = appRelease;
 
-            var (appConfigurationOptions, groupConfigurationOptions) = GetConfigurations(projectBuildDirectory);
+            var anabasisConfiguration = Configuration.GetConfigurations(rootDirectory: projectBuildDirectory);
 
-            AppConfiguration = appConfigurationOptions;
-            GroupConfiguration = groupConfigurationOptions;
+            AppConfiguration = anabasisConfiguration.AppConfigurationOptions;
+            GroupConfiguration = anabasisConfiguration.GroupConfigurationOptions;
 
             AppGroup = SanitizeForKubernetesConfig(GroupConfiguration.GroupName);
 
@@ -47,37 +48,6 @@ namespace Anabasis.Deployment
         private string SanitizeForKubernetesConfig(string str)
         {
             return str.Replace(".", "-").ToLower();
-        }
-
-        private (AppConfigurationOptions appConfigurationOptions, GroupConfigurationOptions groupConfigurationOptions) GetConfigurations(DirectoryInfo appBuildDirectory)
-        {
-            var configGroupFile = appBuildDirectory.EnumerateFiles(BuildConst.GroupConfigurationFileName, SearchOption.TopDirectoryOnly).FirstOrDefault();
-            var configAppFile = appBuildDirectory.EnumerateFiles(BuildConst.AppConfigurationFileName, SearchOption.TopDirectoryOnly).FirstOrDefault();
-
-            if (null == configGroupFile)
-                throw new InvalidOperationException($"Unable to find a {BuildConst.GroupConfigurationFileName} file in the project {appBuildDirectory.FullName} and its subdirectories");
-
-            if (null == configAppFile)
-                throw new InvalidOperationException($"Unable to find a {BuildConst.AppConfigurationFileName} file in the project {appBuildDirectory.FullName} and its subdirectories");
-
-            var configurationBuilder = new ConfigurationBuilder();
-
-            configurationBuilder.AddJsonFile(configGroupFile.FullName, false, false);
-            configurationBuilder.AddJsonFile(configAppFile.FullName, false, false);
-
-            var configurationRoot = configurationBuilder.Build();
-
-            var appConfigurationOptions = new AppConfigurationOptions();
-            configurationRoot.GetSection(nameof(AppConfigurationOptions)).Bind(appConfigurationOptions);
-
-            var groupConfigurationOptions = new GroupConfigurationOptions();
-            configurationRoot.GetSection(nameof(GroupConfigurationOptions)).Bind(groupConfigurationOptions);
-
-            appConfigurationOptions.Validate();
-            groupConfigurationOptions.Validate();
-
-            return (appConfigurationOptions, groupConfigurationOptions);
-
         }
 
     }

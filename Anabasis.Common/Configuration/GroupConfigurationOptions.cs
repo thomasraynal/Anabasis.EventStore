@@ -7,6 +7,5 @@ namespace Anabasis.Common
     {
         [Required]
         public string GroupName { get; set; }
-        public string Environment { get; set; } = "PROD";
     }
 }

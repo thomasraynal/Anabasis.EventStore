@@ -13,10 +13,10 @@ using k8s;
 using Serilog;
 using System.Collections.Generic;
 using System.Text;
+using Anabasis.Common;
 
 namespace Anabasis.Deployment
 {
-
     public abstract partial class BaseAnabasisBuild : NukeBuild
     {
 
@@ -44,7 +44,7 @@ namespace Anabasis.Deployment
 
         [Required]
         [Parameter("Set the build environment")]
-        public AnabasisBuildEnvironment AnabasisBuildEnvironment;
+        public AnabasisEnvironment AnabasisBuildEnvironment;
 
         [Required]
         [Parameter("Kubernetes cluster configuration file")]
@@ -95,7 +95,7 @@ namespace Anabasis.Deployment
             Directory.CreateDirectory(appDescriptor.AppSourceKustomizeDirectory.FullName);
             Directory.CreateDirectory(appDescriptor.AppSourceKustomizeBaseDirectory.FullName);
 
-            foreach (var env in Enum.GetValues(typeof(AnabasisBuildEnvironment)).Cast<AnabasisBuildEnvironment>())
+            foreach (var env in Enum.GetValues(typeof(AnabasisEnvironment)).Cast<AnabasisEnvironment>())
             {
                 var envDirectory = Path.Combine(appDescriptor.AppSourceKustomizeDirectory.FullName, $"{env}".ToLower());
 

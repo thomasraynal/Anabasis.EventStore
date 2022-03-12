@@ -2,6 +2,7 @@
 using Anabasis.Api.Filters;
 using Anabasis.Api.Middleware;
 using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Anabasis.Common.HealthChecks;
 using Anabasis.Common.Utilities;
 using Microsoft.AspNetCore;
@@ -32,7 +33,7 @@ namespace Anabasis.Api
 {
     public static class WebAppBuilder
     {
-
+  
         public static IWebHostBuilder Create<THost>(
             int apiPort = 80,
             int? memoryCheckTresholdInMB = 200,
@@ -48,34 +49,15 @@ namespace Anabasis.Api
             Action<LoggerConfiguration> configureLogging = null)
         {
 
-            var configurationBuilder = new ConfigurationBuilder();
-
-            configurationBuilder.AddEnvironmentVariables();
-
-            configurationBuilder.AddJsonFile(AnabasisAppContext.AppConfigurationFile, false, false);
-            configurationBuilder.AddJsonFile(AnabasisAppContext.GroupConfigurationFile, true, false);
-
-            configureConfigurationBuilder?.Invoke(configurationBuilder);
-
-            var configurationRoot = configurationBuilder.Build();
-
-            var appConfigurationOptions = new AppConfigurationOptions();
-            configurationRoot.GetSection(nameof(AppConfigurationOptions)).Bind(appConfigurationOptions);
-
-            appConfigurationOptions.Validate();
-
-            var groupConfigurationOptions = new GroupConfigurationOptions();
-            configurationRoot.GetSection(nameof(GroupConfigurationOptions)).Bind(groupConfigurationOptions);
-
-            groupConfigurationOptions.Validate();
+            var anabasisConfiguration = Configuration.GetConfigurations(configureConfigurationBuilder);
 
             var appContext = new AnabasisAppContext(
-                appConfigurationOptions.ApplicationName,
-                groupConfigurationOptions.GroupName,
-                appConfigurationOptions.ApiVersion,
-                appConfigurationOptions.SentryDsn,
-                groupConfigurationOptions.Environment,
-                appConfigurationOptions.DocUrl,
+                anabasisConfiguration.AppConfigurationOptions.ApplicationName,
+                anabasisConfiguration.GroupConfigurationOptions.GroupName,
+                anabasisConfiguration.AppConfigurationOptions.ApiVersion,
+                anabasisConfiguration.AppConfigurationOptions.SentryDsn,
+                anabasisConfiguration.AnabasisEnvironment,
+                anabasisConfiguration.AppConfigurationOptions.DocUrl,
                 apiPort,
                 memoryCheckTresholdInMB.Value,
                 Environment.MachineName);
@@ -103,7 +85,7 @@ namespace Anabasis.Api
 
             webHostBuilder = webHostBuilder
                 .UseUrls("http://+:" + appContext.ApiPort)
-                .UseEnvironment(appContext.Environment.ToString())
+                .UseEnvironment($"{appContext.Environment}")
                 .UseSetting(WebHostDefaults.ApplicationKey, appContext.ApplicationName)
                 .UseSetting(WebHostDefaults.StartupAssemblyKey, Assembly.GetExecutingAssembly().GetName().Name)
                 .UseSerilog()
@@ -112,7 +94,7 @@ namespace Anabasis.Api
 
                     ConfigureServices<THost>(services, useCors, appContext, serializer, configureMvcBuilder, configureMvc, configureJson);
 
-                    configureServiceCollection?.Invoke(services, configurationRoot);
+                    configureServiceCollection?.Invoke(services, anabasisConfiguration.ConfigurationRoot);
 
                 })
                 .Configure((context, appBuilder) =>

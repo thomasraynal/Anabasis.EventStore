@@ -1,0 +1,10 @@
+{
+  "profiles": {
+    "Anabasis.EventStore.Demo.AspNet": {
+      "commandName": "Project",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Production"
+      }
+    }
+  }
+}
