@@ -59,8 +59,6 @@ namespace Anabasis.Common.Configuration
 
             configurationBuilder.AddEnvironmentVariables();
 
-            
-
             configurationBuilder.AddJsonFile(Path.Combine(rootDirectory.FullName,BaseAppConfigurationFile), false, false);
             configurationBuilder.AddJsonFile(Path.Combine(rootDirectory.FullName, GetAppConfigurationOverrideFile(anabasisEnvironment)), true, false);
 
