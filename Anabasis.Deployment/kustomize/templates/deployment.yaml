@@ -50,5 +50,7 @@ spec:
               valueFrom:
                 fieldRef:
                   fieldPath: status.podIP
+            #- name: ASPNETCORE_ENVIRONMENT
+            #  value: "Production"
       imagePullSecrets:
       - name: registrysecret

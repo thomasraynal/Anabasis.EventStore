@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Anabasis.Common
+﻿namespace Anabasis.Common
 {
     public interface IEventStoreActor : IActor
     {

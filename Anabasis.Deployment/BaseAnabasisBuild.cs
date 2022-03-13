@@ -46,7 +46,6 @@ namespace Anabasis.Deployment
         [Parameter("Set the build environment")]
         public AnabasisEnvironment AnabasisBuildEnvironment;
 
-        [Required]
         [Parameter("Kubernetes cluster configuration file")]
         public readonly AbsolutePath KubeConfigPath;
 
@@ -58,7 +57,7 @@ namespace Anabasis.Deployment
 
         public AbsolutePath NukeBuildDirectory => RootDirectory / "build";
         public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
-
+     
         [Required]
         [GitRepository]
         public readonly GitRepository GitRepository;
@@ -125,7 +124,7 @@ namespace Anabasis.Deployment
         {
             var secret = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "secret-docker-registry.yaml")).First() as k8s.Models.V1Secret;
 
-            var dockerConfigToJson = GetBase64DockerConfiguration();
+            var dockerConfigToJson = GetDockerConfiguration();
 
             secret.Metadata.NamespaceProperty = appDescriptor.AppGroup;
             secret.Data[".dockerconfigjson"] = Encoding.UTF8.GetBytes(Convert.ToBase64String(Encoding.UTF8.GetBytes(dockerConfigToJson)));
@@ -197,7 +196,7 @@ namespace Anabasis.Deployment
            .Executes(() =>
            {
            
-               var testProjectFiles = GetTestsProjects();
+               var testProjectFiles = GetApplicationTestsProjects();
 
                if (IsTestRunParallelized)
                {
@@ -225,7 +224,7 @@ namespace Anabasis.Deployment
                }
                else
                {
-                   foreach (var testProjectPath in GetTestsProjects())
+                   foreach (var testProjectPath in GetApplicationTestsProjects())
                    {
                        ExecuteTests(testProjectPath.FullName);
                    }
@@ -237,7 +236,7 @@ namespace Anabasis.Deployment
             .DependsOn(Test)
             .Executes(() =>
             {
-                foreach (var appDescriptor in GetAppsToDeploy())
+                foreach (var appDescriptor in GetApplicationsToDeploy())
                 {
                    CreateDockerImage(appDescriptor);
                 }
@@ -248,7 +247,7 @@ namespace Anabasis.Deployment
             .DependsOn(DockerPackage)
             .Executes(() =>
             {
-                foreach (var appDescriptor in GetAppsToDeploy())
+                foreach (var appDescriptor in GetApplicationsToDeploy())
                 {
                     PushDockerImage(appDescriptor);
                 }
@@ -258,7 +257,7 @@ namespace Anabasis.Deployment
             .DependsOn(DockerPush)
             .Executes(async () =>
             {
-                foreach (var app in GetAppsToDeploy())
+                foreach (var app in GetApplicationsToDeploy())
                 {
                     SetupKustomize(app);
                     await GenerateBaseKustomize(app);
@@ -271,7 +270,7 @@ namespace Anabasis.Deployment
             .Executes(async() =>
             {
 
-                var appsToBeDeployed = GetAppsToDeploy();
+                var appsToBeDeployed = GetApplicationsToDeploy();
 
                 foreach (var appToBeDeployed in appsToBeDeployed)
                 {
@@ -280,13 +279,11 @@ namespace Anabasis.Deployment
 
             });
 
-
-
-        public virtual AppDescriptor[] GetAppsToDeploy()
+        public AppDescriptor[] GetApplicationsToDeploy()
         {
             var appDescriptors = new List<AppDescriptor>();
 
-            var applicationProjectFiles = GetApplicationProjects();
+            var applicationProjectFiles = GetApplicationToDeployProjects();
 
             foreach (var applicationProjectFile in applicationProjectFiles)
             {
@@ -308,7 +305,7 @@ namespace Anabasis.Deployment
 
         }
 
-        protected virtual FileInfo[] GetTestsProjects()
+        public virtual FileInfo[] GetApplicationTestsProjects()
         {
             return PathConstruction.GlobFiles(TestsDirectory, $"**/*.Tests.csproj")
                 .OrderBy(path => $"{path}")
@@ -316,7 +313,7 @@ namespace Anabasis.Deployment
                 .ToArray();
         }
 
-        public string GetBase64DockerConfiguration()
+        public string GetDockerConfiguration()
         {
             return "{\"auths\":" +
                 "       {\"registry.hub.docker.com\":" +
@@ -328,33 +325,21 @@ namespace Anabasis.Deployment
                 "   }";
         }
 
+ 
+        public virtual FileInfo[] GetApplicationToDeployProjects()
+        {
+            return PathConstruction.GlobFiles(SourceDirectory, "**/*.App.csproj").OrderBy(path => $"{path}")
+                                                                           .Select(path => new FileInfo($"{path}"))
+                                                                            .ToArray();
+        }
+
         public virtual FileInfo[] GetAllProjects()
         {
-            var projects = GetApplicationProjects()
-                .Concat(GetTestsProjects())
-                .Concat(GetNugetPackageProjects())
-                .Distinct()
-                .OrderBy(s => s.FullName)
-                .Where(s=> s.FullName != BuildProjectFile)
-                .ToArray();
-
-            return projects;
-        }
-
-        protected virtual FileInfo[] GetApplicationProjects(AbsolutePath directory = null)
-        {
-            directory ??= SourceDirectory;
-
-            return PathConstruction.GlobFiles(directory, "**/*.App.csproj").OrderBy(path => $"{path}")
-                                                                           .Select(path => new FileInfo($"{path}"))
-                                                                           .ToArray();
-        }
-
-        protected virtual FileInfo[] GetNugetPackageProjects()
-        {
-            return PathConstruction.GlobFiles(SourceDirectory, "**/*.csproj")
-                                                                             .OrderBy(path => $"{path}")
+            return PathConstruction.GlobFiles(SourceDirectory, "**/*.csproj").OrderBy(path => $"{path}")
                                                                              .Select(path => new FileInfo($"{path}"))
+                                                                             .Distinct()
+                                                                             .OrderBy(s => s.FullName)
+                                                                             .Where(s => s.FullName != BuildProjectFile)
                                                                              .ToArray();
         }
 

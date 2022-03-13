@@ -94,7 +94,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);
         
-            var onEvent = _rabbitMqBus.SubscribeRabbitMq<TestEventZero>(_integrationActorExchange);
+            var onEvent = _rabbitMqBus.SubscribeToExchange<TestEventZero>(_integrationActorExchange);
 
             TestEventZero testEventZero = null;
 
@@ -123,7 +123,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         {
 
 
-            _testRabbitMqActor.SubscribeRabbitMq<TestEventOne>(_integrationActorExchange);
+            _testRabbitMqActor.SubscribeToExchange<TestEventOne>(_integrationActorExchange);
 
             var eventOne = new TestEventOne(Guid.NewGuid(), Guid.NewGuid());
 

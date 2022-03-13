@@ -33,7 +33,7 @@ namespace Anabasis.Deployment.Tests
         [Test, Order(1)]
         public void ShouldGetAppsToBeDeployed()
         {
-            var appToBeDeployed = _testAnabasisBuild.GetAppsToDeploy();
+            var appToBeDeployed = _testAnabasisBuild.GetApplicationsToDeploy();
 
             Assert.AreEqual(1, appToBeDeployed.Length);
 
