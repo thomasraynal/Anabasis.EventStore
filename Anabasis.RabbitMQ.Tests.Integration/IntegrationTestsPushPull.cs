@@ -31,7 +31,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             await Task.Delay(100);
 
-            var events =  rabbitMqBus.Pull(testQueueName, 1);
+            var events =  rabbitMqBus.Pull(testQueueName,true, 1);
         }
 
     }

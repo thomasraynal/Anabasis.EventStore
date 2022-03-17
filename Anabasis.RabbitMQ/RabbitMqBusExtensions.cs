@@ -27,17 +27,17 @@ namespace Anabasis.RabbitMQ
             rabbitMqBus.Emit(@event, exchange, initialVisibilityDelay);
         }
 
-        public static TEvent[] PullRabbitMq<TEvent>(this IActor actor, string queueName, int? chunkSize = null)
+        public static TEvent[] PullRabbitMq<TEvent>(this IActor actor, string queueName, bool isAutoAck = false, int? chunkSize = null)
                 where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
-            return rabbitMqBus.Pull(queueName, chunkSize)
+            return rabbitMqBus.Pull(queueName, isAutoAck, chunkSize)
                               .Cast<TEvent>()
                               .ToArray();
         }
 
-        public static void SubscribeToExchange<TEvent>(this IActor actor, string exchange, Expression<Func<TEvent, bool>> routingStrategy = null)
+        public static void SubscribeToExchange<TEvent>(this IActor actor, string exchange, bool isAutoAck = true, Expression<Func<TEvent, bool>> routingStrategy = null)
             where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
@@ -48,7 +48,7 @@ namespace Anabasis.RabbitMQ
 
                 return Task.CompletedTask;
 
-            }, routingStrategy);
+            }, isAutoAck, routingStrategy);
 
             rabbitMqBus.Subscribe(rabbitMqSubscription);
 
@@ -57,7 +57,7 @@ namespace Anabasis.RabbitMQ
             actor.AddDisposable(disposable);
         }
 
-        public static IObservable<TEvent> SubscribeToExchange<TEvent>(this IRabbitMqBus rabbitMqBus, string exchange, Expression<Func<TEvent, bool>> routingStrategy = null)
+        public static IObservable<TEvent> SubscribeToExchange<TEvent>(this IRabbitMqBus rabbitMqBus, string exchange, bool isAutoAck = true, Expression<Func<TEvent, bool>> routingStrategy = null)
         where TEvent : class, IRabbitMqEvent
         {
 
@@ -69,7 +69,7 @@ namespace Anabasis.RabbitMQ
 
                      return Task.CompletedTask;
 
-                 }, routingStrategy);
+                 }, isAutoAck, routingStrategy);
 
                 rabbitMqBus.Subscribe(rabbitMqSubscription);
 

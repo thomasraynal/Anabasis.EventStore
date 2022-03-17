@@ -27,7 +27,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
                 return Task.CompletedTask;
 
-            }, (ev) => ev.FilterOne == "filterOne"));
+            }, true, (ev) => ev.FilterOne == "filterOne"));
         }
 
         public Task Handle(TestEventOne testEventOne)

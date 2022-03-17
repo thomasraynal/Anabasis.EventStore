@@ -16,7 +16,7 @@ namespace Anabasis.EventStore.Demo
         {
             {
                 WebAppBuilder.Create<Program>(
-                        configureServiceCollection: (serviceCollection, configurationRoot) =>
+                        configureServiceCollection: (anabasisContext, serviceCollection, configurationRoot) =>
                         {
 
                             var connectionSettings = ConnectionSettings
@@ -73,7 +73,7 @@ namespace Anabasis.EventStore.Demo
                             serviceCollection.AddHostedService<HostedService>();
 
                         },
-                        configureApplicationBuilder: (app) =>
+                        configureApplicationBuilder: (anabasisContext, app) =>
                         {
                             app.UseWorld();
                         })

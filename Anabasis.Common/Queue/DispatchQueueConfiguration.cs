@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.Common.Queue
 {
     public class DispatchQueueConfiguration
     {
-        public DispatchQueueConfiguration(Func<IEvent, Task> onEventReceived, int messageBatchSize, int queueMaxSize, bool crashAppOnError=true)
+        public DispatchQueueConfiguration(Func<IEvent, Task> onEventReceived, int messageBatchSize, int queueMaxSize, bool crashAppOnError = true)
         {
             OnEventReceived = onEventReceived;
             MessageBatchSize = messageBatchSize;

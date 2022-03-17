@@ -14,9 +14,9 @@ namespace Anabasis.RabbitMQ
         public string RoutingKey { get; protected set; }
         public string SubscriptionId { get; }
         public Func<IRabbitMqQueueMessage, Task> OnMessage { get; }
+        public bool IsAutoAck { get; }
 
-
-        public RabbitMqEventSubscription(string exchange, Func<IRabbitMqQueueMessage, Task> onEvent, Expression<Func<TEvent, bool>> routingStrategy = null)
+        public RabbitMqEventSubscription(string exchange, Func<IRabbitMqQueueMessage, Task> onEvent, bool isAutoAck = true, Expression<Func<TEvent, bool>> routingStrategy = null)
         {
             if (null == routingStrategy)
                 routingStrategy = (_) => true;
@@ -25,6 +25,7 @@ namespace Anabasis.RabbitMQ
 
             rabbitMQSubjectExpressionVisitor.Visit(routingStrategy);
 
+            IsAutoAck = isAutoAck;
             OnMessage = onEvent;
             RoutingKey = rabbitMQSubjectExpressionVisitor.Resolve();
             Exchange = exchange;

@@ -127,7 +127,7 @@ namespace Anabasis.Deployment
             var dockerConfigToJson = GetDockerConfiguration();
 
             secret.Metadata.NamespaceProperty = appDescriptor.AppGroup;
-            secret.Data[".dockerconfigjson"] = Encoding.UTF8.GetBytes(Convert.ToBase64String(Encoding.UTF8.GetBytes(dockerConfigToJson)));
+            secret.Data[".dockerconfigjson"] = dockerConfigToJson.ToBase64ByteArray();
 
             var secretYaml = Yaml.SaveToString(secret);
             var secretYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "secret-docker-registry.yaml");
@@ -315,11 +315,13 @@ namespace Anabasis.Deployment
 
         public string GetDockerConfiguration()
         {
+            var auth = (DockerRegistryUserName + ":" + DockerRegistryPassword).ToBase64String();
+
             return "{\"auths\":" +
                 "       {\"registry.hub.docker.com\":" +
                 "             {\"username\":\"" + DockerRegistryUserName + "\"," +
                 "              \"password\":\"" + DockerRegistryPassword + "\"," +
-                "              \"auth\":\"" + DockerRegistryUserName + ":" + DockerRegistryPassword + "\"" +
+                "              \"auth\":\"" + auth + "\"" +
                 "             }" +
                 "       }" +
                 "   }";
@@ -425,9 +427,9 @@ namespace Anabasis.Deployment
                 .SetTargetImage(imageNameAndTagOnRegistry)
             );
 
-            DockerTasks.DockerPush(settings =>
-                settings.SetName(imageNameAndTagOnRegistry)
-           );
+            DockerTasks.DockerPush(settings => settings
+                .SetName(imageNameAndTagOnRegistry)
+            );
 
         }
 

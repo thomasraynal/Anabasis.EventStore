@@ -43,15 +43,15 @@ namespace Anabasis.Api
             Action<IMvcBuilder> configureMvc = null,
             Action<MvcNewtonsoftJsonOptions> configureJson = null,
             Action<KestrelServerOptions> configureKestrel = null,
-            Action<IApplicationBuilder> configureApplicationBuilder = null,
-            Action<IServiceCollection, IConfigurationRoot> configureServiceCollection = null,
+            Action<AnabasisAppContext, IApplicationBuilder> configureApplicationBuilder = null,
+            Action<AnabasisAppContext, IServiceCollection, IConfigurationRoot> configureServiceCollection = null,
             Action<ConfigurationBuilder> configureConfigurationBuilder = null,
             Action<LoggerConfiguration> configureLogging = null)
         {
 
             var anabasisConfiguration = Configuration.GetConfigurations(configureConfigurationBuilder);
 
-            var appContext = new AnabasisAppContext(
+            var anabasisAppContext = new AnabasisAppContext(
                 anabasisConfiguration.AppConfigurationOptions.ApplicationName,
                 anabasisConfiguration.GroupConfigurationOptions.GroupName,
                 anabasisConfiguration.AppConfigurationOptions.ApiVersion,
@@ -69,7 +69,7 @@ namespace Anabasis.Api
                .Enrich.FromLogContext()
                .WriteTo.Console()
                .WriteTo.Sentry(
-                    dsn: appContext.SentryDsn,
+                    dsn: anabasisAppContext.SentryDsn,
                     sampleRate: 1f,
                     debug: false);
 
@@ -84,25 +84,25 @@ namespace Anabasis.Api
                                         .UseKestrel(configureKestrel);
 
             webHostBuilder = webHostBuilder
-                .UseUrls("http://+:" + appContext.ApiPort)
-                .UseEnvironment($"{appContext.Environment}")
-                .UseSetting(WebHostDefaults.ApplicationKey, appContext.ApplicationName)
+                .UseUrls("http://+:" + anabasisAppContext.ApiPort)
+                .UseEnvironment($"{anabasisAppContext.Environment}")
+                .UseSetting(WebHostDefaults.ApplicationKey, anabasisAppContext.ApplicationName)
                 .UseSetting(WebHostDefaults.StartupAssemblyKey, Assembly.GetExecutingAssembly().GetName().Name)
                 .UseSerilog()
                 .ConfigureServices((context, services) =>
                 {
 
-                    ConfigureServices<THost>(services, useCors, appContext, serializer, configureMvcBuilder, configureMvc, configureJson);
+                    ConfigureServices<THost>(services, useCors, anabasisAppContext, serializer, configureMvcBuilder, configureMvc, configureJson);
 
-                    configureServiceCollection?.Invoke(services, anabasisConfiguration.ConfigurationRoot);
+                    configureServiceCollection?.Invoke(anabasisAppContext, services, anabasisConfiguration.ConfigurationRoot);
 
                 })
                 .Configure((context, appBuilder) =>
                 {
 
-                    ConfigureApplication(appBuilder, context.HostingEnvironment, appContext, useCors);
+                    ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useCors);
 
-                    configureApplicationBuilder?.Invoke(appBuilder);
+                    configureApplicationBuilder?.Invoke(anabasisAppContext, appBuilder);
 
                 });
 
@@ -285,12 +285,6 @@ namespace Anabasis.Api
 
                 endpoints.MapHealthChecks("/health", new HealthCheckOptions()
                 {
-                    ResultStatusCodes =
-                    {
-                        [HealthStatus.Healthy] = StatusCodes.Status200OK,
-                        [HealthStatus.Degraded] = StatusCodes.Status200OK,
-                        [HealthStatus.Unhealthy] = StatusCodes.Status503ServiceUnavailable
-                    },
                     ResponseWriter = async (httpContext, healthReport) =>
                     {
                         var combinedHealthReport = healthReport;
@@ -304,6 +298,7 @@ namespace Anabasis.Api
                             combinedHealthReport = healthReport.Combine(dynamicHealthCheckHealthReport);
                         }
 
+                        httpContext.Response.StatusCode = (int)(combinedHealthReport.Status == HealthStatus.Unhealthy ? HttpStatusCode.ServiceUnavailable : HttpStatusCode.OK);
                         httpContext.Response.ContentType = "application/json; charset=utf-8";
 
                         await httpContext.Response.WriteAsync(combinedHealthReport.ToJson());

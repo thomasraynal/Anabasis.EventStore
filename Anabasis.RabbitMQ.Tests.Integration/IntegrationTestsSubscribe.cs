@@ -40,7 +40,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
                 _counterTestEventOneFilterOnFilterOne++;
                 return Task.CompletedTask;
 
-            }, (ev) => ev.FilterOne == "filterOne"));
+            }, true, (ev) => ev.FilterOne == "filterOne"));
 
             _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) =>
             {
@@ -54,7 +54,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
                 _counterTestEventTwoFilterOnFilterTwo++;
                 return Task.CompletedTask;
 
-            }, (ev) => ev.FilterTwo == "filterTwo"));
+            }, true, (ev) => ev.FilterTwo == "filterTwo"));
         }
 
         [Test, Order(2)]

@@ -117,7 +117,7 @@ namespace Anabasis.RabbitMQ
         }
 
 
-        public IRabbitMqQueueMessage[] Pull(string queueName, int? chunkSize = default)
+        public IRabbitMqQueueMessage[] Pull(string queueName, bool isAutoAck = false, int? chunkSize = default)
         {
             return RabbitMqConnection.DoWithChannel((channel) =>
             {
@@ -134,7 +134,7 @@ namespace Anabasis.RabbitMQ
                 {
                     BasicGetResult result;
 
-                    result = channel.BasicGet(queueName, autoAck: _rabbitMqConnectionOptions.IsAutoAck);
+                    result = channel.BasicGet(queueName, autoAck: isAutoAck);
 
                     if (result == null)
                         break;
@@ -144,7 +144,8 @@ namespace Anabasis.RabbitMQ
                     var rabbitMqQueueMessage = DeserializeRabbitMqQueueMessage(result.BasicProperties,
                         result.Body.ToArray(),
                         result.Redelivered,
-                        result.DeliveryTag);
+                        result.DeliveryTag,
+                        isAutoAck);
 
                     rabbitMqQueueMessages.Add(rabbitMqQueueMessage);
                 }
@@ -153,12 +154,12 @@ namespace Anabasis.RabbitMQ
             });
         }
 
-        private IRabbitMqQueueMessage DeserializeRabbitMqQueueMessage(IBasicProperties basicProperties, byte[] body, bool redelivered, ulong deliveryTag)
+        private IRabbitMqQueueMessage DeserializeRabbitMqQueueMessage(IBasicProperties basicProperties, byte[] body, bool redelivered, ulong deliveryTag, bool isAutoAck)
         {
             var type = basicProperties.Type.GetTypeFromReadableName();
             var message = (IRabbitMqEvent)_serializer.DeserializeObject(body, type);
 
-            return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag, _rabbitMqConnectionOptions.IsAutoAck);
+            return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag, isAutoAck);
         }
 
         private void EnsureCreateExchange(string exchange)
@@ -207,7 +208,7 @@ namespace Anabasis.RabbitMQ
                                       routingKey: subscription.RoutingKey);
 
                     channel.BasicConsume(queue: queueName,
-                                         autoAck: _rabbitMqConnectionOptions.IsAutoAck,
+                                         autoAck: subscription.IsAutoAck,
                                          consumer: consumer);
 
                     var rabbitMqSubscription = new RabbitMqSubscription(subscription.Exchange, subscription.RoutingKey, queueName, consumer);
@@ -218,7 +219,8 @@ namespace Anabasis.RabbitMQ
                             basicDeliveryEventArg.BasicProperties,
                             basicDeliveryEventArg.Body.ToArray(),
                             basicDeliveryEventArg.Redelivered,
-                            basicDeliveryEventArg.DeliveryTag);
+                            basicDeliveryEventArg.DeliveryTag,
+                            subscription.IsAutoAck);
 
 
                         foreach (var subscriber in rabbitMqSubscription.Subscriptions)
@@ -275,7 +277,7 @@ namespace Anabasis.RabbitMQ
                 {
                     var healthCheckMessages = new Dictionary<string, object>()
                     {
-                        { "ConnectivityIssue", "RabbitMQ channel is not open" }
+                        { "RabbitMQ channel is not open", $"HostNameHostName => {_rabbitMqConnectionOptions.HostName}" }
                     };
 
                     healthCheckResult = HealthCheckResult.Unhealthy(healthCheckDescription, data: healthCheckMessages);

@@ -1,6 +1,4 @@
-﻿using Anabasis.Common;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 
@@ -34,12 +32,12 @@ namespace Anabasis.Common.Configuration
 
         private static string GetAppConfigurationOverrideFile(AnabasisEnvironment anabasisEnvironment)
         {
-            return string.Format(AppConfigurationFileTemplate, anabasisEnvironment);
+            return string.Format(AppConfigurationFileTemplate, anabasisEnvironment).ToLowerInvariant();
         }
 
         private static string GetGroupConfigurationOverrideFile(AnabasisEnvironment anabasisEnvironment)
         {
-            return string.Format(GroupConfigurationFileTemplate, anabasisEnvironment);
+            return string.Format(GroupConfigurationFileTemplate, anabasisEnvironment).ToLowerInvariant();
         }
 
         public static AnabasisConfiguration GetConfigurations(Action<ConfigurationBuilder> configureConfigurationBuilder = null, DirectoryInfo rootDirectory =null)

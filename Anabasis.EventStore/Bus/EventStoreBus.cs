@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Stream;
 using EventStore.ClientAPI;
@@ -61,7 +62,15 @@ namespace Anabasis.EventStore
 
             var healthCheckResult = HealthCheckResult.Healthy();
 
-            if (!isConnected) healthCheckResult = HealthCheckResult.Unhealthy("EventStore connection is down");
+            if (!isConnected)
+            {
+                var data = new Dictionary<string, object>()
+                {
+                    {"EventStore connection is down",(ConnectionStatusMonitor as EventStoreConnectionStatusMonitor).Connection.ConnectionName}
+                };
+
+                healthCheckResult = HealthCheckResult.Unhealthy(data: data);
+            }
 
             return Task.FromResult(healthCheckResult);
         }

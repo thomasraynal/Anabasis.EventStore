@@ -28,9 +28,6 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
-            - name: health
-              containerPort: 1337
-              protocol: TCP
           livenessProbe:
             httpGet:
               path: /health

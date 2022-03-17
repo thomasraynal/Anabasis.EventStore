@@ -40,9 +40,6 @@ spec:
         - containerPort: 80
           name: http
           protocol: TCP
-        - containerPort: 1337
-          name: health
-          protocol: TCP
         readinessProbe:
           httpGet:
             path: /health

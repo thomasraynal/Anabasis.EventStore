@@ -10,6 +10,7 @@ namespace Anabasis.RabbitMQ
         string SubscriptionId { get; }
         string Exchange { get; }
         string RoutingKey { get; }
+        bool IsAutoAck { get; }
         Func<IRabbitMqQueueMessage, Task> OnMessage { get; }
     }
 }
