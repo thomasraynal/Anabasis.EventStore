@@ -20,8 +20,9 @@ namespace Anabasis.Deployment
     public abstract partial class BaseAnabasisBuild : NukeBuild
     {
 
-        private readonly string Configuration = "Release";
-        private readonly string RuntimeDockerImage = "mcr.microsoft.com/dotnet/aspnet:5.0";
+        private const string Configuration = "Release";
+        private const string RuntimeDockerImage = "mcr.microsoft.com/dotnet/aspnet:5.0";
+        private const string KustomizeAnabasisEnvironmentStringOnTemplate = "{{ANABASIS_ENVIRONMENT}}";
 
         public abstract bool IsDeployOnKubernetes { get; }
         public bool IsTestRunParallelized { get; set; } = true;
@@ -101,7 +102,11 @@ namespace Anabasis.Deployment
                 if (!Directory.Exists(envDirectory))
                 {
                     Directory.CreateDirectory(envDirectory);
-                    File.Copy(KustomizationFileForOverride, Path.Combine(envDirectory, "kustomization.yaml"));
+                    var kustomizationText = File.ReadAllText(KustomizationFileForOverride);
+                    kustomizationText = kustomizationText.Replace(KustomizeAnabasisEnvironmentStringOnTemplate, $"{env}");
+
+                    File.WriteAllText(Path.Combine(envDirectory, "kustomization.yaml"), kustomizationText);
+
                 }
 
             }
@@ -254,7 +259,7 @@ namespace Anabasis.Deployment
             });
 
         public virtual Target GenerateKubernetesYaml => _ => _
-            .DependsOn(DockerPush)
+           // .DependsOn(DockerPush)
             .Executes(async () =>
             {
                 foreach (var app in GetApplicationsToDeploy())

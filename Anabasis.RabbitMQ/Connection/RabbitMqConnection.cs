@@ -50,7 +50,7 @@ namespace Anabasis.RabbitMQ
                                     .Or<TimeoutException>()
                                     .Or<AlreadyClosedException>()
                                     .Or<BrokerUnreachableException>()
-                                    .WaitAndRetry(5, (_) => TimeSpan.FromSeconds(5));
+                                    .WaitAndRetry(20, (_) => TimeSpan.FromSeconds(5));
             }
 
             _retryPolicy = retryPolicy;
