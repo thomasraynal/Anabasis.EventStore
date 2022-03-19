@@ -1,0 +1,19 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: unknown-namespace
+  name: ingress-unknown-name
+  labels:
+    app: unknown-name
+spec:
+  ingressClassName: nginx
+  rules:
+  - http:
+      paths:
+      - path: /unknown-name/v1
+        pathType: ImplementationSpecific
+        backend:
+          service:
+            name: svc-unknown-name
+            port:
+              name: http

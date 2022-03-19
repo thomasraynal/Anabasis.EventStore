@@ -19,6 +19,9 @@
     <None Update="config.group.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="data\expected-ingress.yaml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="data\expected-service.yaml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

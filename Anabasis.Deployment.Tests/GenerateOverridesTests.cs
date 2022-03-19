@@ -1,5 +1,7 @@
 ﻿using k8s;
+using k8s.Models;
 using NUnit.Framework;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -80,6 +82,27 @@ namespace Anabasis.Deployment.Tests
             var serviceYaml = Yaml.SaveToString(service);
 
             Assert.AreEqual(File.ReadAllText("./data/expected-service.yaml").SanitizeYamlForTests(), serviceYaml.SanitizeYamlForTests());
+        }
+
+        [Test]
+        public async Task ShouldGenerateIngress()
+        {
+            var ingress = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/ingress.yaml")).First() as k8s.Models.V1Ingress;
+
+            ingress.Metadata.Name = $"ingress-{_appName}";
+            ingress.Metadata.NamespaceProperty = _appGroup;
+            ingress.Metadata.Labels["app"] = _appName;
+            ingress.Metadata.Labels["group"] = _appGroup;
+
+            var rule = ingress.Spec.Rules.First();
+            var path = rule.Http.Paths.First();
+
+            path.Path = "/trades/V1";
+            path.Backend.Service.Name = _serviceName;
+
+            var ingressYaml = Yaml.SaveToString(ingress);
+
+            Assert.AreEqual(File.ReadAllText("./data/expected-ingress.yaml").SanitizeYamlForTests(), ingressYaml.SanitizeYamlForTests());
         }
 
         [Test]

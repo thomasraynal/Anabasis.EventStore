@@ -38,12 +38,14 @@ namespace Anabasis.Deployment
 
         public AppConfigurationOptions AppConfiguration { get; private set; }
         public GroupConfigurationOptions GroupConfiguration { get; private set; }
-
+        
         public string AppName { get; }
         public string AppRelease { get; }
         public string AppGroup { get; }
         public string AppLongName { get; }
         public string AppShortName { get; }
+        public string ServiceName => $"svc-{AppLongName}";
+        public string IngressPath => $"/{AppShortName}/v{AppConfiguration.ApiVersion.Major}";
 
         private string SanitizeForKubernetesConfig(string str)
         {

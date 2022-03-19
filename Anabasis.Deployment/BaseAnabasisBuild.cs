@@ -108,12 +108,12 @@ namespace Anabasis.Deployment
                     File.WriteAllText(Path.Combine(envDirectory, "kustomization.yaml"), kustomizationText);
 
                 }
-
             }
         }
 
         public async Task GenerateBaseKustomize(AppDescriptor appDescriptor)
         {
+            await GenerateKubernetesYamlIngress(appDescriptor);
             await GenerateKubernetesYamlNamespace(appDescriptor);
             await GenerateKubernetesYamlService(appDescriptor);
             await GenerateKubernetesYamlDeployment(appDescriptor);
@@ -470,6 +470,34 @@ namespace Anabasis.Deployment
             KubernetesTasks.Kubernetes($"apply -k { kustomizeOverridePath} --force --kubeconfig {KubeConfigPath}", logOutput: true, logInvocation: true);
 
             return Task.CompletedTask;
+        }
+
+        private async Task GenerateKubernetesYamlIngress(AppDescriptor appDescriptor)
+        {
+            var ingress = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "ingress.yaml")).First() as k8s.Models.V1Ingress;
+
+            ingress.Metadata.Name = $"ingress-{appDescriptor.AppLongName}";
+            ingress.Metadata.NamespaceProperty = appDescriptor.AppGroup;
+            ingress.Metadata.Labels["app"] = appDescriptor.AppLongName;
+            ingress.Metadata.Labels["group"] = appDescriptor.AppGroup;
+
+            ingress.Metadata.Name = $"ingress-{appDescriptor.AppLongName}";
+            ingress.Metadata.NamespaceProperty = appDescriptor.AppGroup;
+            ingress.Metadata.Labels["app"] = appDescriptor.AppLongName;
+            ingress.Metadata.Labels["group"] = appDescriptor.AppGroup;
+
+            var rule = ingress.Spec.Rules.First();
+            var path = rule.Http.Paths.First();
+
+            path.Path = appDescriptor.IngressPath;
+            path.Backend.Service.Name = $"svc-{appDescriptor.AppLongName}";
+
+            var ingressYaml = Yaml.SaveToString(ingress);
+
+            var ingressYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "ingress.yaml");
+
+            WriteFile(ingressYamlPath, ingressYaml);
+
         }
 
         private async Task GenerateKubernetesYamlNamespace(AppDescriptor appDescriptor)
