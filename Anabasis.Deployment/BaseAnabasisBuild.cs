@@ -63,7 +63,7 @@ namespace Anabasis.Deployment
         [GitRepository]
         public readonly GitRepository GitRepository;
 
-        public AbsolutePath DockerFile => NukeBuildDirectory / "docker" / "build.dockerfile";
+        public AbsolutePath DockerFile => BuildAssemblyDirectory / "docker" / "build.dockerfile";
         public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
         public AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
         public AbsolutePath KustomizationFileForOverride => BuildProjectKustomizeDirectory / "kustomization.yaml";
