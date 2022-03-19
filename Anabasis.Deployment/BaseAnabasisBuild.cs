@@ -259,7 +259,7 @@ namespace Anabasis.Deployment
             });
 
         public virtual Target GenerateKubernetesYaml => _ => _
-           // .DependsOn(DockerPush)
+            .DependsOn(DockerPush)
             .Executes(async () =>
             {
                 foreach (var app in GetApplicationsToDeploy())
@@ -269,6 +269,31 @@ namespace Anabasis.Deployment
                 }
 
             });
+
+        public virtual Target GenerateKubernetesYamlNoBuild => _ => _
+            .Executes(async () =>
+            {
+                foreach (var app in GetApplicationsToDeploy())
+                {
+                    SetupKustomize(app);
+                    await GenerateBaseKustomize(app);
+                }
+
+            });
+
+        public virtual Target DeployToKubernetesNoBuild => _ => _
+        .DependsOn(GenerateKubernetesYamlNoBuild)
+        .Executes(async () =>
+        {
+
+            var appsToBeDeployed = GetApplicationsToDeploy();
+
+            foreach (var appToBeDeployed in appsToBeDeployed)
+            {
+                await DeployAppToKubernetes(appToBeDeployed);
+            }
+
+        });
 
         public virtual Target DeployToKubernetes => _ => _
             .DependsOn(GenerateKubernetesYaml)

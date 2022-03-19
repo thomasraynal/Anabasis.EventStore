@@ -9,6 +9,8 @@ namespace Anabasis.Api
     {
         public static Uri GetDocUrl(string actionName, Uri docUrl)
         {
+            if (null == docUrl) return null;
+
             return new Uri($"{docUrl.AbsoluteUri}/{actionName}");
         }
     }

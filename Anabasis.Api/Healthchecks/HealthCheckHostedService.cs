@@ -42,7 +42,7 @@ namespace Anabasis.Api
 
             var healthCheckServiceHealthReport = await healthCheckService.CheckHealthAsync(cancellationToken);
 
-            var dynamicHealthCheckProvider = _serviceProvider.GetRequiredService<IDynamicHealthCheckProvider>();
+            var dynamicHealthCheckProvider = _serviceProvider.GetService<IDynamicHealthCheckProvider>();
 
             if (null != dynamicHealthCheckProvider)
             {
