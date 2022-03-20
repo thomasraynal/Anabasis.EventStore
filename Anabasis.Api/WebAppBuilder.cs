@@ -67,11 +67,15 @@ namespace Anabasis.Api
             loggerConfiguration
                .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
                .Enrich.FromLogContext()
-               .WriteTo.Console()
-               .WriteTo.Sentry(
+               .WriteTo.Console();
+
+            if (anabasisAppContext.UseSentry)
+            {
+                loggerConfiguration.WriteTo.Sentry(
                     dsn: anabasisAppContext.SentryDsn,
                     sampleRate: 1f,
                     debug: false);
+            }
 
             configureLogging?.Invoke(loggerConfiguration);
 
