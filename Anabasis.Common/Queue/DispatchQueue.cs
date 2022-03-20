@@ -12,16 +12,20 @@ namespace Anabasis.Common
         private readonly Func<IEvent, Task> _onEventReceived;
         private readonly DispatchQueueConfiguration _dispatchQueueConfiguration;
         private readonly FlushableBlockingCollection<IMessage> _workQueue;
-        private readonly Task _workProc;
+        private readonly Thread _thread;
         private readonly IKillSwitch _killSwitch;
 
         public bool IsFaulted { get; private set; }
         public ILogger Logger { get; }
+        public string Owner { get; }
+        public string Id { get; }
 
-        public DispatchQueue(DispatchQueueConfiguration dispatchQueueConfiguration, ILoggerFactory loggerFactory, IKillSwitch killSwitch = null)
+        public DispatchQueue(string ownerId, DispatchQueueConfiguration dispatchQueueConfiguration, ILoggerFactory loggerFactory, IKillSwitch killSwitch = null)
         {
 
             Logger = loggerFactory?.CreateLogger(GetType());
+            Owner = ownerId;
+            Id = $"{nameof(DispatchQueue)}_{ownerId}_{Guid.NewGuid()}";
 
             _killSwitch = killSwitch ?? new KillSwitch();
 
@@ -31,8 +35,15 @@ namespace Anabasis.Common
 
             _dispatchQueueConfiguration = dispatchQueueConfiguration;
 
-            _workProc = Task.Run(HandleWork, CancellationToken.None);
+            _thread = new Thread(HandleWork)
+            {
+                IsBackground = true,
+                Name = $"{Owner}.DispatchThread",
+            };
 
+            _thread.Start();
+
+            Logger.LogInformation("{0} started", Id);
         }
 
         public void Enqueue(IMessage message)
@@ -89,8 +100,8 @@ namespace Anabasis.Common
 
         public void Dispose()
         {
-            _workQueue.WaitUntilIsEmpty();
             _workQueue.Dispose();
+            _thread?.Join();
         }
 
         public bool CanEnqueue()

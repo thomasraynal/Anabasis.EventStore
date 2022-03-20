@@ -39,6 +39,7 @@ namespace Anabasis.Common
         public string MachineName { get;  }
         public string SentryDsn { get; }
         public AnabasisEnvironment Environment { get; }
+        public bool UseSentry => !string.IsNullOrEmpty(SentryDsn);
 
     }
 }

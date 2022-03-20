@@ -80,7 +80,7 @@ namespace Anabasis.EventStore.Tests
         [Test]
         public async Task ShouldCreateAnActor()
         {
-            var testStatelessActor = new TestStatelessActor(new ActorConfiguration(2, 10));
+            var testStatelessActor = new TestStatelessActor(new ActorConfiguration(2, 10), new DummyLoggerFactory());
 
             var getEventA = new Func<EventMessage>(() => new EventMessage(new EventA(Guid.NewGuid(), "eventA")));
             var getEventB = new Func<EventMessage>(() => new EventMessage(new EventB(Guid.NewGuid(), "eventB")));

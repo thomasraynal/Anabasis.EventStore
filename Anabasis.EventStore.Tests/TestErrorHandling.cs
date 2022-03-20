@@ -164,7 +164,7 @@ namespace Anabasis.EventStore.Tests
                 new ConsumerBasedEventProvider<TestStatefulActor>(),
                 _loggerFactory);
 
-            _testActorOne = new TestErrorHandlingStatefulActor(ActorConfiguration.Default, _cacheOne.catchupEventStoreCache);
+            _testActorOne = new TestErrorHandlingStatefulActor(ActorConfiguration.Default, _cacheOne.catchupEventStoreCache, new DummyLoggerFactory());
             await _testActorOne.ConnectTo(_eventStoreBus);
             _testActorOne.SubscribeToEventStream(subscribeToAllStream);
 

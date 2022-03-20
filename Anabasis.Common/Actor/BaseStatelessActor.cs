@@ -51,7 +51,7 @@ namespace Anabasis.Common
                _actorConfiguration.CrashAppOnError
             );
 
-            _dispatchQueue = new DispatchQueue(dispachQueueConfiguration, loggerFactory);
+            _dispatchQueue = new DispatchQueue(Id, dispachQueueConfiguration, loggerFactory);
 
             _cleanUp.Add(_dispatchQueue);
 

@@ -12,8 +12,6 @@ namespace Anabasis.Common
         private readonly ManualResetEventSlim _addSignal = new();
         private volatile ConcurrentQueue<T> _queue = new();
         private volatile bool _isAddingCompleted;
-        private ManualResetEventSlim? _isEmptySignal;
-        private int _hasChangedSinceLastWaitForEmpty;
         private readonly int _bachSize;
         private readonly int _queueMaxSize;
 
@@ -35,7 +33,6 @@ namespace Anabasis.Common
             if (!CanAdd)
                 throw new InvalidOperationException($"Memory queue max size of {_queueMaxSize} is reached - cannot add");
 
-            _hasChangedSinceLastWaitForEmpty = 1;
             _queue.Enqueue(item);
             _addSignal.Set();
         }
@@ -57,7 +54,6 @@ namespace Anabasis.Common
             {
                 if (_queue.TryDequeue(out var item))
                 {
-                    _hasChangedSinceLastWaitForEmpty = 1;
 
                     items.Clear();
                     items.Add(item);
@@ -69,8 +65,6 @@ namespace Anabasis.Common
                 }
                 else
                 {
-                    _isEmptySignal?.Set();
-
                     // a longer wait timeout decreases CPU usage and improves latency
                     // but the guy who wrote this code is not comfortable with long timeouts in waits or sleeps
                     if (_addSignal.Wait(200))
@@ -102,22 +96,5 @@ namespace Anabasis.Common
             return items;
         }
 
-        public bool WaitUntilIsEmpty()
-        {
-            var signal = _isEmptySignal;
-
-            if (signal == null)
-            {
-                signal = new ManualResetEventSlim();
-                var prevSignal = Interlocked.CompareExchange(ref _isEmptySignal, signal, null);
-                signal = prevSignal ?? signal;
-            }
-
-            signal.Reset();
-            _addSignal.Set();
-            signal.Wait();
-
-            return Interlocked.Exchange(ref _hasChangedSinceLastWaitForEmpty, 0) != 0;
-        }
     }
 }
