@@ -9,7 +9,7 @@ namespace Anabasis.RabbitMQ
     public class RabbitMqSubscription : IRabbitMqSubscription
     {
 
-        public RabbitMqSubscription(string exchange, string routingKey, string queueName, EventingBasicConsumer consumer)
+        public RabbitMqSubscription(string exchange, string routingKey, string queueName, AsyncEventingBasicConsumer consumer)
         {
             Exchange = exchange;
             RoutingKey = routingKey;
@@ -23,7 +23,7 @@ namespace Anabasis.RabbitMQ
         public string Exchange { get; }
         public string RoutingKey { get; }
         public List<IRabbitMqEventHandler> Subscriptions { get; }
-        public EventingBasicConsumer Consumer { get; }
+        public AsyncEventingBasicConsumer Consumer { get; }
         public string QueueName { get; }
     }
 

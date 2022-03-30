@@ -201,7 +201,7 @@ namespace Anabasis.RabbitMQ
 
                     }).QueueName;
 
-                    var consumer = new EventingBasicConsumer(channel);
+                    var consumer = new AsyncEventingBasicConsumer(channel);
 
                     channel.QueueBind(queue: queueName,
                                       exchange: subscription.Exchange,
@@ -213,7 +213,7 @@ namespace Anabasis.RabbitMQ
 
                     var rabbitMqSubscription = new RabbitMqSubscription(subscription.Exchange, subscription.RoutingKey, queueName, consumer);
 
-                    consumer.Received += (model, basicDeliveryEventArg) =>
+                    consumer.Received += async (model, basicDeliveryEventArg) =>
                     {
                         var rabbitMqQueueMessage = DeserializeRabbitMqQueueMessage(
                             basicDeliveryEventArg.BasicProperties,
@@ -227,7 +227,7 @@ namespace Anabasis.RabbitMQ
                         {
                             try
                             {
-                                subscriber.Handle(rabbitMqQueueMessage).Wait();
+                                await subscriber.Handle(rabbitMqQueueMessage);
                             }
                             catch (Exception ex)
                             {

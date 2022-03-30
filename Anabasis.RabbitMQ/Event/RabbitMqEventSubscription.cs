@@ -1,5 +1,4 @@
-﻿using Anabasis.RabbitMQ;
-using Anabasis.RabbitMQ.Shared;
+﻿using Anabasis.RabbitMQ.Shared;
 using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;

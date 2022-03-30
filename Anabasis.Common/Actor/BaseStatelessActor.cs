@@ -78,7 +78,7 @@ namespace Anabasis.Common
 
                 if (null != candidateHandler)
                 {
-                    ((Task)candidateHandler.Invoke(this, new object[] { @event })).Wait();
+                    await ((Task)candidateHandler.Invoke(this, new object[] { @event }));
                 }
 
             }

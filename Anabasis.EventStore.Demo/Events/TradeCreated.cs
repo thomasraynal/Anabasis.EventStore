@@ -20,7 +20,6 @@ namespace Anabasis.EventStore.Demo
         public decimal Amount { get; set; }
         public BuyOrSell BuyOrSell { get; set; }
         public TradeStatus Status { get; set; }
-        public DateTime Timestamp { get; set; }
 
         public override void Apply(Trade entity)
         {

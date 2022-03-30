@@ -1,6 +1,7 @@
 using Anabasis.Common.Queue;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Reactive.Concurrency;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -34,16 +35,16 @@ namespace Anabasis.Common
             _onEventReceived = dispatchQueueConfiguration.OnEventReceived;
 
             _dispatchQueueConfiguration = dispatchQueueConfiguration;
-
+            
             _thread = new Thread(HandleWork)
             {
                 IsBackground = true,
-                Name = $"{Owner}.DispatchThread",
+                Name = Id,
             };
 
             _thread.Start();
 
-            Logger.LogInformation("{0} started", Id);
+            Logger.LogDebug("{0} started", Id);
         }
 
         public void Enqueue(IMessage message)
@@ -73,7 +74,7 @@ namespace Anabasis.Common
                     catch (Exception exception)
                     {
 
-                        Logger?.LogError(exception, $"An error occured during the message consumption process: {message.ToJson()}");
+                        Logger?.LogError(exception, $"An exception occured during the message consumption process: {message.ToJson()}");
 
                         await message.NotAcknowledge();
 

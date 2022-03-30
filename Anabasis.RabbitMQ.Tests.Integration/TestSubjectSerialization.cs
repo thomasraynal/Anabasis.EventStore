@@ -12,9 +12,6 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 {
    public class TestSubjectSerialization
     {
-        private readonly string _fxEventsExchange = "fx";
-        private readonly string _fxRejectedEventsExchange = "fx-rejected";
-        private readonly string _marketExchange = "fxconnect";
 
         class TestEvent : BaseRabbitMqEvent
         {

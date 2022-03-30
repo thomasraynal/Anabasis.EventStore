@@ -80,7 +80,6 @@ namespace Anabasis.EventStore.Cache
                 throw new InvalidOperationException($"Snapshots are activated on {GetType().Name}. To use snapshots both a snapshotStore and a snapshotStrategy are required " +
                     $"[snapshotStore is null = {snapshotStore == null}, snapshotStrategy is null = {snapshotStrategy == null}]");
             }
-
         }
 
         protected void Initialize()
@@ -254,7 +253,7 @@ namespace Anabasis.EventStore.Cache
 
         public TAggregate GetCurrent(string key)
         {
-            return _cache.Items.FirstOrDefault(item => item.EntityId.Equals(key));
+            return _cache.Items.FirstOrDefault(item => item.EntityId == key);
         }
 
         public TAggregate[] GetCurrents()
@@ -272,7 +271,6 @@ namespace Anabasis.EventStore.Cache
                     _isCaughtUpSubject.OnNext(false);
                     catchupCacheSubscriptionHolder.EventStoreCatchUpSubscription.Stop();
                 }
-               
             }
 
             void createNewCatchupSubscription()

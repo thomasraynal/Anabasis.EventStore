@@ -5,10 +5,6 @@ using NUnit.Framework;
 using Serilog;
 using Serilog.Events;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
 {
@@ -35,12 +31,12 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             var loggerFactory = new LoggerFactory().AddSerilog(Log.Logger);
 
             var anabasisAppContext = new AnabasisAppContext("appName", "appGroup", new Version(1, 0));
-       
-            var defaultSerializer = new DefaultSerializer();
 
             var connection = new RabbitMqConnection(rabbitMqConnectionOptions, anabasisAppContext, loggerFactory);
 
-            var monitor = new RabbitMqConnectionStatusMonitor(connection, loggerFactory);
+            var rabbitMqConnectionStatusMonitor = new RabbitMqConnectionStatusMonitor(connection, loggerFactory);
+
+            Assert.Equals(true, rabbitMqConnectionStatusMonitor.IsConnected);
         }
     }
 }

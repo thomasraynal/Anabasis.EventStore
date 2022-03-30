@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Integration.Tests
     {
 
         [OneTimeSetUp]
-        public async Task SetUp()
+        public void SetUp()
         {
             if (TestHelper.IsAppVeyor)
             {
@@ -73,7 +73,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
 
         [OneTimeTearDown]
-        public async Task TearDown()
+        public void TearDown()
         {
         }
 

@@ -1,5 +1,4 @@
 ﻿using Anabasis.Common;
-using Anabasis.Common.Actor;
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Standalone;
 using Lamar;
@@ -8,8 +7,6 @@ using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 

@@ -22,7 +22,6 @@ namespace Anabasis.Common
 
         public void ApplyEvent<TAggregate>(
             IAggregateEvent<TAggregate> @event, 
-            
             bool saveAsPendingEvent = true, 
             bool keepAppliedEventsOnAggregate = true) 
             where TAggregate : class, IAggregate

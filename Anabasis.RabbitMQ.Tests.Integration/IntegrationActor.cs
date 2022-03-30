@@ -92,7 +92,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
                                             .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                             .Build();
 
-            _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);
+            await _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);
         
             var onEvent = _rabbitMqBus.SubscribeToExchange<TestEventZero>(_integrationActorExchange);
 
