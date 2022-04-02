@@ -21,7 +21,7 @@ namespace Anabasis.Common
         public string Owner { get; }
         public string Id { get; }
 
-        public DispatchQueue(string ownerId, DispatchQueueConfiguration dispatchQueueConfiguration, ILoggerFactory loggerFactory, IKillSwitch killSwitch = null)
+        public DispatchQueue(string ownerId, DispatchQueueConfiguration dispatchQueueConfiguration, ILoggerFactory loggerFactory= null, IKillSwitch killSwitch = null)
         {
 
             Logger = loggerFactory?.CreateLogger(GetType());
