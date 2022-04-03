@@ -7,7 +7,7 @@ namespace Anabasis.Common
     public interface IConnectionStatusMonitor : IDisposable
     {
         bool IsConnected { get; }
-        ConnectionInfo ConnectionInfo { get; }
+        ConnectionInfo? ConnectionInfo { get; }
         IObservable<bool> OnConnected { get; }
     }
 

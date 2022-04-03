@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using EventStore.ClientAPI;
 using System.Reactive.Linq;
-using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Shared;
 using Microsoft.Extensions.Logging;
 using Anabasis.Common;
@@ -19,7 +18,7 @@ namespace Anabasis.EventStore.Repository
         protected readonly IEventStoreRepositoryConfiguration _eventStoreRepositoryConfiguration;
 
         private readonly IDisposable _cleanup;
-        protected  ILogger<EventStoreRepository> Logger { get; }
+        protected  ILogger<EventStoreRepository>? Logger { get; }
 
         public bool IsConnected { get; private set; }
 
@@ -66,7 +65,7 @@ namespace Anabasis.EventStore.Repository
 
         }
 
-        protected async Task SaveEventBatch(string streamId, long expectedVersion, IEnumerable<EventData> eventsToSave)
+        protected async Task SaveEventBatch(string? streamId, long expectedVersion, IEnumerable<EventData> eventsToSave)
         {
             WriteResult writeResult;
 
@@ -95,7 +94,7 @@ namespace Anabasis.EventStore.Repository
             return events.Batch(_eventStoreRepositoryConfiguration.WritePageSize).Select(batch => batch.ToArray());
         }
 
-        protected virtual IDictionary<string, string> GetCommitHeaders(object aggregate, object @event)
+        protected virtual IDictionary<string, string> GetCommitHeaders(object? aggregate, object @event)
         {
             var commitId = Guid.NewGuid();
 
@@ -116,7 +115,7 @@ namespace Anabasis.EventStore.Repository
             return commitHeaders;
         }
 
-        protected IDictionary<string, string> CreateCommitHeaders(object aggregate, object @event, KeyValuePair<string, string>[] extraHeaders)
+        protected IDictionary<string, string> CreateCommitHeaders(object? aggregate, object @event, KeyValuePair<string, string>[] extraHeaders)
         {
             var commitHeaders = GetCommitHeaders(aggregate, @event);
 

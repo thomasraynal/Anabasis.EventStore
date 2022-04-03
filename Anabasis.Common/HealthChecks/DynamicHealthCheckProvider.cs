@@ -2,7 +2,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -35,8 +34,10 @@ namespace Anabasis.Common.HealthChecks
 
             foreach (var (healthCheckRegistration, healthCheck) in healthChecks)
             {
-                var healthCheckResult = await healthCheck.CheckHealthAsync(null, cancellationToken);
 
+#nullable disable
+                var healthCheckResult = await healthCheck.CheckHealthAsync(null, cancellationToken);
+#nullable enable
                 var healthReportEntry = new HealthReportEntry(healthCheckResult.Status,
                     healthCheckResult.Description,
                     DateTime.UtcNow - now,

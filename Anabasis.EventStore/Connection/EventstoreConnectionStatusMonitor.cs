@@ -11,19 +11,19 @@ namespace Anabasis.EventStore.Connection
     {
         private readonly IConnectableObservable<ConnectionInfo> _connectionInfoChanged;
         private readonly IEventStoreConnection _eventStoreConnection;
-        private readonly Microsoft.Extensions.Logging.ILogger _logger;
+        private readonly Microsoft.Extensions.Logging.ILogger? _logger;
         private readonly BehaviorSubject<bool> _isConnected;
         private readonly IDisposable _cleanUp;
         public bool IsConnected => _isConnected.Value;
 
-        public ConnectionInfo ConnectionInfo { get; private set; }
+        public ConnectionInfo? ConnectionInfo { get; private set; }
 
         public IObservable<ConnectionInfo> OnConnectionChanged => _connectionInfoChanged.AsObservable();
         public IObservable<bool> OnConnected => _isConnected.AsObservable();
 
         public IEventStoreConnection Connection => _eventStoreConnection;
 
-        public EventStoreConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory loggerFactory = null)
+        public EventStoreConnectionStatusMonitor(IEventStoreConnection connection, ILoggerFactory? loggerFactory = null)
         {
             _eventStoreConnection = connection;
 

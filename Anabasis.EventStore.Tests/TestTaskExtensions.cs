@@ -2,11 +2,9 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common;
-using System.Diagnostics;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -58,6 +56,9 @@ namespace Anabasis.EventStore.Tests
         [Test]
         public async Task ShouldRunTasksWithExecuteAndNoTimeout()
         {
+            var context = new TestSynchronizationContext();
+            SynchronizationContext.SetSynchronizationContext(context);
+
 
             var task1 = new Task(() => Thread.Sleep(500));
             var task2 = new Task(() => Thread.Sleep(500));
@@ -72,7 +73,7 @@ namespace Anabasis.EventStore.Tests
         [Test]
         public void ShouldRunTasksWithExecuteAndTimeout()
         {
-
+       
             var task1 = new Task(() => Thread.Sleep(600));
             var task2 = new Task(() => Thread.Sleep(2000));
 

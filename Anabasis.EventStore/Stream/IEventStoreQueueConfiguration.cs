@@ -5,7 +5,7 @@ namespace Anabasis.EventStore.Stream
 {
     public interface IEventStoreStreamConfiguration
     {
-        UserCredentials UserCredentials { get; }
+        UserCredentials? UserCredentials { get; }
         ISerializer Serializer { get; }
         bool IgnoreUnknownEvent { get; }
         bool DoAppCrashOnFailure { get; }

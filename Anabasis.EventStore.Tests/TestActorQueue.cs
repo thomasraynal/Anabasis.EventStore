@@ -32,14 +32,14 @@ namespace Anabasis.EventStore.Tests
 
     public class EventA : BaseEvent
     {
-        public EventA(Guid correlationId, string streamId) : base(correlationId, streamId)
+        public EventA(Guid correlationId, string streamId) : base(streamId, correlationId)
         {
         }
     }
 
     public class EventB : BaseEvent
     {
-        public EventB(Guid correlationId, string streamId) : base(correlationId, streamId)
+        public EventB(Guid correlationId, string streamId) : base(streamId, correlationId)
         {
         }
     }

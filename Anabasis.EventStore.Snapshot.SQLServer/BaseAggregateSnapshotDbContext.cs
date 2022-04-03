@@ -47,7 +47,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
         {
             modelBuilder.Entity<TAggregateSnapshot>().HasKey(aggregateSnapshot => new
             {
-                aggregateSnapshot.StreamId,
+                aggregateSnapshot.EntityId,
                 aggregateSnapshot.EventFilter,
                 aggregateSnapshot.Version
             });

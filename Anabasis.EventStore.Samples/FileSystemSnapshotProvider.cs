@@ -42,15 +42,7 @@ namespace Anabasis.EventStore.Samples
         public Task Save(string[] eventFilters, TAggregate aggregate)
         {
 
-            var aggregateSnapshot = new AggregateSnapshot
-            {
-                StreamId = aggregate.EntityId,
-                Version = aggregate.Version,
-                EventFilter = string.Concat(eventFilters),
-                SerializedAggregate = aggregate.ToJson(),
-                LastModifiedUtc = DateTime.UtcNow
-            };
-
+            var aggregateSnapshot = new AggregateSnapshot(aggregate.EntityId, string.Concat(eventFilters), aggregate.Version, aggregate.ToJson(), DateTime.UtcNow);
 
             File.WriteAllText($"./snapshot_{Guid.NewGuid()}", JsonConvert.SerializeObject(aggregateSnapshot));
 

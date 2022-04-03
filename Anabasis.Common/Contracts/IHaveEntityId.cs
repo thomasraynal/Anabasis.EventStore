@@ -6,6 +6,6 @@ namespace Anabasis.Common
 {
     public interface IHaveEntityId
     {
-        string EntityId { get; }
+        string? EntityId { get; }
     }
 }

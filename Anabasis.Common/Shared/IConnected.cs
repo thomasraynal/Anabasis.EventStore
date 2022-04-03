@@ -6,7 +6,7 @@ namespace Anabasis.Common
 {
     public interface IConnected<out T>
     {
-        T Value { get; }
+        T? Value { get; }
         bool IsConnected { get; }
     }
 }

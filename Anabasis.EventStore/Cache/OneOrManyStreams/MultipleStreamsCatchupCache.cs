@@ -11,25 +11,28 @@ namespace Anabasis.EventStore.Cache
 
     public class MultipleStreamsCatchupCache<TAggregate> : BaseOneOrManyStreamCatchupCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
-        private MultipleStreamsCatchupCacheConfiguration<TAggregate> _multipleStreamsCatchupCacheConfiguration;
+        private readonly MultipleStreamsCatchupCacheConfiguration<TAggregate> _multipleStreamsCatchupCacheConfiguration;
 
         public MultipleStreamsCatchupCache(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
             MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration,
             IEventTypeProvider<TAggregate> eventTypeProvider,
             ILoggerFactory loggerFactory,
-            ISnapshotStore<TAggregate> snapshotStore = null,
-            ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+            ISnapshotStore<TAggregate>? snapshotStore = null,
+            ISnapshotStrategy? snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
             _multipleStreamsCatchupCacheConfiguration = catchupCacheConfiguration;
         }
 
         protected override async Task OnLoadSnapshot(
-            CatchupCacheSubscriptionHolder<TAggregate>[] catchupCacheSubscriptionHolders,
-            ISnapshotStrategy snapshotStrategy,
-            ISnapshotStore<TAggregate> snapshotStore)
+            CatchupCacheSubscriptionHolder<TAggregate>[]? catchupCacheSubscriptionHolders,
+            ISnapshotStrategy? snapshotStrategy,
+            ISnapshotStore<TAggregate>? snapshotStore)
         {
             if (UseSnapshot)
             {
+
+#nullable disable
+
                 var eventTypeFilter = GetEventsFilters();
 
                 foreach (var catchupCacheSubscriptionHolder in catchupCacheSubscriptionHolders)
@@ -47,6 +50,9 @@ namespace Anabasis.EventStore.Cache
                     CurrentCache.AddOrUpdate(snapshot);
 
                 }
+
+#nullable disable
+
             }
         }
 

@@ -21,14 +21,14 @@ namespace Anabasis.EventStore.Tests
 {
     public class SomeCommandResponse : BaseCommandResponse
     {
-        public SomeCommandResponse(Guid commandId, Guid correlationId, string streamId) : base(commandId, correlationId, streamId)
+        public SomeCommandResponse(Guid commandId, Guid correlationId, string streamId) : base(streamId, commandId, correlationId)
         {
         }
     }
 
     public class SomeCommandResponse2 : BaseCommandResponse
     {
-        public SomeCommandResponse2(Guid commandId, Guid correlationId, string streamId) : base(commandId, correlationId, streamId)
+        public SomeCommandResponse2(Guid commandId, Guid correlationId, string streamId) : base(streamId, commandId, correlationId)
         {
         }
     }
@@ -36,7 +36,7 @@ namespace Anabasis.EventStore.Tests
     public class SomeCommand : BaseCommand
     {
 
-        public SomeCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
+        public SomeCommand(Guid correlationId, string streamId) : base(streamId, correlationId)
         {
         }
     }
@@ -44,7 +44,7 @@ namespace Anabasis.EventStore.Tests
     public class SomeCommand2 : BaseCommand
     {
 
-        public SomeCommand2(Guid correlationId, string streamId) : base(correlationId, streamId)
+        public SomeCommand2(Guid correlationId, string streamId) : base(streamId, correlationId)
         {
         }
     }

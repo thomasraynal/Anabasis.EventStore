@@ -24,7 +24,7 @@ namespace Anabasis.Common
             return _eventTypeCache.Values.ToArray();
         }
 
-        public Type GetEventTypeByName(string name)
+        public Type? GetEventTypeByName(string name)
         {
 
             if (!_eventTypeCache.ContainsKey(name)) return null;
@@ -54,7 +54,7 @@ namespace Anabasis.Common
             return _eventTypeCache.Values.ToArray();
         }
 
-        public Type GetEventTypeByName(string name)
+        public Type? GetEventTypeByName(string name)
         {
 
             if (!_eventTypeCache.ContainsKey(name)) return null;

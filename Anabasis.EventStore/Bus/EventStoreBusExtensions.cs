@@ -31,8 +31,8 @@ namespace Anabasis.EventStore
 
         public static void SubscribeFromEndToAllStreams(
             this IActor actor,
-            Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null,
-            IEventTypeProvider eventTypeProvider = null)
+            Action<SubscribeFromEndEventStoreStreamConfiguration>? getSubscribeFromEndEventStoreStreamConfiguration = null,
+            IEventTypeProvider? eventTypeProvider = null)
         {
             var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
@@ -50,8 +50,8 @@ namespace Anabasis.EventStore
             this IActor actor,
             string streamId,
             string groupId,
-            IEventTypeProvider eventTypeProvider=null,
-            Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
+            IEventTypeProvider? eventTypeProvider=null,
+            Action<PersistentSubscriptionEventStoreStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null)
         {
             var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
@@ -70,8 +70,8 @@ namespace Anabasis.EventStore
         public static void SubscribeFromStartToOneStream(
             this IActor actor,
             string streamId,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration = null,
-            IEventTypeProvider eventTypeProvider = null)
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration = null,
+            IEventTypeProvider? eventTypeProvider = null)
         {
             var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
@@ -89,8 +89,8 @@ namespace Anabasis.EventStore
         public static void SubscribeFromEndToOneStream(
         this IActor actor,
         string streamId,
-        Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration = null,
-        IEventTypeProvider eventTypeProvider = null)
+        Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration = null,
+        IEventTypeProvider? eventTypeProvider = null)
         {
             var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 

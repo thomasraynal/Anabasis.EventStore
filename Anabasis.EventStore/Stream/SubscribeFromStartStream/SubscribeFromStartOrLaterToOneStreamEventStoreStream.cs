@@ -6,12 +6,12 @@ namespace Anabasis.EventStore.Stream
 {
     public class SubscribeFromStartOrLaterToOneStreamEventStoreStream : BaseSubscribeToOneStreamEventStoreStream
     {
-        public SubscribeFromStartOrLaterToOneStreamEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration subscribeToOneStreamEventStoreStreamConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null) : base(
+        public SubscribeFromStartOrLaterToOneStreamEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration subscribeToOneStreamEventStoreStreamConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory? loggerFactory = null) : base(
             subscribeToOneStreamEventStoreStreamConfiguration.EventStreamPosition, 
             connectionMonitor, 
             subscribeToOneStreamEventStoreStreamConfiguration, 
             eventTypeProvider,
-            loggerFactory.CreateLogger<SubscribeFromStartOrLaterToOneStreamEventStoreStream>())
+            loggerFactory?.CreateLogger<SubscribeFromStartOrLaterToOneStreamEventStoreStream>())
         {
         }
     }

@@ -12,16 +12,16 @@ namespace Anabasis.EventStore.Stream
     {
         private readonly PersistentSubscriptionEventStoreStreamConfiguration _persistentEventStoreStreamConfiguration;
         private readonly IKillSwitch _killSwitch;
-        private EventStorePersistentSubscriptionBase _eventStorePersistentSubscription;
+        private EventStorePersistentSubscriptionBase? _eventStorePersistentSubscription;
 
         public PersistentSubscriptionEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           PersistentSubscriptionEventStoreStreamConfiguration persistentEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILoggerFactory loggerFactory,
-          IKillSwitch killSwitch = null) : base(connectionMonitor,
+          ILoggerFactory? loggerFactory= null,
+          IKillSwitch? killSwitch = null) : base(connectionMonitor,
               persistentEventStoreStreamConfiguration,
               eventTypeProvider,
-              loggerFactory.CreateLogger<PersistentSubscriptionEventStoreStream>())
+              loggerFactory?.CreateLogger<PersistentSubscriptionEventStoreStream>())
         {
             _persistentEventStoreStreamConfiguration = persistentEventStoreStreamConfiguration;
             _killSwitch = killSwitch?? new KillSwitch();
@@ -29,7 +29,7 @@ namespace Anabasis.EventStore.Stream
 
         public override void Disconnect()
         {
-            _eventStorePersistentSubscription.Stop(TimeSpan.FromSeconds(5));
+            _eventStorePersistentSubscription?.Stop(TimeSpan.FromSeconds(5));
         }
 
         protected override IDisposable ConnectToEventStream(IEventStoreConnection connection)

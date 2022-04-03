@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Tests
 {
     public class AgainSomeMoreData : BaseEvent
     {
-        public AgainSomeMoreData(Guid correlationId, string streamId) : base(correlationId, streamId)
+        public AgainSomeMoreData(Guid correlationId, string streamId) : base(streamId, correlationId)
         {
         }
 
@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Tests
 
     public class SomeMoreData : BaseEvent
     {
-        public SomeMoreData(Guid correlationId, string streamId) : base(correlationId, streamId)
+        public SomeMoreData(Guid correlationId, string streamId) : base(streamId, correlationId)
         {
         }
     }

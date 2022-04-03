@@ -7,7 +7,7 @@ namespace Anabasis.Common
     {
         Guid MessageId { get; }
         Task Acknowledge();
-        Task NotAcknowledge(string reason = null);
+        Task NotAcknowledge(string? reason = null);
         IEvent Content { get; } 
     }
 }

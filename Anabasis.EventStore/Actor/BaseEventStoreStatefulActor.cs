@@ -9,25 +9,24 @@ namespace Anabasis.EventStore.Actor
     public abstract class BaseEventStoreStatefulActor<TAggregate> : BaseStatelessActor, IStatefulActor<TAggregate> where TAggregate : IAggregate, new()
     {
 
-        public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<TAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration,  loggerFactory)
+
+        public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<TAggregate> eventStoreCache, ILoggerFactory? loggerFactory = null) : base(actorConfiguration,  loggerFactory)
         {
-            Initialize(eventStoreCache);
+            State = eventStoreCache;
+
+            eventStoreCache.Connect().Wait();
+
+            AddDisposable(eventStoreCache);
         }
 
         public BaseEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, 
             IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
-            ISnapshotStore<TAggregate> snapshotStore = null,
-            ISnapshotStrategy snapshotStrategy = null,
-            ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, loggerFactory)
+            ISnapshotStore<TAggregate>? snapshotStore = null,
+            ISnapshotStrategy? snapshotStrategy = null,
+            ILoggerFactory? loggerFactory = null) : base(eventStoreCacheFactory, loggerFactory)
         {
             var eventStoreActorConfiguration = eventStoreCacheFactory.GetConfiguration<TAggregate>(GetType());
             var eventStoreCache = eventStoreActorConfiguration.GetEventStoreCache(connectionStatusMonitor, loggerFactory, snapshotStore, snapshotStrategy);
-
-            Initialize(eventStoreCache);
-        }
-
-        private void Initialize(IAggregateCache<TAggregate> eventStoreCache)
-        {
 
             State = eventStoreCache;
 
@@ -36,8 +35,8 @@ namespace Anabasis.EventStore.Actor
             AddDisposable(eventStoreCache);
         }
 
-        public IAggregateCache<TAggregate> State { get; internal set; }
 
+        public IAggregateCache<TAggregate> State { get; internal set; }
 
     }
 }

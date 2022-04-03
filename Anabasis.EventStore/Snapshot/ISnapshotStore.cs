@@ -8,7 +8,7 @@ namespace Anabasis.EventStore.Snapshot
   {
     Task<TAggregate[]> GetAll();
     Task<TAggregate[]> GetByVersionOrLast(string[] eventFilters, int? version = null);
-    Task<TAggregate> GetByVersionOrLast(string streamId, string[] eventFilters, int? version = null);
-    Task Save(string[] eventFilters, TAggregate aggregate);
+    Task<TAggregate?> GetByVersionOrLast(string streamId, string[] eventFilters, int? version = null);
+    Task Save(string?[] eventFilters, TAggregate aggregate);
   }
 }

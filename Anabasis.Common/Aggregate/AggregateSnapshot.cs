@@ -5,20 +5,18 @@ namespace Anabasis.Common
 {
     public class AggregateSnapshot : IAggregateSnapshot
     {
-        public AggregateSnapshot()
-        {
 
-        }
-        public AggregateSnapshot(string streamId, string eventFilter, int version, string serializedAggregate)
+        public AggregateSnapshot(string entityId, string eventFilter, long version, string serializedAggregate, DateTime lastModifiedUtc)
         {
-            StreamId = streamId;
+            EntityId = entityId;
             EventFilter = eventFilter;
             Version = version;
             SerializedAggregate = serializedAggregate;
+            LastModifiedUtc = lastModifiedUtc;
         }
 
         [Required]
-        public string StreamId { get; set; }
+        public string EntityId { get; set; }
         [Required]
         public string EventFilter { get; set; }
         [Required]
@@ -26,20 +24,20 @@ namespace Anabasis.Common
         [Required]
         public DateTime LastModifiedUtc { get; set; }
         [Required]
-        [StringLength(int.MaxValue)]
+        [StringLength(4000)]
         public string SerializedAggregate { get; set; }
 
         public override bool Equals(object obj)
         {
             return obj is AggregateSnapshot snapshot &&
-                   StreamId == snapshot.StreamId &&
+                   EntityId == snapshot.EntityId &&
                    EventFilter == snapshot.EventFilter &&
                    Version == snapshot.Version;
         }
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(StreamId, EventFilter, Version);
+            return HashCode.Combine(EntityId, EventFilter, Version);
         }
     }
 }

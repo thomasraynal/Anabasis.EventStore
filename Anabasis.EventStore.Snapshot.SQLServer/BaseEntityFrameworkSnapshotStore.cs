@@ -34,11 +34,11 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
 
             if (null == version)
             {
-                aggregateSnapshot = await aggregateSnapshotQueryable.OrderByDescending(snapshot => snapshot.LastModifiedUtc).FirstOrDefaultAsync(snapshot => snapshot.StreamId == streamId && snapshot.EventFilter == eventFilter);
+                aggregateSnapshot = await aggregateSnapshotQueryable.OrderByDescending(snapshot => snapshot.LastModifiedUtc).FirstOrDefaultAsync(snapshot => snapshot.EntityId == streamId && snapshot.EventFilter == eventFilter);
             }
             else
             {
-                aggregateSnapshot = await aggregateSnapshotQueryable.OrderByDescending(snapshot => snapshot.LastModifiedUtc).FirstOrDefaultAsync(snapshot => snapshot.Version == version && snapshot.StreamId == streamId && snapshot.EventFilter == eventFilter);
+                aggregateSnapshot = await aggregateSnapshotQueryable.OrderByDescending(snapshot => snapshot.LastModifiedUtc).FirstOrDefaultAsync(snapshot => snapshot.Version == version && snapshot.EntityId == streamId && snapshot.EventFilter == eventFilter);
             }
 
             if (null == aggregateSnapshot) return default;
@@ -68,9 +68,9 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
                 aggregateSnapshots = await context.AggregateSnapshots.AsQueryable()
                                                                     .Where(snapshot => snapshot.EventFilter == eventFilter)
                                                                     .OrderByDescending(snapshot => snapshot.LastModifiedUtc)
-                                                                    .Select(snapshot => snapshot.StreamId)
+                                                                    .Select(snapshot => snapshot.EntityId)
                                                                     .Distinct()
-                                                                    .SelectMany(snapshot => orderByDescendingQueryable.Where(b => b.StreamId == snapshot).Take(1), (streamId, aggregateSnapshot) => aggregateSnapshot)
+                                                                    .SelectMany(snapshot => orderByDescendingQueryable.Where(b => b.EntityId == snapshot).Take(1), (streamId, aggregateSnapshot) => aggregateSnapshot)
                                                                     .ToArrayAsync();
             }
             else
@@ -90,7 +90,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
 
             var aggregateSnapshot = new TAggregateSnapshot
             {
-                StreamId = aggregate.EntityId,
+                EntityId = aggregate.EntityId,
                 Version = aggregate.Version,
                 EventFilter = string.Concat(eventFilters),
                 SerializedAggregate = aggregate.ToJson(),

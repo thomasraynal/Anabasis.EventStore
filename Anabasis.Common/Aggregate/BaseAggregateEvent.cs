@@ -1,5 +1,6 @@
 using Newtonsoft.Json;
 using System;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Anabasis.Common
 {
@@ -12,15 +13,11 @@ namespace Anabasis.Common
         {
         }
 
-        protected BaseAggregateEvent(string entityId, Guid correlationId):base(correlationId, entityId)
+        protected BaseAggregateEvent(string entityId, Guid? correlationId = null, Guid? causeId = null) : base(entityId, correlationId, causeId)
         {
-            Timestamp = DateTime.UtcNow;
-            EventId = Guid.NewGuid();
-            CorrelationId = correlationId;
-            EntityId = entityId;
         }
 
-        public abstract void Apply(TAggregate entity);
+        public abstract void Apply([NotNull] TAggregate entity);
 
     }
 }

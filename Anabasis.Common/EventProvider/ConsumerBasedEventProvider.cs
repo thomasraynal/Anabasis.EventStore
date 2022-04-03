@@ -12,7 +12,7 @@ namespace Anabasis.Common
         public ConsumerBasedEventProvider(Type type)
         {
             _eventTypeCache = new Dictionary<string, Type>();
-
+#nullable disable
             var eventTypes = type.GetMethods().Where(method => method.Name == "Handle" && method.GetParameters().Length == 1)
               .Select(method =>
               {
@@ -28,6 +28,7 @@ namespace Anabasis.Common
             {
                 _eventTypeCache.Add(@event.FullName, @event);
             }
+#nullable restore
         }
 
         public Type[] GetAll()
@@ -35,7 +36,7 @@ namespace Anabasis.Common
             return _eventTypeCache.Values.ToArray();
         }
 
-        public Type GetEventTypeByName(string name)
+        public Type? GetEventTypeByName(string name)
         {
 
             if (!_eventTypeCache.ContainsKey(name)) return null;

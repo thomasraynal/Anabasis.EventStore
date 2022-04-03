@@ -12,7 +12,7 @@ namespace Anabasis.EventStore.Cache
 
         private readonly AllStreamsCatchupCacheConfiguration<TAggregate> _catchupCacheConfiguration;
 
-        public AllStreamsCatchupCache(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, IEventTypeProvider<TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<TAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public AllStreamsCatchupCache(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, IEventTypeProvider<TAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<TAggregate>? snapshotStore = null, ISnapshotStrategy? snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
             _catchupCacheConfiguration = catchupCacheConfiguration;
         }
@@ -46,7 +46,7 @@ namespace Anabasis.EventStore.Cache
             return subscription;
         }
 
-        protected override Task OnLoadSnapshot(CatchupCacheSubscriptionHolder<TAggregate>[] catchupCacheSubscriptionHolders, ISnapshotStrategy snapshotStrategy, ISnapshotStore<TAggregate> snapshotStore)
+        protected override Task OnLoadSnapshot(CatchupCacheSubscriptionHolder<TAggregate>[]? catchupCacheSubscriptionHolders, ISnapshotStrategy? snapshotStrategy, ISnapshotStore<TAggregate>? snapshotStore)
         {
             return Task.CompletedTask;
         }

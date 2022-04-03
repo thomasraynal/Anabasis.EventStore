@@ -14,15 +14,15 @@ namespace Anabasis.EventStore.Stream
     {
         private readonly SubscribeFromEndEventStoreStreamConfiguration _volatileEventStoreStreamConfiguration;
         private readonly IKillSwitch _killSwitch;
-        private EventStoreAllFilteredCatchUpSubscription _eventStoreAllFilteredCatchUpSubscription;
+        private EventStoreAllFilteredCatchUpSubscription? _eventStoreAllFilteredCatchUpSubscription;
 
         public SubscribeFromEndToAllEventStoreStream(
           IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           SubscribeFromEndEventStoreStreamConfiguration volatileEventStoreStreamConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILoggerFactory loggerFactory,
-          IKillSwitch killSwitch = null)
-          : base(connectionMonitor, volatileEventStoreStreamConfiguration, eventTypeProvider, loggerFactory.CreateLogger<SubscribeFromEndToAllEventStoreStream>())
+          ILoggerFactory? loggerFactory = null,
+          IKillSwitch? killSwitch = null)
+          : base(connectionMonitor, volatileEventStoreStreamConfiguration, eventTypeProvider, loggerFactory?.CreateLogger<SubscribeFromEndToAllEventStoreStream>())
         {
             _volatileEventStoreStreamConfiguration = volatileEventStoreStreamConfiguration;
             _killSwitch = killSwitch ?? new KillSwitch();
@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Stream
 
         public override void Disconnect()
         {
-            _eventStoreAllFilteredCatchUpSubscription.Stop();
+            _eventStoreAllFilteredCatchUpSubscription?.Stop();
         }
 
         protected override IDisposable ConnectToEventStream(IEventStoreConnection connection)

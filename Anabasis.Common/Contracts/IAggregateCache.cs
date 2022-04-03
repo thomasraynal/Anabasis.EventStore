@@ -12,7 +12,7 @@ namespace Anabasis.Common
         bool IsConnected { get; }
         IObservable<bool> OnCaughtUp { get; }
         IObservable<bool> OnStale { get; }
-        TAggregate GetCurrent(string key);
+        TAggregate? GetCurrent(string key);
         TAggregate[] GetCurrents();
         IObservableCache<TAggregate, string> AsObservableCache();
         IEventTypeProvider<TAggregate> EventTypeProvider { get; }

@@ -1,10 +1,5 @@
 ﻿using Anabasis.Common;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Connection
 {
@@ -15,12 +10,16 @@ namespace Anabasis.EventStore.Connection
         public const int EVENTSTORE_DEFAULT_HEARTBEAT_TIMEOUT= 1500;
         public const int EVENTSTORE_DEFAULT_OPERATION_TIMEOUT = 60000;
 
+#nullable disable
+
         [Required]
         public string HostName { get; set; }
         [Required]
         public string UserName { get; set; }
         [Required]
         public string Password { get; set; }
+
+#nullable enable
 
         public int TcpPortNumber { get; set; } = EVENTSTORE_DEFAULT_TCP_PORT;
         public int HttpPortNumber { get; set; } = EVENTSTORE_DEFAULT_HTTP_PORT;

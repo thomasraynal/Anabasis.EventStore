@@ -10,7 +10,7 @@ namespace Anabasis.Common
 {
     public static class Json
     {
-        private static JsonSerializerSettings _jsonSerializerSettings;
+        private static JsonSerializerSettings? _jsonSerializerSettings;
 
         public static void SetDefaultJsonSerializerSettings(JsonSerializerSettings jsonSerializerSettings)
         {

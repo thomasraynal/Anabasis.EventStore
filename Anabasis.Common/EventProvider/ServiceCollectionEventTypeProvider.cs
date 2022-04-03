@@ -1,4 +1,3 @@
-using Anabasis.Common;
 using Anabasis.Common.Utilities;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -10,12 +9,12 @@ namespace Anabasis.Common
 
     public class ServiceCollectionEventTypeProvider : IEventTypeProvider
     {
-        private readonly Dictionary<string, Type> _eventTypeCache;
+        private readonly Dictionary<string, Type?> _eventTypeCache;
         private readonly IServiceProvider _serviceProvider;
 
         public ServiceCollectionEventTypeProvider(IServiceProvider serviceProvider)
         {
-            _eventTypeCache = new Dictionary<string, Type>();
+            _eventTypeCache = new Dictionary<string, Type?>();
             _serviceProvider = serviceProvider;
         }
 
@@ -25,7 +24,7 @@ namespace Anabasis.Common
             return _serviceProvider.GetServices<IHaveEntityId>().Select(type => type.GetType()).ToArray();
         }
 
-        public Type GetEventTypeByName(string name)
+        public Type? GetEventTypeByName(string name)
         {
             return _eventTypeCache.GetOrAdd(name, (key) =>
             {
@@ -42,12 +41,12 @@ namespace Anabasis.Common
 
     public class ServiceCollectionEventTypeProvider<TAggregate> : IEventTypeProvider<TAggregate> where TAggregate : class, IAggregate
     {
-        private readonly Dictionary<string, Type> _eventTypeCache;
+        private readonly Dictionary<string, Type?> _eventTypeCache;
         private readonly IServiceProvider _serviceProvider;
 
         public ServiceCollectionEventTypeProvider(IServiceProvider serviceProvider)
         {
-            _eventTypeCache = new Dictionary<string, Type>();
+            _eventTypeCache = new Dictionary<string, Type?>();
             _serviceProvider = serviceProvider;
         }
 
@@ -57,7 +56,7 @@ namespace Anabasis.Common
             return _serviceProvider.GetServices<IAggregateEvent<TAggregate>>().Select(type => type.GetType()).ToArray();
         }
 
-        public Type GetEventTypeByName(string name)
+        public Type? GetEventTypeByName(string name)
         {
             return _eventTypeCache.GetOrAdd(name, (key) =>
             {

@@ -3,11 +3,11 @@ using System;
 
 namespace Anabasis.Common
 {
-    public class UriJsonConverter : Newtonsoft.Json.JsonConverter
+    public class UriJsonConverter : JsonConverter
     {
         public override bool CanConvert(Type objectType) => objectType == typeof(Uri);
 
-        public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
+        public override object? ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer)
         {
             if (reader.TokenType == JsonToken.Null) return null;
 

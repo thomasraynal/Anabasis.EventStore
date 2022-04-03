@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Cache
 {
     public class SingleStreamCatchupCacheConfiguration<TAggregate> : MultipleStreamsCatchupCacheConfiguration<TAggregate> where TAggregate : IAggregate
     {
-        public SingleStreamCatchupCacheConfiguration(string streamId, UserCredentials userCredentials = null) : base(streamId)
+        public SingleStreamCatchupCacheConfiguration(string streamId, UserCredentials? userCredentials = null) : base(streamId)
         {
             UserCredentials = userCredentials;
         }

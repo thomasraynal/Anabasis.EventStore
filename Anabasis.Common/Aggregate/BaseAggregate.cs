@@ -13,7 +13,7 @@ namespace Anabasis.Common
         private readonly List<IEvent> _appliedEvents = new();
 
         [JsonProperty]
-        public string EntityId { get; protected set; }
+        public string? EntityId { get; protected set; }
 
         public long Version { get; set; } = -1;
 
@@ -38,7 +38,11 @@ namespace Anabasis.Common
                 return;
             }
 
+#nullable disable
+
             @event.Apply(this as TAggregate);
+
+#nullable enable
 
             Version = @event.EventNumber;
         }

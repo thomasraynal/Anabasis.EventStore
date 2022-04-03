@@ -5,9 +5,9 @@ namespace Anabasis.Common
 {
     public abstract class BaseCommand : BaseEvent, ICommand
     {
-        public BaseCommand(Guid correlationId, string streamId) : base(correlationId, streamId)
+        public BaseCommand(string entityId, Guid? correlationId = null, Guid? causeId = null) : base(entityId, correlationId, causeId)
         {
-            EntityId = streamId;
+            EntityId = entityId;
             IsCommand = true;
         }
 

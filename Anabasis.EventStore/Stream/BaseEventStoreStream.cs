@@ -13,18 +13,18 @@ namespace Anabasis.EventStore.Stream
         protected readonly IEventTypeProvider _eventTypeProvider;
         private readonly IConnectionStatusMonitor<IEventStoreConnection> _connectionMonitor;
 
-        private IDisposable _eventStreamConnectionDisposable;
+        private IDisposable? _eventStreamConnectionDisposable;
 
         protected Subject<IMessage> _onMessageSubject;
         public bool IsConnected => _connectionMonitor.IsConnected;
         public IObservable<bool> OnConnected => _connectionMonitor.OnConnected;
         public string Id { get; }
-        protected ILogger Logger { get; }
+        protected ILogger? Logger { get; }
 
         public BaseEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           IEventStoreStreamConfiguration cacheConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILogger logger = null)
+          ILogger? logger = null)
         {
 
             Logger = logger;
@@ -39,7 +39,7 @@ namespace Anabasis.EventStore.Stream
 
         }
 
-        protected IEvent GetEvent(ResolvedEvent resolvedEvent)
+        protected IEvent? GetEvent(ResolvedEvent resolvedEvent)
         {
 
             var recordedEvent = resolvedEvent.Event;
@@ -89,9 +89,13 @@ namespace Anabasis.EventStore.Stream
 
         private IEvent DeserializeEvent(RecordedEvent recordedEvent)
         {
+#nullable disable
+
             var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
             return _eventStoreStreamConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
+
+#nullable enable
         }
 
         protected abstract IDisposable ConnectToEventStream(IEventStoreConnection connection);

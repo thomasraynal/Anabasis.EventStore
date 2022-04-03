@@ -23,7 +23,9 @@ namespace Anabasis.Common
 
         public string Id { get; private set; }
         public bool IsDisposed { get; private set; }
-        public ILogger Logger { get; private set; }
+        public ILogger? Logger { get; private set; }
+
+#nullable disable
 
         protected BaseStatelessActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null)
         {
@@ -35,9 +37,12 @@ namespace Anabasis.Common
             Setup(actorConfiguration, loggerFactory);
         }
 
-        private void Setup(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory)
+#nullable enable
+
+        private void Setup(IActorConfiguration actorConfiguration, ILoggerFactory? loggerFactory)
         {
             Id = $"{GetType().Name}-{Guid.NewGuid()}";
+            Logger = loggerFactory?.CreateLogger(GetType());
 
             _cleanUp = new CompositeDisposable();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
@@ -55,7 +60,7 @@ namespace Anabasis.Common
 
             _cleanUp.Add(_dispatchQueue);
 
-            Logger = loggerFactory?.CreateLogger(GetType());
+          
         }
 
         public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.ConnectionStatusMonitor.IsConnected);
@@ -185,7 +190,7 @@ namespace Anabasis.Common
 
             if (_connectedBus.Count == 0) return new HealthCheckResult(HealthStatus.Healthy, healthCheckDescription);
 
-            Exception exception = null;
+            Exception? exception = null;
 
             var healthChecksResults = new HealthCheckResult[0];
             var healthStatus = HealthStatus.Healthy;

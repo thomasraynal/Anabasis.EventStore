@@ -1,14 +1,11 @@
-using Anabasis.Common;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Text;
 
 namespace Anabasis.Common
 {
-  public abstract class BaseCommandResponse : BaseEvent, ICommandResponse
+    public abstract class BaseCommandResponse : BaseEvent, ICommandResponse
   {
-    public BaseCommandResponse(Guid commandId, Guid correlationId, string streamId) : base(correlationId, streamId)
+    public BaseCommandResponse(string entityId, Guid commandId, Guid correlationId) : base(entityId, correlationId, commandId)
     {
       CommandId = commandId;
     }

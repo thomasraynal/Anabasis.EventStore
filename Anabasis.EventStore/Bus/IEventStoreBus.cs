@@ -16,25 +16,25 @@ namespace Anabasis.EventStore
             string streamId,
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
 
         SubscribeFromEndToOneStreamEventStoreStream SubscribeFromEndToOneStream(
             string streamId,
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
 
         SubscribeFromEndToAllEventStoreStream SubscribeFromEndToAllStreams(
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null);
+            Action<SubscribeFromEndEventStoreStreamConfiguration>? getSubscribeFromEndEventStoreStreamConfiguration = null);
 
         PersistentSubscriptionEventStoreStream SubscribeToPersistentSubscriptionStream(
             string streamId,
             string groupId,
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null);
+            Action<PersistentSubscriptionEventStoreStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null);
 
     }
 }

@@ -1,7 +1,6 @@
 using Anabasis.Common.Queue;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Reactive.Concurrency;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,11 +16,11 @@ namespace Anabasis.Common
         private readonly IKillSwitch _killSwitch;
 
         public bool IsFaulted { get; private set; }
-        public ILogger Logger { get; }
+        public ILogger? Logger { get; }
         public string Owner { get; }
         public string Id { get; }
 
-        public DispatchQueue(string ownerId, DispatchQueueConfiguration dispatchQueueConfiguration, ILoggerFactory loggerFactory= null, IKillSwitch killSwitch = null)
+        public DispatchQueue(string ownerId, DispatchQueueConfiguration dispatchQueueConfiguration, ILoggerFactory? loggerFactory = null, IKillSwitch? killSwitch = null)
         {
 
             Logger = loggerFactory?.CreateLogger(GetType());
@@ -44,7 +43,7 @@ namespace Anabasis.Common
 
             _thread.Start();
 
-            Logger.LogDebug("{0} started", Id);
+            Logger?.LogDebug("{0} started", Id);
         }
 
         public void Enqueue(IMessage message)

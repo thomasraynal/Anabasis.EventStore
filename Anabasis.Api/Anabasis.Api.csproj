@@ -12,6 +12,7 @@
     <Company />
     <Product />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	<Nullable>enable</Nullable>
   </PropertyGroup>
 
   <ItemGroup>

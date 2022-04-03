@@ -7,7 +7,7 @@ namespace Anabasis.Common
         string EventFilter { get; set; }
         DateTime LastModifiedUtc { get; set; }
         string SerializedAggregate { get; set; }
-        string StreamId { get; set; }
+        string EntityId { get; set; }
         long Version { get; set; }
     }
 }

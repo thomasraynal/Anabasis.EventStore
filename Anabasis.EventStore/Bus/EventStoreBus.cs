@@ -7,7 +7,9 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Disposables;
+using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -16,15 +18,15 @@ namespace Anabasis.EventStore
     public class EventStoreBus : IEventStoreBus
     {
         private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
-        private readonly ILoggerFactory _loggerFactory;
-        private readonly Microsoft.Extensions.Logging.ILogger _logger;
+        private readonly ILoggerFactory? _loggerFactory;
+        private readonly Microsoft.Extensions.Logging.ILogger? _logger;
         private readonly IEventStoreRepository _eventStoreRepository;
         private readonly CompositeDisposable _cleanUp;
         private readonly IConnectionStatusMonitor<IEventStoreConnection> _connectionStatusMonitor;
 
         public EventStoreBus(IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
             IEventStoreRepository eventStoreRepository,
-            ILoggerFactory loggerFactory = null)
+            ILoggerFactory? loggerFactory = null)
         {
             BusId = $"{nameof(EventStoreBus)}_{Guid.NewGuid()}";
 
@@ -64,10 +66,13 @@ namespace Anabasis.EventStore
 
             if (!isConnected)
             {
+#nullable disable
+
                 var data = new Dictionary<string, object>()
                 {
                     {"EventStore connection is down",(ConnectionStatusMonitor as EventStoreConnectionStatusMonitor).Connection.ConnectionName}
                 };
+#nullable enable
 
                 healthCheckResult = HealthCheckResult.Unhealthy(data: data);
             }
@@ -92,6 +97,9 @@ namespace Anabasis.EventStore
                 if (message.Content is ICommandResponse)
                 {
 
+
+#nullable disable
+
                     var commandResponse = message.Content as ICommandResponse;
 
                     if (_pendingCommands.ContainsKey(commandResponse.CommandId))
@@ -106,6 +114,8 @@ namespace Anabasis.EventStore
 
                         _pendingCommands.Remove(commandResponse.EventId, out _);
                     }
+
+#nullable enable
 
                 }
                 else
@@ -153,8 +163,9 @@ namespace Anabasis.EventStore
             {
                 if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
                 if (task.IsCanceled) throw new TimeoutException($"Command {command.EntityId} timeout");
+                if (task.IsFaulted && null != task.Exception) ExceptionDispatchInfo.Capture(task.Exception).Throw();
 
-                throw task.Exception;
+                throw new Exception($"Unable to process CommandResponse - Status => {task.Status}");
 
             }, cancellationTokenSource.Token);
 
@@ -163,7 +174,7 @@ namespace Anabasis.EventStore
         public SubscribeFromEndToAllEventStoreStream SubscribeFromEndToAllStreams(
             Action<IMessage, TimeSpan?> onMessageReceived, 
             IEventTypeProvider eventTypeProvider,
-            Action<SubscribeFromEndEventStoreStreamConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null)
+            Action<SubscribeFromEndEventStoreStreamConfiguration>? getSubscribeFromEndEventStoreStreamConfiguration = null)
         {
 
             var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
@@ -185,7 +196,7 @@ namespace Anabasis.EventStore
             string groupId,
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<PersistentSubscriptionEventStoreStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
+            Action<PersistentSubscriptionEventStoreStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null)
         {
 
             var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
@@ -207,7 +218,7 @@ namespace Anabasis.EventStore
             string streamId,
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null)
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null)
         {
 
             var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
@@ -230,7 +241,7 @@ namespace Anabasis.EventStore
             string streamId,
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration> getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null)
+            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null)
         {
 
             var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);

@@ -7,7 +7,7 @@ namespace Anabasis.Common
     public interface IEventTypeProvider
     {
         Type[] GetAll();
-        Type GetEventTypeByName(string name);
+        Type? GetEventTypeByName(string name);
     }
 
     public interface IEventTypeProvider<TAggregate> : IEventTypeProvider

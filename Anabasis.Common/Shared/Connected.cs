@@ -17,7 +17,7 @@ namespace Anabasis.Common
         {
         }
 
-        public T Value { get; }
+        public T? Value { get; }
 
         public bool IsConnected { get; }
     }
