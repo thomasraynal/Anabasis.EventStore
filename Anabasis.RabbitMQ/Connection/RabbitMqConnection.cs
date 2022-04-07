@@ -28,7 +28,7 @@ namespace Anabasis.RabbitMQ
         private readonly AnabasisAppContext _appContext;
         private readonly List<ulong> _deliveredMessages;
 
-        private string _blockedConnectionReason = null;
+        private string? _blockedConnectionReason = null;
 
         public bool IsBlocked => _blockedConnectionReason != null;
         public bool IsOpen => _autorecoveringConnection.IsOpen;
@@ -38,9 +38,10 @@ namespace Anabasis.RabbitMQ
         public RabbitMqConnection(RabbitMqConnectionOptions rabbitMqConnectionOptions,
             AnabasisAppContext appContext,
             ILoggerFactory loggerFactory,
-            RetryPolicy retryPolicy = null)
+            RetryPolicy? retryPolicy = null)
         {
             _rabbitMqConnectionOptions = rabbitMqConnectionOptions;
+
             if (null == retryPolicy)
             {
                 retryPolicy = Policy.Handle<OperationInterruptedException>()

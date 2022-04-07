@@ -22,7 +22,6 @@ namespace Anabasis.Common
         private IDispatchQueue _dispatchQueue;
 
         public string Id { get; private set; }
-        public bool IsDisposed { get; private set; }
         public ILogger? Logger { get; private set; }
 
 #nullable disable
@@ -60,10 +59,12 @@ namespace Anabasis.Common
 
             _cleanUp.Add(_dispatchQueue);
 
-          
         }
 
         public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.ConnectionStatusMonitor.IsConnected);
+        public virtual bool IsCaughtUp => true;
+        public bool IsFaulted => _dispatchQueue.IsFaulted;
+        public Exception LastError => _dispatchQueue.LastError;
 
         public virtual Task OnError(IEvent source, Exception exception)
         {
@@ -95,13 +96,16 @@ namespace Anabasis.Common
 
         public void OnMessageReceived(IMessage @event, TimeSpan? timeout = null)
         {
-             timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
+            timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
 
-            if(!_dispatchQueue.CanEnqueue())
+            if (!_dispatchQueue.CanEnqueue() || !IsCaughtUp)
             {
-                SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue(), (int)timeout.Value.TotalMilliseconds);
+                SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue() & IsCaughtUp, (int)timeout.Value.TotalMilliseconds);
 
-                if(!_dispatchQueue.CanEnqueue())
+                if (!IsCaughtUp)
+                    throw new TimeoutException("Unable to process event - actor has not caught-up");
+
+                if (!_dispatchQueue.CanEnqueue())
                     throw new TimeoutException("Unable to process event - timeout reached");
             }
 
@@ -122,8 +126,6 @@ namespace Anabasis.Common
         public virtual void Dispose()
         {
             _cleanUp.Dispose();
-
-            IsDisposed = true;
         }
         public async Task WaitUntilConnected(TimeSpan? timeout = null)
         {
@@ -211,6 +213,13 @@ namespace Anabasis.Common
             {
                 healthStatus = HealthStatus.Unhealthy;
                 exception = ex;
+            }
+
+            if (IsFaulted)
+            {
+                exception = this.LastError;
+                healthStatus = HealthStatus.Unhealthy;
+                data.Add("Actor is in a faulted state", this.LastError.Message);
             }
 
             return new HealthCheckResult(healthStatus, healthCheckDescription, exception, data);

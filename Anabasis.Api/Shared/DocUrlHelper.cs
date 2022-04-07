@@ -7,7 +7,7 @@ namespace Anabasis.Api
 {
     public static class DocUrlHelper
     {
-        public static Uri GetDocUrl(string actionName, Uri docUrl)
+        public static Uri? GetDocUrl(string actionName, Uri? docUrl)
         {
             if (null == docUrl) return null;
 

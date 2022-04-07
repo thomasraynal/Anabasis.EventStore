@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Anabasis.Api
 {
@@ -16,8 +13,13 @@ namespace Anabasis.Api
 
     public static class ExceptionExtensions
     {
+
+#nullable disable
+
         public static void SetData<TData>(this Exception ex, string key, TData value) => ex.Data[key] = $"{value}";
         public static string GetData(this Exception ex, string key) => ex.Data[key] as string;
+
+#nullable enable
 
     }
 

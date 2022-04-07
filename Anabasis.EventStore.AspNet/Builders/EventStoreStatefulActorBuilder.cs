@@ -155,7 +155,13 @@ namespace Anabasis.EventStore.AspNet.Builders
 
             var onRegistration = new Action<IServiceProvider, IActor>((serviceProvider, actor) =>
             {
-                var bus = (TBus)serviceProvider.GetService(busType);
+
+                var busCandidate = serviceProvider.GetService(busType);
+
+                if (null == busCandidate)
+                    throw new InvalidOperationException($"No bus of type {busType} has been registered");
+
+                var bus = (TBus)busCandidate;
 
                 if (null == bus)
                     throw new InvalidOperationException($"No bus of type {busType} has been registered");

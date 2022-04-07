@@ -9,6 +9,6 @@ namespace Anabasis.EventStore.Cache
         bool IsCaughtUp { get; }
         long? LastProcessedEventSequenceNumber { get; }
         DateTime LastProcessedEventUtcTimestamp { get; }
-        string StreamId { get; }
+        string? StreamId { get; }
     }
 }

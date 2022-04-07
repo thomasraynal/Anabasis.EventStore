@@ -15,6 +15,7 @@ namespace Anabasis.Common
         private readonly Thread _thread;
         private readonly IKillSwitch _killSwitch;
 
+        public Exception LastError { get; private set; }
         public bool IsFaulted { get; private set; }
         public ILogger? Logger { get; }
         public string Owner { get; }
@@ -75,6 +76,8 @@ namespace Anabasis.Common
 
                         Logger?.LogError(exception, $"An exception occured during the message consumption process: {message.ToJson()}");
 
+                        this.LastError = exception;
+
                         await message.NotAcknowledge();
 
                         if (_dispatchQueueConfiguration.CrashAppOnError)
@@ -85,14 +88,21 @@ namespace Anabasis.Common
 
                             var remainingMessages = _workQueue.Flush();
 
-                            while (remainingMessages.TryDequeue(out var remainingMessage))
+                            try
                             {
-                                await remainingMessage.NotAcknowledge();
-                            }
 
-                            _killSwitch.KillMe(exception);
+                                while (remainingMessages.TryDequeue(out var remainingMessage))
+                                {
+                                    await remainingMessage.NotAcknowledge();
+                                }
+
+                            }
+                            catch { }
+                            finally
+                            {
+                                _killSwitch.KillMe(exception);
+                            }
                         }
-             
                     }
                 }
             }

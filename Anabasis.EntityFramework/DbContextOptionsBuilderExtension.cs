@@ -5,7 +5,7 @@ namespace Anabasis.EntityFramework
 {
     public static class DbContextOptionsBuilderExtension
     {
-        public static DbContextOptionsBuilder With(this DbContextOptionsBuilder dbContextOptionsBuilder, ILoggerFactory loggerFactory = null)
+        public static DbContextOptionsBuilder With(this DbContextOptionsBuilder dbContextOptionsBuilder, ILoggerFactory? loggerFactory = null)
         {
             if (null != loggerFactory)
             {

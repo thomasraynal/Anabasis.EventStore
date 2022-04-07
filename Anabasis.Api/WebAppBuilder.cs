@@ -36,17 +36,17 @@ namespace Anabasis.Api
   
         public static IWebHostBuilder Create<THost>(
             int apiPort = 80,
-            int? memoryCheckTresholdInMB = 200,
+            int memoryCheckTresholdInMB = 200,
             bool useCors = false,
-            ISerializer serializer = null,
-            Action<MvcOptions> configureMvcBuilder = null,
-            Action<IMvcBuilder> configureMvc = null,
-            Action<MvcNewtonsoftJsonOptions> configureJson = null,
-            Action<KestrelServerOptions> configureKestrel = null,
-            Action<AnabasisAppContext, IApplicationBuilder> configureApplicationBuilder = null,
-            Action<AnabasisAppContext, IServiceCollection, IConfigurationRoot> configureServiceCollection = null,
-            Action<ConfigurationBuilder> configureConfigurationBuilder = null,
-            Action<LoggerConfiguration> configureLogging = null)
+            ISerializer? serializer = null,
+            Action<MvcOptions>? configureMvcBuilder = null,
+            Action<IMvcBuilder>? configureMvc = null,
+            Action<MvcNewtonsoftJsonOptions>? configureJson = null,
+            Action<KestrelServerOptions>? configureKestrel = null,
+            Action<AnabasisAppContext, IApplicationBuilder>? configureApplicationBuilder = null,
+            Action<AnabasisAppContext, IServiceCollection, IConfigurationRoot>? configureServiceCollection = null,
+            Action<ConfigurationBuilder>? configureConfigurationBuilder = null,
+            Action<LoggerConfiguration>? configureLogging = null)
         {
 
             var anabasisConfiguration = Configuration.GetConfigurations(configureConfigurationBuilder);
@@ -59,7 +59,7 @@ namespace Anabasis.Api
                 anabasisConfiguration.AnabasisEnvironment,
                 anabasisConfiguration.AppConfigurationOptions.DocUrl,
                 apiPort,
-                memoryCheckTresholdInMB.Value,
+                memoryCheckTresholdInMB,
                 Environment.MachineName);
 
             var loggerConfiguration = new LoggerConfiguration();
@@ -117,10 +117,10 @@ namespace Anabasis.Api
             IServiceCollection services,
             bool useCors,
             AnabasisAppContext appContext,
-            ISerializer serializer = null,
-            Action<MvcOptions> configureMvcBuilder = null,
-            Action<IMvcBuilder> configureMvc = null,
-            Action<MvcNewtonsoftJsonOptions> configureJson = null)
+            ISerializer? serializer = null,
+            Action<MvcOptions>? configureMvcBuilder = null,
+            Action<IMvcBuilder>? configureMvc = null,
+            Action<MvcNewtonsoftJsonOptions>? configureJson = null)
         {
 
             services.AddOptions();

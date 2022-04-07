@@ -37,7 +37,7 @@ namespace Anabasis.RabbitMQ
                               .ToArray();
         }
 
-        public static void SubscribeToExchange<TEvent>(this IActor actor, string exchange, bool isAutoAck = true, Expression<Func<TEvent, bool>> routingStrategy = null)
+        public static void SubscribeToExchange<TEvent>(this IActor actor, string exchange, bool isAutoAck = true, Expression<Func<TEvent, bool>>? routingStrategy = null)
             where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
@@ -57,7 +57,7 @@ namespace Anabasis.RabbitMQ
             actor.AddDisposable(disposable);
         }
 
-        public static IObservable<TEvent> SubscribeToExchange<TEvent>(this IRabbitMqBus rabbitMqBus, string exchange, bool isAutoAck = true, Expression<Func<TEvent, bool>> routingStrategy = null)
+        public static IObservable<TEvent> SubscribeToExchange<TEvent>(this IRabbitMqBus rabbitMqBus, string exchange, bool isAutoAck = true, Expression<Func<TEvent, bool>>? routingStrategy = null)
         where TEvent : class, IRabbitMqEvent
         {
 

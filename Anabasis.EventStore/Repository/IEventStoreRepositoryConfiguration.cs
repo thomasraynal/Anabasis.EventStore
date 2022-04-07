@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Repository
 {
   public interface IEventStoreRepositoryConfiguration
   {
-    UserCredentials UserCredentials { get; set; }
+    UserCredentials? UserCredentials { get; set; }
     int WritePageSize { get; set; }
     int ReadPageSize { get; set; }
     ISerializer Serializer { get; set; }

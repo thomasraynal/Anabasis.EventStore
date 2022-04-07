@@ -83,7 +83,7 @@ namespace Anabasis.EventStore.Repository
 
         }
 
-        private IAggregateEvent<TAggregate> DeserializeEvent<TAggregate>(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
+        private IAggregateEvent<TAggregate>? DeserializeEvent<TAggregate>(RecordedEvent recordedEvent, IEventTypeProvider eventTypeProvider, bool throwIfNotHandled = true)
             where TAggregate : class, IAggregate
         {
             var targetType = eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);

@@ -8,7 +8,9 @@ namespace Anabasis.Common
     {
         string Id { get; }
         bool IsConnected { get; }
-        bool IsDisposed { get; }
+        bool IsCaughtUp { get; }
+        bool IsFaulted { get; }
+        Exception LastError { get; }
         TBus GetConnectedBus<TBus>() where TBus : class;
         Task WaitUntilConnected(TimeSpan? timeout = null);
         void OnMessageReceived(IMessage @event, TimeSpan? timeout = null);

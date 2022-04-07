@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Repository
 {
   public class EventStoreRepositoryConfiguration : IEventStoreRepositoryConfiguration
   {
-    public EventStoreRepositoryConfiguration(UserCredentials userCredentials = null)
+    public EventStoreRepositoryConfiguration(UserCredentials? userCredentials = null)
     {
       UserCredentials = userCredentials;
     }
@@ -14,6 +14,6 @@ namespace Anabasis.EventStore.Repository
     public int WritePageSize { get; set; } = 500;
     public int ReadPageSize { get; set; } = 500;
     public ISerializer Serializer { get; set; } = new DefaultSerializer();
-    public UserCredentials UserCredentials { get; set; }
+    public UserCredentials? UserCredentials { get; set; }
   }
 }

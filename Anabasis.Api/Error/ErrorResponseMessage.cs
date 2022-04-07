@@ -12,7 +12,10 @@ namespace Anabasis.Api
     public partial class ErrorResponseMessage
     {
         [JsonConstructor]
-        public ErrorResponseMessage() { }
+        private ErrorResponseMessage()
+        {
+            Errors = Array.Empty<UserErrorMessage>();
+        }
 
         public ErrorResponseMessage(UserErrorMessage[] errors)
         {

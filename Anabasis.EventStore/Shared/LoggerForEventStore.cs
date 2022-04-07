@@ -8,6 +8,7 @@ using LogLevel = Microsoft.Extensions.Logging.LogLevel;
 
 namespace Anabasis.EventSore.Shared
 {
+#nullable disable
     public class LoggerForEventStore : ILogger
     {
         private readonly MsLogger _logger;
@@ -48,4 +49,5 @@ namespace Anabasis.EventSore.Shared
             _logger.Log(LogLevel.Information, _eventId, string.Format(format, args), ex, null);
         }
     }
+#nullable enable
 }

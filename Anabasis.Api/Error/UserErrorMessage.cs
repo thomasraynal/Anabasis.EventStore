@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Net;
-using System.Runtime.Serialization;
 
 namespace Anabasis.Api
 {
@@ -15,9 +14,9 @@ namespace Anabasis.Api
         public UserErrorMessage(
             HttpStatusCode? httpStatusCode,
             string message,
-            Dictionary<string, object> properties = null,
-            Uri docUrl = null,
-            string stackTrace = null
+            Dictionary<string, object>? properties = null,
+            Uri? docUrl = null,
+            string? stackTrace = null
             )
         {
 
@@ -28,16 +27,16 @@ namespace Anabasis.Api
             StackTrace = stackTrace;
         }
 
-        public Uri DocUrl { get; set; }
+        public Uri? DocUrl { get; set; }
 
         [Required]
         public HttpStatusCode? HttpStatusCode { get; set; }
 
         [Required]
-        public string Message { get; set; }
+        public string? Message { get; set; }
 
-        public Dictionary<string, object> Properties { get; set; }
+        public Dictionary<string, object>? Properties { get; set; }
 
-        public string StackTrace { get; set; }
+        public string? StackTrace { get; set; }
     }
 }

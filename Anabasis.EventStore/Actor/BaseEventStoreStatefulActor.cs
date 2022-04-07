@@ -9,7 +9,6 @@ namespace Anabasis.EventStore.Actor
     public abstract class BaseEventStoreStatefulActor<TAggregate> : BaseStatelessActor, IStatefulActor<TAggregate> where TAggregate : IAggregate, new()
     {
 
-
         public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<TAggregate> eventStoreCache, ILoggerFactory? loggerFactory = null) : base(actorConfiguration,  loggerFactory)
         {
             State = eventStoreCache;
@@ -35,6 +34,7 @@ namespace Anabasis.EventStore.Actor
             AddDisposable(eventStoreCache);
         }
 
+        public override bool IsCaughtUp => State.IsCaughtUp;
 
         public IAggregateCache<TAggregate> State { get; internal set; }
 

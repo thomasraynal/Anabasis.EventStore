@@ -19,9 +19,7 @@ namespace Anabasis.EventStore.Repository
 
         private readonly IDisposable _cleanup;
         protected  ILogger<EventStoreRepository>? Logger { get; }
-
         public bool IsConnected { get; private set; }
-
         public string Id { get; }
 
         public EventStoreRepository(
@@ -98,6 +96,8 @@ namespace Anabasis.EventStore.Repository
         {
             var commitId = Guid.NewGuid();
 
+#nullable disable
+
             var commitHeaders = new Dictionary<string, string>
             {
                 {MetadataKeys.CommitIdHeader, commitId.ToString()},
@@ -106,6 +106,8 @@ namespace Anabasis.EventStore.Repository
                 {MetadataKeys.ServerNameHeader, Environment.MachineName},
                 {MetadataKeys.ServerClockHeader, DateTime.UtcNow.ToString("o")}
             };
+
+#nullable enable
 
             if (null != aggregate)
             {
@@ -132,10 +134,14 @@ namespace Anabasis.EventStore.Repository
 
             var data = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(@event);
 
+#nullable disable
+
             if (!headers.ContainsKey(MetadataKeys.EventClrTypeHeader)){
 
                 headers.Add(MetadataKeys.EventClrTypeHeader, @event.GetType().AssemblyQualifiedName);
             }
+
+#nullable enable
 
             var metadata = _eventStoreRepositoryConfiguration.Serializer.SerializeObject(headers);
             var typeName = @event.GetType().FullName;

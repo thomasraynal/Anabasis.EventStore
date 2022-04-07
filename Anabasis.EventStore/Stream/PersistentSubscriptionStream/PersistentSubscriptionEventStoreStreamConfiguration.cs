@@ -6,7 +6,7 @@ namespace Anabasis.EventStore.Stream
 {
     public class PersistentSubscriptionEventStoreStreamConfiguration : IEventStoreStreamConfiguration
     {
-        public PersistentSubscriptionEventStoreStreamConfiguration(string streamId, string groupId, UserCredentials userCredentials = null)
+        public PersistentSubscriptionEventStoreStreamConfiguration(string streamId, string groupId, UserCredentials? userCredentials = null)
         {
             StreamId = streamId;
             GroupId = groupId;
@@ -16,7 +16,7 @@ namespace Anabasis.EventStore.Stream
         public string StreamId { get; set; }
         public string GroupId { get; set; }
         public ISerializer Serializer { get; set; } = new DefaultSerializer();
-        public UserCredentials UserCredentials { get; set; }
+        public UserCredentials? UserCredentials { get; set; }
         public int BufferSize { get; set; } = EventStorePersistentSubscriptionBase.DefaultBufferSize;
         public bool AutoAck { get; set; } = true;
         public bool IgnoreUnknownEvent => true;

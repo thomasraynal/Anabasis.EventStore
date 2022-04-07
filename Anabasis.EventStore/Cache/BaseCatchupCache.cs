@@ -260,7 +260,7 @@ namespace Anabasis.EventStore.Cache
 
             foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
             {
-                catchupCacheSubscriptionHolder.EventStreamConnectionDisposable.Dispose();
+                catchupCacheSubscriptionHolder?.EventStreamConnectionDisposable?.Dispose();
             }
 
             return Task.CompletedTask;

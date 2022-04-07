@@ -10,8 +10,8 @@ namespace Anabasis.RabbitMQ.Shared
 {
     public class RabbitMQSubjectExpressionMember
     {
-        public string Property { get; set; }
-        public string Value { get; set; }
+        public string? Property { get; set; }
+        public string? Value { get; set; }
         public int Position { get; set; }
     }
 
@@ -23,7 +23,7 @@ namespace Anabasis.RabbitMQ.Shared
         private readonly Type _declaringType;
         private readonly List<RabbitMQSubjectExpressionMember> _members = new List<RabbitMQSubjectExpressionMember>();
         private RabbitMQSubjectExpressionMember _current;
-        private string _debug;
+        private string _asString;
         private readonly List<string> _usedMembers = new List<string>();
 
         private readonly IEnumerable<Type> _allowedTypes = new[]
@@ -124,17 +124,17 @@ namespace Anabasis.RabbitMQ.Shared
 
                             _members.Add(_current);
 
-                            _debug += $"{member} ";
+                            _asString += $"{member} ";
                         }
 
                         break;
 
                     case ExpressionType.AndAlso:
-                        _debug += "AndAlso ";
+                        _asString += "AndAlso ";
                         break;
 
                     case ExpressionType.Equal:
-                        _debug += "Equal ";
+                        _asString += "Equal ";
                         break;
 
                     case ExpressionType.Constant:
@@ -144,7 +144,7 @@ namespace Anabasis.RabbitMQ.Shared
                         if (null != _current)
                         {
                             _current.Value = $"{constExp.Value}";
-                            _debug += $"{constExp.Value} ";
+                            _asString += $"{constExp.Value} ";
                         }
 
                         break;
@@ -172,7 +172,7 @@ namespace Anabasis.RabbitMQ.Shared
 
         public override string ToString()
         {
-            return _debug;
+            return _asString;
         }
     }
 }

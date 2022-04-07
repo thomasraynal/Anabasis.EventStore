@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Shared
             return Task.CompletedTask;
         }
 
-        public override Task NotAcknowledge(string reason = null)
+        public override Task NotAcknowledge(string? reason = null)
         {
             return Task.CompletedTask;
         }

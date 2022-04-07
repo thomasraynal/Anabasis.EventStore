@@ -15,7 +15,7 @@ namespace Anabasis.RabbitMQ
         public Func<IRabbitMqQueueMessage, Task> OnMessage { get; }
         public bool IsAutoAck { get; }
 
-        public RabbitMqEventSubscription(string exchange, Func<IRabbitMqQueueMessage, Task> onEvent, bool isAutoAck = true, Expression<Func<TEvent, bool>> routingStrategy = null)
+        public RabbitMqEventSubscription(string exchange, Func<IRabbitMqQueueMessage, Task> onEvent, bool isAutoAck = true, Expression<Func<TEvent, bool>>? routingStrategy = null)
         {
             if (null == routingStrategy)
                 routingStrategy = (_) => true;
