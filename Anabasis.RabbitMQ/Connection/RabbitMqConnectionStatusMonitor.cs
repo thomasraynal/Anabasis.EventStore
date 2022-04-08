@@ -14,12 +14,12 @@ namespace Anabasis.RabbitMQ.Connection
     {
         private readonly IConnectableObservable<ConnectionInfo> _connectionInfoChanged;
         private readonly IRabbitMqConnection _rabbitMqConnection;
-        private readonly Microsoft.Extensions.Logging.ILogger _logger;
+        private readonly Microsoft.Extensions.Logging.ILogger? _logger;
         private readonly BehaviorSubject<bool> _isConnected;
         private readonly IDisposable _cleanUp;
         public bool IsConnected => _isConnected.Value;
 
-        public ConnectionInfo ConnectionInfo { get; private set; }
+        public ConnectionInfo? ConnectionInfo { get; private set; }
 
         public IObservable<ConnectionInfo> OnConnectionChanged => _connectionInfoChanged.AsObservable();
         public IObservable<bool> OnConnected => _isConnected.AsObservable();
@@ -38,42 +38,42 @@ namespace Anabasis.RabbitMQ.Connection
 
             var blocked = Observable.FromEventPattern<ConnectionBlockedEventArgs>(h => connection.AutoRecoveringConnection.ConnectionBlocked += h, h => connection.AutoRecoveringConnection.ConnectionBlocked -= h).Select(e =>
              {
-                 _logger.LogInformation($"AMQP connection blocked - {nameof(ShutdownEventArgs)} => {e.EventArgs?.ToJson()}");
+                 _logger?.LogInformation($"AMQP connection blocked - {nameof(ShutdownEventArgs)} => {e.EventArgs?.ToJson()}");
 
                  return ConnectionStatus.Disconnected;
              });
 
             var unblocked = Observable.FromEventPattern<EventArgs>(h => connection.AutoRecoveringConnection.ConnectionUnblocked += h, h => connection.AutoRecoveringConnection.ConnectionUnblocked -= h).Select(e =>
             {
-                _logger.LogInformation($"AMQP connection unblocked - {nameof(EventArgs)} => {e.EventArgs?.ToJson()}");
+                _logger?.LogInformation($"AMQP connection unblocked - {nameof(EventArgs)} => {e.EventArgs?.ToJson()}");
 
                 return ConnectionStatus.Connected;
             });
 
             var shutdowned = Observable.FromEventPattern<ShutdownEventArgs>(h => connection.AutoRecoveringConnection.ConnectionShutdown += h, h => connection.AutoRecoveringConnection.ConnectionShutdown -= h).Select(e =>
             {
-                _logger.LogInformation($"AMQP connection shutdown - {nameof(ShutdownEventArgs)} => {e.EventArgs?.ToJson()}");
+                _logger?.LogInformation($"AMQP connection shutdown - {nameof(ShutdownEventArgs)} => {e.EventArgs?.ToJson()}");
 
                 return ConnectionStatus.Disconnected;
             });
 
             var closed = Observable.FromEventPattern<CallbackExceptionEventArgs>(h => connection.AutoRecoveringConnection.CallbackException += h, h => connection.AutoRecoveringConnection.CallbackException -= h).Select(e =>
             {
-                _logger.LogError(e.EventArgs.Exception, $"An exception occured in a callback process - {nameof(CallbackExceptionEventArgs)} => {e.EventArgs?.ToJson()}");
+                _logger?.LogError(e.EventArgs.Exception, $"An exception occured in a callback process - {nameof(CallbackExceptionEventArgs)} => {e.EventArgs?.ToJson()}");
 
                 return ConnectionStatus.ErrorOccurred;
             });
 
             var errorOccurred = Observable.FromEventPattern<EventArgs>(h => connection.AutoRecoveringConnection.RecoverySucceeded += h, h => connection.AutoRecoveringConnection.RecoverySucceeded -= h).Select(e =>
             {
-                _logger.LogInformation($"AMQP connection recovery success - {nameof(EventArgs)} => {e.EventArgs?.ToJson()}");
+                _logger?.LogInformation($"AMQP connection recovery success - {nameof(EventArgs)} => {e.EventArgs?.ToJson()}");
 
                 return ConnectionStatus.Connected;
             });
 
             var connectionRecoveryError = Observable.FromEventPattern<ConnectionRecoveryErrorEventArgs>(h => connection.AutoRecoveringConnection.ConnectionRecoveryError += h, h => connection.AutoRecoveringConnection.ConnectionRecoveryError -= h).Select(e =>
             {
-                _logger.LogError(e.EventArgs.Exception, $"AMQP connection recovery error - {nameof(ConnectionRecoveryErrorEventArgs)} => {e.EventArgs?.ToJson()}");
+                _logger?.LogError(e.EventArgs.Exception, $"AMQP connection recovery error - {nameof(ConnectionRecoveryErrorEventArgs)} => {e.EventArgs?.ToJson()}");
 
                 return ConnectionStatus.Disconnected;
             });

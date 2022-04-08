@@ -21,6 +21,7 @@ namespace Anabasis.Common
         private IActorConfiguration _actorConfiguration;
         private IDispatchQueue _dispatchQueue;
 
+        protected ManualResetEventSlim _caughtingUpEvent = new ManualResetEventSlim(true);
         public string Id { get; private set; }
         public ILogger? Logger { get; private set; }
 
@@ -96,14 +97,13 @@ namespace Anabasis.Common
 
         public void OnMessageReceived(IMessage @event, TimeSpan? timeout = null)
         {
+            _caughtingUpEvent.Wait();
+
             timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
 
-            if (!_dispatchQueue.CanEnqueue() || !IsCaughtUp)
+            if (!_dispatchQueue.CanEnqueue())
             {
-                SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue() & IsCaughtUp, (int)timeout.Value.TotalMilliseconds);
-
-                if (!IsCaughtUp)
-                    throw new TimeoutException("Unable to process event - actor has not caught-up");
+                SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue(), (int)timeout.Value.TotalMilliseconds);
 
                 if (!_dispatchQueue.CanEnqueue())
                     throw new TimeoutException("Unable to process event - timeout reached");

@@ -5,7 +5,7 @@ namespace Anabasis.RabbitMQ
 {
     public interface IRabbitMqConnection: IDisposable
     {
-        IAutorecoveringConnection AutoRecoveringConnection { get; }
+        IAutorecoveringConnection? AutoRecoveringConnection { get; }
         bool IsBlocked { get; }
         bool IsOpen { get; }
         void DoWithChannel(Action<IModel> action);

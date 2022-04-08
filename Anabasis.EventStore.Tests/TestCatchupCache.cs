@@ -108,7 +108,7 @@ namespace Anabasis.EventStore.Tests
                            .Bind(aggregatesOnCacheOne)
                            .Subscribe();
 
-            catchUpCache.Connect();
+            catchUpCache.Connect().Wait();
 
             return (connectionMonitor, catchUpCache, aggregatesOnCacheOne);
 

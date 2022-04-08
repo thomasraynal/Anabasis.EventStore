@@ -27,6 +27,7 @@ namespace Anabasis.Deployment
         public abstract bool IsDeployOnKubernetes { get; }
         public bool IsTestRunParallelized { get; set; } = true;
 
+#nullable disable
         [Required]
         [Parameter("Docker registry")]
         public string DockerRegistryServer;
@@ -47,8 +48,13 @@ namespace Anabasis.Deployment
         [Parameter("Set the build environment")]
         public AnabasisEnvironment AnabasisBuildEnvironment;
 
+        [Required]
+        [GitRepository]
+        public readonly GitRepository GitRepository;
+#nullable enable
+
         [Parameter("Kubernetes cluster configuration file")]
-        public readonly AbsolutePath KubeConfigPath;
+        public readonly AbsolutePath? KubeConfigPath;
 
         [Parameter("Solution source directory")]
         public AbsolutePath SourceDirectory = RootDirectory / "src";
@@ -58,13 +64,9 @@ namespace Anabasis.Deployment
 
         public AbsolutePath NukeBuildDirectory => RootDirectory / "build";
         public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
-     
-        [Required]
-        [GitRepository]
-        public readonly GitRepository GitRepository;
 
         public AbsolutePath DockerFile => BuildAssemblyDirectory / "docker" / "build.dockerfile";
-        public AbsolutePath BuildProjectKustomizeDirectory { get; set; }
+        public AbsolutePath? BuildProjectKustomizeDirectory { get; set; }
         public AbsolutePath BuildProjectKustomizeTemplateDirectory => BuildProjectKustomizeDirectory / "templates";
         public AbsolutePath KustomizationFileForOverride => BuildProjectKustomizeDirectory / "kustomization.yaml";
         public AbsolutePath KustomizationFileForBase => BuildProjectKustomizeTemplateDirectory / "kustomization.yaml";
@@ -127,6 +129,8 @@ namespace Anabasis.Deployment
 
         private async Task GenerateKubernetesYamlDockerSecret(AppDescriptor appDescriptor)
         {
+#nullable disable
+
             var secret = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "secret-docker-registry.yaml")).First() as k8s.Models.V1Secret;
 
             var dockerConfigToJson = GetDockerConfiguration();
@@ -138,6 +142,8 @@ namespace Anabasis.Deployment
             var secretYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "secret-docker-registry.yaml");
 
             WriteFile(secretYamlPath, secretYaml);
+
+#nullable enable
 
         }
 
@@ -157,8 +163,10 @@ namespace Anabasis.Deployment
                                    .Concat(TestsDirectory.GlobDirectories("**/bin", "**/obj")))
                     try
                     {
+#nullable disable
                         if ($"{directory}".Contains(new FileInfo(BuildProjectFile).Directory.FullName))
                             continue;
+#nullable enable
 
                         if (!FileSystemTasks.DirectoryExists(directory))
                         {
@@ -474,6 +482,7 @@ namespace Anabasis.Deployment
 
         private async Task GenerateKubernetesYamlIngress(AppDescriptor appDescriptor)
         {
+#nullable disable
             var ingress = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "ingress.yaml")).First() as k8s.Models.V1Ingress;
 
             ingress.Metadata.Name = $"ingress-{appDescriptor.AppLongName}";
@@ -495,6 +504,7 @@ namespace Anabasis.Deployment
             var ingressYaml = Yaml.SaveToString(ingress);
 
             var ingressYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "ingress.yaml");
+#nullable enable
 
             WriteFile(ingressYamlPath, ingressYaml);
 
@@ -502,6 +512,7 @@ namespace Anabasis.Deployment
 
         private async Task GenerateKubernetesYamlNamespace(AppDescriptor appDescriptor)
         {
+#nullable disable
             var @namespace = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "namespace.yaml")).First() as k8s.Models.V1Namespace;
 
             @namespace.Metadata.Name = appDescriptor.AppGroup;
@@ -510,6 +521,7 @@ namespace Anabasis.Deployment
             var namespaceYaml = Yaml.SaveToString(@namespace);
 
             var namespaceYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "namespace.yaml");
+#nullable enable
 
             WriteFile(namespaceYamlPath, namespaceYaml);
 
@@ -517,6 +529,7 @@ namespace Anabasis.Deployment
 
         private async Task GenerateKubernetesYamlDeployment(AppDescriptor appDescriptor)
         {
+#nullable disable
             var deployment = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "deployment.yaml")).First() as k8s.Models.V1Deployment;
 
             deployment.Metadata.NamespaceProperty = appDescriptor.AppGroup;
@@ -542,12 +555,15 @@ namespace Anabasis.Deployment
             var deploymentYaml = Yaml.SaveToString(deployment);
             var deploymentYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "deployment.yaml");
 
+#nullable enable
+
             WriteFile(deploymentYamlPath, deploymentYaml);
 
         }
 
         private async Task GenerateKubernetesYamlService(AppDescriptor appDescriptor)
         {
+#nullable disable
             var service = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "service.yaml")).First() as k8s.Models.V1Service;
 
             service.Metadata.NamespaceProperty = appDescriptor.AppGroup;
@@ -561,6 +577,7 @@ namespace Anabasis.Deployment
 
             var serviceYaml = Yaml.SaveToString(service);
             var serviceYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "service.yaml");
+#nullable enable
 
             WriteFile(serviceYamlPath, serviceYaml);
 
@@ -568,16 +585,20 @@ namespace Anabasis.Deployment
 
         private void CopyFile(string fromPath, string toPath)
         {
-            (new FileInfo(toPath)).Directory.Create();
+#nullable disable
+            new FileInfo(toPath).Directory.Create();
 
             File.Copy(fromPath, toPath,true);
+#nullable enable
         }
 
         private void WriteFile(string filePath, string fileContent)
         {
-            (new FileInfo(filePath)).Directory.Create();
+#nullable disable
+            new FileInfo(filePath).Directory.Create();
 
             File.WriteAllText(filePath, fileContent);
+#nullable enable
         }
 
     }

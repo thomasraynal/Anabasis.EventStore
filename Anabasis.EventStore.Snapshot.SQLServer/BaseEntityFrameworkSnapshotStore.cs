@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
         }
 
 
-        public async Task<TAggregate> GetByVersionOrLast(string streamId, string[] eventFilters, int? version = null)
+        public async Task<TAggregate?> GetByVersionOrLast(string streamId, string[] eventFilters, int? version = null)
         {
 
             using var context = _aggregateSnapshotDbContextFactory.CreateDbContext();
@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
 
             var aggregateSnapshotQueryable = context.AggregateSnapshots.AsQueryable().OrderByDescending(p => p.LastModifiedUtc);
 
-            TAggregateSnapshot aggregateSnapshot = null;
+            TAggregateSnapshot? aggregateSnapshot = null;
 
             if (null == version)
             {
@@ -57,7 +57,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
 
             var isLatest = version == null;
 
-            TAggregateSnapshot[] aggregateSnapshots = null;
+            TAggregateSnapshot[]? aggregateSnapshots = null;
 
             if (isLatest)
             {

@@ -11,7 +11,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
     public abstract class BaseAggregateSnapshotDbContext<TAggregateSnapshot> : BaseAnabasisDbContext
         where TAggregateSnapshot : class, IAggregateSnapshot
     {
-
+#nullable disable
         protected BaseAggregateSnapshotDbContext(DbContextOptions options) : base(options)
         {
         }
@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
         }
 
         public DbSet<TAggregateSnapshot> AggregateSnapshots { get; set; }
-
+#nullable enable
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
         {
 

@@ -15,7 +15,7 @@ namespace Anabasis.Common
         private readonly Thread _thread;
         private readonly IKillSwitch _killSwitch;
 
-        public Exception LastError { get; private set; }
+        public Exception? LastError { get; private set; }
         public bool IsFaulted { get; private set; }
         public ILogger? Logger { get; }
         public string Owner { get; }

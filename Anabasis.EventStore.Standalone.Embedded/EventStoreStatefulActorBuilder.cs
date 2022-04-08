@@ -20,8 +20,8 @@ namespace Anabasis.EventStore.Standalone.Embedded
           ClusterVNode clusterVNode,
           ConnectionSettings connectionSettings,
           IActorConfiguration actorConfiguration,
-          ILoggerFactory loggerFactory = null,
-          Action<IEventStoreRepositoryConfiguration> eventStoreRepositoryConfigurationBuilder = null)
+          ILoggerFactory? loggerFactory = null,
+          Action<IEventStoreRepositoryConfiguration>? eventStoreRepositoryConfigurationBuilder = null)
         {
 
             var connection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);

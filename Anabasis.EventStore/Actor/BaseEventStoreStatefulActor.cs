@@ -1,3 +1,4 @@
+using System;
 using Anabasis.Common;
 using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Snapshot;
@@ -9,16 +10,14 @@ namespace Anabasis.EventStore.Actor
     public abstract class BaseEventStoreStatefulActor<TAggregate> : BaseStatelessActor, IStatefulActor<TAggregate> where TAggregate : IAggregate, new()
     {
 
-        public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<TAggregate> eventStoreCache, ILoggerFactory? loggerFactory = null) : base(actorConfiguration,  loggerFactory)
+        public BaseEventStoreStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<TAggregate> eventStoreCache, ILoggerFactory? loggerFactory = null) : base(actorConfiguration, loggerFactory)
         {
             State = eventStoreCache;
 
-            eventStoreCache.Connect().Wait();
-
-            AddDisposable(eventStoreCache);
+            Initialize();
         }
 
-        public BaseEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, 
+        public BaseEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory,
             IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
             ISnapshotStore<TAggregate>? snapshotStore = null,
             ISnapshotStrategy? snapshotStrategy = null,
@@ -29,9 +28,31 @@ namespace Anabasis.EventStore.Actor
 
             State = eventStoreCache;
 
-            eventStoreCache.Connect().Wait();
+            Initialize();
+            
+        }
 
-            AddDisposable(eventStoreCache);
+        private void Initialize()
+        {
+        
+            State.Connect().Wait();
+
+            AddDisposable(State);
+
+            var caughtUpSignalDisposable = State.OnCaughtUp.Subscribe(isCaughtUp =>
+            {
+                if (isCaughtUp == false)
+                {
+                    _caughtingUpEvent.Reset();
+                }
+                else if (isCaughtUp == true)
+                {
+                    _caughtingUpEvent.Set();
+                }
+
+            });
+
+            AddDisposable(caughtUpSignalDisposable);
         }
 
         public override bool IsCaughtUp => State.IsCaughtUp;

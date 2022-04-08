@@ -1,7 +1,6 @@
 ﻿using Anabasis.Common;
 using Microsoft.AspNetCore.Http.Extensions;
 using Microsoft.AspNetCore.Mvc.Filters;
-using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using Serilog;
 using System;

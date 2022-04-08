@@ -16,8 +16,8 @@ namespace Anabasis.RabbitMQ
 {
     public class RabbitMqConnection : IRabbitMqConnection
     {
-        private IModel _model;
-        private IAutorecoveringConnection _autorecoveringConnection;
+        private IModel? _model;
+       
         private readonly ILogger<RabbitMqConnection> _logger;
 
         private readonly object _syncRoot = new();
@@ -31,9 +31,9 @@ namespace Anabasis.RabbitMQ
         private string? _blockedConnectionReason = null;
 
         public bool IsBlocked => _blockedConnectionReason != null;
-        public bool IsOpen => _autorecoveringConnection.IsOpen;
+        public bool IsOpen => AutoRecoveringConnection != null && AutoRecoveringConnection.IsOpen;
 
-        public IAutorecoveringConnection AutoRecoveringConnection => _autorecoveringConnection;
+        public IAutorecoveringConnection? AutoRecoveringConnection { get; private set; }
 
         public RabbitMqConnection(RabbitMqConnectionOptions rabbitMqConnectionOptions,
             AnabasisAppContext appContext,
@@ -78,12 +78,12 @@ namespace Anabasis.RabbitMQ
                         NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
                     };
 
-                    _autorecoveringConnection = (IAutorecoveringConnection)connectionFactory.CreateConnection(_appContext.ApplicationName);
+                    AutoRecoveringConnection = (IAutorecoveringConnection)connectionFactory.CreateConnection(_appContext.ApplicationName);
 
-                    _autorecoveringConnection.ConnectionBlocked += ConnectionBlocked;
-                    _autorecoveringConnection.ConnectionUnblocked += ConnectionUnblocked;
+                    AutoRecoveringConnection.ConnectionBlocked += ConnectionBlocked;
+                    AutoRecoveringConnection.ConnectionUnblocked += ConnectionUnblocked;
 
-                    _model = _autorecoveringConnection.CreateModel();
+                    _model = AutoRecoveringConnection.CreateModel();
                     _model.BasicReturn += (sender, args) => _returnQueue.Enqueue(args);
                     _model.BasicQos(prefetchSize: 0, prefetchCount: _rabbitMqConnectionOptions.PrefetchCount, global: true);
                     _model.ConfirmSelect();
@@ -127,6 +127,9 @@ namespace Anabasis.RabbitMQ
 
         public void Acknowledge(ulong deliveryTag)
         {
+            if (null == _model)
+                throw new ArgumentNullException("Model");
+
             if (_deliveredMessages.Contains(deliveryTag)) return;
 
             _model.BasicAck(deliveryTag, multiple: false);
@@ -136,6 +139,9 @@ namespace Anabasis.RabbitMQ
 
         public void NotAcknowledge(ulong deliveryTag)
         {
+            if (null == _model)
+                throw new ArgumentNullException("Model");
+
             if (_deliveredMessages.Contains(deliveryTag)) return;
 
             _model.BasicNack(deliveryTag, multiple: false, requeue: true);
@@ -145,6 +151,9 @@ namespace Anabasis.RabbitMQ
 
         public T DoWithChannel<T>(Func<IModel, T> function)
         {
+
+            if (null == _model)
+                throw new ArgumentNullException("Model");
 
             if (IsBlocked)
                 throw new InvalidOperationException($"Connection is blocked : {_blockedConnectionReason}");
@@ -185,21 +194,27 @@ namespace Anabasis.RabbitMQ
 
         public void Dispose()
         {
-            _autorecoveringConnection.ConnectionBlocked += ConnectionBlocked;
-            _autorecoveringConnection.ConnectionUnblocked += ConnectionUnblocked;
+            if (AutoRecoveringConnection != null)
+            {
+                AutoRecoveringConnection.ConnectionBlocked += ConnectionBlocked;
+                AutoRecoveringConnection.ConnectionUnblocked += ConnectionUnblocked;
+            }
 
             if (_model != null)
             {
                 _model.Dispose();
             }
 
-            try
+            if (AutoRecoveringConnection != null)
             {
-                _autorecoveringConnection.Abort(TimeSpan.FromMilliseconds(10));
-            }
-            finally
-            {
-                _autorecoveringConnection.Close(TimeSpan.FromMilliseconds(10));
+                try
+                {
+                    AutoRecoveringConnection.Abort(TimeSpan.FromMilliseconds(10));
+                }
+                finally
+                {
+                    AutoRecoveringConnection.Close(TimeSpan.FromMilliseconds(10));
+                }
             }
         }
     }

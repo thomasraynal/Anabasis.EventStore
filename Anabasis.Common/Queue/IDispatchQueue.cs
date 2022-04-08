@@ -8,7 +8,7 @@ namespace Anabasis.Common
         string Owner { get; }
         string Id { get; }
         bool IsFaulted { get; }
-        Exception LastError { get; }
+        Exception? LastError { get; }
         bool CanEnqueue();
         void Enqueue(IMessage message);
     }

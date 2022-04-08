@@ -1,18 +1,15 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
-using Microsoft.Extensions.Configuration;
-using System;
 using System.IO;
-using System.Linq;
-using YamlDotNet.Serialization;
-using YamlDotNet.Serialization.NamingConventions;
 
 namespace Anabasis.Deployment
 {
     public class AppDescriptor
     {
+#nullable disable
         public AppDescriptor(FileInfo projectFilePath, DirectoryInfo projectBuildDirectory, string appName, string appRelease)
         {
+
             ProjectFilePath = projectFilePath;
             AppBuildDirectory = projectBuildDirectory;
             AppSourceDirectory = projectFilePath.Directory;
@@ -51,6 +48,7 @@ namespace Anabasis.Deployment
         {
             return str.Replace(".", "-").ToLower();
         }
+#nullable enable
 
     }
 }
