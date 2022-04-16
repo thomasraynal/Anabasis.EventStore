@@ -19,7 +19,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         [Test, Order(1)]
         public void ShouldCreateSusbscription()
         {
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) =>
+            _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", "topic", (ev) =>
             {
                 _counter++;
                 return Task.CompletedTask;
@@ -29,7 +29,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         [Test, Order(2)]
         public async Task ShouldSubmitMessageAndDelayIt()
         {
-            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "AnotherfilterOne" }, "testevent-exchange", TimeSpan.FromSeconds(3));
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "AnotherfilterOne" }, "testevent-exchange", "topic", TimeSpan.FromSeconds(3));
 
             await Task.Delay(1000);
 

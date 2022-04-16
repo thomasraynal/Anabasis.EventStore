@@ -31,6 +31,7 @@ namespace Anabasis.Common
         public int ApiPort { get;  }
         public Version ApiVersion { get; }
         public string ApplicationName { get;  }
+        public string ApplicationNameAndApiVersion => $"{ApplicationName}{ApiVersion}";
         public string ApplicationGroup { get; }
         public int MemoryCheckTresholdInMB { get; }
         public string? MachineName { get;  }

@@ -362,7 +362,7 @@ namespace Anabasis.EventStore.Cache
 
                         if (catchupCacheSubscriptionHolder.CrashAppIfSubscriptionFail)
                         {
-                            _killSwitch.KillMe(exception);
+                            _killSwitch.KillProcess(exception);
                         }
                         else
                         {

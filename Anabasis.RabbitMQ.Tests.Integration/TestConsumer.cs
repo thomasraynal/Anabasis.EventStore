@@ -16,7 +16,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             _rabbitMqBus = IntegrationTestsHelper.GetRabbitMqBus();
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) =>
+            _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", "topic", onMessage: (ev) =>
             {
                 var candidateHandler = _messageHandlerInvokerCache.GetMethodInfo(GetType(), typeof(TestEventOne));
 
@@ -27,7 +27,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
                 return Task.CompletedTask;
 
-            }, true, (ev) => ev.FilterOne == "filterOne"));
+            }, isAutoAck: true, routingStrategy: (ev) => ev.FilterOne == "filterOne"));
         }
 
         public Task Handle(TestEventOne testEventOne)
@@ -37,14 +37,12 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
         public void Emit()
         {
-            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange");
-
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange", "topic");
         }
 
     }
 
 
-  
     public class TestConsumer
     {
         [Test]

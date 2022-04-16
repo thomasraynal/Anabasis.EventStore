@@ -29,6 +29,8 @@ namespace Anabasis.EventStore.Tests
         public DateTime Timestamp => DateTime.UtcNow;
 
         public string EntityId => nameof(TestEvent);
+
+        public Guid? CauseId => null;
     }
 
 
@@ -157,7 +159,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            killSwitch.Received(shouldCrashApp ? 1 : 0).KillMe(Arg.Any<Exception>());
+            killSwitch.Received(shouldCrashApp ? 1 : 0).KillProcess(Arg.Any<Exception>());
 
             if (shouldCrashApp)
             {

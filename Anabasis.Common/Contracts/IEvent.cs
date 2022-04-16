@@ -6,6 +6,7 @@ namespace Anabasis.Common
     {
         Guid EventId { get; }
         Guid CorrelationId { get; }
+        Guid? CauseId { get; }
         string Name { get; }
         bool IsCommand { get; }
         DateTime Timestamp { get; }

@@ -43,7 +43,7 @@ namespace Anabasis.RabbitMQ
 
             return Task.CompletedTask;
         }
-        public Task NotAcknowledge(string reason = null)
+        public Task NotAcknowledge(string? reason = null)
         {
             if (!_isAutoAck)
             {

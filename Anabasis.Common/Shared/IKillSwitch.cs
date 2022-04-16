@@ -6,7 +6,7 @@ namespace Anabasis.Common
 {
     public interface IKillSwitch
     {
-        void KillMe(Exception exception);
+        void KillProcess(Exception exception);
         void KillMe(string reason);
     }
 }

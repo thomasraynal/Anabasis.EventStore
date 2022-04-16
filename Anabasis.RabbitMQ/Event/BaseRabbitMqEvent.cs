@@ -5,11 +5,12 @@ namespace Anabasis.RabbitMQ.Event
     public class BaseRabbitMqEvent : IRabbitMqEvent
     {
 
-        public BaseRabbitMqEvent(Guid? messageId = null, Guid? eventId = null, Guid? correlationId=null)
+        public BaseRabbitMqEvent(Guid? messageId = null, Guid? eventId = null, Guid? correlationId = null, Guid? causeId = null)
         {
             MessageId = messageId ?? Guid.NewGuid();
             EventId = eventId ?? Guid.NewGuid();
             CorrelationId = correlationId ?? Guid.NewGuid();
+            CauseId = causeId;
         }
 
         public string Subject
@@ -35,5 +36,7 @@ namespace Anabasis.RabbitMQ.Event
         public string Name => GetType().Name;
 
         public Guid MessageId { get; }
+
+        public Guid? CauseId { get; }
     }
 }

@@ -100,7 +100,7 @@ namespace Anabasis.Common
                             catch { }
                             finally
                             {
-                                _killSwitch.KillMe(exception);
+                                _killSwitch.KillProcess(exception);
                             }
                         }
                     }

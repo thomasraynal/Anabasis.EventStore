@@ -29,32 +29,32 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         public void ShouldCreateSomeSubscriptions()
         {
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) =>
+            _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", "topic", (ev) =>
              {
                  _counterTestEventOneNoFilter++;
                  return Task.CompletedTask;
              }));
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", (ev) =>
+            _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", "topic", onMessage: (ev) =>
             {
                 _counterTestEventOneFilterOnFilterOne++;
                 return Task.CompletedTask;
 
-            }, true, (ev) => ev.FilterOne == "filterOne"));
+            }, isAutoAck: true, routingStrategy: (ev) => ev.FilterOne == "filterOne"));
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) =>
+            _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", "topic", (ev) =>
             {
                 _counterTestEventTwoNoFilter++;
                 return Task.CompletedTask;
 
             }));
 
-            _rabbitMqBus.Subscribe(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", (ev) =>
+            _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", "topic", onMessage: (ev) =>
             {
                 _counterTestEventTwoFilterOnFilterTwo++;
                 return Task.CompletedTask;
 
-            }, true, (ev) => ev.FilterTwo == "filterTwo"));
+            },isAutoAck: true, routingStrategy: (ev) => ev.FilterTwo == "filterTwo"));
         }
 
         [Test, Order(2)]
@@ -69,7 +69,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             Assert.AreEqual(1, _counterTestEventOneNoFilter);
             Assert.AreEqual(0, _counterTestEventOneFilterOnFilterOne);
     
-            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange");
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange", "topic");
 
             await Task.Delay(500);
 
@@ -78,7 +78,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             Assert.AreEqual(2, _counterTestEventOneNoFilter);
             Assert.AreEqual(1, _counterTestEventOneFilterOnFilterOne);
 
-            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange");
+            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange", "topic");
 
             await Task.Delay(500);
 
@@ -87,7 +87,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             Assert.AreEqual(2, _counterTestEventOneNoFilter);
             Assert.AreEqual(1, _counterTestEventOneFilterOnFilterOne);
 
-            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterTwo = "filterTwo" }, "testevent-exchange");
+            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterTwo = "filterTwo" }, "testevent-exchange", "topic");
 
             await Task.Delay(500);
 

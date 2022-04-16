@@ -75,7 +75,7 @@ namespace Anabasis.EventStore.Stream
 
                         if (_eventStoreStreamConfiguration.DoAppCrashOnFailure)
                         {
-                            _killSwitch.KillMe(exception);
+                            _killSwitch.KillProcess(exception);
                         }
                         else
                         {

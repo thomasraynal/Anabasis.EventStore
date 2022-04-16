@@ -85,7 +85,7 @@ namespace Anabasis.RabbitMQ
 
                     _model = AutoRecoveringConnection.CreateModel();
                     _model.BasicReturn += (sender, args) => _returnQueue.Enqueue(args);
-                    _model.BasicQos(prefetchSize: 0, prefetchCount: _rabbitMqConnectionOptions.PrefetchCount, global: true);
+                    _model.BasicQos(prefetchSize: _rabbitMqConnectionOptions.PrefetchSize, prefetchCount: _rabbitMqConnectionOptions.PrefetchCount, global: true);
                     _model.ConfirmSelect();
 
                 }
@@ -105,7 +105,6 @@ namespace Anabasis.RabbitMQ
             return DoWithChannel(channel =>
             {
                 var properties = channel.CreateBasicProperties();
-                properties.Persistent = true;
                 return properties;
             });
         }

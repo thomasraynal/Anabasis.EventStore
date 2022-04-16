@@ -1,10 +1,8 @@
 ﻿using Anabasis.Common;
-using Anabasis.RabbitMQ;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using System.Text;
 
 namespace Anabasis.RabbitMQ.Shared
 {
@@ -21,10 +19,10 @@ namespace Anabasis.RabbitMQ.Shared
         public const string AnyWord = "*";
 
         private readonly Type _declaringType;
-        private readonly List<RabbitMQSubjectExpressionMember> _members = new List<RabbitMQSubjectExpressionMember>();
+        private readonly List<RabbitMQSubjectExpressionMember> _members = new();
         private RabbitMQSubjectExpressionMember _current;
         private string _asString;
-        private readonly List<string> _usedMembers = new List<string>();
+        private readonly List<string> _usedMembers = new();
 
         private readonly IEnumerable<Type> _allowedTypes = new[]
         {

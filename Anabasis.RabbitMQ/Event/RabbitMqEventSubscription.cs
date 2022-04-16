@@ -1,4 +1,5 @@
-﻿using Anabasis.RabbitMQ.Shared;
+﻿using Anabasis.Common;
+using Anabasis.RabbitMQ.Event;
 using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -9,28 +10,42 @@ namespace Anabasis.RabbitMQ
     public class RabbitMqEventSubscription<TEvent> : IRabbitMqEventSubscription<TEvent>
         where TEvent : class, IRabbitMqEvent
     {
-        public string Exchange { get; }
-        public string RoutingKey { get; protected set; }
+
         public string SubscriptionId { get; }
         public Func<IRabbitMqQueueMessage, Task> OnMessage { get; }
-        public bool IsAutoAck { get; }
+        public IRabbitMqExchangeConfiguration RabbitMqExchangeConfiguration { get; }
+        public IRabbitMqQueueConfiguration RabbitMqQueueConfiguration { get; }
 
-        public RabbitMqEventSubscription(string exchange, Func<IRabbitMqQueueMessage, Task> onEvent, bool isAutoAck = true, Expression<Func<TEvent, bool>>? routingStrategy = null)
+        public RabbitMqEventSubscription(string exchange,
+            string exchangeType,
+            Func<IRabbitMqQueueMessage, Task> onMessage,
+            IActor? actor = null,
+            Expression<Func<TEvent, bool>>? routingStrategy = null,
+            bool isAutoAck = false,
+            bool isAutoDelete= false)
         {
-            if (null == routingStrategy)
-                routingStrategy = (_) => true;
 
-            var rabbitMQSubjectExpressionVisitor = new RabbitMQSubjectExpressionVisitor(typeof(TEvent));
+            RabbitMqQueueConfiguration = new RabbitMqQueueConfiguration<TEvent>(routingStrategy, 
+                queueName: actor?.Id, 
+                isAutoDelete: isAutoDelete,
+                isAutoAck: isAutoAck);
 
-            rabbitMQSubjectExpressionVisitor.Visit(routingStrategy);
+            RabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange, exchangeType);
+            OnMessage = onMessage;
 
-            IsAutoAck = isAutoAck;
-            OnMessage = onEvent;
-            RoutingKey = rabbitMQSubjectExpressionVisitor.Resolve();
-            Exchange = exchange;
+            SubscriptionId = $"{RabbitMqExchangeConfiguration.ExchangeName}-{RabbitMqQueueConfiguration.RoutingKey}";
+        }
 
-            SubscriptionId = $"{Exchange}.{RoutingKey}";
+        public RabbitMqEventSubscription(Func<IRabbitMqQueueMessage, Task> onMessage,
+            IRabbitMqQueueConfiguration rabbitMqQueueConfiguration,
+            IRabbitMqExchangeConfiguration rabbitMqExchangeConfiguration)
+        {
 
+            RabbitMqQueueConfiguration = rabbitMqQueueConfiguration;
+            RabbitMqExchangeConfiguration = rabbitMqExchangeConfiguration;
+            OnMessage = onMessage;
+
+            SubscriptionId = $"{RabbitMqExchangeConfiguration.ExchangeName}-{RabbitMqQueueConfiguration.RoutingKey}";
         }
 
         public bool CanHandle(Type eventType)

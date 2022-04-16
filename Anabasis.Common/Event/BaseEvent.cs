@@ -27,7 +27,7 @@ namespace Anabasis.Common
         [JsonProperty]
         public Guid CorrelationId { get; internal set; }
         [JsonProperty]
-        public Guid CauseId { get; internal set; }
+        public Guid? CauseId { get; internal set; }
         [JsonProperty]
         public string EntityId { get; internal set; }
         [JsonProperty]
