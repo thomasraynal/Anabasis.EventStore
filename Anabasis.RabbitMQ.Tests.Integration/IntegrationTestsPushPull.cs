@@ -1,6 +1,7 @@
 ﻿using NUnit.Framework;
 using RabbitMQ.Client;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
@@ -22,16 +23,21 @@ namespace Anabasis.RabbitMQ.Tests.Integration
                 channel.QueueDeclare(testQueueName, exclusive: true, autoDelete: true).QueueName);
 
             rabbitMqBus.RabbitMqConnection.DoWithChannel((channel) =>
-                channel.ExchangeDeclare(testExchangeName, type: "topic", durable: false, autoDelete: true));
+                channel.ExchangeDeclare(testExchangeName, type: "x-delayed-message", durable: true, autoDelete: false, new Dictionary<string, object>()
+                    {
+                        {"x-delayed-type","topic"}
+                    }));
 
             rabbitMqBus.RabbitMqConnection.DoWithChannel((channel) =>
-                channel.QueueBind(testQueueName, testExchangeName, "one"));
+                channel.QueueBind(testQueueName, testExchangeName, "TestEventOne.#"));
 
-            rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()), testExchangeName);
+            rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()), testExchangeName, isPersistent: false);
 
             await Task.Delay(100);
 
             var events =  rabbitMqBus.Pull(testQueueName,true, 1);
+
+            Assert.AreEqual(1, events.Length);
         }
 
     }

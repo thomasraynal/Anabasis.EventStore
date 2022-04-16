@@ -3,6 +3,7 @@ using Anabasis.RabbitMQ.Connection;
 using Anabasis.RabbitMQ.Shared;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using Polly.Retry;
 using RabbitMQ.Client;
 using RabbitMQ.Client.Events;
@@ -10,6 +11,7 @@ using RabbitMQ.Client.Exceptions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -82,8 +84,8 @@ namespace Anabasis.RabbitMQ
         public void Emit(IRabbitMqEvent @event,
             string exchange,
             string exchangeType = "topic",
-            TimeSpan? initialVisibilityDelay = default,
-            TimeSpan? expiration = default,
+            TimeSpan? initialVisibilityDelay = null,
+            TimeSpan? expiration = null,
             bool isPersistent = true,
             bool isMandatory = false,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
@@ -94,8 +96,8 @@ namespace Anabasis.RabbitMQ
         public void Emit(IEnumerable<IRabbitMqEvent> events,
             string exchange,
             string exchangeType = "topic",
-            TimeSpan? initialVisibilityDelay = default,
-            TimeSpan? expiration = default,
+            TimeSpan? initialVisibilityDelay = null,
+            TimeSpan? expiration = null,
             bool isPersistent = true,
             bool isMandatory = false,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
@@ -208,6 +210,7 @@ namespace Anabasis.RabbitMQ
         private IRabbitMqQueueMessage DeserializeRabbitMqQueueMessage(IBasicProperties basicProperties, byte[] body, bool redelivered, ulong deliveryTag, bool isAutoAck)
         {
             var type = basicProperties.Type.GetTypeFromReadableName();
+
             var message = (IRabbitMqEvent)_serializer.DeserializeObject(body, type);
 
             return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag, isAutoAck);
@@ -280,7 +283,6 @@ namespace Anabasis.RabbitMQ
                     consumer.Received += async (model, basicDeliveryEventArg) =>
                     {
 
-
                         var rabbitMqQueueMessage = DeserializeRabbitMqQueueMessage(
                             basicDeliveryEventArg.BasicProperties,
                             basicDeliveryEventArg.Body.ToArray(),
@@ -303,7 +305,10 @@ namespace Anabasis.RabbitMQ
                         }
                     };
 
+                    _existingSubscriptions.Add(rabbitMqSubscription.SubscriptionId, rabbitMqSubscription);
                 });
+
+               
             }
         }
 

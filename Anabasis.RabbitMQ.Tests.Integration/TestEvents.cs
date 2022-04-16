@@ -5,14 +5,14 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 {
     public class TestEventZero : BaseRabbitMqEvent
     {
-        public TestEventZero(Guid eventID, Guid correlationId) : base(eventID, correlationId)
+        public TestEventZero(Guid eventID, Guid correlationId) : base(eventID, eventID, correlationId)
         {
         }
     }
 
     public class TestEventOne : BaseRabbitMqEvent
     {
-        public TestEventOne(Guid eventID, Guid correlationId) : base(eventID, correlationId)
+        public TestEventOne(Guid eventID, Guid correlationId) : base(eventID, eventID, correlationId)
         {
         }
 
@@ -25,7 +25,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
     public class TestEventTwo : BaseRabbitMqEvent
     {
-        public TestEventTwo(Guid eventID, Guid correlationId) : base(eventID, correlationId)
+        public TestEventTwo(Guid eventID, Guid correlationId) : base(eventID, eventID, correlationId)
         {
         }
 
@@ -41,7 +41,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
     public class TestEventTwoBis : BaseRabbitMqEvent
     {
-        public TestEventTwoBis(Guid eventID, Guid correlationId) : base(eventID, correlationId)
+        public TestEventTwoBis(Guid eventID, Guid correlationId) : base(eventID, eventID, correlationId)
         {
         }
 

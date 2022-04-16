@@ -94,7 +94,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             await _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);
 
-            var onEvent = _rabbitMqBus.SubscribeToExchange<TestEventZero>(_integrationActorExchange, isAutoAck: true, isAutoDelete: true);
+            var onEvent = _rabbitMqBus.SubscribeToExchange<TestEventZero>(_integrationActorExchange, isQueueAutoAck: true, isQueueAutoDelete: true);
 
             TestEventZero testEventZero = null;
 

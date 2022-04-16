@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.RabbitMQ.Event;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,7 +13,7 @@ namespace Anabasis.RabbitMQ
     public static class RabbitMqBusExtensions
     {
         public static void EmitRabbitMq<TEvent>(this IActor actor, IEnumerable<TEvent> events, string exchange, string exchangeType = "topic",
-            TimeSpan? initialVisibilityDelay = null, 
+            TimeSpan? initialVisibilityDelay = null,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
               where TEvent : class, IRabbitMqEvent
         {
@@ -21,7 +22,7 @@ namespace Anabasis.RabbitMQ
             rabbitMqBus.Emit(events, exchange, exchangeType, initialVisibilityDelay, additionalHeaders: additionalHeaders);
         }
 
-        public static void EmitRabbitMq<TEvent>(this IActor actor, TEvent @event, string exchange, string exchangeType= "topic", TimeSpan? initialVisibilityDelay = null, (string headerKey, string headerValue)[]? additionalHeaders = null)
+        public static void EmitRabbitMq<TEvent>(this IActor actor, TEvent @event, string exchange, string exchangeType = "topic", TimeSpan? initialVisibilityDelay = null, (string headerKey, string headerValue)[]? additionalHeaders = null)
                 where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
@@ -39,23 +40,46 @@ namespace Anabasis.RabbitMQ
                               .ToArray();
         }
 
-        public static void SubscribeToExchange<TEvent>(this IActor actor, 
+        public static void SubscribeToExchange<TEvent>(this IActor actor,
             string exchange,
+            string queueName = "",
             string exchangeType = "topic",
-            bool isAutoAck = false,
-            bool isAutoDelete = false,
+            bool isExchangeDurable = true,
+            bool isExchangeAutoDelete = true,
+            bool isQueueDurable = false,
+            bool isQueueAutoAck = false,
+            bool isQueueAutoDelete = true,
+            bool isQueueExclusive = true,
             Expression<Func<TEvent, bool>>? routingStrategy = null)
          where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
-            var rabbitMqSubscription = new RabbitMqEventSubscription<TEvent>(exchange, exchangeType, (@event) =>
+            var rabbitMqQueueConfiguration = new RabbitMqQueueConfiguration<TEvent>(routingStrategy,
+                queueName,
+                isQueueAutoAck,
+                isQueueDurable,
+                isQueueAutoDelete,
+                isQueueExclusive);
+
+            var rabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange,
+                exchangeType,
+                true,
+                true,
+                isExchangeAutoDelete,
+                isExchangeDurable);
+
+            var onMessage = new Func<IRabbitMqQueueMessage, Task>((@event) =>
             {
                 actor.OnMessageReceived(@event);
 
                 return Task.CompletedTask;
 
-            },actor: actor, isAutoDelete: isAutoDelete, isAutoAck: isAutoAck, routingStrategy: routingStrategy);
+            });
+
+            var rabbitMqSubscription = new RabbitMqEventSubscription<TEvent>(onMessage,
+                rabbitMqQueueConfiguration,
+                rabbitMqExchangeConfiguration);
 
             rabbitMqBus.SubscribeToExchange(rabbitMqSubscription);
 
@@ -66,22 +90,41 @@ namespace Anabasis.RabbitMQ
 
         public static IObservable<TEvent> SubscribeToExchange<TEvent>(this IRabbitMqBus rabbitMqBus,
             string exchange,
+            string queueName = "",
             string exchangeType = "topic",
-            bool isAutoAck = false,
-            bool isAutoDelete = false,
+            bool isExchangeDurable = true,
+            bool isExchangeAutoDelete = true,
+            bool isQueueDurable = false,
+            bool isQueueAutoAck = false,
+            bool isQueueAutoDelete = true,
+            bool isQueueExclusive = true,
             Expression<Func<TEvent, bool>>? routingStrategy = null)
         where TEvent : class, IRabbitMqEvent
         {
 
+            var rabbitMqQueueConfiguration = new RabbitMqQueueConfiguration<TEvent>(routingStrategy,
+                queueName,
+                isQueueAutoAck,
+                isQueueDurable,
+                isQueueAutoDelete,
+                isQueueExclusive);
+
+            var rabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange,
+                exchangeType,
+                true,
+                true,
+                isExchangeAutoDelete,
+                isExchangeDurable);
+
             var observable = Observable.Create<TEvent>((observer) =>
             {
-                var rabbitMqSubscription = new RabbitMqEventSubscription<TEvent>(exchange, exchangeType, (@event) =>
+                var rabbitMqSubscription = new RabbitMqEventSubscription<TEvent>((@event) =>
                  {
                      observer.OnNext((TEvent)@event.Content);
 
                      return Task.CompletedTask;
 
-                 }, isAutoDelete: isAutoDelete, isAutoAck: isAutoAck, routingStrategy: routingStrategy);
+                 }, rabbitMqQueueConfiguration, rabbitMqExchangeConfiguration);
 
                 rabbitMqBus.SubscribeToExchange(rabbitMqSubscription);
 

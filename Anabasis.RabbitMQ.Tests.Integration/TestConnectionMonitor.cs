@@ -36,7 +36,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             var rabbitMqConnectionStatusMonitor = new RabbitMqConnectionStatusMonitor(connection, loggerFactory);
 
-            Assert.Equals(true, rabbitMqConnectionStatusMonitor.IsConnected);
+            Assert.AreEqual(true, rabbitMqConnectionStatusMonitor.IsConnected);
         }
     }
 }

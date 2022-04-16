@@ -15,7 +15,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
         class TestEvent : BaseRabbitMqEvent
         {
-            public TestEvent(Guid eventID, Guid correlationId) : base(eventID, correlationId)
+            public TestEvent(Guid eventID, Guid correlationId) : base(eventID, eventID, correlationId)
             {
             }
 

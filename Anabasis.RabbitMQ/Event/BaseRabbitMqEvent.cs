@@ -1,11 +1,14 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 
 namespace Anabasis.RabbitMQ.Event
 {
     public class BaseRabbitMqEvent : IRabbitMqEvent
     {
+        [JsonConstructor]
+        private BaseRabbitMqEvent() { }
 
-        public BaseRabbitMqEvent(Guid? messageId = null, Guid? eventId = null, Guid? correlationId = null, Guid? causeId = null)
+        public BaseRabbitMqEvent(Guid? messageId, Guid? eventId, Guid? correlationId , Guid? causeId = null)
         {
             MessageId = messageId ?? Guid.NewGuid();
             EventId = eventId ?? Guid.NewGuid();

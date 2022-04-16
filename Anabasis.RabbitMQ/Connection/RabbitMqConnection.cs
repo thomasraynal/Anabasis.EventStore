@@ -75,6 +75,7 @@ namespace Anabasis.RabbitMQ
                         Password = _rabbitMqConnectionOptions.Password,
                         Port = _rabbitMqConnectionOptions.Port,
                         AutomaticRecoveryEnabled = true,
+                        DispatchConsumersAsync = true,
                         NetworkRecoveryInterval = TimeSpan.FromSeconds(5),
                     };
 
@@ -84,7 +85,10 @@ namespace Anabasis.RabbitMQ
                     AutoRecoveringConnection.ConnectionUnblocked += ConnectionUnblocked;
 
                     _model = AutoRecoveringConnection.CreateModel();
-                    _model.BasicReturn += (sender, args) => _returnQueue.Enqueue(args);
+                    _model.BasicReturn += (sender, args) =>
+                    {
+                        _returnQueue.Enqueue(args);
+                    };
                     _model.BasicQos(prefetchSize: _rabbitMqConnectionOptions.PrefetchSize, prefetchCount: _rabbitMqConnectionOptions.PrefetchCount, global: true);
                     _model.ConfirmSelect();
 
