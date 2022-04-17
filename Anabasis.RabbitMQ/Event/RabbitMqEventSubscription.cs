@@ -19,18 +19,33 @@ namespace Anabasis.RabbitMQ
         public RabbitMqEventSubscription(string exchange,
             string exchangeType,
             Func<IRabbitMqQueueMessage, Task> onMessage,
-            IActor? actor = null,
+            string queueName = "",
             Expression<Func<TEvent, bool>>? routingStrategy = null,
-            bool isAutoAck = false,
-            bool isAutoDelete= false)
+            bool isExchangeDurable = true,
+            bool isExchangeAutoDelete = true,
+            bool createExchangeIfNotExist = true,
+            bool createDeadLetterExchangeIfNotExist = true,
+            bool isQueueDurable = false,
+            bool isQueueAutoAck = false,
+            bool isQueueAutoDelete = true,
+            bool isQueueExclusive = true)
         {
 
             RabbitMqQueueConfiguration = new RabbitMqQueueConfiguration<TEvent>(routingStrategy, 
-                queueName: actor?.Id, 
-                isAutoDelete: isAutoDelete,
-                isAutoAck: isAutoAck);
+                queueName: queueName, 
+                isDurable: isQueueDurable,
+                isExclusive: isQueueExclusive,
+                isAutoDelete: isQueueAutoDelete,
+                isAutoAck: isQueueAutoAck);
 
-            RabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange, exchangeType);
+            RabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange, 
+                exchangeType,
+                createExchangeIfNotExist : createExchangeIfNotExist,
+                createDeadLetterExchangeIfNotExist : createDeadLetterExchangeIfNotExist,
+                isAutoDelete : isExchangeAutoDelete,
+                isDurable : isExchangeDurable
+                );
+            
             OnMessage = onMessage;
 
             SubscriptionId = $"{RabbitMqExchangeConfiguration.ExchangeName}-{RabbitMqQueueConfiguration.RoutingKey}";

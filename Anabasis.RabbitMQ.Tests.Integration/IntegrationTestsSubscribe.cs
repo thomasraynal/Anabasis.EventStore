@@ -33,34 +33,63 @@ namespace Anabasis.RabbitMQ.Tests.Integration
              {
                  _counterTestEventOneNoFilter++;
                  return Task.CompletedTask;
-             }));
+             },
+            isExchangeDurable: false,
+            isExchangeAutoDelete: true,
+            isQueueDurable: false,
+            isQueueAutoAck: false,
+            isQueueAutoDelete: true,
+            isQueueExclusive: true));
 
             _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", "topic", onMessage: (ev) =>
             {
                 _counterTestEventOneFilterOnFilterOne++;
                 return Task.CompletedTask;
 
-            }, isAutoAck: true, routingStrategy: (ev) => ev.FilterOne == "filterOne"));
+            },
+            isExchangeDurable: false,
+            isExchangeAutoDelete: true,
+            isQueueDurable: false,
+            isQueueAutoAck: false,
+            isQueueAutoDelete: true,
+            isQueueExclusive: true, 
+            routingStrategy: (ev) => ev.FilterOne == "filterOne"));
 
             _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", "topic", (ev) =>
             {
                 _counterTestEventTwoNoFilter++;
                 return Task.CompletedTask;
 
-            }));
+            },
+            isExchangeDurable: false,
+            isExchangeAutoDelete: true,
+            isQueueDurable: false,
+            isQueueAutoAck: false,
+            isQueueAutoDelete: true,
+            isQueueExclusive: true));
 
             _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventTwo>("testevent-exchange", "topic", onMessage: (ev) =>
             {
                 _counterTestEventTwoFilterOnFilterTwo++;
                 return Task.CompletedTask;
 
-            },isAutoAck: true, routingStrategy: (ev) => ev.FilterTwo == "filterTwo"));
+            },
+            isExchangeDurable: false,
+            isExchangeAutoDelete: true,
+            isQueueDurable: false,
+            isQueueAutoAck: false,
+            isQueueAutoDelete: true,
+            isQueueExclusive: true,
+            routingStrategy: (ev) => ev.FilterTwo == "filterTwo"));
         }
 
         [Test, Order(2)]
         public async Task ShouldEmitEventsAndConsumeThem()
         {
-            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "AnotherfilterOne" }, "testevent-exchange");
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "AnotherfilterOne" }, 
+                "testevent-exchange",
+                isMessageMandatory: false,
+                isMessagePersistent: false);
 
             await Task.Delay(500);
 
@@ -69,7 +98,10 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             Assert.AreEqual(1, _counterTestEventOneNoFilter);
             Assert.AreEqual(0, _counterTestEventOneFilterOnFilterOne);
     
-            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange", "topic");
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, 
+                "testevent-exchange",
+                isMessageMandatory: false,
+                isMessagePersistent: false);
 
             await Task.Delay(500);
 
@@ -78,7 +110,10 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             Assert.AreEqual(2, _counterTestEventOneNoFilter);
             Assert.AreEqual(1, _counterTestEventOneFilterOnFilterOne);
 
-            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange", "topic");
+            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, 
+                "testevent-exchange",
+                isMessageMandatory: false,
+                isMessagePersistent: false);
 
             await Task.Delay(500);
 
@@ -87,7 +122,10 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             Assert.AreEqual(2, _counterTestEventOneNoFilter);
             Assert.AreEqual(1, _counterTestEventOneFilterOnFilterOne);
 
-            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterTwo = "filterTwo" }, "testevent-exchange", "topic");
+            _rabbitMqBus.Emit(new TestEventTwo(Guid.NewGuid(), Guid.NewGuid()) { FilterTwo = "filterTwo" }, 
+                "testevent-exchange",
+                isMessageMandatory: false,
+                isMessagePersistent: false);
 
             await Task.Delay(500);
 

@@ -12,22 +12,32 @@ namespace Anabasis.RabbitMQ
 {
     public static class RabbitMqBusExtensions
     {
-        public static void EmitRabbitMq<TEvent>(this IActor actor, IEnumerable<TEvent> events, string exchange, string exchangeType = "topic",
+        public static void EmitRabbitMq<TEvent>(this IActor actor, IEnumerable<TEvent> events, string exchange, 
+            string exchangeType = "topic",
             TimeSpan? initialVisibilityDelay = null,
+            TimeSpan? messageExpiration = null,
+            bool isMessagePersistent = true,
+            bool isMessageMandatory = false,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
               where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
-            rabbitMqBus.Emit(events, exchange, exchangeType, initialVisibilityDelay, additionalHeaders: additionalHeaders);
+            rabbitMqBus.Emit(events, exchange, exchangeType, initialVisibilityDelay, messageExpiration, isMessagePersistent, isMessageMandatory, additionalHeaders: additionalHeaders);
         }
 
-        public static void EmitRabbitMq<TEvent>(this IActor actor, TEvent @event, string exchange, string exchangeType = "topic", TimeSpan? initialVisibilityDelay = null, (string headerKey, string headerValue)[]? additionalHeaders = null)
+        public static void EmitRabbitMq<TEvent>(this IActor actor, TEvent @event, string exchange, 
+            string exchangeType = "topic", 
+            TimeSpan? initialVisibilityDelay = null,
+            TimeSpan? messageExpiration = null,
+            bool isMessagePersistent = true,
+            bool isMessageMandatory = false,
+            (string headerKey, string headerValue)[]? additionalHeaders = null)
                 where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
-            rabbitMqBus.Emit(@event, exchange, exchangeType, initialVisibilityDelay, additionalHeaders: additionalHeaders);
+            rabbitMqBus.Emit(@event, exchange, exchangeType, initialVisibilityDelay, messageExpiration, isMessagePersistent, isMessageMandatory, additionalHeaders: additionalHeaders);
         }
 
         public static TEvent[] PullRabbitMq<TEvent>(this IActor actor, string queueName, bool isAutoAck = false, int? chunkSize = null)
@@ -46,6 +56,8 @@ namespace Anabasis.RabbitMQ
             string exchangeType = "topic",
             bool isExchangeDurable = true,
             bool isExchangeAutoDelete = true,
+            bool createExchangeIfNotExist = true,
+            bool createDeadLetterExchangeIfNotExist = true,
             bool isQueueDurable = false,
             bool isQueueAutoAck = false,
             bool isQueueAutoDelete = true,
@@ -64,8 +76,8 @@ namespace Anabasis.RabbitMQ
 
             var rabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange,
                 exchangeType,
-                true,
-                true,
+                createExchangeIfNotExist,
+                createDeadLetterExchangeIfNotExist,
                 isExchangeAutoDelete,
                 isExchangeDurable);
 

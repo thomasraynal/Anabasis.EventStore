@@ -94,7 +94,12 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             await _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);
 
-            var onEvent = _rabbitMqBus.SubscribeToExchange<TestEventZero>(_integrationActorExchange, isQueueAutoAck: true, isQueueAutoDelete: true);
+            var onEvent = _rabbitMqBus.SubscribeToExchange<TestEventZero>(_integrationActorExchange, "topic",
+                isExchangeDurable: false,
+                isExchangeAutoDelete: true,
+                isQueueDurable: false,
+                isQueueAutoAck: true, 
+                isQueueAutoDelete: true);
 
             TestEventZero testEventZero = null;
 
@@ -106,13 +111,18 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             var eventZero = new TestEventZero(Guid.NewGuid(), Guid.NewGuid());
             var eventOne = new TestEventOne(Guid.NewGuid(), Guid.NewGuid());
 
-            _testRabbitMqActor.EmitRabbitMq(eventOne, _integrationActorExchange, "topic");
-            _testRabbitMqActor.EmitRabbitMq(eventZero, _integrationActorExchange, "topic");
+            _testRabbitMqActor.EmitRabbitMq(eventOne, _integrationActorExchange, "topic", isMessagePersistent:false);
+            _testRabbitMqActor.EmitRabbitMq(eventZero, _integrationActorExchange, "topic", isMessagePersistent: false);
 
             await Task.Delay(500);
 
             Assert.IsNotNull(testEventZero);
+
             Assert.AreEqual(eventZero.MessageId, testEventZero.MessageId);
+            Assert.AreEqual(eventZero.EventId, testEventZero.EventId);
+            Assert.AreEqual(eventZero.EntityId, testEventZero.EntityId);
+            Assert.AreEqual(eventZero.CauseId, testEventZero.CauseId);
+            Assert.AreEqual(eventZero.CorrelationId, testEventZero.CorrelationId);
 
             disposable.Dispose();
 
@@ -122,18 +132,19 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         public async Task ShouldSubscribeAndHandleWithConsumer()
         {
 
-
-            _testRabbitMqActor.SubscribeToExchange<TestEventOne>(_integrationActorExchange);
+            _testRabbitMqActor.SubscribeToExchange<TestEventOne>(_integrationActorExchange, "topic", isExchangeDurable: false,
+                isExchangeAutoDelete: true,
+                isQueueDurable: false,
+                isQueueAutoAck: true,
+                isQueueAutoDelete: true);
 
             var eventOne = new TestEventOne(Guid.NewGuid(), Guid.NewGuid());
 
-            _testRabbitMqActor.EmitRabbitMq(eventOne, _integrationActorExchange);
-
+            _testRabbitMqActor.EmitRabbitMq(eventOne, _integrationActorExchange, isMessagePersistent: false);
 
             await Task.Delay(500);
 
             Assert.IsNotNull(_testRabbitMqActor.Events.Count > 0);
-
 
         }
 

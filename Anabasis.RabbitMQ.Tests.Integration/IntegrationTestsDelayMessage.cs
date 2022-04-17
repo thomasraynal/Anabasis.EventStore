@@ -19,17 +19,24 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         [Test, Order(1)]
         public void ShouldCreateSusbscription()
         {
-            _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", "topic", (ev) =>
+            _rabbitMqBus.SubscribeToExchange(new RabbitMqEventSubscription<TestEventOne>("testevent-exchange", "topic",    
+                (ev) =>
             {
                 _counter++;
                 return Task.CompletedTask;
-            }));
+            }, 
+            isExchangeDurable : false,
+            isExchangeAutoDelete : true,
+            isQueueDurable: false,
+            isQueueAutoAck: false,
+            isQueueAutoDelete: true,
+            isQueueExclusive: true));
         }
 
         [Test, Order(2)]
         public async Task ShouldSubmitMessageAndDelayIt()
         {
-            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "AnotherfilterOne" }, "testevent-exchange", "topic", TimeSpan.FromSeconds(3));
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "AnotherfilterOne" }, "testevent-exchange", "topic", TimeSpan.FromSeconds(3), isMessagePersistent: false);
 
             await Task.Delay(1000);
 

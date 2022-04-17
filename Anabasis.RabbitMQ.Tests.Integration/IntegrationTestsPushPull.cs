@@ -23,7 +23,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
                 channel.QueueDeclare(testQueueName, exclusive: true, autoDelete: true).QueueName);
 
             rabbitMqBus.RabbitMqConnection.DoWithChannel((channel) =>
-                channel.ExchangeDeclare(testExchangeName, type: "x-delayed-message", durable: true, autoDelete: false, new Dictionary<string, object>()
+                channel.ExchangeDeclare(testExchangeName, type: "x-delayed-message", durable: false, autoDelete: true, new Dictionary<string, object>()
                     {
                         {"x-delayed-type","topic"}
                     }));
@@ -31,7 +31,9 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             rabbitMqBus.RabbitMqConnection.DoWithChannel((channel) =>
                 channel.QueueBind(testQueueName, testExchangeName, "TestEventOne.#"));
 
-            rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()), testExchangeName, isPersistent: false);
+            rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()), 
+                testExchangeName, 
+                isMessagePersistent: false);
 
             await Task.Delay(100);
 

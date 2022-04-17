@@ -27,7 +27,14 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
                 return Task.CompletedTask;
 
-            }, isAutoAck: true, routingStrategy: (ev) => ev.FilterOne == "filterOne"));
+            }, 
+            isExchangeDurable: false,
+            isExchangeAutoDelete: true,
+            isQueueDurable: false,
+            isQueueAutoAck: false,
+            isQueueAutoDelete: true,
+            isQueueExclusive: true,
+            routingStrategy: (ev) => ev.FilterOne == "filterOne"));
         }
 
         public Task Handle(TestEventOne testEventOne)
@@ -37,7 +44,9 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
         public void Emit()
         {
-            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange", "topic");
+            _rabbitMqBus.Emit(new TestEventOne(Guid.NewGuid(), Guid.NewGuid()) { FilterOne = "filterOne" }, "testevent-exchange",
+                isMessageMandatory: false,
+                isMessagePersistent: false);
         }
 
     }

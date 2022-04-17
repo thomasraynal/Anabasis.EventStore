@@ -86,11 +86,18 @@ namespace Anabasis.RabbitMQ
             string exchangeType = "topic",
             TimeSpan? initialVisibilityDelay = null,
             TimeSpan? expiration = null,
-            bool isPersistent = true,
-            bool isMandatory = false,
+            bool isMessagePersistent = true,
+            bool isMessageMandatory = false,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
         {
-            Emit(new[] { @event }, exchange, exchangeType, initialVisibilityDelay, expiration, isPersistent, isMandatory, additionalHeaders);
+            Emit(new[] { @event },
+                exchange,
+                exchangeType,
+                initialVisibilityDelay,
+                expiration,
+                isMessagePersistent,
+                isMessageMandatory,
+                additionalHeaders);
         }
 
         public void Emit(IEnumerable<IRabbitMqEvent> events,
@@ -98,11 +105,10 @@ namespace Anabasis.RabbitMQ
             string exchangeType = "topic",
             TimeSpan? initialVisibilityDelay = null,
             TimeSpan? expiration = null,
-            bool isPersistent = true,
-            bool isMandatory = false,
+            bool isMessagePersistent = true,
+            bool isMessageMandatory = false,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
         {
-            CreateExchangeIfNotExist(exchange, exchangeType);
 
             foreach (var @event in events)
             {
@@ -119,7 +125,7 @@ namespace Anabasis.RabbitMQ
                     basicProperties.Expiration = $"{expirationInMilliseconds}";
                 }
 
-                basicProperties.Persistent = isPersistent;
+                basicProperties.Persistent = isMessagePersistent;
                 basicProperties.ContentType = _serializer.ContentMIMEType;
                 basicProperties.ContentEncoding = _serializer.ContentEncoding;
                 basicProperties.CorrelationId = $"{@event.CorrelationId}";
@@ -156,7 +162,7 @@ namespace Anabasis.RabbitMQ
                             basicProperties.Headers.Add("x-delay", delayInMilliseconds);
                         }
 
-                        channel.BasicPublish(exchange: exchange, routingKey: routingKey, mandatory: isMandatory, basicProperties: basicProperties, body: body);
+                        channel.BasicPublish(exchange: exchange, routingKey: routingKey, mandatory: isMessageMandatory, basicProperties: basicProperties, body: body);
 
                         channel.WaitForConfirmsOrDie(_defaultPublishConfirmTimeout);
 
@@ -216,7 +222,7 @@ namespace Anabasis.RabbitMQ
             return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag, isAutoAck);
         }
 
-        private void CreateExchangeIfNotExist(string exchange, string exchangeType = "topic", bool durable = true, bool autodelete = false)
+        private void CreateExchangeIfNotExist(string exchange, string exchangeType = "topic", bool durable = true, bool autodelete = false, bool createDeadLetterExchangeIfNotExist = true)
         {
             if (_ensureExchangeCreated.Contains(exchange)) return;
 
@@ -228,10 +234,13 @@ namespace Anabasis.RabbitMQ
                         {"x-delayed-type",exchangeType}
                     });
 
-                var deadletterExchangeForThisSubscription = $"{exchange}-deadletters";
+                if (createDeadLetterExchangeIfNotExist)
+                {
+                    var deadletterExchangeForThisSubscription = $"{exchange}-deadletters";
 
-                channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: durable, autoDelete: false);
+                    channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: durable, autoDelete: autodelete);
 
+                }
                 _ensureExchangeCreated.Add(exchange);
 
             });
@@ -252,7 +261,15 @@ namespace Anabasis.RabbitMQ
                         CreateExchangeIfNotExist(subscription.RabbitMqExchangeConfiguration.ExchangeName,
                             subscription.RabbitMqExchangeConfiguration.ExchangeType,
                             subscription.RabbitMqExchangeConfiguration.IsDurable,
-                            subscription.RabbitMqExchangeConfiguration.IsAutoDelete);
+                            subscription.RabbitMqExchangeConfiguration.IsAutoDelete,
+                            subscription.RabbitMqExchangeConfiguration.CreateDeadLetterExchangeIfNotExist);
+                    }
+
+                    var arguments = new Dictionary<string, object>();
+
+                    if (subscription.RabbitMqExchangeConfiguration.CreateDeadLetterExchangeIfNotExist)
+                    {
+                        arguments.Add("x-dead-letter-exchange", $"{subscription.RabbitMqExchangeConfiguration.ExchangeName}-deadletters");
                     }
 
                     var queueName = channel.QueueDeclare(
@@ -260,11 +277,7 @@ namespace Anabasis.RabbitMQ
                         exclusive: subscription.RabbitMqQueueConfiguration.IsExclusive,
                         durable: subscription.RabbitMqQueueConfiguration.IsDurable,
                         autoDelete: subscription.RabbitMqQueueConfiguration.IsAutoDelete,
-                        arguments: new Dictionary<string, object>
-                        {
-                            {"x-dead-letter-exchange", $"{subscription.RabbitMqExchangeConfiguration.ExchangeName}-deadletters"},
-
-                        }).QueueName;
+                        arguments: arguments).QueueName;
 
                     var consumer = new AsyncEventingBasicConsumer(channel);
 
@@ -308,7 +321,7 @@ namespace Anabasis.RabbitMQ
                     _existingSubscriptions.Add(rabbitMqSubscription.SubscriptionId, rabbitMqSubscription);
                 });
 
-               
+
             }
         }
 
