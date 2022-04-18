@@ -187,8 +187,7 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(1500);
 
             Assert.IsFalse(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-            Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
-
+  
             await _repositoryOne.eventStoreRepository.Emit(new SomeData(_streamIdOne, Guid.NewGuid()));
             await _repositoryOne.eventStoreRepository.Emit(new SomeData(_streamIdOne, Guid.NewGuid()));
 
