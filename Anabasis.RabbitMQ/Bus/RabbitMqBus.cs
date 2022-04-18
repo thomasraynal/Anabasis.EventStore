@@ -1,6 +1,7 @@
 ﻿using Anabasis.Common;
 using Anabasis.RabbitMQ.Connection;
 using Anabasis.RabbitMQ.Shared;
+using Anabasis.RabbitMQ.Shared.SubjectResolver;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
@@ -32,7 +33,7 @@ namespace Anabasis.RabbitMQ
 
         private readonly Dictionary<string, IRabbitMqSubscription> _existingSubscriptions;
         private readonly ISerializer _serializer;
-        private readonly ILogger _logger;
+        private readonly ILogger? _logger;
         private readonly TimeSpan _defaultPublishConfirmTimeout;
         private readonly List<string> _ensureExchangeCreated;
         private readonly RabbitMqConnectionOptions _rabbitMqConnectionOptions;
@@ -46,14 +47,14 @@ namespace Anabasis.RabbitMQ
 
         public RabbitMqBus(RabbitMqConnectionOptions rabbitMqConnectionOptions,
                    AnabasisAppContext appContext,
-                   ILoggerFactory loggerFactory,
                    ISerializer serializer,
+                   ILoggerFactory? loggerFactory =null,
                    IKillSwitch? killSwitch = null,
                    RetryPolicy? retryPolicy = null)
         {
             BusId = $"{nameof(RabbitMqBus)}_{Guid.NewGuid()}";
 
-            _logger = loggerFactory.CreateLogger<RabbitMqBus>();
+            _logger = loggerFactory?.CreateLogger<RabbitMqBus>();
             _serializer = serializer;
             _defaultPublishConfirmTimeout = TimeSpan.FromSeconds(10);
             _existingSubscriptions = new Dictionary<string, IRabbitMqSubscription>();
@@ -169,7 +170,7 @@ namespace Anabasis.RabbitMQ
                     }
                     catch (OperationInterruptedException operationInterruptedException)
                     {
-                        _logger.LogError(operationInterruptedException, $"{nameof(OperationInterruptedException)} occured - ShutdownReason => {operationInterruptedException.ShutdownReason?.ToJson()}");
+                        _logger?.LogError(operationInterruptedException, $"{nameof(OperationInterruptedException)} occured - ShutdownReason => {operationInterruptedException.ShutdownReason?.ToJson()}");
                     }
                 });
             }
@@ -185,7 +186,7 @@ namespace Anabasis.RabbitMQ
 
                 chunkSize ??= int.MaxValue;
 
-                _logger.LogDebug($"{BusId} - {nameof(Pull)}({chunkSize.Value})");
+                _logger?.LogDebug($"{BusId} - {nameof(Pull)}({chunkSize.Value})");
 
                 var count = 0;
 
@@ -309,7 +310,7 @@ namespace Anabasis.RabbitMQ
                         }
                         catch (Exception ex)
                         {
-                            _logger.LogError(ex, $"An error occured during the delivering of a message - BasicDeliveryEventArg => {basicDeliveryEventArg.ToJson()}");
+                            _logger?.LogError(ex, $"An error occured during the delivering of a message - BasicDeliveryEventArg => {basicDeliveryEventArg.ToJson()}");
 
                             if (_rabbitMqConnectionOptions.DoAppCrashOnFailure)
                             {

@@ -16,7 +16,7 @@ namespace Anabasis.RabbitMQ.Event
             CauseId = causeId;
         }
 
-        public string Subject
+        public virtual string Subject
         {
             get
             {

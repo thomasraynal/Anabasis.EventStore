@@ -29,7 +29,6 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
         public List<IEvent> Events { get; } = new();
 
- 
 
         public Task Handle(TestEventOne testEventOne)
         {
@@ -94,7 +93,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             await _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);
 
-            var onEvent = _rabbitMqBus.SubscribeToExchange<TestEventZero>(_integrationActorExchange, "topic",
+            var onEvent = _rabbitMqBus.SubscribeToExchange<TestEventZero>(_integrationActorExchange,
                 isExchangeDurable: false,
                 isExchangeAutoDelete: true,
                 isQueueDurable: false,
@@ -111,8 +110,8 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             var eventZero = new TestEventZero(Guid.NewGuid(), Guid.NewGuid());
             var eventOne = new TestEventOne(Guid.NewGuid(), Guid.NewGuid());
 
-            _testRabbitMqActor.EmitRabbitMq(eventOne, _integrationActorExchange, "topic", isMessagePersistent:false);
-            _testRabbitMqActor.EmitRabbitMq(eventZero, _integrationActorExchange, "topic", isMessagePersistent: false);
+            _testRabbitMqActor.EmitRabbitMq(eventOne, _integrationActorExchange, isMessagePersistent:false);
+            _testRabbitMqActor.EmitRabbitMq(eventZero, _integrationActorExchange, isMessagePersistent: false);
 
             await Task.Delay(500);
 
@@ -132,7 +131,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         public async Task ShouldSubscribeAndHandleWithConsumer()
         {
 
-            _testRabbitMqActor.SubscribeToExchange<TestEventOne>(_integrationActorExchange, "topic", isExchangeDurable: false,
+            _testRabbitMqActor.SubscribeToExchange<TestEventOne>(_integrationActorExchange, isExchangeDurable: false,
                 isExchangeAutoDelete: true,
                 isQueueDurable: false,
                 isQueueAutoAck: true,

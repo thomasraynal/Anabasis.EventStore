@@ -13,12 +13,12 @@ namespace Anabasis.RabbitMQ.Shared
         public int Position { get; set; }
     }
 
-    public class RabbitMQSubjectExpressionVisitor : ExpressionVisitor
+    public class TopicExchangeRabbitMQSubjectResolver : ExpressionVisitor, IRabbitMQSubjectResolver
     {
         public const string AllWords = "#";
         public const string AnyWord = "*";
 
-        private readonly Type _declaringType;
+        private readonly Type _eventType;
         private readonly List<RabbitMQSubjectExpressionMember> _members = new();
         private RabbitMQSubjectExpressionMember _current;
         private string _asString;
@@ -39,12 +39,12 @@ namespace Anabasis.RabbitMQ.Shared
             typeof(bool)
         };
 
-        public RabbitMQSubjectExpressionVisitor(Type declaringType)
+        public TopicExchangeRabbitMQSubjectResolver(Type eventType)
         {
-            _declaringType = declaringType;
+            _eventType = eventType;
         }
 
-        public string Resolve()
+        public string GetSubject()
         {
             var subject = string.Empty;
 
@@ -54,7 +54,7 @@ namespace Anabasis.RabbitMQ.Shared
             }
             else
             {
-                var expectedRoutingAttributes = _declaringType.GetProperties().Where(property => property.IsDefined(typeof(RoutingPositionAttribute), false))
+                var expectedRoutingAttributes = _eventType.GetProperties().Where(property => property.IsDefined(typeof(RoutingPositionAttribute), false))
                                                                               .Count();
 
                 void appendSubject(string segment)
@@ -83,7 +83,7 @@ namespace Anabasis.RabbitMQ.Shared
                 }
             }
 
-            return $"{_declaringType.GetReadableNameFromType()}.{subject}";
+            return $"{_eventType.GetReadableNameFromType()}.{subject}";
         }
 
         public override Expression Visit(Expression expr)
@@ -97,17 +97,17 @@ namespace Anabasis.RabbitMQ.Shared
 
                         var memberExpr = (MemberExpression)expr;
 
-                        if (memberExpr.Member.DeclaringType.IsAssignableFrom(_declaringType))
+                        if (memberExpr.Member.DeclaringType.IsAssignableFrom(_eventType))
                         {
                             var member = memberExpr.Member.Name;
 
-                            if(!_allowedTypes.Contains(memberExpr.Type) &&  !memberExpr.Type.IsEnum)
+                            if (!_allowedTypes.Contains(memberExpr.Type) && !memberExpr.Type.IsEnum)
                                 throw new InvalidOperationException($"property type is not supported [{member}] [{memberExpr.Type}]");
 
-                            if (!memberExpr.Member.CustomAttributes.Any(attr=> attr.AttributeType == typeof(RoutingPositionAttribute)))
+                            if (!memberExpr.Member.CustomAttributes.Any(attr => attr.AttributeType == typeof(RoutingPositionAttribute)))
                                 throw new InvalidOperationException($"only properties decorated with the RoutingPosition attribute are allowed [{member}]");
 
-                            if(_usedMembers.Contains(member))
+                            if (_usedMembers.Contains(member))
                                 throw new InvalidOperationException($"expression should only referenced member one time [{member}]");
 
                             _usedMembers.Add(member);

@@ -21,8 +21,8 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             var rabbitMqBus = new RabbitMqBus(
                 rabbitMqConnectionOptions,
                 anabasisAppContext,
-                loggerFactory,
-                defaultSerializer
+                defaultSerializer,
+                loggerFactory
                 );
 
             return rabbitMqBus;

@@ -26,7 +26,7 @@ namespace Anabasis.RabbitMQ.Connection
 
         public IRabbitMqConnection Connection => _rabbitMqConnection;
 
-        public RabbitMqConnectionStatusMonitor(IRabbitMqConnection connection, ILoggerFactory loggerFactory = null)
+        public RabbitMqConnectionStatusMonitor(IRabbitMqConnection connection, ILoggerFactory? loggerFactory = null)
         {
             _rabbitMqConnection = connection;
 

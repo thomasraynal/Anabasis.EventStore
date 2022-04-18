@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
 {
-    public class SingleQueueAndExchange
+    public class TestTopicExchange
     {
     }
 }

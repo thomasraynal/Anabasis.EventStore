@@ -18,7 +18,7 @@ namespace Anabasis.RabbitMQ
     {
         private IModel? _model;
        
-        private readonly ILogger<RabbitMqConnection> _logger;
+        private readonly ILogger<RabbitMqConnection>? _logger;
 
         private readonly object _syncRoot = new();
 
@@ -37,7 +37,7 @@ namespace Anabasis.RabbitMQ
 
         public RabbitMqConnection(RabbitMqConnectionOptions rabbitMqConnectionOptions,
             AnabasisAppContext appContext,
-            ILoggerFactory loggerFactory,
+            ILoggerFactory? loggerFactory = null,
             RetryPolicy? retryPolicy = null)
         {
             _rabbitMqConnectionOptions = rabbitMqConnectionOptions;
@@ -56,7 +56,7 @@ namespace Anabasis.RabbitMQ
 
             _retryPolicy = retryPolicy;
             _appContext = appContext;
-            _logger = loggerFactory.CreateLogger<RabbitMqConnection>();
+            _logger = loggerFactory?.CreateLogger<RabbitMqConnection>();
             _returnQueue = new ConcurrentQueue<BasicReturnEventArgs>();
             _deliveredMessages = new List<ulong>();
 
@@ -96,7 +96,7 @@ namespace Anabasis.RabbitMQ
 
                 catch (Exception exception)
                 {
-                    _logger.LogError(exception, "Error trying to create RabbitMQ connection");
+                    _logger?.LogError(exception, "Error trying to create RabbitMQ connection");
 
                     throw;
                 }

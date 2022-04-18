@@ -1,6 +1,7 @@
 ﻿using Anabasis.Common;
 using NUnit.Framework;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Anabasis.RabbitMQ.Tests.Integration
@@ -9,6 +10,8 @@ namespace Anabasis.RabbitMQ.Tests.Integration
     {
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly RabbitMqBus _rabbitMqBus;
+
+        public List<TestEventOne> Events { get; set; } = new List<TestEventOne>();
 
         public Consumer()
         {
@@ -22,7 +25,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
                 if (null != candidateHandler)
                 {
-                    ((Task)candidateHandler.Invoke(this, new object[] { ev })).Wait();
+                    ((Task)candidateHandler.Invoke(this, new object[] { ev.Content })).Wait();
                 }
 
                 return Task.CompletedTask;
@@ -39,6 +42,8 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
         public Task Handle(TestEventOne testEventOne)
         {
+            Events.Add(testEventOne);
+
             return Task.CompletedTask;
         }
 
@@ -55,12 +60,14 @@ namespace Anabasis.RabbitMQ.Tests.Integration
     public class TestConsumer
     {
         [Test]
-        public async Task Test()
+        public async Task TestBaseLine()
         {
             var consumer = new Consumer();
             consumer.Emit();
 
-            await Task.Delay(1000);
+            await Task.Delay(500);
+
+            Assert.IsTrue(consumer.Events.Count > 0);
         }
     }
 }

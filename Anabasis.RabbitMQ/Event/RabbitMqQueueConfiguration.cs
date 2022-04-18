@@ -18,10 +18,10 @@ namespace Anabasis.RabbitMQ.Event
             if (null == routingStrategy)
                 routingStrategy = (_) => true;
 
-            var rabbitMQSubjectExpressionVisitor = new RabbitMQSubjectExpressionVisitor(typeof(TEvent));
+            var rabbitMQSubjectExpressionVisitor = new TopicExchangeRabbitMQSubjectResolver(typeof(TEvent));
             rabbitMQSubjectExpressionVisitor.Visit(routingStrategy);
 
-            RoutingKey = rabbitMQSubjectExpressionVisitor.Resolve();
+            RoutingKey = rabbitMQSubjectExpressionVisitor.GetSubject();
             QueueName = queueName;
             IsAutoAck = isAutoAck;
             IsDurable = isDurable;

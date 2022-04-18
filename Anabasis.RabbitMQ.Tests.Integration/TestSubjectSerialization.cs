@@ -44,7 +44,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             //non routable property
             Expression<Func<TestEvent, bool>> validExpression = (ev) => (ev.AggregateId == "MySmallBusiness" && (ev.Broker == "Newedge" && ev.Counterparty == "SGCIB") && ev.Exchange == "SmallCap");
 
-            var visitor = new RabbitMQSubjectExpressionVisitor(typeof(TestEvent));
+            var visitor = new TopicExchangeRabbitMQSubjectResolver(typeof(TestEvent));
 
             Assert.Throws<InvalidOperationException>(() =>
             {
@@ -85,11 +85,11 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             Expression<Func<TestEvent, bool>> validExpression = (ev) => (ev.AggregateId == "MySmallBusiness" && (ev.Market == "Euronext" && ev.Counterparty == "SGCIB") && ev.Exchange == "SmallCap");
 
-            var visitor = new RabbitMQSubjectExpressionVisitor(typeof(TestEvent));
+            var visitor = new TopicExchangeRabbitMQSubjectResolver(typeof(TestEvent));
 
             visitor.Visit(validExpression);
 
-            var subject = visitor.Resolve();
+            var subject = visitor.GetSubject();
 
             Assert.AreEqual("TestEvent.MySmallBusiness.Euronext.SGCIB.SmallCap", subject);
 
@@ -97,7 +97,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             visitor.Visit(validExpression);
 
-            subject = visitor.Resolve();
+            subject = visitor.GetSubject();
 
             Assert.AreEqual("TestEvent.#", subject);
 
@@ -105,7 +105,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             visitor.Visit(validExpression);
 
-            subject = visitor.Resolve();
+            subject = visitor.GetSubject();
 
             Assert.AreEqual("TestEvent.MySmallBusiness.*.*.*", subject);
 
@@ -113,7 +113,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
 
             visitor.Visit(validExpression);
 
-            subject = visitor.Resolve();
+            subject = visitor.GetSubject();
 
             Assert.AreEqual("TestEvent.*.Euronext.*.*", subject);
 

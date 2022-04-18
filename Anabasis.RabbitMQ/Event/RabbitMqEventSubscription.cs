@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.RabbitMQ.Event;
+using Anabasis.RabbitMQ.Shared;
 using System;
 using System.Linq.Expressions;
 using System.Threading.Tasks;
@@ -70,11 +71,6 @@ namespace Anabasis.RabbitMQ
 
         public Task Handle(IRabbitMqQueueMessage rabbitMqQueueMessage)
         {
-            var eventType = rabbitMqQueueMessage.Content.GetType();
-
-            if (!CanHandle(eventType))
-                throw new InvalidOperationException($"{SubscriptionId} cannot handle event {eventType}");
-
             return OnMessage(rabbitMqQueueMessage);
         }
     }
