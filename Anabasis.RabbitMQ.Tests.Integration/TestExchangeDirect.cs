@@ -80,7 +80,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         }
     }
 
-    public class TestSingleQueue
+    public class TestExchangeDirect
     {
         private UserCredentials _userCredentials;
         private ConnectionSettings _connectionSettings;
@@ -112,7 +112,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         }
 
         [Test, Order(1)]
-        public void ShouldCreateActorAndCreateSingleQueueExchange()
+        public void ShouldCreateActorAndCreateADirectExchange()
         {
             var actorQueue = typeof(TestSingleQueueMqActor).Name;
 
@@ -120,14 +120,20 @@ namespace Anabasis.RabbitMQ.Tests.Integration
                                .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
                                .WithBus<IRabbitMqBus>((actor, bus) =>
                                {
-                                   actor.SubscribeToExchange<SingleQueueTestEventOne>(actorQueue, actorQueue, "direct",
+                                   actor.SubscribeToExchange<SingleQueueTestEventOne>(
+                                            exchange: actorQueue,
+                                            queueName: actorQueue, 
+                                            exchangeType: "direct",
                                             isExchangeDurable: false,
                                             isExchangeAutoDelete: true,
                                             isQueueDurable: false,
                                             isQueueAutoAck: true,
                                             isQueueAutoDelete: true);
 
-                                   actor.SubscribeToExchange<SingleQueueTestEventTwo>(actorQueue, actorQueue, "direct",
+                                   actor.SubscribeToExchange<SingleQueueTestEventTwo>(
+                                            exchange: actorQueue,
+                                            queueName: actorQueue,
+                                            exchangeType: "direct",
                                             isExchangeDurable: false,
                                             isExchangeAutoDelete: true,
                                             isQueueDurable: false,

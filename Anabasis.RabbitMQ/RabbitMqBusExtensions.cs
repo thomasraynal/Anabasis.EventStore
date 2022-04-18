@@ -52,6 +52,7 @@ namespace Anabasis.RabbitMQ
 
         public static void SubscribeToExchange<TEvent>(this IActor actor,
             string exchange,
+            Expression<Func<TEvent, bool>>? routingStrategy = null,
             string queueName = "",
             string exchangeType = "topic",
             bool isExchangeDurable = true,
@@ -61,8 +62,7 @@ namespace Anabasis.RabbitMQ
             bool isQueueDurable = false,
             bool isQueueAutoAck = false,
             bool isQueueAutoDelete = true,
-            bool isQueueExclusive = true,
-            Expression<Func<TEvent, bool>>? routingStrategy = null)
+            bool isQueueExclusive = true)
          where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
