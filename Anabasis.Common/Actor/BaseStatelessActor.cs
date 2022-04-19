@@ -64,8 +64,21 @@ namespace Anabasis.Common
 
         public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.ConnectionStatusMonitor.IsConnected);
         public virtual bool IsCaughtUp => true;
-        public bool IsFaulted => _dispatchQueue.IsFaulted;
-        public Exception LastError => _dispatchQueue.LastError;
+        public bool IsFaulted
+        {
+            get
+            {
+                return _dispatchQueue.IsFaulted;
+            }
+        }
+
+        public Exception? LastError
+        {
+            get
+            {
+                return _dispatchQueue.LastError;
+            }
+        }
 
         public virtual Task OnError(IEvent source, Exception exception)
         {
@@ -219,7 +232,7 @@ namespace Anabasis.Common
             {
                 exception = this.LastError;
                 healthStatus = HealthStatus.Unhealthy;
-                data.Add("Actor is in a faulted state", this.LastError.Message);
+                data.Add("Actor is in a faulted state", LastError?.Message);
             }
 
             return new HealthCheckResult(healthStatus, healthCheckDescription, exception, data);
