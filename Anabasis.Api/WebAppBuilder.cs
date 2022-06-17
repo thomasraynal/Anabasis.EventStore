@@ -43,6 +43,7 @@ namespace Anabasis.Api
             Action<IMvcBuilder>? configureMvc = null,
             Action<MvcNewtonsoftJsonOptions>? configureJson = null,
             Action<KestrelServerOptions>? configureKestrel = null,
+            Action<AnabasisAppContext, IApplicationBuilder>? configureMiddlewares = null,
             Action<AnabasisAppContext, IApplicationBuilder>? configureApplicationBuilder = null,
             Action<AnabasisAppContext, IServiceCollection, IConfigurationRoot>? configureServiceCollection = null,
             Action<ConfigurationBuilder>? configureConfigurationBuilder = null,
@@ -103,6 +104,7 @@ namespace Anabasis.Api
                 })
                 .Configure((context, appBuilder) =>
                 {
+                    configureMiddlewares?.Invoke(anabasisAppContext, appBuilder);
 
                     ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useCors);
 
@@ -270,7 +272,6 @@ namespace Anabasis.Api
             appBuilder.UseSerilogRequestLogging();
 
             appBuilder.UseSwagger();
-
 
             if (webHostEnvironment.IsDevelopment())
             {
