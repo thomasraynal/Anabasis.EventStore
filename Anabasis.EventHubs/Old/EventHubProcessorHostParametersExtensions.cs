@@ -2,6 +2,7 @@
 using System.Threading.Tasks;
 using BeezUP2.Framework.Application;
 using BeezUP2.Framework.Handlers;
+using BeezUP2.Framework.Insights.HealthCheck;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Extensions.DependencyInjection;
@@ -10,24 +11,23 @@ using RetryPolicy = Microsoft.Azure.EventHubs.RetryPolicy;
 
 namespace BeezUP2.Framework.Configuration
 {
-    public static class EventHubConnectionSettingsExtensions
+    public static class EventHubProcessorHostParametersExtensions
     {
-        public static EventHubConnectionSettings WithHealthCheck(this EventHubConnectionSettings settings, BeezUPApp app)
+        public static EventHubProcessorHostParameters WithHealthCheck(this EventHubProcessorHostParameters settings, BeezUPApp app)
         {
-            var hcName = $"EventHubs {settings.Namespace}.{settings.HubName} connection";
+            var hcName = $"EventHubs processor host {settings.Connection.Namespace}.{settings.Connection.HubName} connection";
 
             if (!app.AddDoubleKeyIfNotExisting(hcName))
                 return settings;
 
-            var client = GetClient(settings);
-            client.CheckAsync().Wait();
+            settings.CheckAsync().Wait();
 
             app.HealthChecksBuilder
                 .AddAsyncCheck(hcName, async () =>
                 {
                     try
                     {
-                        await client.CheckAsync().CAF();
+                        await settings.CheckAsync();
                         return HealthCheckResult.Healthy();
                     }
                     catch (Exception ex)
@@ -41,24 +41,16 @@ namespace BeezUP2.Framework.Configuration
             return settings;
         }
 
-        public static async Task CheckAsync(this EventHubConnectionSettings settings)
+        public static async Task CheckAsync(this EventHubProcessorHostParameters settings)
         {
-            var client = GetClient(settings);
-            await CheckAsync(client);
-        }
-
-        private static async Task CheckAsync(this EventHubClient client)
-        {
-            await client.GetRuntimeInformationAsync().CAF();
-        }
-
-        private static EventHubClient GetClient(EventHubConnectionSettings settings)
-        {
-            var connectionString = settings.GetConnectionString();
-            var conBuilder = new ServiceBusConnectionStringBuilder(connectionString) { TransportType = Microsoft.Azure.ServiceBus.TransportType.Amqp, EntityPath = settings.HubName, OperationTimeout = TimeSpan.FromSeconds(30) };
+            var connectionString = settings.Connection.GetConnectionString();
+            var conBuilder = new ServiceBusConnectionStringBuilder(connectionString) { TransportType = Microsoft.Azure.ServiceBus.TransportType.Amqp, EntityPath = settings.Connection.HubName };
             var client = EventHubClient.CreateFromConnectionString(conBuilder.GetEntityConnectionString());
             client.RetryPolicy = RetryPolicy.Default;
-            return client;
+
+            await client.GetRuntimeInformationAsync();
+            await settings.EventHubConsumerSettings.CheckAsync();
+            // TODO not able to check consumer group /!\
         }
     }
 }

@@ -66,7 +66,7 @@ namespace BeezUP2.Framework.EventHubs
         {
             Log(context, "initialized");
 
-            _table = await EventHubsHelper.PrepareMonitoringCloudTable(_parameters.EventHubConsumerSettings.TableStorage.GetStorageConnectionString(), _monitoringTableName).CAF();
+            _table = await EventHubsHelper.PrepareMonitoringCloudTable(_parameters.EventHubConsumerSettings.TableStorage.GetStorageConnectionString(), _monitoringTableName);
 
             _eventDataSubject = new Subject<IConsumable<EventData>>();
             _consumedEventDataSubject = new Subject<EventData>();
@@ -121,7 +121,7 @@ namespace BeezUP2.Framework.EventHubs
                 Interlocked.Increment(ref _inProgressEventdataCount);
 
                 while (_inProgressEventdataCount >= _maxInProgressEventdataCount && !ct.IsCancellationRequested)
-                    await Task.Delay(10, ct).CAF();
+                    await Task.Delay(10, ct);
 
                 if (_closeNow)
                     break;

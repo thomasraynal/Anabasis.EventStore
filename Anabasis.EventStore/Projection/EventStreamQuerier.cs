@@ -48,17 +48,17 @@
 //      var queryName = Guid.NewGuid().ToString();
 //      var resultStreamName = StreamNameHelper.GetResultStreamName(queryName);
 
-//      await CreateQueryAsync(query, queryName).CAF();
+//      await CreateQueryAsync(query, queryName);
 
 //      ProjectionDetails details;
 //      var timeout = DateTime.UtcNow.Add(projectionTimeOut ?? TimeSpan.FromSeconds(5));
 //      bool isCompleted;
 //      do
 //      {
-//        await Task.Delay(50).CAF();
-//        details = await _projMan.GetProjectionDetails(queryName).CAF();
+//        await Task.Delay(50);
+//        details = await _projMan.GetProjectionDetails(queryName);
 //        isCompleted = details.IsCompletedWithResults();
-//        if (!isCompleted) await Task.Delay(200).CAF();
+//        if (!isCompleted) await Task.Delay(200);
 //      } while (!isCompleted && timeout > DateTime.UtcNow);
 
 //      if (!isCompleted)
@@ -85,13 +85,13 @@
 
 //        try
 //        {
-//          while (!finished && (exceptions.Count == 0)) await Task.Delay(100).CAF();
+//          while (!finished && (exceptions.Count == 0)) await Task.Delay(100);
 //        }
 //        finally
 //        {
 //          subscription.Stop();
 //        }
-//      }).CAF();
+//      });
 
 
 //      if (exceptions.Count != 0) throw new AggregateException(exceptions);

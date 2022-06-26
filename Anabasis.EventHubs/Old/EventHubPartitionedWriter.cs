@@ -83,7 +83,7 @@ namespace BeezUP2.Framework.EventHubs
 
             foreach (var batch in eventDataBatches)
             {
-                await sender.SendAsync(batch).CAF();
+                await sender.SendAsync(batch);
             }
         }
     }

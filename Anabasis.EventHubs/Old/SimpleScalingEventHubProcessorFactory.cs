@@ -70,7 +70,7 @@ namespace BeezUP2.Framework.EventHubs
                     {
                         try
                         {
-                            await handleEvents(messages).CAF();
+                            await handleEvents(messages);
                         }
                         catch (Exception ex)
                         {
@@ -78,7 +78,7 @@ namespace BeezUP2.Framework.EventHubs
                             throw;
                         }
                     }
-                }).CAF();
+                });
             }
             catch (Exception ex)
             {

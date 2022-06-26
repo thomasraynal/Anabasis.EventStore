@@ -224,7 +224,7 @@ namespace BeezUP2.Framework.EventHubs
                 var files = fileProvider.GetFiles(hostParameters.ConsumerGroupName).Cast<AzureBlobStorageProvider.AzureBlobStorageFile>();
                 await files.Select(async file =>
                 {
-                    await file.BlobReference.FetchAttributesAsync().CAF();
+                    await file.BlobReference.FetchAttributesAsync();
                     var meta = file.BlobReference.Metadata;
 
                     var owner = meta.FirstOrDefault(kv => string.Compare(kv.Key, METADATA_OWNERNAME, StringComparison.InvariantCultureIgnoreCase) == 0);
@@ -237,11 +237,11 @@ namespace BeezUP2.Framework.EventHubs
                     meta.Remove(owner.Key);
                     meta[METADATA_OWNERNAME] = value;
 
-                    await file.BlobReference.SetMetadataAsync().CAF();
+                    await file.BlobReference.SetMetadataAsync();
                 }).InfiniteWhenAll(10);
 
                 logger.LogObject($"Writing {markFile}");
-                await markFile.WriteTextAsync("ok").CAF();
+                await markFile.WriteTextAsync("ok");
             }
         }
 
@@ -256,7 +256,7 @@ namespace BeezUP2.Framework.EventHubs
 
             tableClient.DefaultRequestOptions.RetryPolicy = StorageHelper.GetDefaultRetryPolicy();
 
-            await table.CreateIfNotExistsAsync().CAF();
+            await table.CreateIfNotExistsAsync();
 
             return table;
         }
@@ -285,7 +285,7 @@ namespace BeezUP2.Framework.EventHubs
                 TimeSpan duration = TimeSpan.Zero;
                 var lastCheckedUtcDate = DateTime.UtcNow;
 
-                var tableResult = await table.ExecuteAsync(TableOperation.Retrieve<FullTrackingRecorderCheckpointStatus>(partitionKey, rowKey)).CAF();
+                var tableResult = await table.ExecuteAsync(TableOperation.Retrieve<FullTrackingRecorderCheckpointStatus>(partitionKey, rowKey));
 
                 long? previousSequenceNumber = null;
                 DateTime? previousCheckedUtcDate = null;
@@ -333,7 +333,7 @@ namespace BeezUP2.Framework.EventHubs
 
 
             var insertOperation = TableOperation.InsertOrMerge(statusEntity);
-            await table.ExecuteAsync(insertOperation).CAF();
+            await table.ExecuteAsync(insertOperation);
         }
 
         #endregion

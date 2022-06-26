@@ -47,7 +47,7 @@ namespace BeezUP2.Framework.EventHubs
         public async Task OpenAsync(PartitionContext context)
         {
             Log(context, "initialized");
-            _table = await EventHubsHelper.PrepareMonitoringCloudTable(_parameters.EventHubConsumerSettings.TableStorage.GetStorageConnectionString(), _monitoringTableName).CAF();
+            _table = await EventHubsHelper.PrepareMonitoringCloudTable(_parameters.EventHubConsumerSettings.TableStorage.GetStorageConnectionString(), _monitoringTableName);
         }
 
         public Task CloseAsync(PartitionContext context, CloseReason reason)
@@ -60,7 +60,7 @@ namespace BeezUP2.Framework.EventHubs
         {
             try
             {
-                await _handleEvents(messages).CAF();
+                await _handleEvents(messages);
             }
             catch (Exception ex)
             {
@@ -68,11 +68,11 @@ namespace BeezUP2.Framework.EventHubs
                 throw;
             }
 
-            await context.CheckpointAsync().CAF();
+            await context.CheckpointAsync();
             var last = messages.LastOrDefault();
             if (last != null)
             {
-                await EventHubsHelper.SaveCheckPointInformationAsync(_table, context, last, null, _parameters.Connection.Namespace).CAF();
+                await EventHubsHelper.SaveCheckPointInformationAsync(_table, context, last, null, _parameters.Connection.Namespace);
             }
         }
 
