@@ -1,31 +1,14 @@
-﻿using BeezUP2.Framework.EventSourcing;
-using BeezUP2.Framework.Serialization;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.WindowsAzure.Storage.Table;
-using Microsoft.WindowsAzure.Storage;
-using BeezUP2.Framework.Configuration;
-using System.Reactive;
-using System.Reactive.Disposables;
-using BeezUP2.Framework.FileStorage;
-using System.Reflection;
-using BeezUP2.Framework.Messaging;
 using System.Reactive.Concurrency;
-using System.Threading;
-using BeezUP2.Framework.Application;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.EventHubs.Processor;
-using BeezUP2.Framework.FileStorage.Azure;
-using BeezUP2.Framework.Insights;
-using System.Runtime.CompilerServices;
-using Microsoft.WindowsAzure.Storage.RetryPolicies;
+using Anabasis.EventHubs.Old;
 
 namespace BeezUP2.Framework.EventHubs
 {
