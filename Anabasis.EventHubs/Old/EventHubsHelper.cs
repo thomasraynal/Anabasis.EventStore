@@ -9,6 +9,10 @@ using System.Reactive.Concurrency;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.EventHubs.Processor;
 using Anabasis.EventHubs.Old;
+using Anabasis.EventHubs;
+using Anabasis.Common;
+using Microsoft.WindowsAzure.Storage.Table;
+using Microsoft.Azure.Storage;
 
 namespace BeezUP2.Framework.EventHubs
 {
@@ -48,7 +52,7 @@ namespace BeezUP2.Framework.EventHubs
                     }
                     catch (Exception ex)
                     {
-                        var goodEx = ex.GetTheGoodException() as HttpRequestException;
+                        var goodEx = ex as HttpRequestException;
                         if (goodEx.Message.Contains("404"))
                             return null;
                         else
@@ -64,7 +68,7 @@ namespace BeezUP2.Framework.EventHubs
                 data = data.Unzip();
             }
 
-            byte[] metadata = props.ToJsonToBytes();
+            byte[] metadata = props.ToJsonBytes();
 
             var recordedEvent = new BeezUPRecordedEvent(
                 null,
@@ -83,11 +87,11 @@ namespace BeezUP2.Framework.EventHubs
             return recordedEvent;
         }
 
-        public static EventData GetEventData<T>(T message, IMessageSerializer serializer, Func<DateTime, IFileStorageProvider> bigMessageStorageProviderFactory = null)
+        public static EventData GetEventData<T>(T message, ISerializer serializer, Func<DateTime, IFileStorageProvider> bigMessageStorageProviderFactory = null)
         {
             string str = serializer.SerializeToString(message);
 
-            var eventName = message.GetType().GetFriendlyName();
+            var eventName = message.GetType().Name;
 
             var byteArray = str.ToBytes();
 
@@ -103,7 +107,7 @@ namespace BeezUP2.Framework.EventHubs
             {
                 var now = DateTime.UtcNow;
                 var storageProvider = bigMessageStorageProviderFactory(now);
-                var file = storageProvider.GetFile(GuiDate.NewGuid(DateTime.UtcNow).ToString() + ".json");
+                var file = storageProvider.GetFile(GuiDate.GenerateTimeBasedGuid() + ".json");
                 file.WriteTextAsync(str).Wait();
                 blobUri = file.Uri;
                 byteArray = new byte[0];
@@ -126,12 +130,12 @@ namespace BeezUP2.Framework.EventHubs
 
         #region EventProcessorHost
 
-        public static EventHubProcessorHostParameters ToEventProcessHostParameters(this EventHubConnectionSettings connectionSettings, BeezUPAppContext appContext, EventHubConsumerSettings eventHubConsumerSettings, string consumerGroupName = null, int maxBatchSize = EventHubProcessorHostParameters.DEFAULT_MAX_BATCH_SIZE)
+        public static EventHubProcessorHostParameters ToEventProcessHostParameters(this EventHubConnectionOptions connectionSettings, AnabasisAppContext appContext, EventHubConsumerOptions eventHubConsumerSettings, string consumerGroupName = null, int maxBatchSize = EventHubProcessorHostParameters.DEFAULT_MAX_BATCH_SIZE)
         {
             return new EventHubProcessorHostParameters(
                 connectionSettings,
                 appContext.MachineName,
-                consumerGroupName ?? appContext.ApplicationName.FullName,
+                consumerGroupName ?? appContext.ApplicationName,
                 eventHubConsumerSettings,
                 maxBatchSize
                 );
@@ -140,17 +144,17 @@ namespace BeezUP2.Framework.EventHubs
 
 
         public static string GetLeaseContainerName(EventHubProcessorHostParameters hostParameters)
-            => $"eh-{hostParameters.Connection.Namespace}-{hostParameters.Connection.HubName}-procs".ToLower();
+            => $"eh-{hostParameters.EventHubConnectionOptions.Namespace}-{hostParameters.EventHubConnectionOptions.HubName}-procs".ToLower();
 
         public static EventProcessorHost ToEventProcessorHost(this EventHubProcessorHostParameters hostParameters)
         {
-            var eventHubConsumerSettings = hostParameters.EventHubConsumerSettings;
+            var eventHubConsumerSettings = hostParameters.EventHubConsumerOptions;
 
             var processor = new EventProcessorHost(
                 $"{hostParameters.EventProcessorHostName}-{Guid.NewGuid()}",
-                hostParameters.Connection.HubName,
+                hostParameters.EventHubConnectionOptions.HubName,
                 hostParameters.ConsumerGroupName,
-                hostParameters.Connection.GetConnectionString(),
+                hostParameters.EventHubConnectionOptions.GetConnectionString(),
                 eventHubConsumerSettings.BlobStorage.GetStorageConnectionString(),
                 GetLeaseContainerName(hostParameters)
             );
@@ -188,7 +192,7 @@ namespace BeezUP2.Framework.EventHubs
         // https://github.com/Azure/azure-sdk-for-net/blob/809f48630e06b7672b4f3475f814cd46bfd97b33/sdk/eventhub/Microsoft.Azure.EventHubs.Processor/src/AzureStorageCheckpointLeaseManager.cs#L18
         public const string METADATA_OWNERNAME = "OWNINGHOST";
 
-        public static async Task HandleMetadataCase(EventHubProcessorHostParameters hostParameters, EventHubConsumerSettings eventHubConsumerSettings, ILogger logger)
+        public static async Task HandleMetadataCase(EventHubProcessorHostParameters hostParameters, EventHubConsumerOptions eventHubConsumerSettings, ILogger logger)
         {
             // HANDLE az-copy bug regarding metadata case
             // https://github.com/Azure/azure-storage-azcopy/issues/113#issuecomment-598146034
@@ -362,7 +366,6 @@ namespace BeezUP2.Framework.EventHubs
                 .Select(x => x.Checkpoint)
                 .DistinctUntilChanged(EventDataIntervalComparer.Instance)
                 .Buffer(bufferClosing)
-
                 .ObserveOn(myScheduler)
                 .Do(buffer =>
                 {

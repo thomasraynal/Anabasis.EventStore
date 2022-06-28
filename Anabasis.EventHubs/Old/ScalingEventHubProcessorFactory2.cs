@@ -1,4 +1,5 @@
-﻿using BeezUP2.Framework.Application;
+﻿using Anabasis.EventHubs.Old;
+using BeezUP2.Framework.Application;
 using BeezUP2.Framework.Configuration;
 using BeezUP2.Framework.Insights;
 using BeezUP2.Framework.Queuing;
@@ -13,13 +14,11 @@ namespace BeezUP2.Framework.EventHubs
         readonly Func<IObservable<IConsumable<EventData>>, IDisposable> _subscribeEventDatas;
         readonly EventHubProcessorHostParameters _parameters;
         readonly string _monitoringTableName;
-        readonly BeezUPAppContext _appContext;
         readonly int _maxInProgressEventdataCount;
 
         public ScalingEventHubProcessorFactory2(
             EventHubProcessorHostParameters parameters,
             Func<IObservable<IConsumable<EventData>>, IDisposable> subscribeEventDatas,
-            BeezUPAppContext appContext,
             string monitoringTableName = EventHubsConstants.Default_MonitoringTableName,
             int maxInProgressEventdataCount = EventHubsConstants.Default_MaxInProgressEventdataCount
             )
@@ -27,7 +26,6 @@ namespace BeezUP2.Framework.EventHubs
             _subscribeEventDatas = subscribeEventDatas;
             _parameters = parameters;
             _monitoringTableName = monitoringTableName;
-            _appContext = appContext;
             _maxInProgressEventdataCount = maxInProgressEventdataCount;
         }
         
@@ -36,7 +34,6 @@ namespace BeezUP2.Framework.EventHubs
             var processor = new ScalingEventHubProcessor2(
                 _parameters, _monitoringTableName,
                 _subscribeEventDatas,
-                _appContext,
                 _maxInProgressEventdataCount
                 );
             return processor;

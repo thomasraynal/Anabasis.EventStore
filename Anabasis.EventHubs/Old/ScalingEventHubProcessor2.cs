@@ -5,14 +5,10 @@ using System.Reactive.Disposables;
 using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
-using BeezUP2.Framework.Application;
-using BeezUP2.Framework.Configuration;
-using BeezUP2.Framework.Insights;
-using BeezUP2.Framework.Queuing;
+using Anabasis.EventHubs.Old;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.EventHubs.Processor;
 using Microsoft.WindowsAzure.Storage.Table;
-using OpenTracing;
 
 namespace BeezUP2.Framework.EventHubs
 {
@@ -23,10 +19,7 @@ namespace BeezUP2.Framework.EventHubs
         readonly EventHubProcessorHostParameters _parameters;
         readonly string _monitoringTableName;
         readonly Func<IObservable<IConsumable<EventData>>, IDisposable> _subscribeEventDatas;
-        readonly ILogger _logger;
-        readonly ITracer _tracer;
         readonly int _maxInProgressEventdataCount;
-        readonly IBeezUPAppKillButton _killButton;
 
         Subject<IConsumable<EventData>> _eventDataSubject;
         Subject<EventData> _consumedEventDataSubject;
@@ -39,25 +32,21 @@ namespace BeezUP2.Framework.EventHubs
             EventHubProcessorHostParameters parameters,
             string monitoringTableName,
             Func<IObservable<IConsumable<EventData>>, IDisposable> subscribeEventDatas,
-            BeezUPAppContext appContext,
             int maxInProgressEventdataCount
             )
         {
             _parameters = parameters;
             _monitoringTableName = monitoringTableName;
             _subscribeEventDatas = subscribeEventDatas;
-            _logger = appContext.Logger;
-            _tracer = appContext.Tracer;
             _maxInProgressEventdataCount = maxInProgressEventdataCount;
-            _killButton = appContext;
         }
 
         int _inProgressEventdataCount;
 
         void Log(PartitionContext context, string message)
         {
-            var id = $"{nameof(ScalingEventHubProcessor2)} {_parameters.Connection.Namespace}/{_parameters.Connection.HubName}:{_parameters.ConsumerGroupName} - Partition {context.PartitionId}";
-            _logger.LogObject($"{id} ::: {message}");
+            //var id = $"{nameof(ScalingEventHubProcessor2)} {_parameters.Connection.Namespace}/{_parameters.Connection.HubName}:{_parameters.ConsumerGroupName} - Partition {context.PartitionId}";
+            //_logger.LogObject($"{id} ::: {message}");
         }
 
         private DateTime _latestCheckpoint = DateTime.UtcNow;
@@ -101,8 +90,8 @@ namespace BeezUP2.Framework.EventHubs
                                 {
                                     if (_closeNow)
                                         return;
-                                    _logger.LogException(ex);
-                                    _killButton.KillBeezUPApp("Error while checkpointing EventHubs.", ex);
+                                    //_logger.LogException(ex);
+                                    //_killButton.KillBeezUPApp("Error while checkpointing EventHubs.", ex);
                                 }
                             }
                         }),
@@ -129,8 +118,6 @@ namespace BeezUP2.Framework.EventHubs
                 if (ct.IsCancellationRequested)
                     return;
 
-                var spanContext = _tracer.ExtractContext(ed);
-
                 try
                 {
                     _eventDataSubject.OnNext(
@@ -153,8 +140,7 @@ namespace BeezUP2.Framework.EventHubs
                                     Log(context, ex.Message);
                                     //_killButton.KillBeezUPApp("Error while handling EventHubs events.", ex);
                                 }
-                            },
-                            spanContext
+                            }
                             ));
                 }
                 catch (ObjectDisposedException ex)
@@ -169,7 +155,7 @@ namespace BeezUP2.Framework.EventHubs
         public Task ProcessErrorAsync(PartitionContext context, Exception error)
         {
             Log(context, $"error -> {error.Message}");
-            _logger.LogException(error);
+            //_logger.LogException(error);
             // _consumedEventDataSubject?.OnError(error); // this line lead to the host process crash !
             return Task.CompletedTask;
         }
