@@ -13,6 +13,7 @@ using Anabasis.EventHubs;
 using Anabasis.Common;
 using Microsoft.WindowsAzure.Storage.Table;
 using Microsoft.Azure.Storage;
+using Microsoft.Extensions.Logging;
 
 namespace BeezUP2.Framework.EventHubs
 {

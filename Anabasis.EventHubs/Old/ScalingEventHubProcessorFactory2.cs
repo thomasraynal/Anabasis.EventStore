@@ -1,8 +1,4 @@
 ﻿using Anabasis.EventHubs.Old;
-using BeezUP2.Framework.Application;
-using BeezUP2.Framework.Configuration;
-using BeezUP2.Framework.Insights;
-using BeezUP2.Framework.Queuing;
 using Microsoft.Azure.EventHubs;
 using Microsoft.Azure.EventHubs.Processor;
 using System;

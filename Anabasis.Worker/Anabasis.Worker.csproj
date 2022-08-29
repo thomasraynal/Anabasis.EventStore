@@ -1,0 +1,23 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+	<PropertyGroup>
+		<TargetFramework>netstandard2.1</TargetFramework>
+		<OutputType>Library</OutputType>
+		<LangVersion>Latest</LangVersion>
+		<Platforms>AnyCPU;x64</Platforms>
+		<PackageProjectUrl>https://github.com/thomasraynal/Anabasis.EventStore</PackageProjectUrl>
+		<Description>Bootstrap actor based applications with EventStore and DynamicData</Description>
+		<PackageTags>DynamicData;EventStore;EventSourcing;CQRS;Actors</PackageTags>
+		<Authors>Thomas Raynal</Authors>
+		<Company />
+		<Product />
+		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+		<Nullable>enable</Nullable>
+		<RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
+	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+	</ItemGroup>
+
+</Project>

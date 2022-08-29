@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.30413.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32328.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Tests", "Anabasis.EventStore.Tests\Anabasis.EventStore.Tests.csproj", "{880494C5-7D5A-45EC-AA9D-45C21B429ED6}"
 EndProject
@@ -77,7 +77,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "EventStore", "EventStore", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Snapshot.SQLServer", "Anabasis.EventStore.Snapshot.SQLServer\Anabasis.EventStore.Snapshot.SQLServer.csproj", "{98C14A96-3ECC-4627-A2C3-3A428BF4DD9F}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.CodeGen", "Anabasis.CodeGen\Anabasis.CodeGen.csproj", "{39FB9F9C-A879-4764-B7E5-02469A331CC1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.CodeGen", "Anabasis.CodeGen\Anabasis.CodeGen.csproj", "{39FB9F9C-A879-4764-B7E5-02469A331CC1}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Worker", "Anabasis.Worker\Anabasis.Worker.csproj", "{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Worker.Tests", "Anabasis.Worker.Tests\Anabasis.Worker.Tests.csproj", "{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -325,6 +329,22 @@ Global
 		{39FB9F9C-A879-4764-B7E5-02469A331CC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{39FB9F9C-A879-4764-B7E5-02469A331CC1}.Release|x64.ActiveCfg = Release|Any CPU
 		{39FB9F9C-A879-4764-B7E5-02469A331CC1}.Release|x64.Build.0 = Release|Any CPU
+		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Debug|x64.Build.0 = Debug|Any CPU
+		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Release|x64.ActiveCfg = Release|Any CPU
+		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Release|x64.Build.0 = Release|Any CPU
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Debug|x64.Build.0 = Debug|Any CPU
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Release|x64.ActiveCfg = Release|Any CPU
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -350,6 +370,7 @@ Global
 		{3DB79391-E557-4D0E-A119-0738142CA268} = {6954AE1E-F39B-43DF-96C9-8C1C46E2D987}
 		{7E5D6920-030B-41B1-9CF5-BA15879E1103} = {6954AE1E-F39B-43DF-96C9-8C1C46E2D987}
 		{98C14A96-3ECC-4627-A2C3-3A428BF4DD9F} = {6954AE1E-F39B-43DF-96C9-8C1C46E2D987}
+		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26} = {B527C126-4A06-44F1-B15B-6DF04DF91A0A}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0228CEE5-162D-4901-8721-2CDCAC4DB6F2}
