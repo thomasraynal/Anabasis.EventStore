@@ -17,8 +17,7 @@ namespace Anabasis.Common.Contracts
         void AddDisposable(IDisposable disposable);
         Task OnInitialized();
         Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false);
-        Task OnMessage(IMessage message);
-        Task OnMessages(IMessage[] messages);
+        Task Handle(IEvent[] messages);
 
     }
 }

@@ -17,29 +17,33 @@ namespace Anabasis.Common.Worker
     {
         private CompositeDisposable _cleanUp;
         private Dictionary<Type, IBus> _connectedBus;
+        private MessageHandlerInvokerCache _messageHandlerInvokerCache;
+        private IWorkerMessageDispatcherStrategy _workerMessageDispatcherStrategy;
         private IWorkerConfiguration _workerConfiguration;
-        private IDispatcher[] _dispatchers;
+        private WorkerDispatchQueue[] _workerDispatchQueues;
 
         public string Id { get; private set; }
         public ILogger? Logger { get; private set; }
 
 #nullable disable
 
-        public abstract Task HandleMessageGroups(IGrouping<string, IEvent[]> messageGroups);
-
-        protected BaseWorker(IWorkerConfigurationFactory workerConfigurationFactory, ILoggerFactory loggerFactory = null)
+        protected BaseWorker(IWorkerConfigurationFactory workerConfigurationFactory,
+            IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null,
+            ILoggerFactory loggerFactory = null)
         {
-            Setup(workerConfigurationFactory.GetConfiguration(GetType()), loggerFactory);
+            Setup(workerConfigurationFactory.GetConfiguration(GetType()), workerMessageDispatcherStrategy, loggerFactory);
         }
 
-        protected BaseWorker(IWorkerConfiguration workerConfiguration, ILoggerFactory loggerFactory = null)
+        protected BaseWorker(IWorkerConfiguration workerConfiguration,
+            IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null,
+            ILoggerFactory loggerFactory = null)
         {
-            Setup(workerConfiguration, loggerFactory);
+            Setup(workerConfiguration, workerMessageDispatcherStrategy, loggerFactory);
         }
 
 #nullable enable
 
-        private void Setup(IWorkerConfiguration workerConfiguration, ILoggerFactory? loggerFactory)
+        private void Setup(IWorkerConfiguration workerConfiguration, IWorkerMessageDispatcherStrategy? workerMessageDispatcherStrategy, ILoggerFactory? loggerFactory)
         {
            
             Id = $"{GetType().Name}-{Guid.NewGuid()}";
@@ -47,22 +51,34 @@ namespace Anabasis.Common.Worker
 
             _cleanUp = new CompositeDisposable();
             _connectedBus = new Dictionary<Type, IBus>();
+            _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
+            _workerMessageDispatcherStrategy = workerMessageDispatcherStrategy ?? new RoundRobinDispatcherStrategy();
             _workerConfiguration = workerConfiguration;
 
-            //_dispatchers = Enumerable.Range(0, workerConfiguration.DispatcherCount).Select(_ =>
-            //{
-            //    return new ThreadDispatcher(workerConfiguration.DispacherStrategy);
-            //});
+            var dispachQueueConfiguration = new WorkerDispatchQueueConfiguration(Handle, workerConfiguration.CrashAppOnFailure)
+            {
+                MessageBufferMaxSize = workerConfiguration.MessageBufferMaxSize,
+                MessageBufferAbsoluteTimeoutInSecond = workerConfiguration.MessageBufferAbsoluteTimeoutInSecond,
+                MessageBufferSlidingTimeoutInSecond = workerConfiguration.MessageBufferSlidingTimeoutInSecond
+            };
+
+            _workerDispatchQueues = Enumerable.Range(0, workerConfiguration.DispatcherCount).Select(_ =>
+            {
+                return new WorkerDispatchQueue(Id, dispachQueueConfiguration, loggerFactory: loggerFactory);
+
+            }).ToArray();
+
+            _workerMessageDispatcherStrategy.Initialize(_workerDispatchQueues);
 
         }
 
         public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.ConnectionStatusMonitor.IsConnected);
-        public virtual bool IsCaughtUp => true;
+
         public bool IsFaulted
         {
             get
             {
-                return false;// _dispatchQueue.IsFaulted;
+                return _workerDispatchQueues.Any(workerDispatchQueue => workerDispatchQueue.IsFaulted);
             }
         }
 
@@ -70,18 +86,10 @@ namespace Anabasis.Common.Worker
         {
             get
             {
-                return null;// _dispatchQueue.LastError;
+                var workerDispatchQueue = _workerDispatchQueues.FirstOrDefault(workerDispatchQueue => null != workerDispatchQueue.LastError);
+
+                return workerDispatchQueue?.LastError;
             }
-        }
-
-        public async Task OnMessage(IMessage message)
-        {
-
-        }
-
-        public async Task OnMessages(IMessage[] messages)
-        {
-
         }
 
         public virtual Task OnError(IEvent source, Exception exception)
@@ -209,5 +217,12 @@ namespace Anabasis.Common.Worker
         {
             return Task.CompletedTask;
         }
+
+        public Task Handle(IMessage[] messages)
+        {
+            return Task.CompletedTask;
+        }
+
+        public abstract Task Handle(IEvent[] messages);
     }
 }

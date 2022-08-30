@@ -20,7 +20,7 @@ namespace Anabasis.Worker.Tests
         {
             var testEventBus = worker.GetConnectedBus<ITestEventBus>();
 
-            testEventBus.Subscribe(worker.OnMessage);
+           // testEventBus.Subscribe(worker.OnMessage);
         }
     }
 
@@ -90,9 +90,10 @@ namespace Anabasis.Worker.Tests
         public TestEventBusMessage(IEvent content)
         {
             Content = content;
+            MessageId = Guid.NewGuid();
         }
 
-        public Guid MessageId => Guid.NewGuid();
+        public Guid MessageId { get; }
 
         public IEvent Content { get; }
 
@@ -109,6 +110,11 @@ namespace Anabasis.Worker.Tests
 
     public class EventA: BaseEvent
     {
+        public static EventA New()
+        {
+            return new EventA(Guid.NewGuid(), "A");
+        }
+
         public EventA(Guid correlationId, string streamId) : base(streamId, correlationId)
         {
         }
@@ -139,30 +145,9 @@ namespace Anabasis.Worker.Tests
         {
         }
 
-        public async Task OnMessage(IMessage message)
+        public override Task Handle(IEvent[] messages)
         {
-
-        }
-
-        public async Task OnMessages(IMessage[] messages)
-        {
-
-        }
-
-        public async override Task HandleMessageGroups(IGrouping<string, IEvent[]> messageGroups)
-        {
-            foreach (var group in messageGroups)
-            {
-                var @event = group.FirstOrDefault();
-
-                if (null == @event) continue;
-
-                switch (@event)
-                {
-                    case EventA eventA:
-                        break;
-                }
-            }
+            throw new NotImplementedException();
         }
     }
     
@@ -176,6 +161,7 @@ namespace Anabasis.Worker.Tests
 
         }
 
+        [Test]
         public Task ShouldCreateAWorker()
         {
             var testWorker = new TestWorker(new WorkerConfiguration());

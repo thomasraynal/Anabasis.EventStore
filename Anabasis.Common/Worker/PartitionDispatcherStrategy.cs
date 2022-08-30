@@ -4,7 +4,7 @@ using System.Text;
 
 namespace Anabasis.Common.Worker
 {
-    public interface IDispatcher
+    public class PartitionDispatcherStrategy
     {
     }
 }
