@@ -24,7 +24,7 @@ namespace Anabasis.Worker.Tests
 
             public string Owner => throw new NotImplementedException();
 
-            public bool CanEnqueue()
+            public bool CanPush()
             {
                 return true;
             }
@@ -34,14 +34,14 @@ namespace Anabasis.Worker.Tests
                 throw new NotImplementedException();
             }
 
-            public void Enqueue(IMessage message)
+            public void Push(IMessage message)
             {
                 throw new NotImplementedException();
             }
         }
 
         [Test]
-        public void ShouldPerformARoundRobinSelection()
+        public async Task ShouldPerformARoundRobinSelection()
         {
             var roundRobinDispatcherStrategy = new RoundRobinDispatcherStrategy();
 
@@ -57,7 +57,11 @@ namespace Anabasis.Worker.Tests
 
             for (var i = 0; i < testWorkerDispatchQueues.Length * 2; i++)
             {
-                retrievedDispatchedQueues.Add(roundRobinDispatcherStrategy.Next());
+                var (isDispatchQueueAvailable, workerDispatchQueue) = await roundRobinDispatcherStrategy.Next();
+
+                Assert.IsTrue(isDispatchQueueAvailable);
+
+                retrievedDispatchedQueues.Add(workerDispatchQueue);
             }
 
             var groups = retrievedDispatchedQueues.GroupBy(queue => queue.Id);

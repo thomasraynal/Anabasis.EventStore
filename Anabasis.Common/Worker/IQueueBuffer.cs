@@ -5,11 +5,13 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common.Worker
 {
-    public interface IQueueBuffer : IAsyncDisposable
+    public interface IQueueBuffer : IDisposable
     {
-        bool CanAdd { get; }
+        bool CanPush { get; }
         bool CanDequeue();
-        IMessage[] Pull();
-        Task Clear();
+        IMessage[] Pull(int? maxNumberOfMessage = null);
+        void TryPush(IMessage[] messages, out IMessage[] unProcessedMessages);
+        void Push(IMessage message);
+        Task Flush(bool nackMessages);
     }
 }

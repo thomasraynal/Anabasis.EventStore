@@ -24,7 +24,7 @@ namespace Anabasis.Common.Worker
 
         protected abstract void OnInitialize();
 
-        public abstract IWorkerDispatchQueue Next(int timeoutInSeconds = 30);
+        public abstract Task<(bool isDispatchQueueAvailable, IWorkerDispatchQueue? workerDispatchQueue)> Next(double timeoutInSeconds = 30.0);
 
 
     }

@@ -18,9 +18,11 @@ namespace Anabasis.Common.Worker
         private CompositeDisposable _cleanUp;
         private Dictionary<Type, IBus> _connectedBus;
         private MessageHandlerInvokerCache _messageHandlerInvokerCache;
+
         private IWorkerMessageDispatcherStrategy _workerMessageDispatcherStrategy;
         private IWorkerConfiguration _workerConfiguration;
-        private WorkerDispatchQueue[] _workerDispatchQueues;
+        private CancellationTokenSource _cancellationTokenSource;
+        private IWorkerDispatchQueue[] _workerDispatchQueues;
 
         public string Id { get; private set; }
         public ILogger? Logger { get; private set; }
@@ -45,7 +47,7 @@ namespace Anabasis.Common.Worker
 
         private void Setup(IWorkerConfiguration workerConfiguration, IWorkerMessageDispatcherStrategy? workerMessageDispatcherStrategy, ILoggerFactory? loggerFactory)
         {
-           
+
             Id = $"{GetType().Name}-{Guid.NewGuid()}";
             Logger = loggerFactory?.CreateLogger(GetType());
 
@@ -54,6 +56,8 @@ namespace Anabasis.Common.Worker
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
             _workerMessageDispatcherStrategy = workerMessageDispatcherStrategy ?? new RoundRobinDispatcherStrategy();
             _workerConfiguration = workerConfiguration;
+
+            _cancellationTokenSource = new CancellationTokenSource();
 
             var dispachQueueConfiguration = new WorkerDispatchQueueConfiguration(Handle, workerConfiguration.CrashAppOnFailure)
             {
@@ -64,7 +68,11 @@ namespace Anabasis.Common.Worker
 
             _workerDispatchQueues = Enumerable.Range(0, workerConfiguration.DispatcherCount).Select(_ =>
             {
-                return new WorkerDispatchQueue(Id, dispachQueueConfiguration, loggerFactory: loggerFactory);
+                var workerDispatchQueue = new WorkerDispatchQueue(Id, dispachQueueConfiguration, _cancellationTokenSource.Token, loggerFactory: loggerFactory);
+
+                _cleanUp.Add(workerDispatchQueue);
+
+                return workerDispatchQueue;
 
             }).ToArray();
 
@@ -218,9 +226,34 @@ namespace Anabasis.Common.Worker
             return Task.CompletedTask;
         }
 
-        public Task Handle(IMessage[] messages)
+        public async Task Handle(IMessage[] messages, TimeSpan? timeout = null)
         {
-            return Task.CompletedTask;
+
+            timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
+
+            foreach (var message in messages)
+            {
+                var dispatcherQueryResult = await _workerMessageDispatcherStrategy.Next(timeout.Value.TotalSeconds);
+
+                while (!dispatcherQueryResult.isDispatchQueueAvailable)
+                {
+
+                    dispatcherQueryResult = await _workerMessageDispatcherStrategy.Next(timeout.Value.TotalSeconds);
+
+                    await Task.Delay(200);
+                }
+
+                var workerDispatchQueue = dispatcherQueryResult.workerDispatchQueue;
+
+                if (null == workerDispatchQueue)
+                {
+                    throw new ArgumentNullException("workerDispatchQueue");
+                }
+
+                workerDispatchQueue.Push(message);
+
+            }
+
         }
 
         public abstract Task Handle(IEvent[] messages);

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common.Worker
 {
-    public class WorkerDispatchQueueConfiguration
+    public class WorkerDispatchQueueConfiguration : IWorkerDispatchQueueConfiguration
     {
         public WorkerDispatchQueueConfiguration(Func<IEvent[], Task> onEventsReceived, bool crashAppOnError)
         {

@@ -136,12 +136,11 @@ namespace Anabasis.Worker.Tests
 
     public class TestWorker : BaseWorker
     {
-
-        public TestWorker(IWorkerConfigurationFactory workerConfigurationFactory, ILoggerFactory loggerFactory = null) : base(workerConfigurationFactory, loggerFactory)
+        public TestWorker(IWorkerConfigurationFactory workerConfigurationFactory, IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null, ILoggerFactory loggerFactory = null) : base(workerConfigurationFactory, workerMessageDispatcherStrategy, loggerFactory)
         {
         }
 
-        public TestWorker(IWorkerConfiguration workerConfiguration, ILoggerFactory loggerFactory = null) : base(workerConfiguration, loggerFactory)
+        public TestWorker(IWorkerConfiguration workerConfiguration, IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null, ILoggerFactory loggerFactory = null) : base(workerConfiguration, workerMessageDispatcherStrategy, loggerFactory)
         {
         }
 

@@ -2,13 +2,13 @@
 
 namespace Anabasis.Common.Worker
 {
-    public interface IWorkerDispatchQueue: IAsyncDisposable
+    public interface IWorkerDispatchQueue: IDisposable
     {
         string Id { get; }
         bool IsFaulted { get; }
         Exception? LastError { get; }
         string Owner { get; }
-        bool CanEnqueue();
-        void Enqueue(IMessage message);
+        bool CanPush();
+        void Push(IMessage message);
     }
 }

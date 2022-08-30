@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Anabasis.Common.Worker
 {
@@ -36,7 +37,7 @@ namespace Anabasis.Common.Worker
             _workerDispatchQueuesByTimestampUsage = new List<TimestampedResource<IWorkerDispatchQueue>>();
         }
 
-        public override IWorkerDispatchQueue Next(int timeoutInSeconds = 30)
+        public override async Task<(bool isDispatchQueueAvailable, IWorkerDispatchQueue? workerDispatchQueue)> Next(double timeoutInSeconds = 30.0)
         {
             IWorkerDispatchQueue? workerDispatchQueue = null;
 
@@ -46,14 +47,14 @@ namespace Anabasis.Common.Worker
             {
                 if (DateTime.Now < timeoutDate)
                 {
-                    throw new TimeoutException($"Unable to find an available instance in {timeoutInSeconds} seconds");
+                    return (false, null);
                 }
 
-                _workerDispatchQueuesByTimestampUsage.Sort();
+                _workerDispatchQueuesByTimestampUsage.Sort();   
 
                 foreach (var timestampedResource in _workerDispatchQueuesByTimestampUsage)
                 {
-                    if (timestampedResource.Resource.CanEnqueue())
+                    if (timestampedResource.Resource.CanPush())
                     {
                         workerDispatchQueue = timestampedResource.Resource;
                         timestampedResource.Timestamp = DateTime.UtcNow;
@@ -62,9 +63,11 @@ namespace Anabasis.Common.Worker
                     }
 
                 }
+
+                await Task.Delay(100);
             }
 
-            return workerDispatchQueue;
+            return (true, workerDispatchQueue);
         }
 
         protected override void OnInitialize()

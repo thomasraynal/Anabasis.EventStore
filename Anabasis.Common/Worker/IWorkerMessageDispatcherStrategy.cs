@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Anabasis.Common.Worker
 {
@@ -8,6 +9,6 @@ namespace Anabasis.Common.Worker
     {
         void Initialize(IWorkerDispatchQueue[] workerDispatchQueues);
         IWorkerDispatchQueue[] WorkerDispatchQueues { get; }
-        IWorkerDispatchQueue Next(int timeoutInSeconds = 30);
+        Task<(bool isDispatchQueueAvailable, IWorkerDispatchQueue? workerDispatchQueue)> Next(double timeoutInSeconds = 30.0);
     }
 }

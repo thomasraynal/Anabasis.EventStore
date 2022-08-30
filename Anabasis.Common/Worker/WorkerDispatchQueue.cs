@@ -15,6 +15,8 @@ namespace Anabasis.Common.Worker
     {
         private readonly IQueueBuffer _queueBuffer;
         private readonly IKillSwitch _killSwitch;
+        private readonly IWorkerDispatchQueueConfiguration _workerDispatchQueueConfiguration;
+        private readonly CancellationToken _cancellationToken;
         private readonly Thread _thread;
         private readonly CompositeDisposable _cleanUp;
 
@@ -25,7 +27,8 @@ namespace Anabasis.Common.Worker
         public string Id { get; }
 
         public WorkerDispatchQueue(string ownerId,
-            WorkerDispatchQueueConfiguration workerDispatchQueueConfiguration,
+            IWorkerDispatchQueueConfiguration workerDispatchQueueConfiguration,
+            CancellationToken cancellationToken,
             IQueueBuffer? queueBuffer = null,
             ILoggerFactory? loggerFactory = null,
             IKillSwitch? killSwitch = null)
@@ -36,6 +39,9 @@ namespace Anabasis.Common.Worker
             Id = $"{nameof(DispatchQueue)}_{ownerId}_{Guid.NewGuid()}";
 
             _killSwitch = killSwitch ?? new KillSwitch();
+            _workerDispatchQueueConfiguration = workerDispatchQueueConfiguration;
+
+            _cancellationToken = cancellationToken;
 
             _queueBuffer = queueBuffer ?? new SimpleQueueBuffer(
                     workerDispatchQueueConfiguration.MessageBufferMaxSize,
@@ -55,23 +61,85 @@ namespace Anabasis.Common.Worker
             Logger?.LogDebug("{0} started", Id);
 
         }
-        public void Enqueue(IMessage message)
+        public void Push(IMessage message)
         {
+            _queueBuffer.Push(message);
+        }
 
+        public void TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
+        {
+            _queueBuffer.TryPush(messages, out unProcessedMessages);
         }
 
         private async void HandleWork()
         {
-            
-        }
-        public bool CanEnqueue()
-        {
-            return _queueBuffer.CanAdd;
+           var messageBatch = Array.Empty<IMessage>();
+
+            while (!_cancellationToken.IsCancellationRequested)
+            {
+                try
+                {
+                    if (IsFaulted)
+                    {
+                        break;
+                    }
+
+                    messageBatch = _queueBuffer.Pull();
+
+                    var events = messageBatch.Select(message => message.Content).ToArray();
+
+                    await _workerDispatchQueueConfiguration.OnEventsReceived(events);
+
+                    foreach (var message in messageBatch)
+                    {
+                        await message.Acknowledge();
+                    }
+
+                }
+                catch (Exception exception)
+                {
+                    exception.Data["messages"] = messageBatch.ToJson();
+
+                    Logger?.LogError(exception, $"An exception occured during the message consumption process");
+
+                    this.LastError = exception;
+
+                    foreach (var message in messageBatch)
+                    {
+                        await message.NotAcknowledge();
+                    }
+
+                    if (_workerDispatchQueueConfiguration.CrashAppOnError)
+                    {
+                        IsFaulted = true;
+
+                        try
+                        {
+                            await _queueBuffer.Flush(true);
+                        }
+                        catch { }
+                        finally
+                        {
+                            _killSwitch.KillProcess(exception);
+                        }
+                    }
+
+                }
+
+            }
+
+            await _queueBuffer.Flush(true);
         }
 
-        public async ValueTask DisposeAsync()
+        public bool CanPush()
         {
-            await _queueBuffer.DisposeAsync();
+            return _queueBuffer.CanPush;
+        }
+
+        public void Dispose()
+        {
+            _queueBuffer.Dispose();
+
             _thread?.Join();
         }
     }

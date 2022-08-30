@@ -16,14 +16,14 @@ namespace Anabasis.Worker.Tests
         {
             var simpleQueueBuffer = new SimpleQueueBuffer(1, 0, 0);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             var testMessage = new TestEventBusMessage(EventA.New());
 
             simpleQueueBuffer.Push(testMessage);
 
-            Assert.IsFalse(simpleQueueBuffer.CanAdd);
+            Assert.IsFalse(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanDequeue());
 
             var messages = simpleQueueBuffer.Pull();
@@ -40,14 +40,14 @@ namespace Anabasis.Worker.Tests
         {
             var simpleQueueBuffer = new SimpleQueueBuffer(10, 2, 0);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             var testMessage = new TestEventBusMessage(EventA.New());
 
             simpleQueueBuffer.Push(testMessage);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanDequeue());
 
             var messages = simpleQueueBuffer.Pull();
@@ -56,23 +56,23 @@ namespace Anabasis.Worker.Tests
 
             Assert.AreEqual(testMessage.MessageId, messages[0].MessageId);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
             simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             await Task.Delay(1000);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             await Task.Delay(1000);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanDequeue());
 
         }
@@ -82,14 +82,14 @@ namespace Anabasis.Worker.Tests
         {
             var simpleQueueBuffer = new SimpleQueueBuffer(2, 2, 0);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             var testMessage = new TestEventBusMessage(EventA.New());
 
             simpleQueueBuffer.Push(testMessage);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanDequeue());
 
             var messages = simpleQueueBuffer.Pull();
@@ -98,13 +98,13 @@ namespace Anabasis.Worker.Tests
 
             Assert.AreEqual(testMessage.MessageId, messages[0].MessageId);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
             simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
 
-            Assert.IsFalse(simpleQueueBuffer.CanAdd);
+            Assert.IsFalse(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanDequeue());
         }
 
@@ -113,7 +113,7 @@ namespace Anabasis.Worker.Tests
         {
             var simpleQueueBuffer = new SimpleQueueBuffer(3, 2, 1);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
@@ -125,28 +125,28 @@ namespace Anabasis.Worker.Tests
             var messages = simpleQueueBuffer.Pull();
             Assert.IsNotEmpty(messages);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
      
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             //buffer expire
             await Task.Delay(2000);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanDequeue());
 
             simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanDequeue());
 
             await Task.Delay(1000);
 
-            Assert.IsTrue(simpleQueueBuffer.CanAdd);
+            Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanDequeue());
 
         }
