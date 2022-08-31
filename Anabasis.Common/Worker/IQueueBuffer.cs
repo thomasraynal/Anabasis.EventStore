@@ -8,10 +8,10 @@ namespace Anabasis.Common.Worker
     public interface IQueueBuffer : IDisposable
     {
         bool CanPush { get; }
-        bool CanDequeue();
+        bool CanPull();
         IMessage[] Pull(int? maxNumberOfMessage = null);
         void TryPush(IMessage[] messages, out IMessage[] unProcessedMessages);
         void Push(IMessage message);
-        Task Flush(bool nackMessages);
+        Task<IMessage[]> Flush(bool nackMessages);
     }
 }

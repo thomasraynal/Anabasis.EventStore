@@ -13,6 +13,5 @@ namespace Anabasis.Common.Configuration
         double MessageBufferSlidingTimeoutInSecond { get; set; }
         bool SwallowUnknownEvent { get; set; }
         bool CrashAppOnFailure { get; set; }
-        IDispacherStrategy DispacherStrategy { get; set; }
     }
 }

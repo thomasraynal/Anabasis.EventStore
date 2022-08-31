@@ -72,7 +72,7 @@ namespace Anabasis.Common.Worker
 
         public IMessage[] Pull(int? maxNumberOfMessage = null)
         {
-            if (!CanDequeue())
+            if (!CanPull())
             {
                 throw new InvalidOperationException("Pull operation not possible");
             }
@@ -97,7 +97,7 @@ namespace Anabasis.Common.Worker
             return messageBatch.ToArray();
         }
 
-        public bool CanDequeue()
+        public bool CanPull()
         {
             var now = DateTime.UtcNow;
 
@@ -119,14 +119,17 @@ namespace Anabasis.Common.Worker
             return _concurrentQueue.Count >= _bufferMaxSize;
         }
 
-        public async Task Flush(bool nackMessages)
+        public async Task<IMessage[]> Flush(bool nackMessages)
         {
+            var messages = new List<IMessage>();
 
             if (nackMessages)
             {
                 while (!_concurrentQueue.IsEmpty)
                 {
                     var hasDequeued = _concurrentQueue.TryDequeue(out var message);
+
+                    messages.Add(message);
 
                     if (hasDequeued)
                     {
@@ -138,6 +141,8 @@ namespace Anabasis.Common.Worker
             {
                 _concurrentQueue.Clear();
             }
+
+            return messages.ToArray();
 
         }
 

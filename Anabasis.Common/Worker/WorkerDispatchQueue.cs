@@ -20,6 +20,7 @@ namespace Anabasis.Common.Worker
         private readonly Thread _thread;
         private readonly CompositeDisposable _cleanUp;
 
+        public long ProcessedMessagesCount { get; private set; }
         public Exception? LastError { get; private set; }
         public bool IsFaulted { get; private set; }
         public ILogger? Logger { get; }
@@ -84,16 +85,24 @@ namespace Anabasis.Common.Worker
                         break;
                     }
 
-                    messageBatch = _queueBuffer.Pull();
-
-                    var events = messageBatch.Select(message => message.Content).ToArray();
-
-                    await _workerDispatchQueueConfiguration.OnEventsReceived(events);
-
-                    foreach (var message in messageBatch)
+                    if (_queueBuffer.CanPull())
                     {
-                        await message.Acknowledge();
+                        messageBatch = _queueBuffer.Pull();
+
+                        var events = messageBatch.Select(message => message.Content).ToArray();
+
+                        await _workerDispatchQueueConfiguration.OnEventsReceived(events);
+
+                        foreach (var message in messageBatch)
+                        {
+                            await message.Acknowledge();
+                        }
+
+                        ProcessedMessagesCount += messageBatch.Length;
+
                     }
+
+                    await Task.Delay(100);
 
                 }
                 catch (Exception exception)
@@ -139,7 +148,6 @@ namespace Anabasis.Common.Worker
         public void Dispose()
         {
             _queueBuffer.Dispose();
-
             _thread?.Join();
         }
     }

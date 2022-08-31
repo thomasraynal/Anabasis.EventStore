@@ -14,7 +14,7 @@ namespace Anabasis.Worker.Tests
     {
         class TestWorkerDispatchQueue : IWorkerDispatchQueue
         {
-            private string _id = $"{Guid.NewGuid()}";
+            private readonly string _id = $"{Guid.NewGuid()}";
 
             public string Id => _id;
 
@@ -24,17 +24,24 @@ namespace Anabasis.Worker.Tests
 
             public string Owner => throw new NotImplementedException();
 
+            public long ProcessedMessagesCount => throw new NotImplementedException();
+
             public bool CanPush()
             {
                 return true;
             }
 
-            public ValueTask DisposeAsync()
+            public void Dispose()
             {
                 throw new NotImplementedException();
             }
 
             public void Push(IMessage message)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
             {
                 throw new NotImplementedException();
             }

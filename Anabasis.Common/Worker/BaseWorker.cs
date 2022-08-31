@@ -13,6 +13,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common.Worker
 {
+    //TODO=> switch from pull to push strategy
+    //TODO=> onError strategies
+    //TODO=> clean shutdow : consume remaining message and shutdown
     public abstract class BaseWorker : IWorker
     {
         private CompositeDisposable _cleanUp;
@@ -80,6 +83,11 @@ namespace Anabasis.Common.Worker
 
         }
 
+        public IWorkerDispatchQueue[] GetWorkerDispatchQueues()
+        {
+            return _workerDispatchQueues;
+        }
+
         public virtual bool IsConnected => _connectedBus.Values.All(bus => bus.ConnectionStatusMonitor.IsConnected);
 
         public bool IsFaulted
@@ -109,8 +117,7 @@ namespace Anabasis.Common.Worker
 
         public override bool Equals(object obj)
         {
-            return obj is BaseWorker worker &&
-                   Id == worker.Id;
+            return obj is BaseWorker worker && Id == worker.Id;
         }
 
         public override int GetHashCode()
@@ -120,6 +127,7 @@ namespace Anabasis.Common.Worker
 
         public virtual void Dispose()
         {
+            _cancellationTokenSource.Cancel();
             _cleanUp.Dispose();
         }
         public async Task WaitUntilConnected(TimeSpan? timeout = null)
@@ -231,8 +239,11 @@ namespace Anabasis.Common.Worker
 
             timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
 
-            foreach (var message in messages)
+            var messagesToProcess = messages;
+
+            while (messagesToProcess.Length > 0)
             {
+
                 var dispatcherQueryResult = await _workerMessageDispatcherStrategy.Next(timeout.Value.TotalSeconds);
 
                 while (!dispatcherQueryResult.isDispatchQueueAvailable)
@@ -240,7 +251,7 @@ namespace Anabasis.Common.Worker
 
                     dispatcherQueryResult = await _workerMessageDispatcherStrategy.Next(timeout.Value.TotalSeconds);
 
-                    await Task.Delay(200);
+                    await Task.Delay(50);
                 }
 
                 var workerDispatchQueue = dispatcherQueryResult.workerDispatchQueue;
@@ -250,7 +261,7 @@ namespace Anabasis.Common.Worker
                     throw new ArgumentNullException("workerDispatchQueue");
                 }
 
-                workerDispatchQueue.Push(message);
+                workerDispatchQueue.TryPush(messagesToProcess, out messagesToProcess);
 
             }
 
