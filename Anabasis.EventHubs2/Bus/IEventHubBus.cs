@@ -12,6 +12,6 @@ namespace Anabasis.EventHubs
         Task Emit(IEvent @event, SendEventOptions? sendEventOptions = null, CancellationToken cancellationToken = default);
         Task Emit(IEnumerable<IEvent> eventBatch, CreateBatchOptions? createBatchOptions = null, CancellationToken cancellationToken = default);
         Task UnSubscribeToEventHub(Guid subscriptionId);
-        Task<Guid> SubscribeToEventHub(Func<IMessage[], Task> onEventsReceived);
+        Task<Guid> SubscribeToEventHub(Func<IMessage[],CancellationToken, Task> onEventsReceived);
     }
 }

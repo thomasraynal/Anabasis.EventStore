@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Utilities;
 using Anabasis.EventHubs.Shared;
 using Azure;
 using Azure.Core;
@@ -20,14 +21,14 @@ namespace Anabasis.EventHubs
 
         class EventHubSubscriber
         {
-            public EventHubSubscriber(Guid subscriberId, Func<IMessage[], Task> onEventsReceived)
+            public EventHubSubscriber(Guid subscriberId, Func<IMessage[], CancellationToken, Task> onEventsReceived)
             {
                 SubscriberId = subscriberId;
                 OnMessagesReceived = onEventsReceived;
             }
 
             public Guid SubscriberId { get; set; }
-            public Func<IMessage[],Task> OnMessagesReceived { get; set; }
+            public Func<IMessage[],CancellationToken, Task> OnMessagesReceived { get; set; }
         }
 
         private Dictionary<Guid, EventHubSubscriber> _eventHubSubscribers;
@@ -93,7 +94,7 @@ namespace Anabasis.EventHubs
             _eventHubSubscribers.Remove(subscriptionId);
         }
 
-        internal Guid SubscribeToEventHub(Func<IMessage[], Task> onEventsReceived)
+        internal Guid SubscribeToEventHub(Func<IMessage[],CancellationToken, Task> onEventsReceived)
         {
             var subscription = new EventHubSubscriber(Guid.NewGuid(), onEventsReceived);
 
@@ -184,19 +185,21 @@ namespace Anabasis.EventHubs
 
                 }).ToArray();
 
-                foreach (var eventHubSubscriber in _eventHubSubscribers.Values)
+                await Task.WhenAll(_eventHubSubscribers.Values.Select(async eventHubSubscriber =>
                 {
-                    await eventHubSubscriber.OnMessagesReceived(messageStream);
-                }
+                    if (cancellationToken.IsCancellationRequested) return;
+
+                    await eventHubSubscriber.OnMessagesReceived(messageStream, cancellationToken);
+                }));
 
                 var isEventBatchAcknowledged = messageStream.All(message => message.IsAcknowledged);
 
                 var doCheckPoint = DateTime.UtcNow >= _lastCheckPointUtc.Add(_eventHubOptions.EventHubConsumerCheckpointSettings.CheckPointPeriod);
 
-                if (isEventBatchAcknowledged && doCheckPoint)
+                if (isEventBatchAcknowledged && doCheckPoint && !cancellationToken.IsCancellationRequested)
                 {
                     var lastEvent = eventStream.Last();
-                    
+
                     await UpdateCheckpointAsync(
                         partition.PartitionId,
                         lastEvent.Offset,
@@ -207,7 +210,8 @@ namespace Anabasis.EventHubs
             }
             catch (Exception ex)
             {
-                _logger?.LogError(ex, $"An error occured during the delivering of a message");
+
+                _logger?.LogError(ex.GetActualException(), $"An error occured during the delivery of a message");
 
                 if (_eventHubOptions.DoAppCrashOnFailure)
                 {

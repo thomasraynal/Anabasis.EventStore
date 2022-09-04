@@ -10,6 +10,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
+using Anabasis.Common.Utilities;
 
 namespace Anabasis.EventHubs
 {
@@ -204,7 +205,7 @@ namespace Anabasis.EventHubs
 
         }
 
-        public async Task<Guid> SubscribeToEventHub(Func<IMessage[],Task> onEventsReceived)
+        public async Task<Guid> SubscribeToEventHub(Func<IMessage[],CancellationToken, Task> onEventsReceived)
         {
             var subscriptionId = _eventHubProcessorClient.SubscribeToEventHub(onEventsReceived);
 

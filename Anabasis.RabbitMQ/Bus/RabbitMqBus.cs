@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Utilities;
 using Anabasis.RabbitMQ.Connection;
 using Anabasis.RabbitMQ.Shared;
 using Anabasis.RabbitMQ.Shared.SubjectResolver;
@@ -310,7 +311,7 @@ namespace Anabasis.RabbitMQ
                         }
                         catch (Exception ex)
                         {
-                            _logger?.LogError(ex, $"An error occured during the delivering of a message - BasicDeliveryEventArg => {basicDeliveryEventArg.ToJson()}");
+                            _logger?.LogError(ex.GetActualException(), $"An error occured during the delivering of a message - BasicDeliveryEventArg => {basicDeliveryEventArg.ToJson()}");
 
                             if (_rabbitMqConnectionOptions.DoAppCrashOnFailure)
                             {

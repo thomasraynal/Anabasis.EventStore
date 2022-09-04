@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common.Configuration;
 using Anabasis.Common.Queue;
+using Anabasis.Common.Utilities;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using System;
@@ -225,7 +226,7 @@ namespace Anabasis.Common
             catch (Exception ex)
             {
                 healthStatus = HealthStatus.Unhealthy;
-                exception = ex;
+                exception = ex.GetActualException();
             }
 
             if (IsFaulted)
