@@ -13,6 +13,7 @@ namespace Anabasis.EventHubs.Shared
         {
             MessageId = messageId;
             Content = content;
+
         }
 
         public Guid MessageId { get; }
@@ -28,7 +29,7 @@ namespace Anabasis.EventHubs.Shared
             return Task.CompletedTask;
         }
 
-        public Task NotAcknowledge(string reason = null)
+        public Task NotAcknowledge(string? reason = null)
         {
             IsAcknowledged = false;
 

@@ -14,6 +14,8 @@ namespace Anabasis.EventHubs
 #nullable disable
 
         [DataMember]
+        public TimeSpan CheckPointPeriod { get; set; } = TimeSpan.FromSeconds(30);
+        [DataMember]
         public string CheckpointStoreAccountName { get; set; }
         [DataMember]
         public string CheckpointStoreAccountKey { get; set; }
@@ -34,8 +36,9 @@ namespace Anabasis.EventHubs
 #nullable disable
 
         [DataMember]
-        public string MaximumBatchSize { get; set; }
-
+        public DateTime? StartingUtcTimeOverride { get; set; }
+        [DataMember]
+        public int MaximumBatchSize { get; set; } = 100;
         [DataMember]
         public string HubName { get; set; }
 
@@ -52,7 +55,10 @@ namespace Anabasis.EventHubs
         public string SharedAccessKey { get; set; }
 
         [DataMember]
-        public EventHubConsumerCheckpointSettings EventHubConsumerSettings { get; set; }
+        public EventHubConsumerCheckpointSettings EventHubConsumerCheckpointSettings { get; set; }
+
+        [DataMember]
+        public bool DoAppCrashOnFailure { get; set; }
 
 #nullable enable
 

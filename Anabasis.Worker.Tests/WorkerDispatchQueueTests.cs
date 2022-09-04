@@ -17,7 +17,7 @@ namespace Anabasis.Worker.Tests
         {
             public bool IsAppKilled { get; private set; }
 
-            public void KillMe(string reason)
+            public void KillProcess(string reason)
             {
                 IsAppKilled = true;
             }

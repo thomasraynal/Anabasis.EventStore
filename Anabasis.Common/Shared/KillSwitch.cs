@@ -11,7 +11,7 @@ namespace Anabasis.Common
             Scheduler.Default.Schedule(() => ExceptionDispatchInfo.Capture(exception).Throw());
         }
 
-        public void KillMe(string reason)
+        public void KillProcess(string reason)
         {
             KillProcess(new Exception(reason));
         }

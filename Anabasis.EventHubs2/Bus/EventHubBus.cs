@@ -15,41 +15,33 @@ namespace Anabasis.EventHubs
 {
     public class EventHubBus : IEventHubBus
     {
-     
-        class EventHubSubscriber
-        {
-            public EventHubSubscriber(Guid subscriberId, Func<IEvent[]> onEventsReceived)
-            {
-                SubscriberId = subscriberId;
-                OnEventsReceived = onEventsReceived;
-            }
 
-            public Guid SubscriberId { get; set; }
-            public Func<IEvent[]> OnEventsReceived { get; set; }
-        }
+        private readonly ILoggerFactory? _loggerFactory;
+        private readonly ILogger<EventHubBus>? _logger;
+        private readonly ISerializer _serializer;
+        private readonly IKillSwitch _killSwitch;
 
         private readonly EventHubOptions _eventHubOptions;
         private readonly EventProcessorOptions _eventProcessorOptions;
         private readonly EventHubProducerClientOptions _eventHubProducerClientOptions;
-        private readonly ILogger<EventHubBus>? _logger;
-        private readonly ISerializer _serializer;
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly AnabasisEventHubProcessor _eventHubProcessorClient;
-        private readonly Dictionary<Guid,EventHubSubscriber> _eventHubSubscribers;
 
         public EventHubBus(EventHubOptions eventHubConnectionOptions,
             EventProcessorOptions eventProcessorOptions,
             EventHubProducerClientOptions eventHubProducerClientOptions,
             ISerializer serializer,
+            IKillSwitch? killSwitch = null,
             ILoggerFactory? loggerFactory = null)
         {
             _eventHubOptions = eventHubConnectionOptions;
             _eventProcessorOptions = eventProcessorOptions;
             _eventHubProducerClientOptions = eventHubProducerClientOptions;
 
-            _eventHubSubscribers = new Dictionary<Guid, EventHubSubscriber>();
+            _loggerFactory = loggerFactory;
             _logger = loggerFactory?.CreateLogger<EventHubBus>();
             _serializer = serializer;
+            _killSwitch = killSwitch ?? new KillSwitch();
 
             _eventHubProducerClient = GetEventHubProducerClient();
             _eventHubProcessorClient = GetEventProcessorClient();
@@ -61,6 +53,7 @@ namespace Anabasis.EventHubs
         }
 
         public string BusId { get; }
+        public bool IsProcessing { get; private set; }
 
         public IConnectionStatusMonitor ConnectionStatusMonitor { get; }
 
@@ -83,9 +76,27 @@ namespace Anabasis.EventHubs
         {
             _eventHubProducerClient.CloseAsync().Wait();
             _eventHubProducerClient.DisposeAsync().AsTask().Wait();
+            
+            EnsureStopProcessing().Wait();
 
-            _eventHubProcessorClient.StopProcessing();
+        }
 
+        private async Task EnsureStartProcessing()
+        {
+            if (IsProcessing) return;
+
+            await _eventHubProcessorClient.StartProcessingAsync();
+
+            IsProcessing = true;
+        }
+
+        private async Task EnsureStopProcessing()
+        {
+            if (!IsProcessing) return;
+
+            await _eventHubProcessorClient.StartProcessingAsync();
+
+            IsProcessing = false;
         }
 
         public async Task WaitUntilConnected(TimeSpan? timeout = null)
@@ -101,19 +112,25 @@ namespace Anabasis.EventHubs
 
                 await Task.Delay(100);
             }
+
         }
 
         private AnabasisEventHubProcessor GetEventProcessorClient()
         {
             var eventHubConnectionString = _eventHubOptions.GetConnectionString();
-            var storageConnectionString = _eventHubOptions.EventHubConsumerSettings.GetConnectionString();
+            var storageConnectionString = _eventHubOptions.EventHubConsumerCheckpointSettings.GetConnectionString();
           
-            var storageClient = new BlobContainerClient(storageConnectionString, _eventHubOptions.EventHubConsumerSettings.BlobContainerName);
-            
+            var storageClient = new BlobContainerClient(storageConnectionString, _eventHubOptions.EventHubConsumerCheckpointSettings.BlobContainerName);
+
+            storageClient.CreateIfNotExists();
+
             var checkpointStore = new BlobCheckpointStore(storageClient);
     
-
             var anabasisEventHubProcessor = new AnabasisEventHubProcessor(
+                _loggerFactory,
+                _eventHubOptions,
+                _serializer,
+                _killSwitch,
                 checkpointStore,
                 _eventHubOptions.MaximumBatchSize,
                 _eventHubOptions.ConsumerGroup,
@@ -121,7 +138,7 @@ namespace Anabasis.EventHubs
                _eventHubOptions.HubName,
                _eventProcessorOptions);
 
-          //  return new EventProcessorClient(storageClient, _eventHubConnectionOptions.ConsumerGroup, eventHubConnectionString, _eventHubConnectionOptions.HubName, _eventProcessorOptions);
+            return anabasisEventHubProcessor;
         }
 
         private EventHubProducerClient GetEventHubProducerClient()
@@ -131,12 +148,24 @@ namespace Anabasis.EventHubs
             return new EventHubProducerClient(connectionString, _eventHubOptions.HubName, _eventHubProducerClientOptions);
 
         }
+
+        private EventData CreateEventData(IEvent @event)
+        {
+            var serializedEvent = _serializer.SerializeObject(@event);
+
+            var eventData = new EventData(serializedEvent);
+            eventData.Properties[EventHubsConstants.EventTypeNameInEventProperty] = @event.GetReadableNameFromType();
+            eventData.Properties[EventHubsConstants.EventIdNameInEventProperty] = @event.EventId;
+            eventData.Properties[EventHubsConstants.MessageIdNameInEventProperty] = Guid.NewGuid().ToString();
+            eventData.ContentType = _serializer.ContentMIMEType;
+
+            return eventData;
+        }
+
         public async Task Emit(IEvent @event, SendEventOptions? sendEventOptions = null, CancellationToken cancellationToken = default)
         {
-          
-            var eventHubMessage = new EventHubMessage(Guid.NewGuid(), @event);
-            var serializedMessage = _serializer.SerializeObject(eventHubMessage);
-            var eventData = new EventData(serializedMessage);
+
+            var eventData = CreateEventData(@event);
 
             await _eventHubProducerClient.SendAsync(new[] { eventData }, sendEventOptions, cancellationToken);
         }
@@ -147,9 +176,8 @@ namespace Anabasis.EventHubs
 
             foreach(var @event in eventBatch)
             {
-                var eventHubMessage = new EventHubMessage(Guid.NewGuid(), @event);
-                var serializedMessage = _serializer.SerializeObject(eventHubMessage);
-                var eventData = new EventData(serializedMessage);
+
+                var eventData = CreateEventData(@event);
 
                 if (!eventDataBatch.TryAdd(eventData))
                 {
@@ -165,23 +193,24 @@ namespace Anabasis.EventHubs
             await _eventHubProducerClient.SendAsync(eventDataBatch, cancellationToken);
         }
 
-        public void UnSubscribeToEventHub(Guid subscriptionId)
+        public async Task UnSubscribeToEventHub(Guid subscriptionId)
         {
-            if (!_eventHubSubscribers.ContainsKey(subscriptionId))
+            _eventHubProcessorClient.UnSubscribeToEventHub(subscriptionId);
+
+            if (_eventHubProcessorClient.SubscribersCount == 0)
             {
-                throw new InvalidOperationException($"Cannot remove subscription {subscriptionId} - subscription doesn't exist.");
+                await EnsureStopProcessing();
             }
 
-            _eventHubSubscribers.Remove(subscriptionId);
         }
 
-        public Guid SubscribeToEventHub(Func<IEvent[]> onEventsReceived)
+        public async Task<Guid> SubscribeToEventHub(Func<IMessage[],Task> onEventsReceived)
         {
-            var subscription = new EventHubSubscriber(Guid.NewGuid(), onEventsReceived);
+            var subscriptionId = _eventHubProcessorClient.SubscribeToEventHub(onEventsReceived);
 
-            _eventHubSubscribers.Add(subscription.SubscriberId, subscription);
+            await EnsureStartProcessing();
 
-            return subscription.SubscriberId;
+            return subscriptionId;
         }
     }
 }

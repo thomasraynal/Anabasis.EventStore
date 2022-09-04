@@ -11,9 +11,9 @@ namespace Anabasis.EventHubs
         public const string EVENTHUB_CONSUMERS_SETTINGS_DEFAULT_KEY = "Default";
 
         public const string EventIdNameInEventProperty = "AnabasisEventId";
+        public const string MessageIdNameInEventProperty = "AnabasisMessageId";
         public const string EventTypeNameInEventProperty = "AnabasisEventType";
         public const string IsZippedInEventProperty = "AnabasisIsZipped";
-        public const string BlobUriInEventProperty = "AnabasisBlobUri";
 
         public const string Default_MonitoringTableName = "HubsProcessorCheckpoints";
 
