@@ -11,9 +11,16 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common.Utilities;
+using Anabasis.EventHubs.Bus;
 
 namespace Anabasis.EventHubs
 {
+ 
+    //todo=> lease container name
+    //todo=> monitoring table
+    //todo=> check prod setup
+
+
     public class EventHubBus : IEventHubBus
     {
 
@@ -32,12 +39,14 @@ namespace Anabasis.EventHubs
             EventProcessorOptions eventProcessorOptions,
             EventHubProducerClientOptions eventHubProducerClientOptions,
             ISerializer serializer,
+            IEventHubPartitionMonitoring? eventHubPartitionMonitoring = null,
             IKillSwitch? killSwitch = null,
             ILoggerFactory? loggerFactory = null)
         {
             _eventHubOptions = eventHubConnectionOptions;
             _eventProcessorOptions = eventProcessorOptions;
             _eventHubProducerClientOptions = eventHubProducerClientOptions;
+            eventHubPartitionMonitoring = eventHubPartitionMonitoring ?? new EventHubPartitionMonitoring(_eventHubOptions);
 
             _loggerFactory = loggerFactory;
             _logger = loggerFactory?.CreateLogger<EventHubBus>();
@@ -45,7 +54,7 @@ namespace Anabasis.EventHubs
             _killSwitch = killSwitch ?? new KillSwitch();
 
             _eventHubProducerClient = GetEventHubProducerClient();
-            _eventHubProcessorClient = GetEventProcessorClient();
+            _eventHubProcessorClient = GetEventProcessorClient(eventHubPartitionMonitoring);
 
             BusId = $"{nameof(EventHubBus)}_{Guid.NewGuid()}";
 
@@ -64,11 +73,11 @@ namespace Anabasis.EventHubs
             {
                 await _eventHubProducerClient.GetEventHubPropertiesAsync(cancellationToken);
 
-                return HealthCheckResult.Healthy($"EventHub bus {_eventHubOptions.Namespace}.{_eventHubOptions.HubName} is healthy");
+                return HealthCheckResult.Healthy($"EventHub bus {_eventHubOptions.EventHubNamespace}.{_eventHubOptions.EventHubName} is healthy");
             }
             catch (Exception ex)
             {
-                return HealthCheckResult.Unhealthy($"EventHub bus {_eventHubOptions.Namespace}.{_eventHubOptions.HubName} is unhealthy - {ex.Message}", ex);
+                return HealthCheckResult.Unhealthy($"EventHub bus {_eventHubOptions.EventHubNamespace}.{_eventHubOptions.EventHubName} is unhealthy - {ex.Message}", ex);
             }
 
         }
@@ -116,12 +125,12 @@ namespace Anabasis.EventHubs
 
         }
 
-        private AnabasisEventHubProcessor GetEventProcessorClient()
+        private AnabasisEventHubProcessor GetEventProcessorClient(IEventHubPartitionMonitoring eventHubPartitionMonitoring)
         {
-            var eventHubConnectionString = _eventHubOptions.GetConnectionString();
-            var storageConnectionString = _eventHubOptions.EventHubConsumerCheckpointSettings.GetConnectionString();
+            var eventHubConnectionString = _eventHubOptions.GetEventHubConnectionString();
+            var storageConnectionString = _eventHubOptions.GetCheckpointStorageConnectionString();
           
-            var storageClient = new BlobContainerClient(storageConnectionString, _eventHubOptions.EventHubConsumerCheckpointSettings.BlobContainerName);
+            var storageClient = new BlobContainerClient(storageConnectionString, _eventHubOptions.CheckpointBlobContainerName);
 
             storageClient.CreateIfNotExists();
 
@@ -132,11 +141,12 @@ namespace Anabasis.EventHubs
                 _eventHubOptions,
                 _serializer,
                 _killSwitch,
+                eventHubPartitionMonitoring,
                 checkpointStore,
-                _eventHubOptions.MaximumBatchSize,
-                _eventHubOptions.ConsumerGroup,
+                _eventHubOptions.EventHubMaximumBatchSize,
+                _eventHubOptions.EventHubConsumerGroup,
                 eventHubConnectionString,
-               _eventHubOptions.HubName,
+               _eventHubOptions.EventHubName,
                _eventProcessorOptions);
 
             return anabasisEventHubProcessor;
@@ -144,9 +154,9 @@ namespace Anabasis.EventHubs
 
         private EventHubProducerClient GetEventHubProducerClient()
         {
-            var connectionString = _eventHubOptions.GetConnectionString();
+            var connectionString = _eventHubOptions.GetEventHubConnectionString();
 
-            return new EventHubProducerClient(connectionString, _eventHubOptions.HubName, _eventHubProducerClientOptions);
+            return new EventHubProducerClient(connectionString, _eventHubOptions.EventHubName, _eventHubProducerClientOptions);
 
         }
 

@@ -79,13 +79,11 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventStore.Snapsho
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.CodeGen", "Anabasis.CodeGen\Anabasis.CodeGen.csproj", "{39FB9F9C-A879-4764-B7E5-02469A331CC1}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Worker", "Anabasis.Worker\Anabasis.Worker.csproj", "{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Worker.Tests", "Anabasis.Worker.Tests\Anabasis.Worker.Tests.csproj", "{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventHubs2", "Anabasis.EventHubs2\Anabasis.EventHubs2.csproj", "{1A7833B1-2E00-4529-BDE8-C078BB95B6A1}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventHubs2", "Anabasis.EventHubs2\Anabasis.EventHubs2.csproj", "{1A7833B1-2E00-4529-BDE8-C078BB95B6A1}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.EventHubs.Tests.Integration", "Anabasis.EventHubs.Tests.Integration\Anabasis.EventHubs.Tests.Integration.csproj", "{F4A15E98-D1D6-443D-B9A9-E97502B59B80}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.EventHubs.Tests.Integration", "Anabasis.EventHubs.Tests.Integration\Anabasis.EventHubs.Tests.Integration.csproj", "{F4A15E98-D1D6-443D-B9A9-E97502B59B80}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -333,14 +331,6 @@ Global
 		{39FB9F9C-A879-4764-B7E5-02469A331CC1}.Release|Any CPU.Build.0 = Release|Any CPU
 		{39FB9F9C-A879-4764-B7E5-02469A331CC1}.Release|x64.ActiveCfg = Release|Any CPU
 		{39FB9F9C-A879-4764-B7E5-02469A331CC1}.Release|x64.Build.0 = Release|Any CPU
-		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Debug|x64.Build.0 = Debug|Any CPU
-		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Release|Any CPU.Build.0 = Release|Any CPU
-		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Release|x64.ActiveCfg = Release|Any CPU
-		{3BD89470-8F87-4C28-9EAF-0B95CEE62A60}.Release|x64.Build.0 = Release|Any CPU
 		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1ED283C0-18C5-4E9A-B75F-BA6FA1FD9F26}.Debug|x64.ActiveCfg = Debug|Any CPU

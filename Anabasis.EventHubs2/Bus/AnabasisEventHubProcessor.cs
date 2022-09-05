@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Utilities;
+using Anabasis.EventHubs.Bus;
 using Anabasis.EventHubs.Shared;
 using Azure;
 using Azure.Core;
@@ -36,43 +37,44 @@ namespace Anabasis.EventHubs
         private ISerializer _serializer;
         private EventHubOptions _eventHubOptions;
         private IKillSwitch _killSwitch;
+        private IEventHubPartitionMonitoring _eventHubPartitionMonitoring;
         private DateTime _lastCheckPointUtc;
 
 #nullable disable
 
-        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch)
+        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, IEventHubPartitionMonitoring eventHubPartitionMonitoring)
         {
-            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch);
+            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch, eventHubPartitionMonitoring);
         }
 
-        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string connectionString, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, connectionString, options)
+        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, IEventHubPartitionMonitoring eventHubPartitionMonitoring, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string connectionString, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, connectionString, options)
         {
-            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch);
+            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch, eventHubPartitionMonitoring);
         }
 
-        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string connectionString, string eventHubName, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, connectionString, eventHubName, options)
+        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, IEventHubPartitionMonitoring eventHubPartitionMonitoring, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string connectionString, string eventHubName, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, connectionString, eventHubName, options)
         {
-            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch);
+            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch, eventHubPartitionMonitoring);
         }
 
-        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string fullyQualifiedNamespace, string eventHubName, AzureNamedKeyCredential credential, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, fullyQualifiedNamespace, eventHubName, credential, options)
+        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, IEventHubPartitionMonitoring eventHubPartitionMonitoring, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string fullyQualifiedNamespace, string eventHubName, AzureNamedKeyCredential credential, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, fullyQualifiedNamespace, eventHubName, credential, options)
         {
-            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch);
+            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch, eventHubPartitionMonitoring);
         }
 
-        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string fullyQualifiedNamespace, string eventHubName, AzureSasCredential credential, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, fullyQualifiedNamespace, eventHubName, credential, options)
+        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, IEventHubPartitionMonitoring eventHubPartitionMonitoring, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string fullyQualifiedNamespace, string eventHubName, AzureSasCredential credential, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, fullyQualifiedNamespace, eventHubName, credential, options)
         {
-            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch);
+            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch, eventHubPartitionMonitoring);
         }
 
-        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string fullyQualifiedNamespace, string eventHubName, TokenCredential credential, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, fullyQualifiedNamespace, eventHubName, credential, options)
+        public AnabasisEventHubProcessor(ILoggerFactory loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, IEventHubPartitionMonitoring eventHubPartitionMonitoring, CheckpointStore checkpointStore, int eventBatchMaximumCount, string consumerGroup, string fullyQualifiedNamespace, string eventHubName, TokenCredential credential, EventProcessorOptions options = null) : base(checkpointStore, eventBatchMaximumCount, consumerGroup, fullyQualifiedNamespace, eventHubName, credential, options)
         {
-            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch);
+            Initialize(loggerFactory, eventHubOptions, serializer, killSwitch, eventHubPartitionMonitoring);
         }
 
 #nullable enable
 
-        private void Initialize(ILoggerFactory? loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch)
+        private void Initialize(ILoggerFactory? loggerFactory, EventHubOptions eventHubOptions, ISerializer serializer, IKillSwitch killSwitch, IEventHubPartitionMonitoring eventHubPartitionMonitoring)
         {
             _eventHubSubscribers = new Dictionary<Guid, EventHubSubscriber>();
             _logger = loggerFactory?.CreateLogger<EventHubBus>();
@@ -80,6 +82,7 @@ namespace Anabasis.EventHubs
             _serializer = serializer;
             _lastCheckPointUtc = DateTime.UtcNow;
             _killSwitch = killSwitch;
+            _eventHubPartitionMonitoring = eventHubPartitionMonitoring;
         }
 
         internal int SubscribersCount => _eventHubSubscribers.Count;
@@ -110,7 +113,7 @@ namespace Anabasis.EventHubs
             if (checkpoint == null)
             {
                 
-                var startingTime = _eventHubOptions.StartingUtcTimeOverride ?? DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5));
+                var startingTime = _eventHubOptions.EventHubProcessingStartTimeUtcOverride ?? DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5));
 
                 checkpoint = new EventProcessorCheckpoint
                 {
@@ -194,7 +197,7 @@ namespace Anabasis.EventHubs
 
                 var isEventBatchAcknowledged = messageStream.All(message => message.IsAcknowledged);
 
-                var doCheckPoint = DateTime.UtcNow >= _lastCheckPointUtc.Add(_eventHubOptions.EventHubConsumerCheckpointSettings.CheckPointPeriod);
+                var doCheckPoint = DateTime.UtcNow >= _lastCheckPointUtc.Add(_eventHubOptions.CheckPointPeriod);
 
                 if (isEventBatchAcknowledged && doCheckPoint && !cancellationToken.IsCancellationRequested)
                 {
@@ -205,6 +208,8 @@ namespace Anabasis.EventHubs
                         lastEvent.Offset,
                         lastEvent.SequenceNumber,
                         cancellationToken);
+
+                    _eventHubPartitionMonitoring
                 }
 
             }

@@ -8,26 +8,6 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventHubs
 {
-    [DataContract, Serializable]
-    public class EventHubConsumerCheckpointSettings : BaseConfiguration
-    {
-#nullable disable
-
-        [DataMember]
-        public TimeSpan CheckPointPeriod { get; set; } = TimeSpan.FromSeconds(30);
-        [DataMember]
-        public string CheckpointStoreAccountName { get; set; }
-        [DataMember]
-        public string CheckpointStoreAccountKey { get; set; }
-        [DataMember]
-        public bool UseHttps { get; set; } = true;
-        public string GetConnectionString() => $"DefaultEndpointsProtocol=https;AccountName={CheckpointStoreAccountName};AccountKey={CheckpointStoreAccountKey};EndpointSuffix=core.windows.net;UseHttps={UseHttps}";
-        [DataMember]
-        public string BlobContainerName { get; set; }
-
-#nullable enable
-
-    }
 
     [DataContract, Serializable]
     public class EventHubOptions : BaseConfiguration
@@ -36,33 +16,57 @@ namespace Anabasis.EventHubs
 #nullable disable
 
         [DataMember]
-        public DateTime? StartingUtcTimeOverride { get; set; }
-        [DataMember]
-        public int MaximumBatchSize { get; set; } = 100;
-        [DataMember]
-        public string HubName { get; set; }
+        public TimeSpan CheckPointPeriod { get; set; } = EventHubsConstants.DefaultCheckpointPeriod;
 
         [DataMember]
-        public string ConsumerGroup { get; set; }
+        public string CheckpointStoreAccountName { get; set; }
 
         [DataMember]
-        public string Namespace { get; set; }
+        public string CheckpointStoreAccountKey { get; set; }
 
         [DataMember]
-        public string SharedAccessKeyName { get; set; }
+        public bool CheckpointBlobContainerUseHttps { get; set; } = true;
 
         [DataMember]
-        public string SharedAccessKey { get; set; }
+        public string CheckpointBlobContainerName
+        {
+            get
+            {
+                return $"eh-{EventHubNamespace}-{EventHubName}-checkpoints";
+            }
+        }
 
         [DataMember]
-        public EventHubConsumerCheckpointSettings EventHubConsumerCheckpointSettings { get; set; }
+        public string CheckpointTableName { get; set; } = EventHubsConstants.DefaultMonitoringTableName;
 
         [DataMember]
-        public bool DoAppCrashOnFailure { get; set; }
+        public DateTime? EventHubProcessingStartTimeUtcOverride { get; set; }
+
+        [DataMember]
+        public int EventHubMaximumBatchSize { get; set; } = 100;
+
+        [DataMember]
+        public string EventHubName { get; set; }
+
+        [DataMember]
+        public string EventHubConsumerGroup { get; set; } = EventHubsConstants.DefaultConsumerGroupName;
+
+        [DataMember]
+        public string EventHubNamespace { get; set; }
+
+        [DataMember]
+        public string EventHubSharedAccessKeyName { get; set; }
+
+        [DataMember]
+        public string EventHubSharedAccessKey { get; set; }
+
+        [DataMember]
+        public bool DoAppCrashOnFailure { get; set; } = true;
 
 #nullable enable
+        public string GetCheckpointStorageConnectionString() => $"DefaultEndpointsProtocol=https;AccountName={CheckpointStoreAccountName};AccountKey={CheckpointStoreAccountKey};EndpointSuffix=core.windows.net;UseHttps={CheckpointBlobContainerUseHttps}";
 
-        public string GetConnectionString() => $"Endpoint=sb://{Namespace}.servicebus.windows.net/;SharedAccessKeyName={SharedAccessKeyName};SharedAccessKey={SharedAccessKey}";
+        public string GetEventHubConnectionString() => $"Endpoint=sb://{EventHubNamespace}.servicebus.windows.net/;SharedAccessKeyName={EventHubSharedAccessKeyName};SharedAccessKey={EventHubSharedAccessKey}";
 
     }
 }
