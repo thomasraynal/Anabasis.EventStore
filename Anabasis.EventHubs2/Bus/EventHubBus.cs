@@ -1,5 +1,4 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventHubs.Shared;
 using Azure.Messaging.EventHubs;
 using Azure.Messaging.EventHubs.Primitives;
 using Azure.Messaging.EventHubs.Producer;
@@ -10,16 +9,10 @@ using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
-using Anabasis.Common.Utilities;
 using Anabasis.EventHubs.Bus;
 
 namespace Anabasis.EventHubs
 {
- 
-    //todo=> lease container name
-    //todo=> monitoring table
-    //todo=> check prod setup
-
 
     public class EventHubBus : IEventHubBus
     {
@@ -35,22 +28,22 @@ namespace Anabasis.EventHubs
         private readonly EventHubProducerClient _eventHubProducerClient;
         private readonly AnabasisEventHubProcessor _eventHubProcessorClient;
 
-        public EventHubBus(EventHubOptions eventHubConnectionOptions,
+        public EventHubBus(EventHubOptions eventHubOptions,
             EventProcessorOptions eventProcessorOptions,
             EventHubProducerClientOptions eventHubProducerClientOptions,
-            ISerializer serializer,
+            ISerializer? serializer = null,
             IEventHubPartitionMonitoring? eventHubPartitionMonitoring = null,
             IKillSwitch? killSwitch = null,
             ILoggerFactory? loggerFactory = null)
         {
-            _eventHubOptions = eventHubConnectionOptions;
+            _eventHubOptions = eventHubOptions;
             _eventProcessorOptions = eventProcessorOptions;
             _eventHubProducerClientOptions = eventHubProducerClientOptions;
-            eventHubPartitionMonitoring = eventHubPartitionMonitoring ?? new EventHubPartitionMonitoring(_eventHubOptions);
+            eventHubPartitionMonitoring ??= new EventHubPartitionMonitoring(_eventHubOptions);
 
             _loggerFactory = loggerFactory;
             _logger = loggerFactory?.CreateLogger<EventHubBus>();
-            _serializer = serializer;
+            _serializer = serializer ??= new DefaultSerializer();
             _killSwitch = killSwitch ?? new KillSwitch();
 
             _eventHubProducerClient = GetEventHubProducerClient();

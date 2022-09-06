@@ -1,10 +1,7 @@
 ﻿using Anabasis.Common;
 using System;
-using System.Collections.Generic;
-using System.Linq;
+using System.ComponentModel.DataAnnotations;
 using System.Runtime.Serialization;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Anabasis.EventHubs
 {
@@ -18,9 +15,11 @@ namespace Anabasis.EventHubs
         [DataMember]
         public TimeSpan CheckPointPeriod { get; set; } = EventHubsConstants.DefaultCheckpointPeriod;
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public string CheckpointStoreAccountName { get; set; }
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public string CheckpointStoreAccountKey { get; set; }
 
@@ -32,31 +31,38 @@ namespace Anabasis.EventHubs
         {
             get
             {
-                return $"eh-{EventHubNamespace}-{EventHubName}-checkpoints";
+                return "blob";//$"eh-{EventHubNamespace}-{EventHubName}-checkpoints".ToLower();
             }
         }
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public string CheckpointTableName { get; set; } = EventHubsConstants.DefaultMonitoringTableName;
 
         [DataMember]
         public DateTime? EventHubProcessingStartTimeUtcOverride { get; set; }
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public int EventHubMaximumBatchSize { get; set; } = 100;
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public string EventHubName { get; set; }
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public string EventHubConsumerGroup { get; set; } = EventHubsConstants.DefaultConsumerGroupName;
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public string EventHubNamespace { get; set; }
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public string EventHubSharedAccessKeyName { get; set; }
 
+        [Required(AllowEmptyStrings = false)]
         [DataMember]
         public string EventHubSharedAccessKey { get; set; }
 

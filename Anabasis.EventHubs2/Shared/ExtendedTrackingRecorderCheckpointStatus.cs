@@ -6,8 +6,10 @@ using System.Runtime.Serialization;
 namespace Anabasis.EventHubs
 {
     [DataContract, Serializable]
-    public class FullTrackingRecorderCheckpointStatus : TrackingRecorderCheckpointStatus
+    public class ExtendedTrackingRecorderCheckpointStatus : TrackingRecorderCheckpointStatus
     {
+#nullable disable
+
         [DataMember]
         public DateTime? LastEnqueuedUtcDate { get; set; }
         [DataMember]
@@ -22,11 +24,15 @@ namespace Anabasis.EventHubs
         public string DurationSincePreviousCheck { get; set; }
         [DataMember]
         public Guid? LastEventId { get; set; }
+
+#nullable enable
     }
 
     [DataContract, Serializable]
     public class TrackingRecorderCheckpointStatus : ITableEntity
     {
+#nullable disable
+
         [DataMember]
         public string ConsumerGroupName { get; set; }
         [DataMember]
@@ -37,5 +43,7 @@ namespace Anabasis.EventHubs
         public string RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set; }
         public ETag ETag { get; set; }
+
+#nullable enable
     }
 }

@@ -54,7 +54,7 @@ namespace Anabasis.EventHubs.Bus
                 var duration = TimeSpan.Zero;
                 var lastCheckedUtcDate = DateTime.UtcNow;
 
-                var azureResponse = await _tableClient.GetEntityAsync<FullTrackingRecorderCheckpointStatus>(partitionKey, rowKey);
+                var azureResponse = await _tableClient.GetEntityAsync<ExtendedTrackingRecorderCheckpointStatus>(partitionKey, rowKey);
                 var fullTrackingRecorderCheckpointStatus = azureResponse.Value;
 
                 long? previousSequenceNumber = null;
@@ -79,7 +79,7 @@ namespace Anabasis.EventHubs.Bus
                     eventId = Guid.Empty;
                 }
 
-                trackingRecorderCheckpointStatus = new FullTrackingRecorderCheckpointStatus()
+                trackingRecorderCheckpointStatus = new ExtendedTrackingRecorderCheckpointStatus()
                 {
                     PartitionKey = partitionKey,
                     RowKey = rowKey,

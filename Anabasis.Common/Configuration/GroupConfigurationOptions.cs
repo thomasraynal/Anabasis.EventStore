@@ -6,7 +6,7 @@ namespace Anabasis.Common
     public class GroupConfigurationOptions : BaseConfiguration
     {
 #nullable disable
-        [Required]
+        [Required(AllowEmptyStrings = false)]
         public string GroupName { get; set; }
 #nullable enable
     }

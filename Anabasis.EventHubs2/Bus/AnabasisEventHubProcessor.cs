@@ -29,7 +29,7 @@ namespace Anabasis.EventHubs
             }
 
             public Guid SubscriberId { get; set; }
-            public Func<IMessage[],CancellationToken, Task> OnMessagesReceived { get; set; }
+            public Func<IMessage[], CancellationToken, Task> OnMessagesReceived { get; set; }
         }
 
         private Dictionary<Guid, EventHubSubscriber> _eventHubSubscribers;
@@ -97,7 +97,7 @@ namespace Anabasis.EventHubs
             _eventHubSubscribers.Remove(subscriptionId);
         }
 
-        internal Guid SubscribeToEventHub(Func<IMessage[],CancellationToken, Task> onEventsReceived)
+        internal Guid SubscribeToEventHub(Func<IMessage[], CancellationToken, Task> onEventsReceived)
         {
             var subscription = new EventHubSubscriber(Guid.NewGuid(), onEventsReceived);
 
@@ -112,14 +112,14 @@ namespace Anabasis.EventHubs
 
             if (checkpoint == null)
             {
-                
+
                 var startingTime = _eventHubOptions.EventHubProcessingStartTimeUtcOverride ?? DateTimeOffset.UtcNow.Subtract(TimeSpan.FromMinutes(5));
 
                 checkpoint = new EventProcessorCheckpoint
                 {
                     FullyQualifiedNamespace = this.FullyQualifiedNamespace,
-                    EventHubName = this.EventHubName,
-                    ConsumerGroup = this.ConsumerGroup,
+                    EventHubName = EventHubName,
+                    ConsumerGroup = ConsumerGroup,
                     PartitionId = partitionId,
                     StartingPosition = EventPosition.FromEnqueuedTime(startingTime)
                 };
@@ -130,7 +130,7 @@ namespace Anabasis.EventHubs
 
         protected override Task OnInitializingPartitionAsync(EventProcessorPartition partition, CancellationToken cancellationToken)
         {
-          
+
             _logger?.LogInformation($"Initializing partition {partition.PartitionId}");
 
 
@@ -167,7 +167,7 @@ namespace Anabasis.EventHubs
             {
                 var eventStream = events.ToArray();
 
-                var messageStream = eventStream.Select(eventData =>
+                var messages = eventStream.Select(eventData =>
                 {
                     var eventTypeAsString = eventData.Properties[EventHubsConstants.EventTypeNameInEventProperty]?.ToString();
                     var messageIdAsString = eventData.Properties[EventHubsConstants.MessageIdNameInEventProperty].ToString();
@@ -192,10 +192,10 @@ namespace Anabasis.EventHubs
                 {
                     if (cancellationToken.IsCancellationRequested) return;
 
-                    await eventHubSubscriber.OnMessagesReceived(messageStream, cancellationToken);
+                    await eventHubSubscriber.OnMessagesReceived(messages, cancellationToken);
                 }));
 
-                var isEventBatchAcknowledged = messageStream.All(message => message.IsAcknowledged);
+                var isEventBatchAcknowledged = messages.All(message => message.IsAcknowledged);
 
                 var doCheckPoint = DateTime.UtcNow >= _lastCheckPointUtc.Add(_eventHubOptions.CheckPointPeriod);
 
@@ -209,7 +209,7 @@ namespace Anabasis.EventHubs
                         lastEvent.SequenceNumber,
                         cancellationToken);
 
-                    _eventHubPartitionMonitoring
+                    await _eventHubPartitionMonitoring.SaveCheckPointMonitoring(partition, eventStream.Last(), "-", _eventHubOptions.EventHubNamespace);
                 }
 
             }
@@ -222,6 +222,7 @@ namespace Anabasis.EventHubs
                 {
                     _killSwitch.KillProcess(ex);
                 }
+
             }
         }
     }
