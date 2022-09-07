@@ -10,6 +10,9 @@ using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.EventHubs.Bus;
+using System.Reactive.Linq;
+using System.Reactive.Disposables;
+using System.Reactive.Subjects;
 
 namespace Anabasis.EventHubs
 {
@@ -51,7 +54,7 @@ namespace Anabasis.EventHubs
 
             BusId = $"{nameof(EventHubBus)}_{Guid.NewGuid()}";
 
-            ConnectionStatusMonitor = new EventHubConnectionStatusMonitor();
+            ConnectionStatusMonitor = new EventHubConnectionStatusMonitor(this, loggerFactory);
 
         }
 
@@ -60,18 +63,31 @@ namespace Anabasis.EventHubs
 
         public IConnectionStatusMonitor ConnectionStatusMonitor { get; }
 
-        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext? context, CancellationToken cancellationToken = default)
+        public async Task<(bool isConnected, Exception? exception)> CheckConnectivity(CancellationToken cancellationToken = default)
         {
             try
             {
                 await _eventHubProducerClient.GetEventHubPropertiesAsync(cancellationToken);
 
-                return HealthCheckResult.Healthy($"EventHub bus {_eventHubOptions.EventHubNamespace}.{_eventHubOptions.EventHubName} is healthy");
+                return (true, null);
             }
-            catch (Exception ex)
+            catch (Exception exception)
             {
-                return HealthCheckResult.Unhealthy($"EventHub bus {_eventHubOptions.EventHubNamespace}.{_eventHubOptions.EventHubName} is unhealthy - {ex.Message}", ex);
+                return (false, exception);
             }
+        }
+
+        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext? context, CancellationToken cancellationToken = default)
+        {
+
+            var (isConnected, exception) = await CheckConnectivity(cancellationToken);
+
+            if (isConnected)
+            {
+                HealthCheckResult.Healthy($"EventHub bus {_eventHubOptions.EventHubNamespace}.{_eventHubOptions.EventHubName} is healthy");
+            }
+
+            return HealthCheckResult.Unhealthy($"EventHub bus {_eventHubOptions.EventHubNamespace}.{_eventHubOptions.EventHubName} is unhealthy - {exception?.Message}", exception);
 
         }
 
@@ -172,6 +188,7 @@ namespace Anabasis.EventHubs
             var eventData = CreateEventData(@event);
 
             await _eventHubProducerClient.SendAsync(new[] { eventData }, sendEventOptions, cancellationToken);
+
         }
 
         public async Task Emit(IEnumerable<IEvent> eventBatch, CreateBatchOptions? createBatchOptions = null, CancellationToken cancellationToken = default)
@@ -208,7 +225,38 @@ namespace Anabasis.EventHubs
 
         }
 
-        public async Task<Guid> SubscribeToEventHub(Func<IMessage[],CancellationToken, Task> onEventsReceived)
+        public IObservable<(IMessage[] messages, CancellationToken cancellationToken)> SubscribeToEventHub()
+        {
+
+            return Observable.Create<(IMessage[], CancellationToken)>(async observer =>
+            {
+               
+                var subscriptionId = _eventHubProcessorClient.SubscribeToEventHub((incomingMessages, token) =>
+                {
+                    try
+                    {
+                        observer.OnNext((incomingMessages, token));
+                    }
+                    catch (Exception ex)
+                    {
+                        observer.OnError(ex);
+                    }
+
+                    return Task.CompletedTask;
+                });
+
+                await EnsureStartProcessing();
+
+                return Disposable.Create(async () =>
+                {
+                    await UnSubscribeToEventHub(subscriptionId);
+                });
+
+            });
+
+        }
+
+        public async Task<Guid> SubscribeToEventHub(Func<IMessage[], CancellationToken, Task> onEventsReceived)
         {
             var subscriptionId = _eventHubProcessorClient.SubscribeToEventHub(onEventsReceived);
 

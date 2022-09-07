@@ -26,12 +26,22 @@ namespace Anabasis.EventHubs
         [DataMember]
         public bool CheckpointBlobContainerUseHttps { get; set; } = true;
 
+        private string _checkpointBlobContainerName;
         [DataMember]
         public string CheckpointBlobContainerName
         {
             get
             {
-                return "blob";//$"eh-{EventHubNamespace}-{EventHubName}-checkpoints".ToLower();
+                if (string.IsNullOrEmpty(_checkpointBlobContainerName))
+                {
+                    return $"eh-{EventHubNamespace}-{EventHubName}-checkpoints".ToLower();
+                }
+                
+                return _checkpointBlobContainerName;
+            }
+            set
+            {
+                _checkpointBlobContainerName = value;
             }
         }
 
@@ -70,7 +80,7 @@ namespace Anabasis.EventHubs
         public bool DoAppCrashOnFailure { get; set; } = true;
 
 #nullable enable
-        public string GetCheckpointStorageConnectionString() => $"DefaultEndpointsProtocol=https;AccountName={CheckpointStoreAccountName};AccountKey={CheckpointStoreAccountKey};EndpointSuffix=core.windows.net;UseHttps={CheckpointBlobContainerUseHttps}";
+        public string GetCheckpointStorageConnectionString() => $"DefaultEndpointsProtocol=https;AccountName={CheckpointStoreAccountName};AccountKey={CheckpointStoreAccountKey};EndpointSuffix=core.windows.net";
 
         public string GetEventHubConnectionString() => $"Endpoint=sb://{EventHubNamespace}.servicebus.windows.net/;SharedAccessKeyName={EventHubSharedAccessKeyName};SharedAccessKey={EventHubSharedAccessKey}";
 
