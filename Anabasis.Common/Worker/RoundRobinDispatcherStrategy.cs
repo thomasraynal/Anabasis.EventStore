@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.Common.Worker
@@ -30,6 +31,7 @@ namespace Anabasis.Common.Worker
 
         private Random _rand;
         private List<TimestampedResource<IWorkerDispatchQueue>> _workerDispatchQueuesByTimestampUsage;
+        private readonly object _synclock = new ();
 
         public RoundRobinDispatcherStrategy()
         {
@@ -37,37 +39,46 @@ namespace Anabasis.Common.Worker
             _workerDispatchQueuesByTimestampUsage = new List<TimestampedResource<IWorkerDispatchQueue>>();
         }
 
-        public override async Task<(bool isDispatchQueueAvailable, IWorkerDispatchQueue? workerDispatchQueue)> Next(double timeoutInSeconds = 30.0)
+        public override Task<(bool isDispatchQueueAvailable, IWorkerDispatchQueue? workerDispatchQueue)> Next(double timeoutInSeconds = 30.0)
         {
-            IWorkerDispatchQueue? workerDispatchQueue = null;
 
-            var timeoutDate = DateTime.UtcNow.AddSeconds(timeoutInSeconds);
+            (bool isDispatchQueueAvailable, IWorkerDispatchQueue? workerDispatchQueue) result;
 
-            while (null == workerDispatchQueue)
+            lock (_synclock)
             {
-                if (DateTime.Now < timeoutDate)
-                {
-                    return (false, null);
-                }
 
-                _workerDispatchQueuesByTimestampUsage.Sort();   
+                IWorkerDispatchQueue? workerDispatchQueue = null;
 
-                foreach (var timestampedResource in _workerDispatchQueuesByTimestampUsage)
+                var timeoutDate = DateTime.UtcNow.AddSeconds(timeoutInSeconds);
+
+                while (null == workerDispatchQueue)
                 {
-                    if (timestampedResource.Resource.CanPush())
+                    if (DateTime.Now < timeoutDate)
                     {
-                        workerDispatchQueue = timestampedResource.Resource;
-                        timestampedResource.Timestamp = DateTime.UtcNow;
-
                         break;
+                    }
+
+                    _workerDispatchQueuesByTimestampUsage.Sort();
+
+                    foreach (var timestampedResource in _workerDispatchQueuesByTimestampUsage)
+                    {
+                        if (timestampedResource.Resource.CanPush())
+                        {
+                            workerDispatchQueue = timestampedResource.Resource;
+                            timestampedResource.Timestamp = DateTime.UtcNow;
+
+                            break;
+                        }
+
                     }
 
                 }
 
-                await Task.Delay(100);
-            }
+                result = (null != workerDispatchQueue, workerDispatchQueue);
 
-            return (true, workerDispatchQueue);
+                return Task.FromResult(result);
+
+            }
         }
 
         protected override void OnInitialize()
@@ -78,6 +89,8 @@ namespace Anabasis.Common.Worker
             {
                 _workerDispatchQueuesByTimestampUsage.Add(new TimestampedResource<IWorkerDispatchQueue>(workerDispatchQueue));
             }
+
+          
         }
     }
 }

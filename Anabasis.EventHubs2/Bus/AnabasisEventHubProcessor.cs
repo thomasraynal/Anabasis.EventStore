@@ -160,12 +160,36 @@ namespace Anabasis.EventHubs
             return Task.CompletedTask;
         }
 
+        private async Task WaitForTheMessageBatchToBeAcknowledged(EventHubMessage[] eventHubMessage, TimeSpan? timeout = null)
+        {
+            timeout ??= TimeSpan.FromMinutes(1);
+
+            var now = DateTime.UtcNow;
+
+            var isEventBatchAcknowledged = eventHubMessage.All(message => message.IsAcknowledged);
+
+            while (!isEventBatchAcknowledged && DateTime.UtcNow < now.Add(timeout.Value))
+            {
+                isEventBatchAcknowledged = eventHubMessage.All(message => message.IsAcknowledged);
+
+                await Task.Delay(100);
+            }
+
+            if (!isEventBatchAcknowledged)
+            {
+                throw new TimeoutException($"Unable to acknowledge the message group in due time - timeout :{timeout}");
+            }
+        }
+
         protected override async Task OnProcessingEventBatchAsync(IEnumerable<EventData> events, EventProcessorPartition partition, CancellationToken cancellationToken)
         {
 
             try
             {
+
                 var eventStream = events.ToArray();
+
+                if (eventStream.Length == 0) return;
 
                 var messages = eventStream.Select(eventData =>
                 {
@@ -193,13 +217,18 @@ namespace Anabasis.EventHubs
                     if (cancellationToken.IsCancellationRequested) return;
 
                     await eventHubSubscriber.OnMessagesReceived(messages, cancellationToken);
+
                 }));
 
-                var isEventBatchAcknowledged = messages.All(message => message.IsAcknowledged);
-
+            
                 var doCheckPoint = DateTime.UtcNow >= _lastCheckPointUtc.Add(_eventHubOptions.CheckPointPeriod);
 
-                if (isEventBatchAcknowledged && doCheckPoint && !cancellationToken.IsCancellationRequested)
+                if (doCheckPoint)
+                {
+                    await WaitForTheMessageBatchToBeAcknowledged(messages);
+                }
+
+                if (doCheckPoint && !cancellationToken.IsCancellationRequested)
                 {
                     var lastEvent = eventStream.Last();
 
