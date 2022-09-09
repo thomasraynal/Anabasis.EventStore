@@ -12,7 +12,7 @@ namespace Anabasis.Common.Contracts
         string Id { get; }
         bool IsConnected { get; }
         bool IsFaulted { get; }
-        Exception? LastError { get; }
+        Exception? LastError { get; }   
         IWorkerDispatchQueue[] GetWorkerDispatchQueues();
         TBus GetConnectedBus<TBus>() where TBus : class;
         Task WaitUntilConnected(TimeSpan? timeout = null);

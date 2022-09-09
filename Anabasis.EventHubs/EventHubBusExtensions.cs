@@ -11,17 +11,19 @@ namespace Anabasis.EventHubs
 {
     public static class EventHubBusExtensions
     {
-        public static void SubscribeToEventHub(this IWorker worker)
+
+        public static async Task SubscribeToEventHub(this IWorker worker)
         {
             var eventHubBus = worker.GetConnectedBus<IEventHubBus>();
 
-            eventHubBus.SubscribeToEventHub(async (messages, cancellationToken) =>
-            {
-                if (cancellationToken.IsCancellationRequested) return;
+            await eventHubBus.SubscribeToEventHub(async (messages, cancellationToken) =>
+             {
+                 if (cancellationToken.IsCancellationRequested) return;
 
-                await worker.Handle(messages);
+                 await worker.Handle(messages);
 
-            });
+             });
+
         }
     }
 }
