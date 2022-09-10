@@ -73,6 +73,8 @@ namespace Anabasis.Worker.Tests
 
             var groups = retrievedDispatchedQueues.GroupBy(queue => queue.Id);
 
+            await Task.Delay(100);
+
             Assert.AreEqual(testWorkerDispatchQueues.Length * 2, retrievedDispatchedQueues.Count);
 
             foreach(var group in groups)

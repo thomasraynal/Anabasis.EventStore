@@ -40,7 +40,7 @@ namespace Anabasis.Worker.Tests
 
             testWorker.SubscribeToTestEventBus();
 
-            await Task.Delay(2000);
+            await Task.Delay(2500);
 
             Assert.AreEqual(testEventBus.Messages.Count, testWorker.Events.Count);
 
@@ -67,7 +67,7 @@ namespace Anabasis.Worker.Tests
 
             testWorker.SubscribeToTestEventBus();
 
-            await Task.Delay(1000);
+            await Task.Delay(1500);
 
             foreach(var dispatchQueue in dispatchQueues)
             {
