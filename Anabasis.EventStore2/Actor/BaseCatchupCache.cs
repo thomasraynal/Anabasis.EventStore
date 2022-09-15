@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseCatchupCache<TAggregate> : IAggregateCache<TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class BaseEventStoreStatefulActor<TAggregate> : IAggregateCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
 
         private readonly object _catchUpSyncLock = new();

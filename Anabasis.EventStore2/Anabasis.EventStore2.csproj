@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+  </PropertyGroup>
+
+	<ItemGroup>
+		<PackageReference Include="EventStore.Client" Version="20.10.0" />
+		<PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
+	</ItemGroup>
+
+	<ItemGroup>
+    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+  </ItemGroup>
+
+</Project>
