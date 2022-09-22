@@ -39,7 +39,7 @@ namespace Anabasis.EventStore.Demo
 
             var cleanup = tradesData.Connect();
 
-            AddDisposable(cleanup);
+            AddToCleanup(cleanup);
 
         }
 

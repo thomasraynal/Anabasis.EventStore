@@ -108,7 +108,7 @@ namespace Anabasis.EventStore.Tests
              new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }),
              _loggerFactory);
 
-            catchUpCache.Connect().Wait();
+            catchUpCache.ConnectToEventStream().Wait();
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 

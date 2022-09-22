@@ -9,10 +9,15 @@ namespace Anabasis.EventStore.Cache
     {
         public MultipleStreamsCatchupCacheConfiguration(params string[] streamIds)
         {
+            if (null == streamIds || streamIds.Length == 0)
+            {
+                throw new ArgumentException($"{streamIds} should not be empty");
+            }
+
             StreamIds = streamIds;
         }
 
-        public string[] StreamIds { get; }
+        public string[] StreamIds { get; internal set; }
         public TimeSpan IsStaleTimeSpan { get; set; } = TimeSpan.FromHours(1);
         public bool CrashAppIfSubscriptionFail { get; set; } = false;
         public bool KeepAppliedEventsOnAggregate { get; set; } = false;

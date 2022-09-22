@@ -9,16 +9,18 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Cache
 {
 
-    public class MultipleStreamsCatchupCache<TAggregate> : BaseOneOrManyStreamCatchupCache<TAggregate> where TAggregate : class, IAggregate, new()
+    public class SubscribeToManyStreamsEventStoreStatefulActor<TAggregate> : BaseOneOrManyStreamEventStoreStatefulActor<TAggregate> where TAggregate : class, IAggregate, new()
     {
         private readonly MultipleStreamsCatchupCacheConfiguration<TAggregate> _multipleStreamsCatchupCacheConfiguration;
 
-        public MultipleStreamsCatchupCache(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
+        public SubscribeToManyStreamsEventStoreStatefulActor(
+            IActorConfiguration actorConfiguration,
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
             MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration,
             IEventTypeProvider<TAggregate> eventTypeProvider,
             ILoggerFactory? loggerFactory = null,
             ISnapshotStore<TAggregate>? snapshotStore = null,
-            ISnapshotStrategy? snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+            ISnapshotStrategy? snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
             _multipleStreamsCatchupCacheConfiguration = catchupCacheConfiguration;
         }
@@ -71,7 +73,7 @@ namespace Anabasis.EventStore.Cache
             long? subscribeFromPosition = catchupCacheSubscriptionHolder.CurrentSnapshotEventVersion == null ?
                 null : catchupCacheSubscriptionHolder.CurrentSnapshotEventVersion;
 
-            Logger?.LogInformation($"{Id} => {nameof(MultipleStreamsCatchupCache<TAggregate>)} - {nameof(GetEventStoreCatchUpSubscription)} - SubscribeToStreamFrom {catchupCacheSubscriptionHolder.StreamId} " +
+            Logger?.LogInformation($"{Id} => {nameof(SubscribeToManyStreamsEventStoreStatefulActor<TAggregate>)} - {nameof(GetEventStoreCatchUpSubscription)} - SubscribeToStreamFrom {catchupCacheSubscriptionHolder.StreamId} " +
                 $"v.{subscribeFromPosition}]");
 
             var subscription = connection.SubscribeToStreamFrom(
@@ -82,7 +84,7 @@ namespace Anabasis.EventStore.Cache
               onCaughtUp,
               onSubscriptionDropped,
               userCredentials: _multipleStreamsCatchupCacheConfiguration.UserCredentials);
-            
+
             return subscription;
         }
     }

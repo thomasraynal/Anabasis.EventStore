@@ -35,9 +35,9 @@ namespace Anabasis.EventStore.Actor
         private void Initialize()
         {
         
-            State.Connect().Wait();
+            State.ConnectToEventStream().Wait();
 
-            AddDisposable(State);
+            AddToCleanup(State);
 
             var caughtUpSignalDisposable = State.OnCaughtUp.Subscribe(isCaughtUp =>
             {
@@ -52,7 +52,7 @@ namespace Anabasis.EventStore.Actor
 
             });
 
-            AddDisposable(caughtUpSignalDisposable);
+            AddToCleanup(caughtUpSignalDisposable);
         }
 
         public override bool IsCaughtUp => State.IsCaughtUp;

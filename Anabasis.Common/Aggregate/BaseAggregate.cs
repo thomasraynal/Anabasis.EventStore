@@ -12,6 +12,7 @@ namespace Anabasis.Common
         private readonly List<IEvent> _pendingEvents = new();
         private readonly List<IEvent> _appliedEvents = new();
 
+
         [JsonProperty]
         public string? EntityId { get; protected set; }
 

@@ -107,7 +107,7 @@ namespace Anabasis.EventStore.Tests
               _inMemorySnapshotStore,
               _defaultSnapshotStrategy);
 
-            catchUpCache.Connect().Wait();
+            catchUpCache.ConnectToEventStream().Wait();
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
@@ -196,7 +196,7 @@ namespace Anabasis.EventStore.Tests
 
             await _eventStoreRepositoryAndConnectionMonitor.eventStoreRepository.Emit(new SomeData(_streamIdOne, Guid.NewGuid()));
 
-            await _multipleStreamsCatchupCacheOne.catchupEventStoreCache.Connect();
+            await _multipleStreamsCatchupCacheOne.catchupEventStoreCache.ConnectToEventStream();
 
             await Task.Delay(1000);
 

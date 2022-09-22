@@ -153,7 +153,7 @@ namespace Anabasis.EventStore.Tests
                            .Bind(aggregatesOnCacheOne)
                            .Subscribe();
 
-            singleStreamCatchupEventStoreCache.Connect().Wait();
+            singleStreamCatchupEventStoreCache.ConnectToEventStream().Wait();
 
             return (connectionMonitor, singleStreamCatchupEventStoreCache, inMemorySnapshotStore, defaultSnapshotStrategy, aggregatesOnCacheOne);
 

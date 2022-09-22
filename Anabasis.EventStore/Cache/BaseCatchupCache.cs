@@ -232,7 +232,7 @@ namespace Anabasis.EventStore.Cache
 
         }
 
-        public async Task Connect()
+        public async Task ConnectToEventStream()
         {
    
             await OnLoadSnapshot(_catchupCacheSubscriptionHolders, _snapshotStrategy, _snapshotStore);

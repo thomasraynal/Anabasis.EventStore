@@ -43,7 +43,7 @@ namespace Anabasis.EventStore
                 eventProvider,
                 getSubscribeFromEndEventStoreStreamConfiguration);
 
-            actor.AddDisposable(subscribeFromEndEventStoreStream);
+            actor.AddToCleanup(subscribeFromEndEventStoreStream);
         }
 
         public static void SubscribeToPersistentSubscriptionStream(
@@ -64,7 +64,7 @@ namespace Anabasis.EventStore
                 eventProvider,
                 getPersistentSubscriptionEventStoreStreamConfiguration);
             
-            actor.AddDisposable(persistentSubscriptionEventStoreStream);
+            actor.AddToCleanup(persistentSubscriptionEventStoreStream);
         }
 
         public static void SubscribeFromStartToOneStream(
@@ -83,7 +83,7 @@ namespace Anabasis.EventStore
                 eventProvider,
                 subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration);
 
-            actor.AddDisposable(subscribeFromStartOrLaterToOneStreamEventStoreStream);
+            actor.AddToCleanup(subscribeFromStartOrLaterToOneStreamEventStoreStream);
         }
 
         public static void SubscribeFromEndToOneStream(
@@ -102,7 +102,7 @@ namespace Anabasis.EventStore
                 eventProvider,
                 subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration);
 
-            actor.AddDisposable(subscribeFromEndToOneStreamEventStoreStream);
+            actor.AddToCleanup(subscribeFromEndToOneStreamEventStoreStream);
         }
     }
 }

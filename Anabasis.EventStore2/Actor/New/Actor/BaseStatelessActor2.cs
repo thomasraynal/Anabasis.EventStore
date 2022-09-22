@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public abstract class BaseStatelessActor : IActor
+    public abstract class BaseStatelessActor2 : IActor
     {
 
         private MessageHandlerInvokerCache _messageHandlerInvokerCache;
@@ -28,12 +28,12 @@ namespace Anabasis.Common
 
 #nullable disable
 
-        protected BaseStatelessActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null)
+        protected BaseStatelessActor2(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null)
         {
             Setup(actorConfigurationFactory.GetConfiguration(GetType()), loggerFactory);
         }
 
-        protected BaseStatelessActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null)
+        protected BaseStatelessActor2(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null)
         {
             Setup(actorConfiguration, loggerFactory);
         }

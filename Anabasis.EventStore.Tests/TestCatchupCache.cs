@@ -108,7 +108,7 @@ namespace Anabasis.EventStore.Tests
                            .Bind(aggregatesOnCacheOne)
                            .Subscribe();
 
-            catchUpCache.Connect().Wait();
+            catchUpCache.ConnectToEventStream().Wait();
 
             return (connectionMonitor, catchUpCache, aggregatesOnCacheOne);
 
@@ -216,7 +216,7 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(3, _cacheTwo.someDataAggregates.Count);
             Assert.AreEqual(3, _cacheTwo.someDataAggregates[0].AppliedEvents.Length);
 
-            await _cacheOne.catchupEventStoreCache.Connect();
+            await _cacheOne.catchupEventStoreCache.ConnectToEventStream();
 
             await Task.Delay(1000);
 

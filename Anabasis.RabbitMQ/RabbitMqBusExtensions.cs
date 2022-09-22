@@ -97,7 +97,7 @@ namespace Anabasis.RabbitMQ
 
             var disposable = Disposable.Create(() => rabbitMqBus.UnsubscribeFromExchange(rabbitMqSubscription));
 
-            actor.AddDisposable(disposable);
+            actor.AddToCleanup(disposable);
         }
 
         public static IObservable<TEvent> SubscribeToExchange<TEvent>(this IRabbitMqBus rabbitMqBus,

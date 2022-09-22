@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Demo.Bus
                  return Task.CompletedTask;
              });
 
-            actor.AddDisposable(dispose);
+            actor.AddToCleanup(dispose);
         }
     }
 }

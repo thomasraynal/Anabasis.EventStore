@@ -178,7 +178,7 @@ namespace Anabasis.EventStore.Tests
 
             Assert.AreEqual(0, _testActorOne.Events.Count);
 
-            await _cacheOne.catchupEventStoreCache.Connect();
+            await _cacheOne.catchupEventStoreCache.ConnectToEventStream();
 
             await Task.Delay(100);
 

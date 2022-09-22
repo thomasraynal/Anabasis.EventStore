@@ -95,7 +95,7 @@ namespace Anabasis.EventStore.Tests
               new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }),
               _loggerFactory);
 
-            catchUpCache.Connect().Wait();
+            catchUpCache.ConnectToEventStream().Wait();
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
@@ -165,7 +165,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(500);
 
-            await _multipleStreamsCatchupCache.catchupEventStoreCache.Connect();
+            await _multipleStreamsCatchupCache.catchupEventStoreCache.ConnectToEventStream();
 
             await Task.Delay(500);
 

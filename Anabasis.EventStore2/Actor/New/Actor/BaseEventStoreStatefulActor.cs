@@ -14,7 +14,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseEventStoreStatefulActor<TAggregate> : IAggregateCache<TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class BaseEventStoreStatefulActor<TAggregate> : BaseStatelessActor2, IStatefulActor2<TAggregate> where TAggregate : class, IAggregate, new()
     {
 
         private readonly object _catchUpSyncLock = new();
@@ -25,23 +25,21 @@ namespace Anabasis.EventStore.Cache
         private readonly ISnapshotStore<TAggregate>? _snapshotStore;
         private readonly IConnectionStatusMonitor<IEventStoreConnection> _connectionMonitor;
         private readonly DateTime _lastProcessedEventUtcTimestamp;
-        private readonly CompositeDisposable _cleanUp;
         private readonly SourceCache<TAggregate, string> _cache;
         private readonly SourceCache<TAggregate, string> _caughtingUpCache;
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
         private readonly BehaviorSubject<bool> _isStaleSubject;
-        private readonly IAggregateCacheConfiguration<TAggregate> _catchupCacheConfiguration;
+        protected readonly IAggregateCacheConfiguration<TAggregate> _catchupCacheConfiguration;
         private readonly IKillSwitch _killSwitch;
 
-        protected Microsoft.Extensions.Logging.ILogger? Logger { get; }
         public IEventTypeProvider<TAggregate> EventTypeProvider { get; }
-        public string Id { get; }
+
         public bool UseSnapshot => _catchupCacheConfiguration.UseSnapshot;
         public IObservable<bool> OnStale => _isStaleSubject.AsObservable();
         public IObservable<bool> OnCaughtUp => _isCaughtUpSubject.AsObservable();
         public bool IsStale => _isStaleSubject.Value;
-        public bool IsCaughtUp => _isCaughtUpSubject.Value;
-        public bool IsConnected => _connectionMonitor.IsConnected;
+        public override bool IsCaughtUp => _isCaughtUpSubject.Value;
+        public override bool IsConnected => _connectionMonitor.IsConnected;
 
         public ICatchupCacheSubscriptionHolder[] GetSubscriptionStates()
         {
@@ -50,20 +48,18 @@ namespace Anabasis.EventStore.Cache
             return _catchupCacheSubscriptionHolders.ToArray();
         }
 
-        public BaseCatchupCache(
+        public BaseEventStoreStatefulActor(
+           IActorConfiguration actorConfiguration,
            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
            IAggregateCacheConfiguration<TAggregate> catchupCacheConfiguration,
            IEventTypeProvider<TAggregate> eventTypeProvider,
-           ILoggerFactory? loggerFactory =null,
+           ILoggerFactory? loggerFactory = null,
            ISnapshotStore<TAggregate>? snapshotStore = null,
            ISnapshotStrategy? snapshotStrategy = null,
-           IKillSwitch? killSwitch = null)
+           IKillSwitch? killSwitch = null) : base(actorConfiguration, loggerFactory)
         {
 
-            Id = $"{GetType()}-{Guid.NewGuid()}";
             EventTypeProvider = eventTypeProvider;
-
-            Logger = loggerFactory?.CreateLogger(this.GetType());
 
             _killSwitch = killSwitch ?? new KillSwitch();
 
@@ -79,7 +75,6 @@ namespace Anabasis.EventStore.Cache
             _lastProcessedEventUtcTimestamp = DateTime.MinValue;
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
             _isStaleSubject = new BehaviorSubject<bool>(true);
-            _cleanUp = new CompositeDisposable();
 
             if (UseSnapshot && (_snapshotStore == null && _snapshotStrategy != null || _snapshotStore != null && _snapshotStrategy == null))
             {
@@ -143,7 +138,7 @@ namespace Anabasis.EventStore.Cache
 
                 });
 
-                _cleanUp.Add(subscription);
+                AddToCleanup(subscription);
 
             }
 
@@ -161,7 +156,7 @@ namespace Anabasis.EventStore.Cache
 
             });
 
-            _cleanUp.Add(isStaleSubscription);
+            AddToCleanup(isStaleSubscription);
         }
 
         protected abstract Task OnLoadSnapshot(
@@ -232,7 +227,7 @@ namespace Anabasis.EventStore.Cache
 
         }
 
-        public async Task Connect()
+        public async Task ConnectToEventStream()
         {
    
             await OnLoadSnapshot(_catchupCacheSubscriptionHolders, _snapshotStrategy, _snapshotStore);
@@ -247,7 +242,7 @@ namespace Anabasis.EventStore.Cache
 
                 catchupCacheSubscriptionHolder.EventStreamConnectionDisposable = ConnectToEventStream(_connectionMonitor.Connection, catchupCacheSubscriptionHolder);
 
-                _cleanUp.Add(catchupCacheSubscriptionHolder.EventStreamConnectionDisposable);
+                AddToCleanup(catchupCacheSubscriptionHolder.EventStreamConnectionDisposable);
 
             }
 
@@ -407,9 +402,5 @@ namespace Anabasis.EventStore.Cache
 
         }
 
-        public void Dispose()
-        {
-            _cleanUp.Dispose();
-        }
     }
 }
