@@ -68,7 +68,7 @@ namespace Anabasis.EventStore.Repository
             WriteResult writeResult;
 
             var eventBatches = GetEventBatches(eventsToSave);
-
+        
             foreach (var batch in eventBatches)
             {
 

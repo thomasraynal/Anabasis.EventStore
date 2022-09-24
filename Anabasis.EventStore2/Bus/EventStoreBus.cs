@@ -2,14 +2,12 @@
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Stream;
-using Anabasis.EventStore2.Configuration;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Reactive.Disposables;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,43 +15,120 @@ namespace Anabasis.EventStore
 {
     public class EventStoreBus : IEventStoreBus
     {
-        public string BusId => throw new NotImplementedException();
 
-        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+        private readonly ILoggerFactory? _loggerFactory;
+        private readonly Microsoft.Extensions.Logging.ILogger? _logger;
+        private readonly IEventStoreRepository _eventStoreRepository;
+        private readonly CompositeDisposable _cleanUp;
+        private readonly IConnectionStatusMonitor<IEventStoreConnection> _connectionStatusMonitor;
 
+        public EventStoreBus(IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor,
+            IEventStoreRepository eventStoreRepository,
+            ILoggerFactory? loggerFactory = null)
+        {
+            BusId = $"{nameof(EventStoreBus)}_{Guid.NewGuid()}";
+
+            ConnectionStatusMonitor = connectionStatusMonitor;
+
+            _eventStoreRepository = eventStoreRepository;
+            _cleanUp = new CompositeDisposable();
+            _loggerFactory = loggerFactory;
+            _logger = loggerFactory?.CreateLogger(typeof(EventStoreBus));
+        }
+
+        public string BusId { get; }
+
+        public IConnectionStatusMonitor ConnectionStatusMonitor { get; }
+
+        //use this as hc => https://developers.eventstore.com/server/v20.10/diagnostics.html#statistics
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            var isConnected = ConnectionStatusMonitor.IsConnected;
+
+            var healthCheckResult = HealthCheckResult.Healthy();
+
+            if (!isConnected)
+            {
+#nullable disable
+
+                var data = new Dictionary<string, object>()
+                {
+                    {"EventStore connection is down",(ConnectionStatusMonitor as EventStoreConnectionStatusMonitor).Connection.ConnectionName}
+                };
+#nullable enable
+
+                healthCheckResult = HealthCheckResult.Unhealthy(data: data);
+            }
+
+            return Task.FromResult(healthCheckResult);
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+            _cleanUp.Dispose();
         }
 
-        public Task EmitEventStore<TEvent>(TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
+        public async Task EmitEventStore<TEvent>(TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
         {
-            throw new NotImplementedException();
+            if (!_eventStoreRepository.IsConnected)
+            {
+                await WaitUntilConnected(timeout);
+            }
+
+            _logger?.LogDebug($"{BusId} => Emitting {@event.EntityId} - {@event.GetType()}");
+
+            await _eventStoreRepository.Emit(@event, extraHeaders);
         }
 
-        public Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
+        public IDisposable SubscribeToPersistentSubscriptionStream(string streamId,
+            string groupId,
+            Action<IMessage> onMessageReceived, IEventTypeProvider eventTypeProvider,
+            Action<PersistentSubscriptionStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null)
         {
-            throw new NotImplementedException();
+            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionStreamConfiguration(streamId, groupId);
+
+            getPersistentSubscriptionEventStoreStreamConfiguration?.Invoke(persistentEventStoreStreamConfiguration);
+
+            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
+                  _connectionStatusMonitor,
+                  persistentEventStoreStreamConfiguration,
+                  eventTypeProvider,
+                  _loggerFactory);
+
+
+            return SubscribeToEventStream(persistentSubscriptionEventStoreStream, onMessageReceived);
+
         }
 
-        public SubscribeToAllEventStoreStream SubscribeFromEndToAllStreams(Action<IMessage, TimeSpan?> onMessageReceived, IEventTypeProvider eventTypeProvider, Action<SubscribeToAllStreamsConfiguration> getSubscribeFromEndEventStoreStreamConfiguration = null)
+        private IDisposable SubscribeToEventStream(IEventStoreStream eventStoreStream, Action<IMessage> onMessageReceived)
         {
-            throw new NotImplementedException();
+            eventStoreStream.Connect();
+
+            _logger?.LogDebug($"{BusId} => Subscribing to {eventStoreStream.Id}");
+
+            var onEventReceivedDisposable = eventStoreStream.OnMessage().Subscribe(message =>
+            {
+                onMessageReceived(message);
+            });
+
+            _cleanUp.Add(eventStoreStream);
+            _cleanUp.Add(onEventReceivedDisposable);
+
+            return new CompositeDisposable(onEventReceivedDisposable, eventStoreStream);
         }
 
-        public PersistentSubscriptionEventStoreStream SubscribeToPersistentSubscriptionStream(string streamId, string groupId, Action<IMessage, TimeSpan?> onMessageReceived, IEventTypeProvider eventTypeProvider, Action<PersistentSubscriptionStreamConfiguration> getPersistentSubscriptionEventStoreStreamConfiguration = null)
+        public async Task WaitUntilConnected(TimeSpan? timeout = null)
         {
-            throw new NotImplementedException();
-        }
+            if (ConnectionStatusMonitor.IsConnected) return;
 
-        public Task WaitUntilConnected(TimeSpan? timeout = null)
-        {
-            throw new NotImplementedException();
+            var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
+
+            while (!ConnectionStatusMonitor.IsConnected && DateTime.UtcNow > waitUntilMax)
+            {
+                await Task.Delay(100);
+            }
+
+            if (!ConnectionStatusMonitor.IsConnected) throw new InvalidOperationException("Unable to connect");
         }
     }
 }
