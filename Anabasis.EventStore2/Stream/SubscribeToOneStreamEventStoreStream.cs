@@ -7,24 +7,21 @@ using System.Reactive.Disposables;
 
 namespace Anabasis.EventStore.Stream
 {
-    public abstract class BaseSubscribeToEventStoreStream : BaseEventStoreStream
+    public class SubscribeToOneStreamEventStoreStream : BaseEventStoreStream
     {
         private readonly SubscribeToOneStreamConfiguration _subscribeToOneStreamConfiguration;
-        private EventStoreStreamCatchUpSubscription? _eventStoreCatchupSubscription;
-        private readonly int _streamPosition;
         private readonly IKillSwitch _killSwitch;
-        
-        public BaseSubscribeToEventStoreStream(
-          int streamPosition,
+        private EventStoreStreamCatchUpSubscription? _eventStoreCatchupSubscription;
+
+        public SubscribeToOneStreamEventStoreStream(
           IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-          SubscribeToOneStreamConfiguration subscribeToOneStreamConfiguration,
+          SubscribeToOneStreamConfiguration subscribeToOneOrManyStreamsConfiguration,
           IEventTypeProvider eventTypeProvider,
           ILoggerFactory? loggerFactory = null,
           IKillSwitch? killSwitch = null)
-          : base(connectionMonitor, subscribeToOneStreamConfiguration, eventTypeProvider, loggerFactory)
+          : base(connectionMonitor, subscribeToOneOrManyStreamsConfiguration, eventTypeProvider, loggerFactory)
         {
-            _subscribeToOneStreamConfiguration = subscribeToOneStreamConfiguration;
-            _streamPosition = streamPosition;
+            _subscribeToOneStreamConfiguration = subscribeToOneOrManyStreamsConfiguration;
             _killSwitch = killSwitch ?? new KillSwitch();
         }
 
@@ -90,15 +87,16 @@ namespace Anabasis.EventStore.Stream
             {
             }
 
+
             void createNewCatchupSubscription()
             {
                 stopSubscription();
 
-                Logger?.LogInformation($"{Id} => SubscribeToStreamFrom - StreamId: {_subscribeToOneStreamConfiguration.StreamId} - StreamPosition: {_streamPosition}");
+                Logger?.LogInformation($"{Id} => SubscribeToStreamFrom - StreamId: {_subscribeToOneStreamConfiguration.StreamId} - StreamPosition: {_subscribeToOneStreamConfiguration.EventStreamPosition}");
 
                 _eventStoreCatchupSubscription = connection.SubscribeToStreamFrom(
                   _subscribeToOneStreamConfiguration.StreamId,
-                  _streamPosition,
+                  _subscribeToOneStreamConfiguration.EventStreamPosition,
                   _subscribeToOneStreamConfiguration.CatchUpSubscriptionFilteredSettings,
                   eventAppeared: onEvent,
                   liveProcessingStarted: onCaughtUp,
@@ -113,6 +111,7 @@ namespace Anabasis.EventStore.Stream
               {
                   stopSubscription();
               });
+
 
         }
 

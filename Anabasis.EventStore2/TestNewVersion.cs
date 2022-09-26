@@ -148,7 +148,7 @@ namespace Anabasis.EventStore2
         {
             var embeddedEventStoreConnection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
             var actorConfiguration = new ActorConfiguration();
-            
+
             var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
                 "stream1", "stream2", "stream3"
                 );
@@ -247,6 +247,12 @@ namespace Anabasis.EventStore2
             await testSomeDataAggregateActor.AddEventStoreStreams("stream");
 
             await Task.Delay(1000);
+        }
+
+        [Test, Order(3)]
+        public async Task ShouldCreateAndUseABus()
+        {
+
         }
 
     }

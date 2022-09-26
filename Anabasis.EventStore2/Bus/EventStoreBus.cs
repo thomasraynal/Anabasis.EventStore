@@ -7,6 +7,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
@@ -82,7 +83,8 @@ namespace Anabasis.EventStore
 
         public IDisposable SubscribeToPersistentSubscriptionStream(string streamId,
             string groupId,
-            Action<IMessage> onMessageReceived, IEventTypeProvider eventTypeProvider,
+            Action<IMessage> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
             Action<PersistentSubscriptionStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null)
         {
             var persistentEventStoreStreamConfiguration = new PersistentSubscriptionStreamConfiguration(streamId, groupId);
@@ -129,6 +131,81 @@ namespace Anabasis.EventStore
             }
 
             if (!ConnectionStatusMonitor.IsConnected) throw new InvalidOperationException("Unable to connect");
+        }
+
+        public IDisposable SubscribeToManyStreams(string[] streamIds,
+            Action<IMessage> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null)
+        {
+            var subscribeToOneStreamEventStoreStreams = streamIds.Select(streamId =>
+            {
+                _logger?.LogDebug($"{BusId} => Subscribing to {streamId}");
+
+                var subscribeToOneStreamEventStoreStream = CreateSubscribeToOneStream(streamId, 0, eventTypeProvider, getSubscribeToOneOrManyStreamsConfiguration);
+
+                subscribeToOneStreamEventStoreStream.Connect();
+
+                var onEventReceivedDisposable = subscribeToOneStreamEventStoreStream.OnMessage().Subscribe(message =>
+                {
+                    onMessageReceived(message);
+                });
+
+                _cleanUp.Add(subscribeToOneStreamEventStoreStream);
+                _cleanUp.Add(onEventReceivedDisposable);
+
+                return new CompositeDisposable(onEventReceivedDisposable, subscribeToOneStreamEventStoreStream);
+
+            }).ToArray();
+
+            return new CompositeDisposable(subscribeToOneStreamEventStoreStreams);
+
+        }
+
+        private SubscribeToOneStreamEventStoreStream CreateSubscribeToOneStream(string streamId,
+            int streamPosition, 
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneStreamConfiguration = null)
+        {
+            var subscribeToOneStreamConfiguration = new SubscribeToOneStreamConfiguration(streamId, streamPosition);
+
+            getSubscribeToOneStreamConfiguration?.Invoke(subscribeToOneStreamConfiguration);
+
+            var subscribeToOneStreamEventStoreStream = new SubscribeToOneStreamEventStoreStream(
+                _connectionStatusMonitor,
+                subscribeToOneStreamConfiguration,
+                eventTypeProvider,
+                _loggerFactory);
+
+            return subscribeToOneStreamEventStoreStream;
+        }
+
+        public IDisposable SubscribeToOneStream(string streamId,
+            int streamPosition,
+            Action<IMessage> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneStreamConfiguration = null)
+        {
+
+            var subscribeToOneStreamConfiguration = new SubscribeToOneStreamConfiguration(streamId, streamPosition);
+
+            getSubscribeToOneStreamConfiguration?.Invoke(subscribeToOneStreamConfiguration);
+
+            var subscribeToOneStreamEventStoreStream = CreateSubscribeToOneStream(streamId, streamPosition, eventTypeProvider, getSubscribeToOneStreamConfiguration);
+
+            _logger?.LogDebug($"{BusId} => Subscribing to {subscribeToOneStreamEventStoreStream.Id}");
+
+            subscribeToOneStreamEventStoreStream.Connect();
+
+            var onEventReceivedDisposable = subscribeToOneStreamEventStoreStream.OnMessage().Subscribe(message =>
+            {
+                onMessageReceived(message);
+            });
+
+            _cleanUp.Add(subscribeToOneStreamEventStoreStream);
+            _cleanUp.Add(onEventReceivedDisposable);
+
+            return new CompositeDisposable(onEventReceivedDisposable, subscribeToOneStreamEventStoreStream);
         }
     }
 }

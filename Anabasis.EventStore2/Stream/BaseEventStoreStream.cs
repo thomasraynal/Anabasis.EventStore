@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using EventStore.ClientAPI;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -24,10 +25,10 @@ namespace Anabasis.EventStore.Stream
         public BaseEventStoreStream(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
           IEventStoreStreamConfiguration cacheConfiguration,
           IEventTypeProvider eventTypeProvider,
-          ILogger? logger = null)
+          ILoggerFactory? loggerFactory = null)
         {
 
-            Logger = logger;
+            Logger = loggerFactory?.CreateLogger(GetType());
 
             Id = $"{GetType()}-{Guid.NewGuid()}";
 

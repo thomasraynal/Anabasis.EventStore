@@ -22,7 +22,7 @@ namespace Anabasis.EventStore.Stream
           IEventTypeProvider eventTypeProvider,
           ILoggerFactory? loggerFactory = null,
           IKillSwitch? killSwitch = null)
-          : base(connectionMonitor, subscribeToAllStreamsConfiguration, eventTypeProvider, loggerFactory?.CreateLogger<SubscribeToAllEventStoreStream>())
+          : base(connectionMonitor, subscribeToAllStreamsConfiguration, eventTypeProvider, loggerFactory)
         {
             _subscribeToAllStreamsConfiguration = subscribeToAllStreamsConfiguration;
             _killSwitch = killSwitch ?? new KillSwitch();

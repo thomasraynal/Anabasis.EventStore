@@ -4,17 +4,17 @@ using EventStore.ClientAPI.SystemData;
 
 namespace Anabasis.EventStore.Stream
 {
-    public class SubscribeToOneOrManyStreamsConfiguration : IEventStoreStreamConfiguration
+    public class SubscribeToOneStreamConfiguration : IEventStoreStreamConfiguration
     {
-        public SubscribeToOneOrManyStreamsConfiguration(string[] streamIds, int eventStreamPosition = StreamPosition.Start, UserCredentials? userCredentials = null)
+        public SubscribeToOneStreamConfiguration(string streamId, int eventStreamPosition = StreamPosition.Start, UserCredentials? userCredentials = null)
         {
             UserCredentials = userCredentials;
-            StreamIds = streamIds;
+            StreamId = streamId;
             EventStreamPosition = eventStreamPosition;
         }
 
         public int EventStreamPosition { get; set; } 
-        public string[] StreamIds { get; set; }
+        public string StreamId { get; set; }
         public bool IgnoreUnknownEvent { get; set; } = false;
         public ISerializer Serializer { get; set; } = new DefaultSerializer();
         public UserCredentials? UserCredentials { get; set; }
