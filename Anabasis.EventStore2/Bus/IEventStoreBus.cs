@@ -24,7 +24,11 @@ namespace Anabasis.EventStore
             IEventTypeProvider eventTypeProvider,
             Action<Stream.SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null);
 
-        IDisposable SubscribeToOneStream(string streamId, int streamPosition, Action<IMessage> onMessageReceived, IEventTypeProvider eventTypeProvider, Action<Stream.SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null)
+        IDisposable SubscribeToOneStream(string streamId,
+            int streamPosition,
+            Action<IMessage> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<Stream.SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null);
 
     }
 }

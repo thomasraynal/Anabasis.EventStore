@@ -29,7 +29,7 @@ namespace Anabasis.EventStore
         {
             BusId = $"{nameof(EventStoreBus)}_{Guid.NewGuid()}";
 
-            ConnectionStatusMonitor = connectionStatusMonitor;
+            ConnectionStatusMonitor = _connectionStatusMonitor = connectionStatusMonitor;
 
             _eventStoreRepository = eventStoreRepository;
             _cleanUp = new CompositeDisposable();
@@ -142,7 +142,7 @@ namespace Anabasis.EventStore
             {
                 _logger?.LogDebug($"{BusId} => Subscribing to {streamId}");
 
-                var subscribeToOneStreamEventStoreStream = CreateSubscribeToOneStream(streamId, 0, eventTypeProvider, getSubscribeToOneOrManyStreamsConfiguration);
+                var subscribeToOneStreamEventStoreStream = CreateSubscribeToOneStream(streamId, null, eventTypeProvider, getSubscribeToOneOrManyStreamsConfiguration);
 
                 subscribeToOneStreamEventStoreStream.Connect();
 
@@ -163,7 +163,7 @@ namespace Anabasis.EventStore
         }
 
         private SubscribeToOneStreamEventStoreStream CreateSubscribeToOneStream(string streamId,
-            int streamPosition, 
+            long? streamPosition, 
             IEventTypeProvider eventTypeProvider,
             Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneStreamConfiguration = null)
         {

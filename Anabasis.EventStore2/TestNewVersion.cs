@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
@@ -252,6 +253,53 @@ namespace Anabasis.EventStore2
         [Test, Order(3)]
         public async Task ShouldCreateAndUseABus()
         {
+            var embeddedEventStoreConnection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
+            var actorConfiguration = new ActorConfiguration();
+            var eventStoreConnectionStatusMonitor = new EventStoreConnectionStatusMonitor(embeddedEventStoreConnection, _loggerFactory);
+            var dummyLoggerFactory = new DummyLoggerFactory();
+
+            var defaultEventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() =>
+            {
+                return new[] { typeof(SomeDataAggregatedEvent) };
+            });
+
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
+
+            var eventStoreRepository = new EventStoreRepository(
+                eventStoreRepositoryConfiguration,
+                embeddedEventStoreConnection,
+                eventStoreConnectionStatusMonitor,
+                dummyLoggerFactory);
+
+            var eventStoreBus = new EventStoreBus(eventStoreConnectionStatusMonitor, eventStoreRepository);
+
+            await eventStoreBus.WaitUntilConnected();
+
+            var eventList = new List<IMessage>();
+
+            var subscription = eventStoreBus.SubscribeToManyStreams(new[] { "stream1", "stream2" }, (message) =>
+            {
+                eventList.Add(message);
+
+            }, defaultEventTypeProvider);
+
+            await Task.Delay(1000);
+
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream", Guid.NewGuid()));
+
+            await Task.Delay(1000);
+
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream1", Guid.NewGuid()));
+
+            await Task.Delay(1000);
+
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream2", Guid.NewGuid()));
+
+            await Task.Delay(1000);
+
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream2", Guid.NewGuid()));
+
+            await Task.Delay(1000);
 
         }
 

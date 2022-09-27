@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Stream
           IKillSwitch? killSwitch = null) : base(connectionMonitor,
               persistentEventStoreStreamConfiguration,
               eventTypeProvider,
-              loggerFactory?.CreateLogger<PersistentSubscriptionEventStoreStream>())
+              loggerFactory)
         {
             _persistentEventStoreStreamConfiguration = persistentEventStoreStreamConfiguration;
             _killSwitch = killSwitch?? new KillSwitch();

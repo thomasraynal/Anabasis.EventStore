@@ -22,7 +22,7 @@ namespace Anabasis.Common
         private IActorConfiguration _actorConfiguration;
         private IDispatchQueue _dispatchQueue;
 
-        protected ManualResetEventSlim _caughtingUpEvent = new ManualResetEventSlim(true);
+        protected ManualResetEventSlim _caughtingUpEvent = new(true);
         public string Id { get; private set; }
         public ILogger? Logger { get; private set; }
 
@@ -51,7 +51,7 @@ namespace Anabasis.Common
             _actorConfiguration = actorConfiguration;
 
             var dispachQueueConfiguration = new DispatchQueueConfiguration(
-                OnEventReceivedInternal,
+                OnEventConsumed,
                 _actorConfiguration.ActorMailBoxMessageBatchSize,
                 _actorConfiguration.ActorMailBoxMessageMessageQueueMaxSize,
                _actorConfiguration.CrashAppOnError
@@ -88,7 +88,8 @@ namespace Anabasis.Common
             return Task.CompletedTask;
         }
 
-        private async Task OnEventReceivedInternal(IEvent @event)
+
+        protected virtual async Task OnEventConsumed(IEvent @event)
         {
             try
             {
@@ -99,7 +100,7 @@ namespace Anabasis.Common
 
                 if (null != candidateHandler)
                 {
-                    await ((Task)candidateHandler.Invoke(this, new object[] { @event }));
+                    await (Task)candidateHandler.Invoke(this, new object[] { @event });
                 }
 
             }
@@ -126,7 +127,7 @@ namespace Anabasis.Common
             _dispatchQueue.Enqueue(@event);
         }
 
-        public override bool Equals(object obj)
+        public override bool Equals(object? obj)
         {
             return obj is BaseStatelessActor actor &&
                    Id == actor.Id;

@@ -10,5 +10,7 @@ namespace Anabasis.Common
         string Name { get; }
         bool IsCommand { get; }
         DateTime Timestamp { get; }
+        bool IsAggregateEvent { get; }
+
     }
 }

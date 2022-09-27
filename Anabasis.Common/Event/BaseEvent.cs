@@ -23,6 +23,8 @@ namespace Anabasis.Common
         }
 
         [JsonProperty]
+        public bool IsAggregateEvent { get; internal set; }
+        [JsonProperty]
         public Guid EventId { get; internal set; }
         [JsonProperty]
         public Guid CorrelationId { get; internal set; }

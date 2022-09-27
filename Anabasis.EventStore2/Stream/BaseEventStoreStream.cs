@@ -94,7 +94,16 @@ namespace Anabasis.EventStore.Stream
 
             var targetType = _eventTypeProvider.GetEventTypeByName(recordedEvent.EventType);
 
-            return _eventStoreStreamConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
+            var @event = _eventStoreStreamConfiguration.Serializer.DeserializeObject(recordedEvent.Data, targetType) as IEvent;
+
+            if (targetType.IsAssignableTo(typeof(IAggregateEvent)))
+            {
+                var aggregatedEvent = @event as IAggregateEvent;
+
+                aggregatedEvent.EventNumber = recordedEvent.EventNumber;
+            }
+
+            return @event;
 
 #nullable enable
         }
