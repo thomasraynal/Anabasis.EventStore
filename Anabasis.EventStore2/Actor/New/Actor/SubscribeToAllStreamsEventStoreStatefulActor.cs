@@ -7,7 +7,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class SubscribeToAllStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate> where TAggregate : class, IAggregate, new()
+    public class SubscribeToAllStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor2<TAggregate> where TAggregate : class, IAggregate, new()
     {
 
         private readonly AllStreamsCatchupCacheConfiguration<TAggregate> _catchupCacheConfiguration;

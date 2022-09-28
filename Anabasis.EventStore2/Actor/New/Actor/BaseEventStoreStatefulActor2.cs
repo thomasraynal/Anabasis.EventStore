@@ -10,14 +10,17 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseEventStoreStatefulActor<TAggregate> : BaseStatelessActor2, IStatefulActor2<TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class BaseEventStoreStatefulActor2<TAggregate,TAggregateCacheConfiguration> : BaseStatelessActor2, IStatefulActor2<TAggregate> 
+        where TAggregate : class, IAggregate, new()
+        where TAggregateCacheConfiguration: IAggregateCacheConfiguration<TAggregate>
     {
 
-        private readonly object _catchUpSyncLock = new();
+        private readonly ManualResetEventSlim _manualResetEventSlim = new();
 
         private CatchupCacheSubscriptionHolder<TAggregate>[]? _catchupCacheSubscriptionHolders;
 
@@ -48,10 +51,10 @@ namespace Anabasis.EventStore.Cache
             return _catchupCacheSubscriptionHolders.ToArray();
         }
 
-        public BaseEventStoreStatefulActor(
+        public BaseEventStoreStatefulActor2(
            IActorConfiguration actorConfiguration,
            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-           IAggregateCacheConfiguration<TAggregate> catchupCacheConfiguration,
+           TAggregateCacheConfiguration catchupCacheConfiguration,
            IEventTypeProvider<TAggregate> eventTypeProvider,
            ILoggerFactory? loggerFactory = null,
            ISnapshotStore<TAggregate>? snapshotStore = null,
@@ -100,40 +103,36 @@ namespace Anabasis.EventStore.Cache
                 var subscription = catchupCacheSubscriptionHolder.OnCaughtUp.Subscribe(hasStreamSubscriptionCaughtUp =>
                 {
 
-                    lock (_catchUpSyncLock)
+                    if (hasStreamSubscriptionCaughtUp && !IsCaughtUp)
                     {
-
-                        if (hasStreamSubscriptionCaughtUp && !IsCaughtUp)
+                        if (_catchupCacheSubscriptionHolders.All(holder => holder.IsCaughtUp))
                         {
-                            if (_catchupCacheSubscriptionHolders.All(holder => holder.IsCaughtUp))
+
+                            Logger?.LogInformation($"{Id} => OnCaughtUp - IsCaughtUp: {IsCaughtUp}");
+
+                            if (!IsCaughtUp)
                             {
 
-                                Logger?.LogInformation($"{Id} => OnCaughtUp - IsCaughtUp: {IsCaughtUp}");
-
-                                if (!IsCaughtUp)
+                                _cache.Edit(innerCache =>
                                 {
+                                    Logger?.LogInformation($"{Id} => OnCaughtUp - switch from CaughtingUpCache");
 
-                                    _cache.Edit(innerCache =>
-                                    {
-                                        Logger?.LogInformation($"{Id} => OnCaughtUp - switch from CaughtingUpCache");
+                                    innerCache.Load(_caughtingUpCache.Items);
 
-                                        innerCache.Load(_caughtingUpCache.Items);
+                                    _caughtingUpCache.Clear();
 
-                                        _caughtingUpCache.Clear();
+                                });
 
-                                    });
+                                _isCaughtUpSubject.OnNext(true);
 
-                                    _isCaughtUpSubject.OnNext(true);
-
-                                }
-
-                                Logger?.LogInformation($"{Id} => OnCaughtUp - IsCaughtUp: {IsCaughtUp}");
                             }
+
+                            Logger?.LogInformation($"{Id} => OnCaughtUp - IsCaughtUp: {IsCaughtUp}");
                         }
-                        else if (!hasStreamSubscriptionCaughtUp && IsCaughtUp)
-                        {
-                            _isCaughtUpSubject.OnNext(false);
-                        }
+                    }
+                    else if (!hasStreamSubscriptionCaughtUp && IsCaughtUp)
+                    {
+                        _isCaughtUpSubject.OnNext(false);
                     }
 
                 });
@@ -157,6 +156,23 @@ namespace Anabasis.EventStore.Cache
             });
 
             AddToCleanup(isStaleSubscription);
+
+            var caughtUpSignalDisposable = OnCaughtUp.Subscribe(isCaughtUp =>
+            {
+                if (isCaughtUp == false)
+                {
+                    _caughtingUpEvent.Reset();
+                }
+                else if (isCaughtUp == true)
+                {
+                    _caughtingUpEvent.Set();
+                }
+
+            });
+
+            AddToCleanup(caughtUpSignalDisposable);
+
+            _manualResetEventSlim.Set();
         }
 
         protected async override Task OnEventConsumed(IEvent @event)
@@ -290,52 +306,48 @@ namespace Anabasis.EventStore.Cache
                 catchupCacheSubscriptionHolder.EventStoreCatchUpSubscription = GetEventStoreCatchUpSubscription(catchupCacheSubscriptionHolder, connection, onEvent, onSubscriptionDropped);
             }
 
-            Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent resolvedEvent)
+            async Task onEvent(EventStoreCatchUpSubscription _, ResolvedEvent resolvedEvent)
             {
-                //change to signaling
-                lock (_catchUpSyncLock)
+
+                _manualResetEventSlim.Wait();
+
+                Logger?.LogDebug($"{Id} => OnEvent {resolvedEvent.Event.EventType} - v.{resolvedEvent.Event.EventNumber}");
+
+                var recordedEvent = resolvedEvent.Event;
+
+                var @event = DeserializeEvent(recordedEvent);
+
+                if (null == @event)
                 {
-
-                    Logger?.LogDebug($"{Id} => OnEvent {resolvedEvent.Event.EventType} - v.{resolvedEvent.Event.EventNumber}");
-
-                    var recordedEvent = resolvedEvent.Event;
-
-                    var @event = DeserializeEvent(recordedEvent);
-
-                    if (null == @event)
-                    {
-                        throw new EventNotSupportedException(recordedEvent);
-                    }
-
-                    await OnEventConsumed(@event);
-
-                    if (IsStale) _isStaleSubject.OnNext(false);
-
-                    catchupCacheSubscriptionHolder.LastProcessedEventSequenceNumber = resolvedEvent.Event.EventNumber;
-                    catchupCacheSubscriptionHolder.LastProcessedEventUtcTimestamp = DateTime.UtcNow;
-
-                    if (IsCaughtUp && UseSnapshot)
-                    {
-                        foreach (var aggregate in _cache.Items)
-                        {
-#nullable disable
-                            if (_snapshotStrategy.IsSnapshotRequired(aggregate))
-                            {
-                                Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
-
-                                var eventFilter = GetEventsFilters();
-
-                                aggregate.VersionFromSnapshot = aggregate.Version;
-
-                                _snapshotStore.Save(eventFilter, aggregate).Wait();
-
-                            }
-#nullable enable
-                        }
-                    }
+                    throw new EventNotSupportedException(recordedEvent);
                 }
 
-                return Task.CompletedTask;
+                await OnEventConsumed(@event);
+
+                if (IsStale) _isStaleSubject.OnNext(false);
+
+                catchupCacheSubscriptionHolder.LastProcessedEventSequenceNumber = resolvedEvent.Event.EventNumber;
+                catchupCacheSubscriptionHolder.LastProcessedEventUtcTimestamp = DateTime.UtcNow;
+
+                if (IsCaughtUp && UseSnapshot)
+                {
+                    foreach (var aggregate in _cache.Items)
+                    {
+#nullable disable
+                        if (_snapshotStrategy.IsSnapshotRequired(aggregate))
+                        {
+                            Logger?.LogInformation($"{Id} => Snapshoting aggregate => {aggregate.EntityId} {aggregate.GetType()} - v.{aggregate.Version}");
+
+                            var eventFilter = GetEventsFilters();
+
+                            aggregate.VersionFromSnapshot = aggregate.Version;
+
+                            _snapshotStore.Save(eventFilter, aggregate).Wait();
+
+                        }
+#nullable enable
+                    }
+                }
 
             }
 

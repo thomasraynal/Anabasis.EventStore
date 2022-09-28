@@ -8,9 +8,15 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseOneOrManyStreamEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class BaseOneOrManyStreamEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor2<TAggregate> where TAggregate : class, IAggregate, new()
     {
-        protected BaseOneOrManyStreamEventStoreStatefulActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, IEventTypeProvider<TAggregate> eventTypeProvider, ILoggerFactory? loggerFactory = null, ISnapshotStore<TAggregate>? snapshotStore = null, ISnapshotStrategy? snapshotStrategy = null)
+        protected BaseOneOrManyStreamEventStoreStatefulActor(IActorConfiguration actorConfiguration, 
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
+            MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
+            IEventTypeProvider<TAggregate> eventTypeProvider, 
+            ILoggerFactory? loggerFactory = null,
+            ISnapshotStore<TAggregate>? snapshotStore = null, 
+            ISnapshotStrategy? snapshotStrategy = null)
             : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
             var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, catchupCacheConfiguration.CrashAppIfSubscriptionFail)).ToArray();
@@ -27,6 +33,7 @@ namespace Anabasis.EventStore.Cache
         public async Task AddEventStoreStreams(params string[] streamIds)
         {
             var multipleStreamsCatchupCacheConfiguration = _catchupCacheConfiguration as MultipleStreamsCatchupCacheConfiguration<TAggregate>;
+
             var newStreams = multipleStreamsCatchupCacheConfiguration.StreamIds.Concat(streamIds).Distinct().ToArray();
 
             multipleStreamsCatchupCacheConfiguration.StreamIds = newStreams;

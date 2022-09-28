@@ -248,6 +248,19 @@ namespace Anabasis.EventStore2
             await testSomeDataAggregateActor.AddEventStoreStreams("stream");
 
             await Task.Delay(1000);
+
+            var testSomeDataAggregateActor2 = new TestSomeDataSubscribeToManyAggregateActor(
+                    actorConfiguration,
+                    eventStoreConnectionStatusMonitor,
+                    multipleStreamsCatchupCacheConfiguration,
+                    defaultEventTypeProvider,
+                    dummyLoggerFactory
+                    );
+
+            await testSomeDataAggregateActor2.ConnectToEventStream();
+
+            await Task.Delay(1000);
+
         }
 
         [Test, Order(3)]
