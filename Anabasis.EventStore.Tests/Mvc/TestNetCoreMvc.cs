@@ -7,7 +7,6 @@ using System;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.AspNetCore.Builder;
 using System.Collections.Generic;
-using Anabasis.EventStore.Actor;
 using Microsoft.Extensions.Hosting;
 using Anabasis.Common;
 using Anabasis.Common.Configuration;
@@ -17,6 +16,7 @@ using Anabasis.EventStore.AspNet.Embedded;
 using Anabasis.EventStore.AspNet;
 using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Snapshot;
+using Anabasis.EventStore.Cache;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -59,7 +59,7 @@ namespace Anabasis.EventStore.Tests
 
     }
 
-    public class TestStatefulActorOneMvc : BaseEventStoreStatefulActor<SomeDataAggregate>
+    public class TestStatefulActorOneMvc : BaseOneOrManyStreamEventStoreStatefulActor<SomeDataAggregate>
     {
         public TestStatefulActorOneMvc(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
         {

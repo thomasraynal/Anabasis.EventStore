@@ -1,6 +1,5 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
-using Anabasis.EventStore.Actor;
 using System;
 
 namespace Anabasis.EventStore.Factories

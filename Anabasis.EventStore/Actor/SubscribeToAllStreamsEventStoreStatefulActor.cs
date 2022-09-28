@@ -7,25 +7,20 @@ using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class SubscribeToAllStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor2<TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class SubscribeToAllStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate, AllStreamsCatchupCacheConfiguration<TAggregate>> where TAggregate : class, IAggregate, new()
     {
-
-        private readonly AllStreamsCatchupCacheConfiguration<TAggregate> _catchupCacheConfiguration;
 
         public SubscribeToAllStreamsEventStoreStatefulActor(
             IActorConfiguration actorConfiguration,
-            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
-            AllStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
-            IEventTypeProvider<TAggregate> eventTypeProvider, 
-            ILoggerFactory loggerFactory, 
-            ISnapshotStore<TAggregate>? snapshotStore = null, 
-            ISnapshotStrategy? snapshotStrategy = null) 
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
+            AllStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration,
+            IEventTypeProvider<TAggregate> eventTypeProvider,
+            ILoggerFactory loggerFactory,
+            ISnapshotStore<TAggregate>? snapshotStore = null,
+            ISnapshotStrategy? snapshotStrategy = null)
             : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
-            _catchupCacheConfiguration = catchupCacheConfiguration;
-
             Initialize();
-
         }
 
         protected override EventStoreCatchUpSubscription GetEventStoreCatchUpSubscription(
@@ -46,13 +41,13 @@ namespace Anabasis.EventStore.Cache
             Logger?.LogInformation($"{Id} => {nameof(SubscribeToAllStreamsEventStoreStatefulActor<TAggregate>)} - {nameof(GetEventStoreCatchUpSubscription)} - FilteredSubscribeToAllFrom - Filters [{string.Join("|", eventTypeFilter)}]");
 
             var subscription = connection.FilteredSubscribeToAllFrom(
-             _catchupCacheConfiguration.Checkpoint,
+             AggregateCacheConfiguration.Checkpoint,
              filter,
-             _catchupCacheConfiguration.CatchUpSubscriptionFilteredSettings,
+             AggregateCacheConfiguration.CatchUpSubscriptionFilteredSettings,
              eventAppeared: onEvent,
              liveProcessingStarted: onCaughtUp,
              subscriptionDropped: onSubscriptionDropped,
-             userCredentials: _catchupCacheConfiguration.UserCredentials);
+             userCredentials: AggregateCacheConfiguration.UserCredentials);
 
             return subscription;
         }

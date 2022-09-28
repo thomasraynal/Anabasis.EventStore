@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.Cache
 {
 
-    public class SubscribeToManyStreamsEventStoreStatefulActor<TAggregate> : BaseOneOrManyStreamEventStoreStatefulActor<TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class SubscribeToManyStreamsEventStoreStatefulActor<TAggregate> : BaseOneOrManyStreamEventStoreStatefulActor<TAggregate> where TAggregate : class, IAggregate, new()
     {
         private readonly MultipleStreamsCatchupCacheConfiguration<TAggregate> _multipleStreamsCatchupCacheConfiguration;
 

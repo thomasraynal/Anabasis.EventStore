@@ -41,5 +41,7 @@ namespace Anabasis.RabbitMQ.Event
         public Guid MessageId { get; }
 
         public Guid? CauseId { get; }
+
+        public bool IsAggregateEvent => false;
     }
 }

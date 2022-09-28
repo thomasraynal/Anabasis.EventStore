@@ -7,9 +7,8 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Reactive.Disposables;
-using System.Runtime.ExceptionServices;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -17,7 +16,7 @@ namespace Anabasis.EventStore
 {
     public class EventStoreBus : IEventStoreBus
     {
-        private readonly Dictionary<Guid, TaskCompletionSource<ICommandResponse>> _pendingCommands;
+
         private readonly ILoggerFactory? _loggerFactory;
         private readonly Microsoft.Extensions.Logging.ILogger? _logger;
         private readonly IEventStoreRepository _eventStoreRepository;
@@ -30,34 +29,19 @@ namespace Anabasis.EventStore
         {
             BusId = $"{nameof(EventStoreBus)}_{Guid.NewGuid()}";
 
-            _connectionStatusMonitor = connectionStatusMonitor;
+            ConnectionStatusMonitor = _connectionStatusMonitor = connectionStatusMonitor;
+
             _eventStoreRepository = eventStoreRepository;
             _cleanUp = new CompositeDisposable();
-            _pendingCommands = new Dictionary<Guid, TaskCompletionSource<ICommandResponse>>();
             _loggerFactory = loggerFactory;
             _logger = loggerFactory?.CreateLogger(typeof(EventStoreBus));
         }
 
         public string BusId { get; }
 
-        public bool IsInitialized => true;
+        public IConnectionStatusMonitor ConnectionStatusMonitor { get; }
 
-        public IConnectionStatusMonitor ConnectionStatusMonitor => _connectionStatusMonitor;
-
-        public async Task WaitUntilConnected(TimeSpan? timeout = null)
-        {
-            if (ConnectionStatusMonitor.IsConnected) return;
-
-            var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
-
-            while (!ConnectionStatusMonitor.IsConnected && DateTime.UtcNow > waitUntilMax)
-            {
-                await Task.Delay(100);
-            }
-
-            if (!ConnectionStatusMonitor.IsConnected) throw new InvalidOperationException("Unable to connect");
-        }
-
+        //use this as hc => https://developers.eventstore.com/server/v20.10/diagnostics.html#statistics
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
             var isConnected = ConnectionStatusMonitor.IsConnected;
@@ -80,61 +64,13 @@ namespace Anabasis.EventStore
             return Task.FromResult(healthCheckResult);
         }
 
-        public Task Initialize()
+        public void Dispose()
         {
-            return Task.CompletedTask;
-        }
-
-        public void SubscribeToEventStream(IEventStoreStream eventStoreStream, Action<IMessage, TimeSpan?> onMessageReceived, bool closeSubscriptionOnDispose = false)
-        {
-            eventStoreStream.Connect();
-
-            _logger?.LogDebug($"{BusId} => Subscribing to {eventStoreStream.Id}");
-
-            var onEventReceivedDisposable = eventStoreStream.OnMessage().Subscribe(message =>
-            {
-
-                if (message.Content is ICommandResponse)
-                {
-
-
-#nullable disable
-
-                    var commandResponse = message.Content as ICommandResponse;
-
-                    if (_pendingCommands.ContainsKey(commandResponse.CommandId))
-                    {
-
-                        var task = _pendingCommands[commandResponse.CommandId];
-
-                        if (!task.Task.IsCompleted)
-                        {
-                            task.SetResult(commandResponse);
-                        }
-
-                        _pendingCommands.Remove(commandResponse.EventId, out _);
-                    }
-
-#nullable enable
-
-                }
-                else
-                {
-                    onMessageReceived(message, null);
-                }
-            });
-
-            if (closeSubscriptionOnDispose)
-            {
-                _cleanUp.Add(eventStoreStream);
-            }
-
-            _cleanUp.Add(onEventReceivedDisposable);
+            _cleanUp.Dispose();
         }
 
         public async Task EmitEventStore<TEvent>(TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
         {
-
             if (!_eventStoreRepository.IsConnected)
             {
                 await WaitUntilConnected(timeout);
@@ -145,126 +81,131 @@ namespace Anabasis.EventStore
             await _eventStoreRepository.Emit(@event, extraHeaders);
         }
 
-        public async Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
-        {
-            _logger?.LogDebug($"{BusId} => Sending command {command.EntityId} - {command.GetType()}");
-
-            var taskSource = new TaskCompletionSource<ICommandResponse>();
-
-            var cancellationTokenSource = null != timeout ? new CancellationTokenSource(timeout.Value) : new CancellationTokenSource();
-
-            cancellationTokenSource.Token.Register(() => taskSource.TrySetCanceled(), false);
-
-            _pendingCommands[command.EventId] = taskSource;
-
-            await _eventStoreRepository.Emit(command);
-
-            return await taskSource.Task.ContinueWith(task =>
-            {
-                if (task.IsCompletedSuccessfully) return (TCommandResult)task.Result;
-                if (task.IsCanceled) throw new TimeoutException($"Command {command.EntityId} timeout");
-                if (task.IsFaulted && null != task.Exception) ExceptionDispatchInfo.Capture(task.Exception).Throw();
-
-                throw new Exception($"Unable to process CommandResponse - Status => {task.Status}");
-
-            }, cancellationTokenSource.Token);
-
-        }
-
-        public SubscribeFromEndToAllEventStoreStream SubscribeFromEndToAllStreams(
-            Action<IMessage, TimeSpan?> onMessageReceived, 
-            IEventTypeProvider eventTypeProvider,
-            Action<SubscribeFromEndEventStoreStreamConfiguration>? getSubscribeFromEndEventStoreStreamConfiguration = null)
-        {
-
-            var subscribeFromEndEventStoreStreamConfiguration = new SubscribeFromEndEventStoreStreamConfiguration();
-
-            getSubscribeFromEndEventStoreStreamConfiguration?.Invoke(subscribeFromEndEventStoreStreamConfiguration);
-
-            var subscribeFromEndEventStoreStream = new SubscribeFromEndToAllEventStoreStream(
-              _connectionStatusMonitor,
-              subscribeFromEndEventStoreStreamConfiguration,
-              eventTypeProvider, _loggerFactory);
-
-            SubscribeToEventStream(subscribeFromEndEventStoreStream, onMessageReceived, true);
-
-            return subscribeFromEndEventStoreStream;
-        }
-
-        public PersistentSubscriptionEventStoreStream SubscribeToPersistentSubscriptionStream(
-            string streamId,
+        public IDisposable SubscribeToPersistentSubscriptionStream(string streamId,
             string groupId,
-            Action<IMessage, TimeSpan?> onMessageReceived,
+            Action<IMessage> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<PersistentSubscriptionEventStoreStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null)
+            Action<PersistentSubscriptionStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null)
         {
-
-            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId);
+            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionStreamConfiguration(streamId, groupId);
 
             getPersistentSubscriptionEventStoreStreamConfiguration?.Invoke(persistentEventStoreStreamConfiguration);
 
             var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
-              _connectionStatusMonitor,
-              persistentEventStoreStreamConfiguration,
-              eventTypeProvider,
-              _loggerFactory);
+                  _connectionStatusMonitor,
+                  persistentEventStoreStreamConfiguration,
+                  eventTypeProvider,
+                  _loggerFactory);
 
-            SubscribeToEventStream(persistentSubscriptionEventStoreStream, onMessageReceived, true);
 
-            return persistentSubscriptionEventStoreStream;
+            return SubscribeToEventStream(persistentSubscriptionEventStoreStream, onMessageReceived);
+
         }
 
-        public SubscribeFromStartOrLaterToOneStreamEventStoreStream SubscribeFromStartToOneStream(
-            string streamId,
-            Action<IMessage, TimeSpan?> onMessageReceived,
+        private IDisposable SubscribeToEventStream(IEventStoreStream eventStoreStream, Action<IMessage> onMessageReceived)
+        {
+            eventStoreStream.Connect();
+
+            _logger?.LogDebug($"{BusId} => Subscribing to {eventStoreStream.Id}");
+
+            var onEventReceivedDisposable = eventStoreStream.OnMessage().Subscribe(message =>
+            {
+                onMessageReceived(message);
+            });
+
+            _cleanUp.Add(eventStoreStream);
+            _cleanUp.Add(onEventReceivedDisposable);
+
+            return new CompositeDisposable(onEventReceivedDisposable, eventStoreStream);
+        }
+
+        public async Task WaitUntilConnected(TimeSpan? timeout = null)
+        {
+            if (ConnectionStatusMonitor.IsConnected) return;
+
+            var waitUntilMax = DateTime.UtcNow.Add(null == timeout ? Timeout.InfiniteTimeSpan : timeout.Value);
+
+            while (!ConnectionStatusMonitor.IsConnected && DateTime.UtcNow > waitUntilMax)
+            {
+                await Task.Delay(100);
+            }
+
+            if (!ConnectionStatusMonitor.IsConnected) throw new InvalidOperationException("Unable to connect");
+        }
+
+        public IDisposable SubscribeToManyStreams(string[] streamIds,
+            Action<IMessage> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null)
+            Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null)
         {
+            var subscribeToOneStreamEventStoreStreams = streamIds.Select(streamId =>
+            {
+                _logger?.LogDebug($"{BusId} => Subscribing to {streamId}");
 
-            var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
+                var subscribeToOneStreamEventStoreStream = CreateSubscribeToOneStream(streamId, null, eventTypeProvider, getSubscribeToOneOrManyStreamsConfiguration);
 
-            getSubscribeFromEndToOneStreamEventStoreStreamConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreStreamConfiguration);
+                subscribeToOneStreamEventStoreStream.Connect();
 
-            var subscribeFromEndToOneStreamEventStoreStream = new SubscribeFromStartOrLaterToOneStreamEventStoreStream(
-              _connectionStatusMonitor,
-              subscribeFromEndToOneStreamEventStoreStreamConfiguration,
-              eventTypeProvider, _loggerFactory);
+                var onEventReceivedDisposable = subscribeToOneStreamEventStoreStream.OnMessage().Subscribe(message =>
+                {
+                    onMessageReceived(message);
+                });
 
+                _cleanUp.Add(subscribeToOneStreamEventStoreStream);
+                _cleanUp.Add(onEventReceivedDisposable);
 
-            SubscribeToEventStream(subscribeFromEndToOneStreamEventStoreStream, onMessageReceived, true);
+                return new CompositeDisposable(onEventReceivedDisposable, subscribeToOneStreamEventStoreStream);
 
-            return subscribeFromEndToOneStreamEventStoreStream;
+            }).ToArray();
+
+            return new CompositeDisposable(subscribeToOneStreamEventStoreStreams);
 
         }
 
-        public SubscribeFromEndToOneStreamEventStoreStream SubscribeFromEndToOneStream(
-            string streamId,
-            Action<IMessage, TimeSpan?> onMessageReceived,
+        private SubscribeToOneStreamEventStoreStream CreateSubscribeToOneStream(string streamId,
+            long? streamPosition, 
             IEventTypeProvider eventTypeProvider,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null)
+            Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneStreamConfiguration = null)
         {
+            var subscribeToOneStreamConfiguration = new SubscribeToOneStreamConfiguration(streamId, streamPosition);
 
-            var subscribeFromEndToOneStreamEventStoreStreamConfiguration = new SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration(streamId);
+            getSubscribeToOneStreamConfiguration?.Invoke(subscribeToOneStreamConfiguration);
 
-            getSubscribeFromEndToOneStreamEventStoreStreamConfiguration?.Invoke(subscribeFromEndToOneStreamEventStoreStreamConfiguration);
+            var subscribeToOneStreamEventStoreStream = new SubscribeToOneStreamEventStoreStream(
+                _connectionStatusMonitor,
+                subscribeToOneStreamConfiguration,
+                eventTypeProvider,
+                _loggerFactory);
 
-            var subscribeFromEndToOneStreamEventStoreStream = new SubscribeFromEndToOneStreamEventStoreStream(
-              _connectionStatusMonitor,
-              subscribeFromEndToOneStreamEventStoreStreamConfiguration,
-              eventTypeProvider, _loggerFactory);
-
-
-            SubscribeToEventStream(subscribeFromEndToOneStreamEventStoreStream, onMessageReceived, true);
-
-            return subscribeFromEndToOneStreamEventStoreStream;
-
+            return subscribeToOneStreamEventStoreStream;
         }
 
-        public void Dispose()
+        public IDisposable SubscribeToOneStream(string streamId,
+            int streamPosition,
+            Action<IMessage> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneStreamConfiguration = null)
         {
-            _cleanUp.Dispose();
+
+            var subscribeToOneStreamConfiguration = new SubscribeToOneStreamConfiguration(streamId, streamPosition);
+
+            getSubscribeToOneStreamConfiguration?.Invoke(subscribeToOneStreamConfiguration);
+
+            var subscribeToOneStreamEventStoreStream = CreateSubscribeToOneStream(streamId, streamPosition, eventTypeProvider, getSubscribeToOneStreamConfiguration);
+
+            _logger?.LogDebug($"{BusId} => Subscribing to {subscribeToOneStreamEventStoreStream.Id}");
+
+            subscribeToOneStreamEventStoreStream.Connect();
+
+            var onEventReceivedDisposable = subscribeToOneStreamEventStoreStream.OnMessage().Subscribe(message =>
+            {
+                onMessageReceived(message);
+            });
+
+            _cleanUp.Add(subscribeToOneStreamEventStoreStream);
+            _cleanUp.Add(onEventReceivedDisposable);
+
+            return new CompositeDisposable(onEventReceivedDisposable, subscribeToOneStreamEventStoreStream);
         }
-
-
     }
 }

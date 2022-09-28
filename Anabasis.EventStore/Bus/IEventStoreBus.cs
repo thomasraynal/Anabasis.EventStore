@@ -1,40 +1,34 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Stream;
+using Anabasis.EventStore2.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore
 {
-    public interface IEventStoreBus: IBus
+    public interface IEventStoreBus : IBus
     {
         Task EmitEventStore<TEvent>(TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent;
-        Task<TCommandResult> SendEventStore<TCommandResult>(ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse;
-        void SubscribeToEventStream(IEventStoreStream eventStoreStream, Action<IMessage,TimeSpan?> onMessageReceived, bool closeSubscriptionOnDispose = false);
 
-        SubscribeFromStartOrLaterToOneStreamEventStoreStream SubscribeFromStartToOneStream(
-            string streamId,
-            Action<IMessage, TimeSpan?> onMessageReceived,
-            IEventTypeProvider eventTypeProvider,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
-
-        SubscribeFromEndToOneStreamEventStoreStream SubscribeFromEndToOneStream(
-            string streamId,
-            Action<IMessage, TimeSpan?> onMessageReceived,
-            IEventTypeProvider eventTypeProvider,
-            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? getSubscribeFromEndToOneStreamEventStoreStreamConfiguration = null);
-
-        SubscribeFromEndToAllEventStoreStream SubscribeFromEndToAllStreams(
-            Action<IMessage, TimeSpan?> onMessageReceived,
-            IEventTypeProvider eventTypeProvider,
-            Action<SubscribeFromEndEventStoreStreamConfiguration>? getSubscribeFromEndEventStoreStreamConfiguration = null);
-
-        PersistentSubscriptionEventStoreStream SubscribeToPersistentSubscriptionStream(
+        IDisposable SubscribeToPersistentSubscriptionStream(
             string streamId,
             string groupId,
-            Action<IMessage, TimeSpan?> onMessageReceived,
+            Action<IMessage> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<PersistentSubscriptionEventStoreStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null);
+            Action<PersistentSubscriptionStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null);
+
+        IDisposable SubscribeToManyStreams(
+            string[] streamIds,
+            Action<IMessage> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<Stream.SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null);
+
+        IDisposable SubscribeToOneStream(string streamId,
+            int streamPosition,
+            Action<IMessage> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<Stream.SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null);
 
     }
 }
