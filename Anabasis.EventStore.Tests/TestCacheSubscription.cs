@@ -37,7 +37,7 @@ namespace Anabasis.EventStore.Tests
         private ILoggerFactory _loggerFactory;
 
         private (EventStoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cacheOne;
-        private (EventStoreConnectionStatusMonitor connectionStatusMonitor,AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cacheTwo;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) _cacheTwo;
         private (EventStoreConnectionStatusMonitor connectionStatusMonitor, IEventStoreAggregateRepository eventStoreRepository) _repositoryOne;
 
         private Guid _firstAggregateId;
@@ -89,7 +89,7 @@ namespace Anabasis.EventStore.Tests
             return (connectionMonitor, eventStoreRepository);
         }
 
-        private (EventStoreConnectionStatusMonitor connectionStatusMonitor,AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, AllStreamsCatchupCache<SomeDataAggregate> catchupEventStoreCache, ObservableCollectionExtended<SomeDataAggregate> someDataAggregates) CreateCatchupEventStoreCache()
         {
             var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
@@ -105,7 +105,7 @@ namespace Anabasis.EventStore.Tests
             var catchUpCache = new AllStreamsCatchupCache<SomeDataAggregate>(
               connectionMonitor,
               cacheConfiguration,
-             new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }),
+             new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeDataAggregateEvent) }),
              _loggerFactory);
 
             catchUpCache.ConnectToEventStream().Wait();
@@ -140,7 +140,7 @@ namespace Anabasis.EventStore.Tests
 
             _firstAggregateId = Guid.NewGuid();
 
-            await _repositoryOne.eventStoreRepository.Emit(new SomeData($"{_firstAggregateId}", Guid.NewGuid()));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_firstAggregateId}", Guid.NewGuid()));
 
             await Task.Delay(100);
 
@@ -168,7 +168,7 @@ namespace Anabasis.EventStore.Tests
 
             Assert.AreEqual(1, eventCount);
 
-            await _repositoryOne.eventStoreRepository.Emit(new SomeData($"{_firstAggregateId}", Guid.NewGuid()));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_firstAggregateId}", Guid.NewGuid()));
 
             await Task.Delay(100);
 
@@ -239,7 +239,7 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(1, currentState.HitCount);
             Assert.AreEqual(2, currentState.EventCount);
 
-            await _repositoryOne.eventStoreRepository.Emit(new SomeData($"{_firstAggregateId}", Guid.NewGuid()));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_firstAggregateId}", Guid.NewGuid()));
 
             await Task.Delay(100);
 

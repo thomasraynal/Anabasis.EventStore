@@ -1,28 +1,47 @@
-﻿using Anabasis.Common;
+using Anabasis.Common;
+using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-
-    public abstract class SubscribeToManyStreamsEventStoreStatefulActor<TAggregate> : BaseOneOrManyStreamEventStoreStatefulActor<TAggregate> where TAggregate : class, IAggregate, new()
+    public abstract class SubscribeToManyStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate, MultipleStreamsCatchupCacheConfiguration<TAggregate>> where TAggregate : class, IAggregate, new()
     {
-        private readonly MultipleStreamsCatchupCacheConfiguration<TAggregate> _multipleStreamsCatchupCacheConfiguration;
-
-        public SubscribeToManyStreamsEventStoreStatefulActor(
-            IActorConfiguration actorConfiguration,
-            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-            MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration,
-            IEventTypeProvider<TAggregate> eventTypeProvider,
+        protected SubscribeToManyStreamsEventStoreStatefulActor(IActorConfiguration actorConfiguration, 
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
+            MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
+            IEventTypeProvider<TAggregate> eventTypeProvider, 
             ILoggerFactory? loggerFactory = null,
-            ISnapshotStore<TAggregate>? snapshotStore = null,
-            ISnapshotStrategy? snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+            ISnapshotStore<TAggregate>? snapshotStore = null, 
+            ISnapshotStrategy? snapshotStrategy = null)
+            : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
-            _multipleStreamsCatchupCacheConfiguration = catchupCacheConfiguration;
+
+            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, catchupCacheConfiguration.CrashAppIfSubscriptionFail)).ToArray();
+
+            Initialize(catchupCacheSubscriptionHolders);
+
+        }
+
+        protected SubscribeToManyStreamsEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory,
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
+            MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
+            IEventTypeProvider<TAggregate> eventTypeProvider, 
+            ILoggerFactory? loggerFactory = null, 
+            ISnapshotStore<TAggregate>? snapshotStore = null, 
+            ISnapshotStrategy? snapshotStrategy = null, 
+            IKillSwitch? killSwitch = null) 
+            : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+        {
+            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, catchupCacheConfiguration.CrashAppIfSubscriptionFail)).ToArray();
+
+            Initialize(catchupCacheSubscriptionHolders);
         }
 
         protected override async Task OnLoadSnapshot(
@@ -79,13 +98,34 @@ namespace Anabasis.EventStore.Cache
             var subscription = connection.SubscribeToStreamFrom(
               catchupCacheSubscriptionHolder.StreamId,
               subscribeFromPosition,
-              _multipleStreamsCatchupCacheConfiguration.CatchUpSubscriptionFilteredSettings,
+              AggregateCacheConfiguration.CatchUpSubscriptionFilteredSettings,
               onEvent,
               onCaughtUp,
               onSubscriptionDropped,
-              userCredentials: _multipleStreamsCatchupCacheConfiguration.UserCredentials);
+              userCredentials: AggregateCacheConfiguration.UserCredentials);
 
             return subscription;
         }
+
+        public Task RemoveEventStoreStreams(params string[] streamIds)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task AddEventStoreStreams(params string[] streamIds)
+        {
+        
+            var newStreams = AggregateCacheConfiguration.StreamIds.Concat(streamIds).Distinct().ToArray();
+
+            AggregateCacheConfiguration.StreamIds = newStreams;
+
+            var catchupCacheSubscriptionHolders = AggregateCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, AggregateCacheConfiguration.CrashAppIfSubscriptionFail)).ToArray();
+
+            Initialize(catchupCacheSubscriptionHolders);
+
+            await ConnectToEventStream();
+
+        }
+
     }
 }

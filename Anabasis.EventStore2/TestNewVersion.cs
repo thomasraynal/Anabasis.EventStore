@@ -106,7 +106,11 @@ namespace Anabasis.EventStore2
         {
             var embeddedEventStoreConnection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
             var actorConfiguration = new ActorConfiguration();
-            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start);
+            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start)
+            {
+                KeepAppliedEventsOnAggregate = true
+            };
+
             var eventStoreConnectionStatusMonitor = new EventStoreConnectionStatusMonitor(embeddedEventStoreConnection, _loggerFactory);
             var dummyLoggerFactory = new DummyLoggerFactory();
 
@@ -139,6 +143,11 @@ namespace Anabasis.EventStore2
 
             await Task.Delay(1000);
 
+            var aggregate = testSomeDataAggregateActor.GetCurrent("stream");
+
+            Assert.NotNull(aggregate);
+            Assert.AreEqual(1, aggregate.AppliedEvents.Length);
+
         }
 
         [Test, Order(1)]
@@ -149,7 +158,10 @@ namespace Anabasis.EventStore2
 
             var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
                 "stream1", "stream2", "stream3"
-                );
+                )
+            {
+                KeepAppliedEventsOnAggregate = true,
+            };
 
             var eventStoreConnectionStatusMonitor = new EventStoreConnectionStatusMonitor(embeddedEventStoreConnection, _loggerFactory);
             var dummyLoggerFactory = new DummyLoggerFactory();
@@ -190,6 +202,17 @@ namespace Anabasis.EventStore2
             await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream2", Guid.NewGuid()));
 
             await Task.Delay(1000);
+
+            var aggregates = testSomeDataAggregateActor.GetCurrents();
+
+            Assert.AreEqual(2,aggregates.Length);
+
+            foreach(var aggregate in aggregates)
+            {
+                Assert.AreEqual(1, aggregate.AppliedEvents.Length);
+            }
+
+           
         }
 
         [Test, Order(2)]
@@ -199,8 +222,11 @@ namespace Anabasis.EventStore2
             var actorConfiguration = new ActorConfiguration();
 
             var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
-                "stream1", "stream2", "stream3"
-                );
+                "stream1", "stream2", "stream"
+                )
+            {
+                KeepAppliedEventsOnAggregate = true,
+            };
 
             var eventStoreConnectionStatusMonitor = new EventStoreConnectionStatusMonitor(embeddedEventStoreConnection, _loggerFactory);
             var dummyLoggerFactory = new DummyLoggerFactory();
@@ -246,17 +272,46 @@ namespace Anabasis.EventStore2
 
             await Task.Delay(1000);
 
+            var aggregates = testSomeDataAggregateActor.GetCurrents();
+
+            Assert.AreEqual(3, aggregates.Length);
+
+            foreach (var aggregate in aggregates)
+            {
+                Assert.AreEqual(1, aggregate.AppliedEvents.Length);
+            }
+
+            var multipleStreamsCatchupCacheConfiguration2 = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
+                "stream1", "stream2", "stream", "stream3"
+                )
+            {
+                KeepAppliedEventsOnAggregate = true,
+            };
+
             var testSomeDataAggregateActor2 = new TestSomeDataSubscribeToManyAggregateActor(
                     actorConfiguration,
                     eventStoreConnectionStatusMonitor,
-                    multipleStreamsCatchupCacheConfiguration,
+                    multipleStreamsCatchupCacheConfiguration2,
                     defaultEventTypeProvider,
                     dummyLoggerFactory
                     );
 
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream3", Guid.NewGuid()));
+
+            await Task.Delay(1000);
+
             await testSomeDataAggregateActor2.ConnectToEventStream();
 
             await Task.Delay(1000);
+
+            aggregates = testSomeDataAggregateActor2.GetCurrents();
+
+            Assert.AreEqual(4, aggregates.Length);
+
+            foreach (var aggregate in aggregates)
+            {
+                Assert.AreEqual(1, aggregate.AppliedEvents.Length);
+            }
 
         }
 
@@ -287,7 +342,7 @@ namespace Anabasis.EventStore2
 
             var eventList = new List<IMessage>();
 
-            var subscription = eventStoreBus.SubscribeToManyStreams(new[] { "stream1", "stream2" }, (message) =>
+            var subscription = eventStoreBus.SubscribeToManyStreams(new[] { "stream1", "stream2" }, (message, timeout) =>
             {
                 eventList.Add(message);
 
@@ -310,6 +365,8 @@ namespace Anabasis.EventStore2
             await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream2", Guid.NewGuid()));
 
             await Task.Delay(1000);
+
+            Assert.AreEqual(3, eventList.Count);
 
         }
 

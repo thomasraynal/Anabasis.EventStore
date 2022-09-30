@@ -1,6 +1,8 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Stream;
+using Anabasis.EventStore.Stream.Configuration;
 using Anabasis.EventStore2.Configuration;
+using EventStore.ClientAPI;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -14,21 +16,27 @@ namespace Anabasis.EventStore
         IDisposable SubscribeToPersistentSubscriptionStream(
             string streamId,
             string groupId,
-            Action<IMessage> onMessageReceived,
+            Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
             Action<PersistentSubscriptionStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null);
 
         IDisposable SubscribeToManyStreams(
             string[] streamIds,
-            Action<IMessage> onMessageReceived,
+            Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<Stream.SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null);
+            Action<SubscribeToManyStreamsConfiguration>? getSubscribeToManyStreamsConfiguration = null);
+
+        IDisposable SubscribeToAllStreams(
+            Position position,
+            Action<IMessage, TimeSpan?> onMessageReceived,
+            IEventTypeProvider eventTypeProvider,
+            Action<SubscribeToAllStreamsConfiguration>? getSubscribeToAllStreamsConfiguration = null);
 
         IDisposable SubscribeToOneStream(string streamId,
-            int streamPosition,
-            Action<IMessage> onMessageReceived,
+            long streamPosition,
+            Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
-            Action<Stream.SubscribeToOneStreamConfiguration>? getSubscribeToOneOrManyStreamsConfiguration = null);
+            Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneStreamConfiguration = null);
 
     }
 }

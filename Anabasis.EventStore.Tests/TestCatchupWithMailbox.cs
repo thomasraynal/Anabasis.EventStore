@@ -1,7 +1,5 @@
-﻿using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Cache;
+﻿using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Repository;
 using DynamicData;
 using DynamicData.Binding;
@@ -22,19 +20,19 @@ using Anabasis.EventStore.Snapshot;
 namespace Anabasis.EventStore.Tests
 {
 
-    public class TestCatchupWithMailboxActor : BaseEventStoreStatefulActor<SomeDataAggregate>
+    public class TestCatchupWithMailboxActor : SubscribeToAllStreamsEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestCatchupWithMailboxActor(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
+        public TestCatchupWithMailboxActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
         }
 
-        public TestCatchupWithMailboxActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
+        public TestCatchupWithMailboxActor(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
-        public List<SomeData> Events { get; } = new List<SomeData>();
+        public List<SomeMoreData> Events { get; } = new ();
 
-        public Task Handle(SomeData someData)
+        public Task Handle(SomeMoreData someData)
         {
             Events.Add(someData);
 
@@ -120,7 +118,7 @@ namespace Anabasis.EventStore.Tests
             var catchUpCache = new AllStreamsCatchupCache<SomeDataAggregate>(
               connectionMonitor,
               cacheConfiguration,
-             new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }),
+             new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeDataAggregateEvent) }),
              _loggerFactory);
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
@@ -145,9 +143,17 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            _testActorOne = new TestCatchupWithMailboxActor(ActorConfiguration.Default, _cacheOne.catchupEventStoreCache, new DummyLoggerFactory());
+            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start);
+            var eventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeDataAggregateEvent) });
 
-            await _testActorOne.ConnectTo(_eventStoreBus);
+            _testActorOne = new TestCatchupWithMailboxActor(ActorConfiguration.Default,
+                _cacheOne.connectionStatusMonitor,
+                allStreamsCatchupCacheConfiguration,
+                eventTypeProvider,
+                new DummyLoggerFactory());
+
+            await _testActorOne.ConnectToEventStream();
+
             await _testActorOne.ConnectTo(_dummyBus);
 
             _testActorOne.SubscribeDummyBus("somesubject");
@@ -170,10 +176,10 @@ namespace Anabasis.EventStore.Tests
 
             _ = Task.Run(() =>
               {
-                  _dummyBus.Push(new SomeData("entityId", Guid.NewGuid()));
+                  _dummyBus.Push(new SomeMoreData(Guid.NewGuid(), "entityId"));
               });
 
-       
+
             await Task.Delay(100);
 
             Assert.AreEqual(0, _testActorOne.Events.Count);
@@ -190,5 +196,5 @@ namespace Anabasis.EventStore.Tests
 
         }
     }
-    
+
 }

@@ -144,7 +144,7 @@ namespace Anabasis.EventStore.Tests
               loggerFactory: _loggerFactory,
               snapshotStore: inMemorySnapshotStore,
               snapshotStrategy: defaultSnapshotStrategy,
-              eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }));
+              eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeDataAggregateEvent) }));
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
@@ -163,7 +163,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldCreateAnActor()
         {
 
-            var emitedEvents = new List<SomeData>();
+            var emitedEvents = new List<SomeDataAggregateEvent>();
 
             _eventRepository = CreateEventRepository();
             _cache = CreateCatchupEventStoreCache();
@@ -172,7 +172,7 @@ namespace Anabasis.EventStore.Tests
 
             for (var i = 0; i < _cache.defaultSnapshotStrategy.SnapshotIntervalInEvents; i++)
             {
-                var @event = new SomeData($"{_firstAggregateId}", _correlationId);
+                var @event = new SomeDataAggregateEvent($"{_firstAggregateId}", _correlationId);
 
                 emitedEvents.Add(@event);
 
@@ -191,7 +191,7 @@ namespace Anabasis.EventStore.Tests
 
             for (var i = 0; i < _cache.defaultSnapshotStrategy.SnapshotIntervalInEvents; i++)
             {
-                var @event = new SomeData($"{_firstAggregateId}", _correlationId);
+                var @event = new SomeDataAggregateEvent($"{_firstAggregateId}", _correlationId);
 
                 emitedEvents.Add(@event);
 
@@ -214,7 +214,7 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent($"{_firstAggregateId}").Version);
             Assert.AreEqual(19, _secondCache.catchupEventStoreCache.GetCurrent($"{_firstAggregateId}").VersionFromSnapshot);
 
-            await _eventRepository.eventStoreRepository.Emit(new SomeData($"{_firstAggregateId}", _correlationId));
+            await _eventRepository.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_firstAggregateId}", _correlationId));
 
             await Task.Delay(100);
 

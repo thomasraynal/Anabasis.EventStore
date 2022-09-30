@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using Anabasis.EventStore.Shared;
+using Anabasis.EventStore2.Configuration;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;

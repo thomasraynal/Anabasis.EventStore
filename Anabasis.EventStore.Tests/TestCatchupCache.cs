@@ -98,7 +98,7 @@ namespace Anabasis.EventStore.Tests
             var catchUpCache = new AllStreamsCatchupCache<SomeDataAggregate>(
               connectionMonitor,
               cacheConfiguration,
-              new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }),
+              new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeDataAggregateEvent) }),
              _loggerFactory);
 
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
@@ -135,7 +135,7 @@ namespace Anabasis.EventStore.Tests
 
             _firstAggregateId = Guid.NewGuid();
 
-            await _repositoryOne.eventStoreRepository.Emit(new SomeData($"{_firstAggregateId}", Guid.NewGuid()));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_firstAggregateId}", Guid.NewGuid()));
 
             await Task.Delay(100);
 
@@ -148,7 +148,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldCreateASecondEventAndUpdateTheAggregate()
         {
 
-            await _repositoryOne.eventStoreRepository.Emit(new SomeData($"{_firstAggregateId}", Guid.NewGuid()));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_firstAggregateId}", Guid.NewGuid()));
 
             await Task.Delay(100);
 
@@ -183,7 +183,7 @@ namespace Anabasis.EventStore.Tests
 
             _secondAggregateId = Guid.NewGuid();
 
-            await _repositoryOne.eventStoreRepository.Emit(new SomeData($"{_secondAggregateId}", Guid.NewGuid()));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_secondAggregateId}", Guid.NewGuid()));
 
             await Task.Delay(100);
 
@@ -205,8 +205,8 @@ namespace Anabasis.EventStore.Tests
 
             _thirdAggregateId = Guid.NewGuid();
 
-            await _repositoryOne.eventStoreRepository.Emit(new SomeData($"{_firstAggregateId}", Guid.NewGuid()));
-            await _repositoryOne.eventStoreRepository.Emit(new SomeData($"{_thirdAggregateId}", Guid.NewGuid()));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_firstAggregateId}", Guid.NewGuid()));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeDataAggregateEvent($"{_thirdAggregateId}", Guid.NewGuid()));
 
             await Task.Delay(100);
 

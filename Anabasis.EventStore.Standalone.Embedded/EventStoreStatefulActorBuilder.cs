@@ -10,16 +10,19 @@ using EventStore.ClientAPI.Embedded;
 
 namespace Anabasis.EventStore.Standalone.Embedded
 {
-    public static class EventStoreEmbeddedStatefulActorBuilder<TActor, TAggregate, TRegistry>
-        where TActor : IStatefulActor<TAggregate>
+    public static class EventStoreEmbeddedStatefulActorBuilder<TActor, TAggregateCacheConfiguration, TAggregate, TRegistry>
+        where TActor : IStatefulActor<TAggregate, TAggregateCacheConfiguration>
+        where TAggregateCacheConfiguration : class, IAggregateCacheConfiguration<TAggregate>
         where TAggregate : class, IAggregate, new()
         where TRegistry : ServiceRegistry, new()
     {
 
-        public static EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry> Create(
+        public static EventStoreStatefulActorBuilder<TActor, TAggregateCacheConfiguration, TAggregate, TRegistry> Create(
           ClusterVNode clusterVNode,
           ConnectionSettings connectionSettings,
           IActorConfiguration actorConfiguration,
+          TAggregateCacheConfiguration aggregateCacheConfiguration,
+          IEventTypeProvider<TAggregate>? eventTypeProvider = null,
           ILoggerFactory? loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration>? eventStoreRepositoryConfigurationBuilder = null)
         {
@@ -38,7 +41,7 @@ namespace Anabasis.EventStore.Standalone.Embedded
               connectionMonitor,
               loggerFactory);
 
-            var builder = new EventStoreStatefulActorBuilder<TActor, TAggregate, TRegistry>(actorConfiguration, eventStoreRepository, connectionMonitor, loggerFactory);
+            var builder = new EventStoreStatefulActorBuilder<TActor, TAggregateCacheConfiguration, TAggregate, TRegistry>(actorConfiguration, eventStoreRepository, aggregateCacheConfiguration, connectionMonitor, eventTypeProvider, loggerFactory);
 
             return builder;
 

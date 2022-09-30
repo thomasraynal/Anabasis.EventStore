@@ -12,14 +12,14 @@ namespace Anabasis.EventStore2.Configuration
 {
     public class SubscribeToOneStreamConfiguration : IEventStoreStreamConfiguration
     {
-        public SubscribeToOneStreamConfiguration(string streamId, int eventStreamPosition = StreamPosition.Start, UserCredentials? userCredentials = null)
+        public SubscribeToOneStreamConfiguration(string streamId, long eventStreamPosition = 0, UserCredentials? userCredentials = null)
         {
             UserCredentials = userCredentials;
             StreamId = streamId;
             EventStreamPosition = eventStreamPosition;
         }
 
-        public int EventStreamPosition { get; set; }
+        public long EventStreamPosition { get; set; }
         public string StreamId { get; set; }
         public bool IgnoreUnknownEvent { get; set; } = false;
         public ISerializer Serializer { get; set; } = new DefaultSerializer();

@@ -112,9 +112,10 @@ namespace Anabasis.Common
 
         public void OnMessageReceived(IMessage @event, TimeSpan? timeout = null)
         {
-            _caughtingUpEvent.Wait();
-
+        
             timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
+
+            _caughtingUpEvent.Wait(timeout.Value);
 
             if (!_dispatchQueue.CanEnqueue())
             {

@@ -12,6 +12,12 @@ namespace Anabasis.EventStore.Tests
 
     }
 
+    //public class SomeData : BaseEvent
+    //{
+    //    public SomeData(Guid correlationId, string streamId) : base(streamId, correlationId)
+    //    {
+    //    }
+    //}
 
     public class SomeMoreData : BaseEvent
     {
@@ -20,10 +26,10 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class SomeData : BaseAggregateEvent<SomeDataAggregate>
+    public class SomeDataAggregateEvent : BaseAggregateEvent<SomeDataAggregate>
     {
 
-        public SomeData(string entityId, Guid correlationId) : base(entityId, correlationId)
+        public SomeDataAggregateEvent(string entityId, Guid correlationId) : base(entityId, correlationId)
         {
         }
 

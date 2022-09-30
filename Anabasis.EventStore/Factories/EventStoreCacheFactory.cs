@@ -14,8 +14,9 @@ namespace Anabasis.EventStore.Factories
             _eventStoreCaches = new Dictionary<Type, object>();
         }
 
-        public void AddConfiguration<TActor, TAggregate>(IEventStoreActorConfiguration<TAggregate> eventStoreActorConfiguration)
-            where TActor : IStatefulActor<TAggregate>
+        public void AddConfiguration<TActor, TAggregateCacheConfiguration, TAggregate>(IEventStoreActorConfiguration<TAggregate> eventStoreActorConfiguration)
+            where TActor : IStatefulActor<TAggregate, TAggregateCacheConfiguration>
+            where TAggregateCacheConfiguration : IAggregateCacheConfiguration<TAggregate>
             where TAggregate : IAggregate, new()
         {
             _eventStoreCaches.Add(typeof(TActor), eventStoreActorConfiguration);

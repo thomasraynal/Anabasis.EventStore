@@ -1,6 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
-using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Repository;
@@ -29,7 +29,7 @@ namespace Anabasis.EventStore.Tests
         void Push(IEvent push);
         void Subscribe(Action<IMessage> onMessageReceived);
     }
-    public interface IDummyBus: IBus
+    public interface IDummyBus : IBus
     {
         void Push(IEvent push);
         void Subscribe(Action<IMessage> onMessageReceived);
@@ -58,7 +58,7 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class DummyBus :  IDummyBus
+    public class DummyBus : IDummyBus
     {
         private readonly List<Action<IMessage>> _subscribers;
 
@@ -190,10 +190,10 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public List<SomeData> Events { get; } = new List<SomeData>();
+        public List<SomeMoreData> Events { get; } = new List<SomeMoreData>();
 
 
-        public Task Handle(SomeData someData)
+        public Task Handle(SomeMoreData someData)
         {
             Events.Add(someData);
 
@@ -201,19 +201,19 @@ namespace Anabasis.EventStore.Tests
         }
     }
 
-    public class TestBusRegistrationStatefulActor : BaseEventStoreStatefulActor<SomeDataAggregate>
+    public class TestBusRegistrationStatefulActor : SubscribeToAllStreamsEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestBusRegistrationStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
+        public TestBusRegistrationStatefulActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
         }
 
-        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
+        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
-        public List<SomeData> Events { get; } = new List<SomeData>();
+        public List<SomeMoreData> Events { get; } = new List<SomeMoreData>();
 
-        public Task Handle(SomeData someData)
+        public Task Handle(SomeMoreData someData)
         {
             Events.Add(someData);
 
@@ -271,7 +271,7 @@ namespace Anabasis.EventStore.Tests
 
             var dummyBus = testBusRegistrationActor.GetConnectedBus<IDummyBus>();
 
-            dummyBus.Push(new SomeData("entity", Guid.NewGuid()));
+            dummyBus.Push(new SomeMoreData(Guid.NewGuid(), "somesubject"));
 
             await Task.Delay(200);
 
@@ -283,18 +283,21 @@ namespace Anabasis.EventStore.Tests
         [Test, Order(1)]
         public async Task ShouldRegisterABusOnAStatefulActor()
         {
-            var testBusRegistrationActor = EventStoreEmbeddedStatefulActorBuilder<TestBusRegistrationStatefulActor, SomeDataAggregate, DummyBusRegistry>
-                                                 .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
-                                                 .WithReadAllFromEndCache(new ConsumerBasedEventProvider<SomeDataAggregate, TestBusRegistrationStatefulActor>())
+            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.End);
+
+            var testBusRegistrationActor = EventStoreEmbeddedStatefulActorBuilder<TestBusRegistrationStatefulActor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate>, SomeDataAggregate, DummyBusRegistry>
+                                                 .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration,loggerFactory: _loggerFactory)
                                                  .WithBus<IDummyBus>((actor, bus) =>
                                                  {
                                                      actor.SubscribeDummyBus("somesubject");
                                                  })
                                                  .Build();
 
+            await testBusRegistrationActor.ConnectToEventStream();
+
             var dummyBus = testBusRegistrationActor.GetConnectedBus<IDummyBus>();
 
-            dummyBus.Push(new SomeData("entity", Guid.NewGuid()));
+            dummyBus.Push(new SomeMoreData(Guid.NewGuid(), "somesubject"));
 
             await Task.Delay(200);
 
@@ -320,8 +323,8 @@ namespace Anabasis.EventStore.Tests
 
             var dummyBus = testBusRegistrationActor.GetConnectedBus<IDummyBus>();
             var dummyBus2 = testBusRegistrationActor.GetConnectedBus<IDummyBus2>();
-            dummyBus.Push(new SomeData("entity", Guid.NewGuid()));
-            dummyBus2.Push(new SomeData("entity2", Guid.NewGuid()));
+            dummyBus.Push(new SomeMoreData(Guid.NewGuid(), "entity"));
+            dummyBus2.Push(new SomeMoreData(Guid.NewGuid(), "entity2"));
 
             await Task.Delay(200);
 
@@ -336,7 +339,7 @@ namespace Anabasis.EventStore.Tests
 
             var testBusRegistrationActor = EventStoreEmbeddedStatelessActorBuilder<TestBusRegistrationStatelessActor, DummyBusRegistry>
                                                .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
-                                               .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeFromEndToAllStreams())
+                                               .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeToAllStreams(Position.End))
                                                .WithBus<IDummyBus>((actor, bus) =>
                                                {
                                                    actor.SubscribeDummyBus("somesubject");
@@ -357,9 +360,9 @@ namespace Anabasis.EventStore.Tests
 
 
             var dummyBus = testBusRegistrationActor.GetConnectedBus<IDummyBus>();
-            dummyBus.Push(new SomeData("entity", Guid.NewGuid()));
+            dummyBus.Push(new SomeMoreData(Guid.NewGuid(), "entity"));
 
-            await eventStoreRepository.Emit(new SomeData("thisisit", Guid.NewGuid()));
+            await eventStoreRepository.Emit(new SomeMoreData(Guid.NewGuid(), "thisisit"));
 
             await Task.Delay(500);
 

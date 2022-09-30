@@ -39,8 +39,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\Anabasis.EventStore.AspNet.Embedded\Anabasis.EventStore.AspNet.Embedded.csproj" />
-    <ProjectReference Include="..\Anabasis.EventStore.AspNet\Anabasis.EventStore.AspNet.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore.Snapshot.InMemory\Anabasis.EventStore.Snapshot.InMemory.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore.Standalone.Embedded\Anabasis.EventStore.Standalone.Embedded.csproj" />
     <ProjectReference Include="..\Anabasis.EventStore.Standalone\Anabasis.EventStore.Standalone.csproj" />

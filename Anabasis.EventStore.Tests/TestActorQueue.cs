@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Standalone;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
 using System;
@@ -89,19 +90,19 @@ namespace Anabasis.EventStore.Tests
             {
                 while (true)
                 {
-                     testStatelessActor.OnMessageReceived(getEventA());
+                    testStatelessActor.OnMessageReceived(getEventA());
                 }
 
             }, cancellationTokenSource.Token);
 
-            var producerTwoTask = Task.Run( () =>
-            {
-                while (true)
-                {
-                     testStatelessActor.OnMessageReceived(getEventB());
+            var producerTwoTask = Task.Run(() =>
+           {
+               while (true)
+               {
+                   testStatelessActor.OnMessageReceived(getEventB());
 
-                }
-            }, cancellationTokenSource.Token);
+               }
+           }, cancellationTokenSource.Token);
 
 
             await Task.Delay(5000);

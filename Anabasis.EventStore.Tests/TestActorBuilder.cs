@@ -132,7 +132,7 @@ namespace Anabasis.EventStore.Tests
 
     public class TestBuilderActor : BaseStatelessActor
     {
-        public List<SomeData> Events { get; } = new List<SomeData>();
+        public List<SomeDataAggregateEvent> Events { get; } = new List<SomeDataAggregateEvent>();
 
         public TestBuilderActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null) : base(actorConfigurationFactory, loggerFactory)
         {
@@ -142,7 +142,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public Task Handle(SomeData someData)
+        public Task Handle(SomeDataAggregateEvent someData)
         {
             Events.Add(someData);
 
@@ -174,7 +174,7 @@ namespace Anabasis.EventStore.Tests
 
             var dummyBus = testBusRegistrationActor.GetConnectedBus<ITestActorBuilderDummyBus>();
 
-            dummyBus.Push(new SomeData("entity", Guid.NewGuid()));
+            dummyBus.Push(new SomeDataAggregateEvent("entity", Guid.NewGuid()));
 
             await Task.Delay(200);
 

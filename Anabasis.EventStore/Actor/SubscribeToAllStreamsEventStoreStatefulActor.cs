@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Anabasis.Common;
+using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,18 @@ namespace Anabasis.EventStore.Cache
             ISnapshotStore<TAggregate>? snapshotStore = null,
             ISnapshotStrategy? snapshotStrategy = null)
             : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        {
+            Initialize();
+        }
+
+        protected SubscribeToAllStreamsEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory, 
+            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
+            AllStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
+            IEventTypeProvider<TAggregate> eventTypeProvider, 
+            ILoggerFactory? loggerFactory,
+            ISnapshotStore<TAggregate>? snapshotStore = null, 
+            ISnapshotStrategy? snapshotStrategy = null, 
+            IKillSwitch? killSwitch = null) : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
             Initialize();
         }

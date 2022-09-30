@@ -1,225 +1,225 @@
-using Anabasis.Common;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Factories;
-using Anabasis.EventStore.Snapshot;
-using Anabasis.EventStore.Standalone.Embedded;
-using EventStore.ClientAPI;
-using EventStore.ClientAPI.Embedded;
-using EventStore.ClientAPI.SystemData;
-using EventStore.Common.Options;
-using EventStore.Core;
-using Microsoft.Extensions.Logging;
-using NUnit.Framework;
-using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+//using Anabasis.Common;
+//using Anabasis.EventStore.Actor;
+//using Anabasis.EventStore.Factories;
+//using Anabasis.EventStore.Snapshot;
+//using Anabasis.EventStore.Standalone.Embedded;
+//using EventStore.ClientAPI;
+//using EventStore.ClientAPI.Embedded;
+//using EventStore.ClientAPI.SystemData;
+//using EventStore.Common.Options;
+//using EventStore.Core;
+//using Microsoft.Extensions.Logging;
+//using NUnit.Framework;
+//using System;
+//using System.Collections.Generic;
+//using System.Threading.Tasks;
 
 
-namespace Anabasis.EventStore.Tests
-{
+//namespace Anabasis.EventStore.Tests
+//{
 
-    public class TestStatefulActorOne : BaseEventStoreStatefulActor<SomeDataAggregate>
-    {
-        public TestStatefulActorOne(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
-        {
-        }
+//    public class TestStatefulActorOne : BaseEventStoreStatefulActor<SomeDataAggregate>
+//    {
+//        public TestStatefulActorOne(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
+//        {
+//        }
 
-        public TestStatefulActorOne(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
-        {
-        }
+//        public TestStatefulActorOne(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
+//        {
+//        }
 
-        public List<IEvent> Events { get; } = new List<IEvent>();
+//        public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public Task Handle(AgainSomeMoreData againSomeMoreData)
-        {
-            Events.Add(againSomeMoreData);
+//        public Task Handle(AgainSomeMoreData againSomeMoreData)
+//        {
+//            Events.Add(againSomeMoreData);
 
-            return Task.CompletedTask;
-        }
+//            return Task.CompletedTask;
+//        }
 
-        public Task Handle(SomeMoreData someMoreData)
-        {
-            Events.Add(someMoreData);
+//        public Task Handle(SomeMoreData someMoreData)
+//        {
+//            Events.Add(someMoreData);
 
-            return Task.CompletedTask;
-        }
+//            return Task.CompletedTask;
+//        }
 
-    }
+//    }
 
-    public class TestAggregatedActorTwo : BaseEventStoreStatefulActor<SomeDataAggregate>
-    {
-        public TestAggregatedActorTwo(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
-        {
-        }
+//    public class TestAggregatedActorTwo : BaseEventStoreStatefulActor<SomeDataAggregate>
+//    {
+//        public TestAggregatedActorTwo(IActorConfiguration actorConfiguration, IAggregateCache<SomeDataAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
+//        {
+//        }
 
-        public TestAggregatedActorTwo(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
-        {
-        }
+//        public TestAggregatedActorTwo(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
+//        {
+//        }
 
-        public List<IEvent> Events { get; } = new List<IEvent>();
+//        public List<IEvent> Events { get; } = new List<IEvent>();
 
    
-        public async Task Handle(SomeCommand someCommand)
-        {
-            await this.EmitEventStore(new SomeCommandResponse(someCommand.EventId, someCommand.CorrelationId, someCommand.EntityId));
-        }
+//        public async Task Handle(SomeCommand someCommand)
+//        {
+//            await this.EmitEventStore(new SomeCommandResponse(someCommand.EventId, someCommand.CorrelationId, someCommand.EntityId));
+//        }
 
-        public Task Handle(AgainSomeMoreData againSomeMoreData)
-        {
-            Events.Add(againSomeMoreData);
+//        public Task Handle(AgainSomeMoreData againSomeMoreData)
+//        {
+//            Events.Add(againSomeMoreData);
 
-            return Task.CompletedTask;
-        }
+//            return Task.CompletedTask;
+//        }
 
-        public Task Handle(SomeMoreData someMoreData)
-        {
-            Events.Add(someMoreData);
+//        public Task Handle(SomeMoreData someMoreData)
+//        {
+//            Events.Add(someMoreData);
 
-            return Task.CompletedTask;
-        }
-    }
+//            return Task.CompletedTask;
+//        }
+//    }
 
-    [TestFixture]
-    public class TestStatefulActorBuilder
-    {
-        private UserCredentials _userCredentials;
-        private ConnectionSettings _connectionSettings;
-        private LoggerFactory _loggerFactory;
-        private ClusterVNode _clusterVNode;
+//    [TestFixture]
+//    public class TestStatefulActorBuilder
+//    {
+//        private UserCredentials _userCredentials;
+//        private ConnectionSettings _connectionSettings;
+//        private LoggerFactory _loggerFactory;
+//        private ClusterVNode _clusterVNode;
 
-        private Guid _correlationId = Guid.NewGuid();
-        private readonly string _streamId = "streamId";
-        private readonly string _streamId2 = "streamId2";
-        private readonly string _groupIdOne = "groupIdOne";
-        private readonly string _groupIdTwo = "groupIdTwo";
+//        private Guid _correlationId = Guid.NewGuid();
+//        private readonly string _streamId = "streamId";
+//        private readonly string _streamId2 = "streamId2";
+//        private readonly string _groupIdOne = "groupIdOne";
+//        private readonly string _groupIdTwo = "groupIdTwo";
 
-        [OneTimeSetUp]
-        public async Task Setup()
-        {
+//        [OneTimeSetUp]
+//        public async Task Setup()
+//        {
 
-            _userCredentials = new UserCredentials("admin", "changeit");
+//            _userCredentials = new UserCredentials("admin", "changeit");
 
-            _connectionSettings = ConnectionSettings.Create()
-                .UseDebugLogger()
-                .SetDefaultUserCredentials(_userCredentials)
-                .KeepRetrying()
-                .Build();
+//            _connectionSettings = ConnectionSettings.Create()
+//                .UseDebugLogger()
+//                .SetDefaultUserCredentials(_userCredentials)
+//                .KeepRetrying()
+//                .Build();
 
 
-            _loggerFactory = new LoggerFactory();
+//            _loggerFactory = new LoggerFactory();
 
-            _clusterVNode = EmbeddedVNodeBuilder
-              .AsSingleNode()
-              .RunInMemory()
-              .RunProjections(ProjectionType.All)
-              .StartStandardProjections()
-              .WithWorkerThreads(1)
-              .Build();
+//            _clusterVNode = EmbeddedVNodeBuilder
+//              .AsSingleNode()
+//              .RunInMemory()
+//              .RunProjections(ProjectionType.All)
+//              .StartStandardProjections()
+//              .WithWorkerThreads(1)
+//              .Build();
 
-            await _clusterVNode.StartAsync(true);
+//            await _clusterVNode.StartAsync(true);
 
-            await CreateSubscriptionGroups();
+//            await CreateSubscriptionGroups();
 
-        }
+//        }
 
-        [OneTimeTearDown]
-        public async Task TearDown()
-        {
-            await _clusterVNode.StopAsync();
-        }
+//        [OneTimeTearDown]
+//        public async Task TearDown()
+//        {
+//            await _clusterVNode.StopAsync();
+//        }
 
-        private async Task CreateSubscriptionGroups()
-        {
-            var connectionSettings = PersistentSubscriptionSettings.Create().StartFromCurrent().Build();
-            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode);
+//        private async Task CreateSubscriptionGroups()
+//        {
+//            var connectionSettings = PersistentSubscriptionSettings.Create().StartFromCurrent().Build();
+//            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode);
 
-            await connection.CreatePersistentSubscriptionAsync(
-                 _streamId,
-                 _groupIdOne,
-                 connectionSettings,
-                 _userCredentials);
+//            await connection.CreatePersistentSubscriptionAsync(
+//                 _streamId,
+//                 _groupIdOne,
+//                 connectionSettings,
+//                 _userCredentials);
 
-            await connection.CreatePersistentSubscriptionAsync(
-                 _streamId,
-                 _groupIdTwo,
-                 connectionSettings,
-                 _userCredentials);
+//            await connection.CreatePersistentSubscriptionAsync(
+//                 _streamId,
+//                 _groupIdTwo,
+//                 connectionSettings,
+//                 _userCredentials);
 
-            await connection.CreatePersistentSubscriptionAsync(
-                 _streamId2,
-                 _groupIdOne,
-                 connectionSettings,
-                 _userCredentials);
-        }
+//            await connection.CreatePersistentSubscriptionAsync(
+//                 _streamId2,
+//                 _groupIdOne,
+//                 connectionSettings,
+//                 _userCredentials);
+//        }
 
        
-        [Test, Order(1)]
-        public async Task ShouldBuildFromActorBuilderAndRunActors()
-        {
+//        [Test, Order(1)]
+//        public async Task ShouldBuildFromActorBuilderAndRunActors()
+//        {
 
-            var defaultEventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
+//            var defaultEventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) });
 
-            var testActorAutoBuildOne = EventStoreEmbeddedStatefulActorBuilder<TestStatefulActorOne, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
-                                                                                         .WithReadAllFromStartCache(
-                                                                                            getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
-                                                                                            eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
-                                                                                         .WithBus<IEventStoreBus>((actor, bus) =>
-                                                                                         {
-                                                                                             actor.SubscribeFromEndToAllStreams();
-                                                                                             actor.SubscribeToPersistentSubscriptionStream(_streamId2, _groupIdOne);
-                                                                                         })
-                                                                                         .Build();
+//            var testActorAutoBuildOne = EventStoreEmbeddedStatefulActorBuilder<TestStatefulActorOne, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+//                                                                                         .WithReadAllFromStartCache(
+//                                                                                            getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
+//                                                                                            eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
+//                                                                                         .WithBus<IEventStoreBus>((actor, bus) =>
+//                                                                                         {
+//                                                                                             actor.SubscribeFromEndToAllStreams();
+//                                                                                             actor.SubscribeToPersistentSubscriptionStream(_streamId2, _groupIdOne);
+//                                                                                         })
+//                                                                                         .Build();
 
-            var testActorAutoBuildTwo = EventStoreEmbeddedStatefulActorBuilder<TestAggregatedActorTwo, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
-                                                                                         .WithReadAllFromStartCache(
-                                                                                            getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
-                                                                                            eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
-                                                                                        .WithBus<IEventStoreBus>((actor, bus) =>
-                                                                                        {
-                                                                                            actor.SubscribeFromEndToAllStreams();
-                                                                                        })
-                                                                                         .Build();
+//            var testActorAutoBuildTwo = EventStoreEmbeddedStatefulActorBuilder<TestAggregatedActorTwo, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+//                                                                                         .WithReadAllFromStartCache(
+//                                                                                            getCatchupEventStoreCacheConfigurationBuilder: (conf) => conf.KeepAppliedEventsOnAggregate = true,
+//                                                                                            eventTypeProvider: new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeData) }))
+//                                                                                        .WithBus<IEventStoreBus>((actor, bus) =>
+//                                                                                        {
+//                                                                                            actor.SubscribeFromEndToAllStreams();
+//                                                                                        })
+//                                                                                         .Build();
 
-            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
+//            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, "some-stream"));
 
-            await Task.Delay(1000);
+//            await Task.Delay(1000);
 
-            Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
+//            Assert.AreEqual(1, testActorAutoBuildOne.Events.Count);
 
-            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, _streamId2));
+//            await testActorAutoBuildTwo.EmitEventStore(new SomeMoreData(_correlationId, _streamId2));
 
-            await Task.Delay(1500);
+//            await Task.Delay(1500);
 
-            Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
+//            Assert.AreEqual(3, testActorAutoBuildOne.Events.Count);
 
-            var aggregateOne = Guid.NewGuid();
-            var aggregateTwo = Guid.NewGuid();
+//            var aggregateOne = Guid.NewGuid();
+//            var aggregateTwo = Guid.NewGuid();
 
-            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateOne}", _correlationId));
-            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateTwo}", _correlationId));
+//            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateOne}", _correlationId));
+//            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateTwo}", _correlationId));
 
-            await Task.Delay(500);
+//            await Task.Delay(500);
 
-            Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrents().Length);
-            Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrents().Length);
+//            Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrents().Length);
+//            Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrents().Length);
 
-            Assert.AreEqual(1, testActorAutoBuildOne.State.GetCurrent($"{aggregateOne}").AppliedEvents.Length);
-            Assert.AreEqual(1, testActorAutoBuildTwo.State.GetCurrent($"{aggregateTwo}").AppliedEvents.Length);
+//            Assert.AreEqual(1, testActorAutoBuildOne.State.GetCurrent($"{aggregateOne}").AppliedEvents.Length);
+//            Assert.AreEqual(1, testActorAutoBuildTwo.State.GetCurrent($"{aggregateTwo}").AppliedEvents.Length);
 
-            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateOne}", _correlationId));
-            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateTwo}", _correlationId));
+//            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateOne}", _correlationId));
+//            await testActorAutoBuildOne.EmitEventStore(new SomeData($"{aggregateTwo}", _correlationId));
 
-            await Task.Delay(1000);
+//            await Task.Delay(1000);
 
-            Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrents().Length);
-            Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrents().Length);
+//            Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrents().Length);
+//            Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrents().Length);
 
-            Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrent($"{aggregateOne}").AppliedEvents.Length);
-            Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrent($"{aggregateTwo}").AppliedEvents.Length);
+//            Assert.AreEqual(2, testActorAutoBuildOne.State.GetCurrent($"{aggregateOne}").AppliedEvents.Length);
+//            Assert.AreEqual(2, testActorAutoBuildTwo.State.GetCurrent($"{aggregateTwo}").AppliedEvents.Length);
 
-            testActorAutoBuildOne.Dispose();
-            testActorAutoBuildTwo.Dispose();
-        }
+//            testActorAutoBuildOne.Dispose();
+//            testActorAutoBuildTwo.Dispose();
+//        }
 
-    }
-}
+//    }
+//}

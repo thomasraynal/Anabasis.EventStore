@@ -1,20 +1,19 @@
-using Anabasis.Common;
+﻿using Anabasis.Common;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
 
-namespace Anabasis.EventStore.Stream
+namespace Anabasis.EventStore.Stream.Configuration
 {
-    public class SubscribeToOneStreamConfiguration : IEventStoreStreamConfiguration
+    public class SubscribeToManyStreamsConfiguration : IEventStoreStreamConfiguration
     {
-        public SubscribeToOneStreamConfiguration(string streamId, long? eventStreamPosition = null, UserCredentials? userCredentials = null)
+        public SubscribeToManyStreamsConfiguration(string[] streamIds, UserCredentials? userCredentials = null)
         {
             UserCredentials = userCredentials;
-            StreamId = streamId;
-            EventStreamPosition = eventStreamPosition;
+            StreamIds = streamIds;
         }
 
-        public long? EventStreamPosition { get; set; } 
-        public string StreamId { get; set; }
+        public int EventStreamPosition { get; set; }
+        public string[] StreamIds { get; set; }
         public bool IgnoreUnknownEvent { get; set; } = false;
         public ISerializer Serializer { get; set; } = new DefaultSerializer();
         public UserCredentials? UserCredentials { get; set; }
@@ -22,3 +21,4 @@ namespace Anabasis.EventStore.Stream
         public bool DoAppCrashOnFailure { get; set; } = false;
     }
 }
+

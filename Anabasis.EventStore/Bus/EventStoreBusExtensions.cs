@@ -1,108 +1,82 @@
-﻿//using Anabasis.Common;
-//using Anabasis.EventStore.Stream;
-//using System;
-//using System.Collections.Generic;
-//using System.Threading.Tasks;
+﻿using Anabasis.Common;
+using Anabasis.EventStore.Stream;
+using Anabasis.EventStore.Stream.Configuration;
+using Anabasis.EventStore2.Configuration;
+using EventStore.ClientAPI;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
-//namespace Anabasis.EventStore
-//{
-//    public static class EventStoreBusExtensions
-//    {
-//        public static void SubscribeToEventStream(this IActor actor, IEventStoreStream eventStoreStream, bool closeSubscriptionOnDispose = false)
-//        {
-//            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+namespace Anabasis.EventStore
+{
+    public static class EventStoreBusExtensions
+    {
 
-//            eventStoreBus.SubscribeToEventStream(eventStoreStream, actor.OnMessageReceived, closeSubscriptionOnDispose);
-//        }
+        public static async Task EmitEventStore<TEvent>(this IActor actor, TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
+        {
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
 
-//        public static async Task EmitEventStore<TEvent>(this IActor actor, TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
-//        {
-//            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+            await eventStoreBus.EmitEventStore(@event, timeout, extraHeaders);
+        }
 
-//            await eventStoreBus.EmitEventStore(@event, timeout, extraHeaders);
-//        }
+        public static void SubscribeToManyStreams(
+            this IActor actor,
+            string[] streamIds,
+            Action<SubscribeToManyStreamsConfiguration>? getSubscribeToManyStreamsConfiguration = null,
+            IEventTypeProvider? eventTypeProvider = null)
+        {
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
-//        public static async Task<TCommandResult> SendEventStore<TCommandResult>(this IActor actor, ICommand command, TimeSpan? timeout = null) where TCommandResult : ICommandResponse
-//        {
-//            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
 
-//            return await eventStoreBus.SendEventStore<TCommandResult>(command, timeout);
-//        }
+            var subscribeFromEndEventStoreStream = eventStoreBus.SubscribeToManyStreams(
+                streamIds,
+                actor.OnMessageReceived,
+                eventProvider,
+                getSubscribeToManyStreamsConfiguration);
 
-//        public static void SubscribeFromEndToAllStreams(
-//            this IActor actor,
-//            Action<SubscribeFromEndEventStoreStreamConfiguration>? getSubscribeFromEndEventStoreStreamConfiguration = null,
-//            IEventTypeProvider? eventTypeProvider = null)
-//        {
-//            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
+            actor.AddToCleanup(subscribeFromEndEventStoreStream);
+        }
 
-//            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+        public static void SubscribeToAllStreams(
+            this IActor actor,
+            Position position,
+            Action<SubscribeToAllStreamsConfiguration>? getSubscribeToAllStreamsConfiguration = null,
+            IEventTypeProvider? eventTypeProvider = null)
+        {
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
-//            var subscribeFromEndEventStoreStream = eventStoreBus.SubscribeFromEndToAllStreams(
-//                actor.OnMessageReceived,
-//                eventProvider,
-//                getSubscribeFromEndEventStoreStreamConfiguration);
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
 
-//            actor.AddToCleanup(subscribeFromEndEventStoreStream);
-//        }
+            var subscribeFromEndEventStoreStream = eventStoreBus.SubscribeToAllStreams(
+                position,
+                actor.OnMessageReceived,
+                eventProvider,
+                getSubscribeToAllStreamsConfiguration);
 
-//        public static void SubscribeToPersistentSubscriptionStream(
-//            this IActor actor,
-//            string streamId,
-//            string groupId,
-//            IEventTypeProvider? eventTypeProvider=null,
-//            Action<PersistentSubscriptionEventStoreStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null)
-//        {
-//            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
+            actor.AddToCleanup(subscribeFromEndEventStoreStream);
+        }
 
-//            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+        public static void SubscribeToPersistentSubscriptionStream(
+            this IActor actor,
+            string streamId,
+            string groupId,
+            IEventTypeProvider? eventTypeProvider = null,
+            Action<PersistentSubscriptionStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null)
+        {
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
 
-//            var persistentSubscriptionEventStoreStream = eventStoreBus.SubscribeToPersistentSubscriptionStream(
-//                streamId,
-//                groupId,
-//                actor.OnMessageReceived,
-//                eventProvider,
-//                getPersistentSubscriptionEventStoreStreamConfiguration);
-            
-//            actor.AddToCleanup(persistentSubscriptionEventStoreStream);
-//        }
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
 
-//        public static void SubscribeFromStartToOneStream(
-//            this IActor actor,
-//            string streamId,
-//            Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration = null,
-//            IEventTypeProvider? eventTypeProvider = null)
-//        {
-//            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
+            var persistentSubscriptionEventStoreStream = eventStoreBus.SubscribeToPersistentSubscriptionStream(
+                streamId,
+                groupId,
+                actor.OnMessageReceived,
+                eventProvider,
+                getPersistentSubscriptionEventStoreStreamConfiguration);
 
-//            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+            actor.AddToCleanup(persistentSubscriptionEventStoreStream);
+        }
 
-//            var subscribeFromStartOrLaterToOneStreamEventStoreStream = eventStoreBus.SubscribeFromStartToOneStream(
-//                streamId,
-//                actor.OnMessageReceived,
-//                eventProvider,
-//                subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration);
-
-//            actor.AddToCleanup(subscribeFromStartOrLaterToOneStreamEventStoreStream);
-//        }
-
-//        public static void SubscribeFromEndToOneStream(
-//        this IActor actor,
-//        string streamId,
-//        Action<SubscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration>? subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration = null,
-//        IEventTypeProvider? eventTypeProvider = null)
-//        {
-//            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
-
-//            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
-
-//            var subscribeFromEndToOneStreamEventStoreStream = eventStoreBus.SubscribeFromEndToOneStream(
-//                streamId,
-//                actor.OnMessageReceived,
-//                eventProvider,
-//                subscribeToOneStreamFromStartOrLaterEventStoreStreamConfiguration);
-
-//            actor.AddToCleanup(subscribeFromEndToOneStreamEventStoreStream);
-//        }
-//    }
-//}
+    }
+}
