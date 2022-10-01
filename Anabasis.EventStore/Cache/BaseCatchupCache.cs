@@ -253,7 +253,7 @@ namespace Anabasis.EventStore.Cache
 
         }
 
-        public Task Disconnect()
+        public Task DisconnectFromEventStream()
         {
             if (null == _catchupCacheSubscriptionHolders)
                 throw new ArgumentNullException("_catchupCacheSubscriptionHolders");

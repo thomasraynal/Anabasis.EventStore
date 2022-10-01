@@ -1,10 +1,8 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Snapshot;
-using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -16,20 +14,8 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore2
+namespace Anabasis.EventStore.Tests
 {
-    public class SomeDataAggregate : BaseAggregate
-    {
-
-        public SomeDataAggregate(string entityId)
-        {
-            EntityId = entityId;
-        }
-
-        public SomeDataAggregate()
-        {
-        }
-    }
 
     public class SomeDataAggregatedEvent : BaseAggregateEvent<SomeDataAggregate>
     {
@@ -148,6 +134,8 @@ namespace Anabasis.EventStore2
             Assert.NotNull(aggregate);
             Assert.AreEqual(1, aggregate.AppliedEvents.Length);
 
+            testSomeDataAggregateActor.Dispose();
+
         }
 
         [Test, Order(1)]
@@ -205,14 +193,14 @@ namespace Anabasis.EventStore2
 
             var aggregates = testSomeDataAggregateActor.GetCurrents();
 
-            Assert.AreEqual(2,aggregates.Length);
+            Assert.AreEqual(2, aggregates.Length);
 
-            foreach(var aggregate in aggregates)
+            foreach (var aggregate in aggregates)
             {
                 Assert.AreEqual(1, aggregate.AppliedEvents.Length);
             }
 
-           
+            testSomeDataAggregateActor.Dispose();
         }
 
         [Test, Order(2)]
@@ -222,7 +210,7 @@ namespace Anabasis.EventStore2
             var actorConfiguration = new ActorConfiguration();
 
             var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
-                "stream1", "stream2", "stream"
+                "stream4", "stream5", "stream6"
                 )
             {
                 KeepAppliedEventsOnAggregate = true,
@@ -256,19 +244,19 @@ namespace Anabasis.EventStore2
 
             await Task.Delay(1000);
 
-            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream", Guid.NewGuid()));
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream6", Guid.NewGuid()));
 
             await Task.Delay(1000);
 
-            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream1", Guid.NewGuid()));
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream4", Guid.NewGuid()));
 
             await Task.Delay(1000);
 
-            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream2", Guid.NewGuid()));
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream5", Guid.NewGuid()));
 
             await Task.Delay(1000);
 
-            await testSomeDataAggregateActor.AddEventStoreStreams("stream");
+            await testSomeDataAggregateActor.AddEventStoreStreams("stream6");
 
             await Task.Delay(1000);
 
@@ -282,7 +270,7 @@ namespace Anabasis.EventStore2
             }
 
             var multipleStreamsCatchupCacheConfiguration2 = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
-                "stream1", "stream2", "stream", "stream3"
+                "stream4", "stream5", "stream6", "stream7"
                 )
             {
                 KeepAppliedEventsOnAggregate = true,
@@ -296,7 +284,7 @@ namespace Anabasis.EventStore2
                     dummyLoggerFactory
                     );
 
-            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream3", Guid.NewGuid()));
+            await eventStoreRepository.Emit(new SomeDataAggregatedEvent("stream7", Guid.NewGuid()));
 
             await Task.Delay(1000);
 
@@ -312,6 +300,9 @@ namespace Anabasis.EventStore2
             {
                 Assert.AreEqual(1, aggregate.AppliedEvents.Length);
             }
+
+            testSomeDataAggregateActor.Dispose();
+            testSomeDataAggregateActor2.Dispose();
 
         }
 
@@ -368,6 +359,8 @@ namespace Anabasis.EventStore2
 
             Assert.AreEqual(3, eventList.Count);
 
+
+            eventStoreBus.Dispose();
         }
 
     }

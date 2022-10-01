@@ -1,6 +1,9 @@
-﻿using Anabasis.EventStore.Cache;
+﻿using Anabasis.Common;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Repository;
+using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using DynamicData.Binding;
 using EventStore.ClientAPI;
@@ -13,9 +16,6 @@ using NUnit.Framework;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Anabasis.Common;
-using Anabasis.EventStore.Factories;
-using Anabasis.EventStore.Snapshot;
 
 namespace Anabasis.EventStore.Tests
 {
@@ -124,9 +124,9 @@ namespace Anabasis.EventStore.Tests
             var aggregatesOnCacheOne = new ObservableCollectionExtended<SomeDataAggregate>();
 
             catchUpCache.AsObservableCache()
-                           .Connect()
-                           .Bind(aggregatesOnCacheOne)
-                           .Subscribe();
+                        .Connect()
+                        .Bind(aggregatesOnCacheOne)
+                        .Subscribe();
 
             return (connectionMonitor, catchUpCache, aggregatesOnCacheOne);
 
@@ -168,11 +168,13 @@ namespace Anabasis.EventStore.Tests
 
             Assert.True(_testActorOne.IsCaughtUp);
 
-            await _cacheOne.catchupEventStoreCache.Disconnect();
+            await _testActorOne.DisconnectFromEventStream();
 
             await Task.Delay(100);
 
             Assert.False(_testActorOne.IsCaughtUp);
+
+            await Task.Delay(100);
 
             _ = Task.Run(() =>
               {
@@ -184,7 +186,7 @@ namespace Anabasis.EventStore.Tests
 
             Assert.AreEqual(0, _testActorOne.Events.Count);
 
-            await _cacheOne.catchupEventStoreCache.ConnectToEventStream();
+            await _testActorOne.ConnectToEventStream();
 
             await Task.Delay(100);
 

@@ -17,6 +17,6 @@ namespace Anabasis.Common
         IObservableCache<TAggregate, string> AsObservableCache();
         IEventTypeProvider<TAggregate> EventTypeProvider { get; }
         Task ConnectToEventStream();
-        Task Disconnect();
+        Task DisconnectFromEventStream();
     }
 }

@@ -1,218 +1,218 @@
-//using Anabasis.EventStore.Connection;
-//using Anabasis.EventStore.Stream;
-//using Anabasis.EventStore.Repository;
-//using EventStore.ClientAPI;
-//using EventStore.ClientAPI.Embedded;
-//using EventStore.ClientAPI.SystemData;
-//using EventStore.Common.Options;
-//using EventStore.Core;
-//using Microsoft.Extensions.Logging;
-//using NUnit.Framework;
-//using System;
-//using System.Threading.Tasks;
-//using Anabasis.Common;
+using Anabasis.EventStore.Connection;
+using Anabasis.EventStore.Stream;
+using Anabasis.EventStore.Repository;
+using EventStore.ClientAPI;
+using EventStore.ClientAPI.Embedded;
+using EventStore.ClientAPI.SystemData;
+using EventStore.Common.Options;
+using EventStore.Core;
+using Microsoft.Extensions.Logging;
+using NUnit.Framework;
+using System;
+using System.Threading.Tasks;
+using Anabasis.Common;
 
-//namespace Anabasis.EventStore.Tests
-//{
-//    [TestFixture]
-//    public class TestPersistentStream
-//    {
-//        private UserCredentials _userCredentials;
-//        private ConnectionSettings _connectionSettings;
-//        private LoggerFactory _loggerFactory;
-//        private ClusterVNode _clusterVNode;
-//        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamOne;
-//        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) _repositoryOne;
-//        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamTwo;
+namespace Anabasis.EventStore.Tests
+{
+    [TestFixture]
+    public class TestPersistentStream
+    {
+        private UserCredentials _userCredentials;
+        private ConnectionSettings _connectionSettings;
+        private LoggerFactory _loggerFactory;
+        private ClusterVNode _clusterVNode;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamOne;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) _repositoryOne;
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) _streamTwo;
 
-//        private Guid _correlationId = Guid.NewGuid();
-//        private readonly string _streamId = "streamId";
-//        private readonly string _groupIdOne = "groupIdOne";
-//        private readonly string _groupIdTwo = "groupIdTwo";
+        private Guid _correlationId = Guid.NewGuid();
+        private readonly string _streamId = "streamId";
+        private readonly string _groupIdOne = "groupIdOne";
+        private readonly string _groupIdTwo = "groupIdTwo";
 
-//        [OneTimeSetUp]
-//        public async Task Setup()
-//        {
+        [OneTimeSetUp]
+        public async Task Setup()
+        {
 
-//            _userCredentials = new UserCredentials("admin", "changeit");
+            _userCredentials = new UserCredentials("admin", "changeit");
 
-//            _connectionSettings = ConnectionSettings.Create()
-//                .UseDebugLogger()
-//                .SetDefaultUserCredentials(_userCredentials)
-//                .KeepRetrying()
-//                .Build();
+            _connectionSettings = ConnectionSettings.Create()
+                .UseDebugLogger()
+                .SetDefaultUserCredentials(_userCredentials)
+                .KeepRetrying()
+                .Build();
 
-//            _loggerFactory = new LoggerFactory();
+            _loggerFactory = new LoggerFactory();
 
-//            _clusterVNode = EmbeddedVNodeBuilder
-//              .AsSingleNode()
-//              .RunInMemory()
-//              .RunProjections(ProjectionType.All)
-//              .StartStandardProjections()
-//              .WithWorkerThreads(1)
-//              .Build();
+            _clusterVNode = EmbeddedVNodeBuilder
+              .AsSingleNode()
+              .RunInMemory()
+              .RunProjections(ProjectionType.All)
+              .StartStandardProjections()
+              .WithWorkerThreads(1)
+              .Build();
 
-//            await _clusterVNode.StartAsync(true);
+            await _clusterVNode.StartAsync(true);
 
-//            await CreateSubscriptionGroups();
+            await CreateSubscriptionGroups();
 
-//        }
+        }
 
-//        [OneTimeTearDown]
-//        public async Task TearDown()
-//        {
-//            await _clusterVNode.StopAsync();
-//        }
+        [OneTimeTearDown]
+        public async Task TearDown()
+        {
+            await _clusterVNode.StopAsync();
+        }
 
-//        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) CreateEventRepository()
-//        {
-//            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
-//            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
-//            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, EventStoreRepository eventStoreRepository) CreateEventRepository()
+        {
+            var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
+            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
-//            var eventStoreRepository = new EventStoreRepository(
-//              eventStoreRepositoryConfiguration,
-//              connection,
-//              connectionMonitor,
-//              _loggerFactory);
+            var eventStoreRepository = new EventStoreRepository(
+              eventStoreRepositoryConfiguration,
+              connection,
+              connectionMonitor,
+              _loggerFactory);
 
-//            return (connectionMonitor, eventStoreRepository);
-//        }
+            return (connectionMonitor, eventStoreRepository);
+        }
 
-//        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) CreatePersistentEventStoreStream(string streamId, string groupId)
-//        {
-//            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
+        private (EventStoreConnectionStatusMonitor connectionStatusMonitor, PersistentSubscriptionEventStoreStream persistentEventStoreStream) CreatePersistentEventStoreStream(string streamId, string groupId)
+        {
+            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
 
-//            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
+            var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
-//            var persistentEventStoreStreamConfiguration = new PersistentSubscriptionEventStoreStreamConfiguration(streamId, groupId, _userCredentials);
+            var persistentSubscriptionStreamConfiguration = new PersistentSubscriptionStreamConfiguration(streamId, groupId, _userCredentials);
 
-//            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
-//              connectionMonitor,
-//              persistentEventStoreStreamConfiguration,
-//              new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }),
-//              _loggerFactory);
+            var persistentSubscriptionEventStoreStream = new PersistentSubscriptionEventStoreStream(
+              connectionMonitor,
+              persistentSubscriptionStreamConfiguration,
+              new DefaultEventTypeProvider(() => new[] { typeof(SomeRandomEvent) }),
+              _loggerFactory);
 
-//            persistentSubscriptionEventStoreStream.Connect();
+            persistentSubscriptionEventStoreStream.Connect();
 
-//            return (connectionMonitor, persistentSubscriptionEventStoreStream);
+            return (connectionMonitor, persistentSubscriptionEventStoreStream);
 
-//        }
+        }
 
-//        private async Task CreateSubscriptionGroups()
-//        {
-//            var connectionSettings = PersistentSubscriptionSettings.Create().StartFromCurrent().Build();
-//            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode);
+        private async Task CreateSubscriptionGroups()
+        {
+            var connectionSettings = PersistentSubscriptionSettings.Create().StartFromCurrent().Build();
+            var connection = EmbeddedEventStoreConnection.Create(_clusterVNode);
 
-//            await connection.CreatePersistentSubscriptionAsync(
-//                 _streamId,
-//                 _groupIdOne,
-//                 connectionSettings,
-//                 _userCredentials);
+            await connection.CreatePersistentSubscriptionAsync(
+                 _streamId,
+                 _groupIdOne,
+                 connectionSettings,
+                 _userCredentials);
 
-//            await connection.CreatePersistentSubscriptionAsync(
-//                 _streamId,
-//                 _groupIdTwo,
-//                 connectionSettings,
-//                 _userCredentials);
-//        }
+            await connection.CreatePersistentSubscriptionAsync(
+                 _streamId,
+                 _groupIdTwo,
+                 connectionSettings,
+                 _userCredentials);
+        }
 
 
-//        [Test, Order(0)]
-//        public async Task ShouldCreateAndRunAVolatileEventStoreStream()
-//        {
+        [Test, Order(0)]
+        public async Task ShouldCreateAndRunAVolatileEventStoreStream()
+        {
 
-//            _streamOne = CreatePersistentEventStoreStream(_streamId, _groupIdOne);
+            _streamOne = CreatePersistentEventStoreStream(_streamId, _groupIdOne);
 
-//            await Task.Delay(100);
+            await Task.Delay(100);
 
-//            Assert.IsTrue(_streamOne.persistentEventStoreStream.IsConnected);
+            Assert.IsTrue(_streamOne.persistentEventStoreStream.IsConnected);
 
-//        }
+        }
 
-//        [Test, Order(1)]
-//        public async Task ShouldCreateAndRunAnEventStoreRepositoryAndEmitOneEvent()
-//        {
+        [Test, Order(1)]
+        public async Task ShouldCreateAndRunAnEventStoreRepositoryAndEmitOneEvent()
+        {
 
-//            var eventCount = 0;
+            var eventCount = 0;
 
-//            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
-//            {
-//                eventCount++;
-//            });
+            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
+            {
+                eventCount++;
+            });
 
-//            _repositoryOne = CreateEventRepository();
+            _repositoryOne = CreateEventRepository();
 
-//            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
-//            await Task.Delay(100);
+            await Task.Delay(100);
 
-//            Assert.AreEqual(1, eventCount);
+            Assert.AreEqual(1, eventCount);
 
-//        }
+        }
 
-//        [Test, Order(2)]
-//        public async Task ShouldDropConnectionAndReinitializeIt()
-//        {
+        [Test, Order(2)]
+        public async Task ShouldDropConnectionAndReinitializeIt()
+        {
 
-//            var eventCount = 0;
+            var eventCount = 0;
 
-//            _streamOne.persistentEventStoreStream.Disconnect();
+            _streamOne.persistentEventStoreStream.Disconnect();
 
-//            await Task.Delay(200);
+            await Task.Delay(200);
 
-//            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
-//            {
-//                eventCount++;
-//            });
+            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
+            {
+                eventCount++;
+            });
 
-//            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
-//            await Task.Delay(200);
+            await Task.Delay(200);
 
-//            Assert.AreEqual(0, eventCount);
+            Assert.AreEqual(0, eventCount);
 
-//            _streamOne.persistentEventStoreStream.Connect();
+            _streamOne.persistentEventStoreStream.Connect();
 
-//            await Task.Delay(200);
+            await Task.Delay(200);
 
-//            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
-//            await Task.Delay(200);
+            await Task.Delay(200);
 
-//            Assert.AreEqual(2, eventCount);
+            Assert.AreEqual(2, eventCount);
 
-//        }
+        }
 
-//        [Test, Order(3)]
-//        public async Task ShouldCreateASecondCacheAndCatchEvents()
-//        {
-//            var eventCountOne = 0;
-//            var eventCountTwo = 0;
+        [Test, Order(3)]
+        public async Task ShouldCreateASecondCacheAndCatchEvents()
+        {
+            var eventCountOne = 0;
+            var eventCountTwo = 0;
 
-//            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
-//            {
-//                eventCountOne++;
-//            });
+            _streamOne.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
+            {
+                eventCountOne++;
+            });
 
-//            _streamTwo = CreatePersistentEventStoreStream(_streamId, _groupIdTwo);
+            _streamTwo = CreatePersistentEventStoreStream(_streamId, _groupIdTwo);
 
-//            _streamTwo.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
-//            {
-//                eventCountTwo++;
-//            });
+            _streamTwo.persistentEventStoreStream.OnMessage().Subscribe((@event) =>
+            {
+                eventCountTwo++;
+            });
 
-//            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-//            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-//            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
-//            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
+            await _repositoryOne.eventStoreRepository.Emit(new SomeRandomEvent(_correlationId, _streamId));
 
-//            await Task.Delay(100);
+            await Task.Delay(100);
 
-//            Assert.True(eventCountOne > 0);
-//            Assert.True(eventCountTwo > 0);
+            Assert.True(eventCountOne > 0);
+            Assert.True(eventCountTwo > 0);
 
-//        }
-//    }
-//}
+        }
+    }
+}
 

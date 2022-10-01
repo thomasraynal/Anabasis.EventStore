@@ -196,7 +196,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldStopAndRestartCache()
         {
 
-            await _cacheOne.catchupEventStoreCache.Disconnect();
+            await _cacheOne.catchupEventStoreCache.DisconnectFromEventStream();
 
             await Task.Delay(1500);
 

@@ -282,6 +282,19 @@ namespace Anabasis.EventStore.Cache
 
         protected SourceCache<TAggregate, string> CurrentCache => IsCaughtUp ? _cache : _caughtingUpCache;
 
+        public Task DisconnectFromEventStream()
+        {
+            if (null == _catchupCacheSubscriptionHolders)
+                throw new ArgumentNullException("_catchupCacheSubscriptionHolders");
+
+            foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
+            {
+                catchupCacheSubscriptionHolder?.EventStreamConnectionDisposable?.Dispose();
+            }
+
+            return Task.CompletedTask;
+        }
+
         public async Task ConnectToEventStream()
         {
    
@@ -307,19 +320,6 @@ namespace Anabasis.EventStore.Cache
                 AddToCleanup(catchupCacheSubscriptionHolder.EventStreamConnectionDisposable);
 
             }
-        }
-
-        public Task Disconnect()
-        {
-            if (null == _catchupCacheSubscriptionHolders)
-                throw new ArgumentNullException("_catchupCacheSubscriptionHolders");
-
-            foreach (var catchupCacheSubscriptionHolder in _catchupCacheSubscriptionHolders)
-            {
-                catchupCacheSubscriptionHolder?.EventStreamConnectionDisposable?.Dispose();
-            }
-
-            return Task.CompletedTask;
         }
 
         public TAggregate? GetCurrent(string key)

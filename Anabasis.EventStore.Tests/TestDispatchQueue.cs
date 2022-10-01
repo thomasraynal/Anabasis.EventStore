@@ -1,264 +1,266 @@
-﻿//using Anabasis.Common;
-//using Anabasis.Common.Queue;
-//using NSubstitute;
-//using NUnit.Framework;
-//using System;
-//using System.Collections.Generic;
-//using System.Linq;
-//using System.Text;
-//using System.Threading.Tasks;
+﻿using Anabasis.Common;
+using Anabasis.Common.Queue;
+using NSubstitute;
+using NUnit.Framework;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
 
-//namespace Anabasis.EventStore.Tests
-//{
-//    public class TestEvent : IEvent
-//    {
-//        public TestEvent(int value)
-//        {
-//            Value = value;
-//        }
+namespace Anabasis.EventStore.Tests
+{
+    public class TestEvent : IEvent
+    {
+        public TestEvent(int value)
+        {
+            Value = value;
+        }
 
-//        public int Value { get; }
-//        public Guid EventId => Guid.NewGuid();
+        public int Value { get; }
+        public Guid EventId => Guid.NewGuid();
 
-//        public Guid CorrelationId => Guid.NewGuid();
+        public Guid CorrelationId => Guid.NewGuid();
 
-//        public string Name => nameof(TestEvent);
+        public string Name => nameof(TestEvent);
 
-//        public bool IsCommand => false;
+        public bool IsCommand => false;
 
-//        public DateTime Timestamp => DateTime.UtcNow;
+        public DateTime Timestamp => DateTime.UtcNow;
 
-//        public string EntityId => nameof(TestEvent);
+        public string EntityId => nameof(TestEvent);
 
-//        public Guid? CauseId => null;
-//    }
+        public Guid? CauseId => null;
 
+        public bool IsAggregateEvent => false;
+    }
 
-//    public class TestMessage : IMessage
-//    {
-//        public int Value { get; }
-//        public bool IsAcknowledge { get; set; }
-//        public int DequeueCount => 0;
 
-//        public Guid MessageId => Guid.NewGuid();
+    public class TestMessage : IMessage
+    {
+        public int Value { get; }
+        public bool IsAcknowledge { get; set; }
+        public int DequeueCount => 0;
 
-//        public IEvent Content { get; }
+        public Guid MessageId => Guid.NewGuid();
 
-//        public TestMessage(int value)
-//        {
-//            Content = new TestEvent(value);
-//        }
+        public IEvent Content { get; }
 
-//        public Task Acknowledge()
-//        {
-//            IsAcknowledge = true;
-//            return Task.CompletedTask;
-//        }
+        public TestMessage(int value)
+        {
+            Content = new TestEvent(value);
+        }
 
-//        public Task NotAcknowledge(string reason = null)
-//        {
-//            IsAcknowledge = false;
-//            return Task.CompletedTask;
-//        }
-//    }
+        public Task Acknowledge()
+        {
+            IsAcknowledge = true;
+            return Task.CompletedTask;
+        }
 
-//    [TestFixture]
-//    public class TestDispatchQueue
-//    {
-//        [Ignore("went non deterministic when switched to thread")]
-//        // [TestCase(6, 12, 12, 100)]
-//        [TestCase(1, 3, 3, 100)]
-//        public async Task ShouldCreateADispatchQueueAndEnqueueMessagesThenDispose(int batchSize, int queueMaxSize, int messageCount, int messageConsumptionWait)
-//        {
+        public Task NotAcknowledge(string reason = null)
+        {
+            IsAcknowledge = false;
+            return Task.CompletedTask;
+        }
+    }
 
-//            var messages = new List<IEvent>();
+    [TestFixture]
+    public class TestDispatchQueue
+    {
+        [Ignore("went non deterministic when switched to thread")]
+        // [TestCase(6, 12, 12, 100)]
+        [TestCase(1, 3, 3, 100)]
+        public async Task ShouldCreateADispatchQueueAndEnqueueMessagesThenDispose(int batchSize, int queueMaxSize, int messageCount, int messageConsumptionWait)
+        {
 
-//            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
-//                async (m) =>
-//                {
+            var messages = new List<IEvent>();
 
-//                    messages.Add(m);
-//                    await Task.Delay(messageConsumptionWait + 5);
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
+                async (m) =>
+                {
 
-//                },
-//                batchSize,
-//                queueMaxSize
-//                );
+                    messages.Add(m);
+                    await Task.Delay(messageConsumptionWait + 5);
 
-//            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory());
+                },
+                batchSize,
+                queueMaxSize
+                );
 
-//            Assert.True(dispatchQueue.CanEnqueue());
+            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory());
 
-//            await Task.Delay(100);
+            Assert.True(dispatchQueue.CanEnqueue());
 
-//            for (var i = 0; i < messageCount; i++)
-//            {
-//                dispatchQueue.Enqueue(new TestMessage(i));
-//            }
+            await Task.Delay(100);
 
-//            await Task.Delay(messageConsumptionWait * batchSize);
+            for (var i = 0; i < messageCount; i++)
+            {
+                dispatchQueue.Enqueue(new TestMessage(i));
+            }
 
-//            Assert.AreEqual(batchSize, messages.Count);
+            await Task.Delay(messageConsumptionWait * batchSize);
 
-//            dispatchQueue.Dispose();
+            Assert.AreEqual(batchSize, messages.Count);
 
-//            Assert.IsFalse(dispatchQueue.CanEnqueue());
+            dispatchQueue.Dispose();
 
-//            Assert.AreEqual(messageCount, messages.Count);
-//        }
+            Assert.IsFalse(dispatchQueue.CanEnqueue());
 
-//        [Test]
-//        public void ShouldTryToEnqueueAndFail()
-//        {
+            Assert.AreEqual(messageCount, messages.Count);
+        }
 
-//            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
-//                async (m) =>
-//                {
-//                    await Task.Delay(10);
+        [Test]
+        public void ShouldTryToEnqueueAndFail()
+        {
 
-//                },
-//                10,
-//                10
-//                );
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
+                async (m) =>
+                {
+                    await Task.Delay(10);
 
-//            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory());
+                },
+                10,
+                10
+                );
 
-//            dispatchQueue.Dispose();
+            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory());
 
-//            Assert.IsFalse(dispatchQueue.CanEnqueue());
+            dispatchQueue.Dispose();
 
-//            Assert.Throws<InvalidOperationException>(() => dispatchQueue.Enqueue(new TestMessage(1)));
+            Assert.IsFalse(dispatchQueue.CanEnqueue());
 
-//        }
+            Assert.Throws<InvalidOperationException>(() => dispatchQueue.Enqueue(new TestMessage(1)));
 
-//        [TestCase(true)]
-//        [TestCase(false)]
-//        public async Task ShouldTryToEnqueueAndKillApp(bool shouldCrashApp)
-//        {
-//            var killSwitch = Substitute.For<IKillSwitch>();
+        }
 
-//            var message1 = new TestMessage(0);
-//            var message2 = new TestMessage(1);
+        [TestCase(true)]
+        [TestCase(false)]
+        public async Task ShouldTryToEnqueueAndKillApp(bool shouldCrashApp)
+        {
+            var killSwitch = Substitute.For<IKillSwitch>();
 
-//            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
-//                 (m) =>
-//                {
-//                    if ((m as TestEvent).Value == message1.Value)
-//                        throw new Exception("boom");
+            var message1 = new TestMessage(0);
+            var message2 = new TestMessage(1);
 
-//                    return Task.CompletedTask;
-//                },
-//                10,
-//                10,
-//                shouldCrashApp);
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
+                 (m) =>
+                {
+                    if ((m as TestEvent).Value == message1.Value)
+                        throw new Exception("boom");
 
-//            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory(), killSwitch);
+                    return Task.CompletedTask;
+                },
+                10,
+                10,
+                shouldCrashApp);
 
-//            dispatchQueue.Enqueue(message1);
-//            dispatchQueue.Enqueue(message2);
+            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory(), killSwitch);
 
-//            await Task.Delay(100);
+            dispatchQueue.Enqueue(message1);
+            dispatchQueue.Enqueue(message2);
 
-//            killSwitch.Received(shouldCrashApp ? 1 : 0).KillProcess(Arg.Any<Exception>());
+            await Task.Delay(100);
 
-//            if (shouldCrashApp)
-//            {
-//                Assert.IsFalse(message1.IsAcknowledge);
-//                Assert.IsFalse(message2.IsAcknowledge);
-//                Assert.IsFalse(dispatchQueue.CanEnqueue());
-//                Assert.IsTrue(dispatchQueue.IsFaulted);
-//            }
-//            else
-//            {
-//                Assert.IsFalse(message1.IsAcknowledge);
-//                Assert.IsTrue(message2.IsAcknowledge);
-//                Assert.IsTrue(dispatchQueue.CanEnqueue());
-//                Assert.IsFalse(dispatchQueue.IsFaulted);
-//            }
-//        }
+            killSwitch.Received(shouldCrashApp ? 1 : 0).KillProcess(Arg.Any<Exception>());
 
-//        [Test]
-//        public async Task ShouldNackAllMessagesAfterACriticalFailure()
-//        {
-//            var killSwitch = Substitute.For<IKillSwitch>();
+            if (shouldCrashApp)
+            {
+                Assert.IsFalse(message1.IsAcknowledge);
+                Assert.IsFalse(message2.IsAcknowledge);
+                Assert.IsFalse(dispatchQueue.CanEnqueue());
+                Assert.IsTrue(dispatchQueue.IsFaulted);
+            }
+            else
+            {
+                Assert.IsFalse(message1.IsAcknowledge);
+                Assert.IsTrue(message2.IsAcknowledge);
+                Assert.IsTrue(dispatchQueue.CanEnqueue());
+                Assert.IsFalse(dispatchQueue.IsFaulted);
+            }
+        }
 
-//            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
-//                 (m) =>
-//                 {
-//                     if ((m as TestEvent).Value == 1)
-//                         throw new Exception("boom");
+        [Test]
+        public async Task ShouldNackAllMessagesAfterACriticalFailure()
+        {
+            var killSwitch = Substitute.For<IKillSwitch>();
 
-//                     return Task.CompletedTask;
-//                 },
-//                10,
-//                10,
-//                true);
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
+                 (m) =>
+                 {
+                     if ((m as TestEvent).Value == 1)
+                         throw new Exception("boom");
 
+                     return Task.CompletedTask;
+                 },
+                10,
+                10,
+                true);
 
-//            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory(), killSwitch);
 
-//            var messages = new List<TestMessage>();
-//            var i = 0;
+            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory(), killSwitch);
 
-//            while (dispatchQueue.CanEnqueue() && messages.Count < 100)
-//            {
-//                var message = new TestMessage(i++);
-//                messages.Add(message);
-//                dispatchQueue.Enqueue(message);
-//            }
+            var messages = new List<TestMessage>();
+            var i = 0;
 
-//            await Task.Delay(100);
+            while (dispatchQueue.CanEnqueue() && messages.Count < 100)
+            {
+                var message = new TestMessage(i++);
+                messages.Add(message);
+                dispatchQueue.Enqueue(message);
+            }
 
-//            Assert.IsFalse(dispatchQueue.CanEnqueue());
-//            Assert.IsTrue(dispatchQueue.IsFaulted);
+            await Task.Delay(100);
 
-//            Assert.IsTrue(messages.First().IsAcknowledge);
+            Assert.IsFalse(dispatchQueue.CanEnqueue());
+            Assert.IsTrue(dispatchQueue.IsFaulted);
 
-//            foreach (var message in messages.Skip(1))
-//            {
-//                Assert.IsFalse(message.IsAcknowledge);
-//            }
+            Assert.IsTrue(messages.First().IsAcknowledge);
 
-   
-//        }
+            foreach (var message in messages.Skip(1))
+            {
+                Assert.IsFalse(message.IsAcknowledge);
+            }
 
 
-//        [Test]
-//        public async Task ShouldResumeMessageProcessingAfterFailure()
-//        {
-//            var killSwitch = Substitute.For<IKillSwitch>();
+        }
 
-//            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
-//                 (m) =>
-//                 {
-//                     if ((m as TestEvent).Value == 2)
-//                         throw new Exception("boom");
 
-//                     return Task.CompletedTask;
-//                 },
-//                10,
-//                10,
-//                false);
+        [Test]
+        public async Task ShouldResumeMessageProcessingAfterFailure()
+        {
+            var killSwitch = Substitute.For<IKillSwitch>();
 
+            var dispatchQueueConfiguration = new DispatchQueueConfiguration(
+                 (m) =>
+                 {
+                     if ((m as TestEvent).Value == 2)
+                         throw new Exception("boom");
 
-//            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory(), killSwitch);
+                     return Task.CompletedTask;
+                 },
+                10,
+                10,
+                false);
 
-//            var messages = new List<TestMessage>();
-//            var i = 0;
 
-//            while (dispatchQueue.CanEnqueue() && messages.Count < 100)
-//            {
-//                var message = new TestMessage(i++);
-//                messages.Add(message);
-//                dispatchQueue.Enqueue(message);
-//            }
+            var dispatchQueue = new DispatchQueue("void", dispatchQueueConfiguration, new DummyLoggerFactory(), killSwitch);
 
-//            await Task.Delay(100);
+            var messages = new List<TestMessage>();
+            var i = 0;
 
-//            Assert.IsTrue(dispatchQueue.CanEnqueue());
-//            Assert.IsFalse(dispatchQueue.IsFaulted);
+            while (dispatchQueue.CanEnqueue() && messages.Count < 100)
+            {
+                var message = new TestMessage(i++);
+                messages.Add(message);
+                dispatchQueue.Enqueue(message);
+            }
 
-//            Assert.IsTrue(messages.Where(m => !m.IsAcknowledge).Count() == 1);
-//        }
-//    }
-//}
+            await Task.Delay(100);
+
+            Assert.IsTrue(dispatchQueue.CanEnqueue());
+            Assert.IsFalse(dispatchQueue.IsFaulted);
+
+            Assert.IsTrue(messages.Where(m => !m.IsAcknowledge).Count() == 1);
+        }
+    }
+}

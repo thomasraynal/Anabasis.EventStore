@@ -38,6 +38,27 @@ namespace Anabasis.EventStore
             actor.AddToCleanup(subscribeFromEndEventStoreStream);
         }
 
+        public static void SubscribeToOneStream(
+            this IActor actor,
+            string streamId,
+            long streamPosition = StreamPosition.Start,
+            Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneStreamConfiguration = null,
+            IEventTypeProvider? eventTypeProvider = null)
+        {
+            var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider(actor.GetType());
+
+            var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
+
+            var subscribeFromEndEventStoreStream = eventStoreBus.SubscribeToOneStream(
+                streamId,
+                streamPosition,
+                actor.OnMessageReceived,
+                eventProvider,
+                getSubscribeToOneStreamConfiguration);
+
+            actor.AddToCleanup(subscribeFromEndEventStoreStream);
+        }
+
         public static void SubscribeToAllStreams(
             this IActor actor,
             Position position,
