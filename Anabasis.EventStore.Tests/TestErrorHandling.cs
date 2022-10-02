@@ -15,18 +15,18 @@ using System.Threading.Tasks;
 using Anabasis.Common;
 using Anabasis.EventStore.Stream;
 using DynamicData;
-using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Snapshot;
+using Anabasis.Common.Configuration;
 
 namespace Anabasis.EventStore.Tests
 {
     public class TestErrorHandlingStatefulActor : SubscribeToAllStreamsEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestErrorHandlingStatefulActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public TestErrorHandlingStatefulActor(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
-        public TestErrorHandlingStatefulActor(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+        public TestErrorHandlingStatefulActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
@@ -125,7 +125,7 @@ namespace Anabasis.EventStore.Tests
 
             var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
-            var cacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start)
+            var cacheConfiguration = new AllStreamsCatchupCacheConfiguration(Position.Start)
             {
                 UserCredentials = _userCredentials,
                 KeepAppliedEventsOnAggregate = true,
@@ -158,7 +158,7 @@ namespace Anabasis.EventStore.Tests
 
             await Task.Delay(100);
 
-            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start)
+            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration(Position.Start)
             {
               KeepAppliedEventsOnAggregate = true
 

@@ -5,13 +5,17 @@ using System;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class AllStreamsCatchupCacheConfiguration<TAggregate> : IAggregateCacheConfiguration<TAggregate> where TAggregate : IAggregate
+    public class AllStreamsCatchupCacheConfiguration: IAggregateCacheConfiguration
     {
         public Position Checkpoint { get; set; } = Position.Start;
 
         public AllStreamsCatchupCacheConfiguration(Position checkpoint)
         {
             Checkpoint = checkpoint;
+        }
+
+        public AllStreamsCatchupCacheConfiguration()
+        {
         }
 
         public bool CrashAppIfSubscriptionFail { get; set; }

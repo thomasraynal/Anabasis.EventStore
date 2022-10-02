@@ -118,7 +118,7 @@ namespace Anabasis.EventStore.Tests
 
             var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
-            var cacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start)
+            var cacheConfiguration = new AllStreamsCatchupCacheConfiguration(Position.Start)
             {
                 UserCredentials = _userCredentials,
                 KeepAppliedEventsOnAggregate = true,

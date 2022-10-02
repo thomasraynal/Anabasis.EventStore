@@ -1,8 +1,5 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Snapshot;
-using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;

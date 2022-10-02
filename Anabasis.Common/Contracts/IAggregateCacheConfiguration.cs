@@ -2,7 +2,7 @@ using System;
 
 namespace Anabasis.Common
 {
-    public interface IAggregateCacheConfiguration<TAggregate> where TAggregate : IAggregate
+    public interface IAggregateCacheConfiguration
     {
         TimeSpan IsStaleTimeSpan { get; }
         bool KeepAppliedEventsOnAggregate { get; }

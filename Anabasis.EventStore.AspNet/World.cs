@@ -2,7 +2,6 @@
 using Anabasis.Common.Configuration;
 using Anabasis.Common.HealthChecks;
 using Anabasis.EventStore.AspNet.Builders;
-using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Repository;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -16,7 +15,7 @@ namespace Anabasis.EventStore.AspNet
 
         private readonly List<(Type actorType, IActorBuilder builder)> _actorBuilders;
         private readonly IServiceCollection _serviceCollection;
-        private readonly IEventStoreActorConfigurationFactory _eventStoreCacheFactory;
+        private readonly IActorConfigurationFactory _actorConfigurationFactory;
         private readonly bool _useEventStore;
 
         public World(IServiceCollection services, bool useEventStore)
@@ -27,11 +26,10 @@ namespace Anabasis.EventStore.AspNet
 
             _serviceCollection = services;
 
-            _eventStoreCacheFactory = new EventStoreCacheFactory();
+            _actorConfigurationFactory = new ActorConfigurationFactory();
 
             _serviceCollection.AddSingleton<IDynamicHealthCheckProvider, DynamicHealthCheckProvider>();
-            _serviceCollection.AddSingleton<IActorConfigurationFactory>(_eventStoreCacheFactory);
-            _serviceCollection.AddSingleton(_eventStoreCacheFactory);
+            _serviceCollection.AddSingleton(_actorConfigurationFactory);
         }
 
         public (Type actorType,IActorBuilder actorBuilder)[] GetBuilders()
@@ -65,7 +63,7 @@ namespace Anabasis.EventStore.AspNet
 
             EnsureActorNotAlreadyRegistered<TActor>();
 
-            _eventStoreCacheFactory.AddConfiguration<TActor>(actorConfiguration);
+            _actorConfigurationFactory.AddActorConfiguration<TActor>(actorConfiguration);
 
             var statelessActorBuilder = new StatelessActorBuilder<TActor>(this);
 
@@ -75,19 +73,33 @@ namespace Anabasis.EventStore.AspNet
 
         }
 
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> AddEventStoreStatefulActor<TActor, TAggregate>(IActorConfiguration actorConfiguration)
-            where TActor : class, IStatefulActor<TAggregate>
+        public EventStoreStatefulActorBuilder<TActor, TAggregate, TAggregateCacheConfiguration> AddEventStoreStatefulActor<TActor, TAggregate, TAggregateCacheConfiguration>(IEventTypeProvider eventTypeProvider, Action<IActorConfiguration>? getActorConfiguration = null, Action<TAggregateCacheConfiguration>? getAggregateCacheConfiguration = null)
+            where TActor : class, IStatefulActor<TAggregate, TAggregateCacheConfiguration>
+            where TAggregateCacheConfiguration : IAggregateCacheConfiguration, new()
             where TAggregate : class, IAggregate, new()
         {
-
+                
             EnsureIsEventStoreWorld();
 
             EnsureActorNotAlreadyRegistered<TActor>();
 
+            getActorConfiguration ??= new Action<IActorConfiguration>((_) => { });
+            getAggregateCacheConfiguration ??= new Action<TAggregateCacheConfiguration>((_) => { });
+
             _serviceCollection.AddTransient<IEventStoreAggregateRepository, EventStoreAggregateRepository>();
             _serviceCollection.AddSingleton<TActor>();
 
-            var statelessActorBuilder = new EventStoreStatefulActorBuilder<TActor, TAggregate>(this, actorConfiguration, _eventStoreCacheFactory);
+            var actorConfiguration = ActorConfiguration.Default;
+            var aggregateCacheConfiguration = new TAggregateCacheConfiguration();
+
+            getActorConfiguration(actorConfiguration);
+            getAggregateCacheConfiguration(aggregateCacheConfiguration);
+
+            _actorConfigurationFactory.AddActorConfiguration<TActor>(actorConfiguration);
+            _actorConfigurationFactory.AddAggregateCacheConfiguration<TActor, TAggregateCacheConfiguration, TAggregate>(aggregateCacheConfiguration);
+            _actorConfigurationFactory.AddEventTypeProvider<TActor>(eventTypeProvider);
+
+            var statelessActorBuilder = new EventStoreStatefulActorBuilder<TActor, TAggregate, TAggregateCacheConfiguration>(this);
 
             return statelessActorBuilder;
         }

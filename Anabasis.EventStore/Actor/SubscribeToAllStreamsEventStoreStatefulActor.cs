@@ -1,37 +1,21 @@
 using System;
 using System.Threading.Tasks;
 using Anabasis.Common;
-using Anabasis.EventStore.Factories;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class SubscribeToAllStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate, AllStreamsCatchupCacheConfiguration<TAggregate>> where TAggregate : class, IAggregate, new()
+    public abstract class SubscribeToAllStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate, AllStreamsCatchupCacheConfiguration> where TAggregate : class, IAggregate, new()
     {
-
-        public SubscribeToAllStreamsEventStoreStatefulActor(
-            IActorConfiguration actorConfiguration,
-            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-            AllStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration,
-            IEventTypeProvider<TAggregate> eventTypeProvider,
-            ILoggerFactory loggerFactory,
-            ISnapshotStore<TAggregate>? snapshotStore = null,
-            ISnapshotStrategy? snapshotStrategy = null)
-            : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        protected SubscribeToAllStreamsEventStoreStatefulActor(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory? loggerFactory = null, ISnapshotStore<TAggregate>? snapshotStore = null, ISnapshotStrategy? snapshotStrategy = null, IKillSwitch? killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
             Initialize();
         }
 
-        protected SubscribeToAllStreamsEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory, 
-            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
-            AllStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
-            IEventTypeProvider<TAggregate> eventTypeProvider, 
-            ILoggerFactory? loggerFactory,
-            ISnapshotStore<TAggregate>? snapshotStore = null, 
-            ISnapshotStrategy? snapshotStrategy = null, 
-            IKillSwitch? killSwitch = null) : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+        protected SubscribeToAllStreamsEventStoreStatefulActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory? loggerFactory = null, ISnapshotStore<TAggregate>? snapshotStore = null, ISnapshotStrategy? snapshotStrategy = null, IKillSwitch? killSwitch = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
             Initialize();
         }

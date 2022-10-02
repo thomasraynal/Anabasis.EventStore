@@ -6,7 +6,14 @@ namespace Anabasis.Common.Configuration
 {
     public interface IActorConfigurationFactory
     {
-        void AddConfiguration<TActor>(IActorConfiguration actorConfiguration);
-        IActorConfiguration GetConfiguration(Type type);
+        void AddAggregateCacheConfiguration<TActor, TAggregateCacheConfiguration, TAggregate>(TAggregateCacheConfiguration aggregateCacheConfiguration)
+            where TActor : class, IStatefulActor<TAggregate, TAggregateCacheConfiguration>
+            where TAggregateCacheConfiguration : IAggregateCacheConfiguration, new()
+            where TAggregate : IAggregate, new();
+        void AddActorConfiguration<TActor>(IActorConfiguration actorConfiguration);
+        void AddEventTypeProvider<TActor>(IEventTypeProvider eventTypeProvider);
+        IActorConfiguration GetActorConfiguration(Type type);
+        IEventTypeProvider GetEventTypeProvider(Type type);
+        TAggregateCacheConfiguration GetAggregateCacheConfiguration<TAggregateCacheConfiguration>(Type type) where TAggregateCacheConfiguration : IAggregateCacheConfiguration;
     }
 }

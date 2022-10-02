@@ -1,6 +1,6 @@
 using Anabasis.Common;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI;
@@ -20,11 +20,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestStatefulActorOne : SubscribeToAllStreamsEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestStatefulActorOne(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public TestStatefulActorOne(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
-        public TestStatefulActorOne(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+        public TestStatefulActorOne(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
@@ -48,11 +48,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestAggregatedActorTwo : SubscribeToAllStreamsEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestAggregatedActorTwo(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public TestAggregatedActorTwo(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
-        public TestAggregatedActorTwo(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+        public TestAggregatedActorTwo(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
@@ -159,12 +159,12 @@ namespace Anabasis.EventStore.Tests
 
             var defaultEventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeDataAggregateEvent) });
 
-            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.Start)
+            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration(Position.Start)
             {
                 KeepAppliedEventsOnAggregate = true
             };
 
-            var testActorAutoBuildOne = EventStoreEmbeddedStatefulActorBuilder<TestStatefulActorOne, AllStreamsCatchupCacheConfiguration<SomeDataAggregate>, SomeDataAggregate, SomeRegistry >.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, defaultEventTypeProvider, _loggerFactory)
+            var testActorAutoBuildOne = EventStoreEmbeddedStatefulActorBuilder<TestStatefulActorOne, AllStreamsCatchupCacheConfiguration, SomeDataAggregate, SomeRegistry >.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, defaultEventTypeProvider, _loggerFactory)
                                                                                            .WithBus<IEventStoreBus>((actor, bus) =>
                                                                                              {
                                                                                                  actor.SubscribeToAllStreams(Position.Start);
@@ -172,7 +172,7 @@ namespace Anabasis.EventStore.Tests
                                                                                              })
                                                                                          .Build();
 
-            var testActorAutoBuildTwo = EventStoreEmbeddedStatefulActorBuilder<TestAggregatedActorTwo, AllStreamsCatchupCacheConfiguration<SomeDataAggregate>, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, defaultEventTypeProvider, _loggerFactory)
+            var testActorAutoBuildTwo = EventStoreEmbeddedStatefulActorBuilder<TestAggregatedActorTwo, AllStreamsCatchupCacheConfiguration, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, defaultEventTypeProvider, _loggerFactory)
                                                                                          .WithBus<IEventStoreBus>((actor, bus) =>
                                                                                             {
                                                                                                 actor.SubscribeToAllStreams(Position.Start);

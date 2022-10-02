@@ -34,7 +34,7 @@ namespace Anabasis.Common
         }
     }
 
-    public class DefaultEventTypeProvider<TAggregate> : IEventTypeProvider<TAggregate> where TAggregate : IAggregate, new()
+    public class DefaultEventTypeProvider<TAggregate> : IEventTypeProvider where TAggregate : IAggregate, new()
     {
         private readonly Dictionary<string, Type> _eventTypeCache;
 

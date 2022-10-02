@@ -1,5 +1,5 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Factories;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Shared;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
@@ -16,9 +16,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class BaseEventStoreStatefulActor<TAggregate,TAggregateCacheConfiguration> : BaseStatelessActor, IStatefulActor<TAggregate, TAggregateCacheConfiguration> 
+    public abstract class BaseEventStoreStatefulActor<TAggregate, TAggregateCacheConfiguration> : BaseStatelessActor, IStatefulActor<TAggregate, TAggregateCacheConfiguration>
         where TAggregate : class, IAggregate, new()
-        where TAggregateCacheConfiguration: IAggregateCacheConfiguration<TAggregate>
+        where TAggregateCacheConfiguration : IAggregateCacheConfiguration
     {
 
         private readonly ManualResetEventSlim _manualResetEventSlim = new();
@@ -36,7 +36,7 @@ namespace Anabasis.EventStore.Cache
         private TAggregateCacheConfiguration _catchupCacheConfiguration;
         private IKillSwitch _killSwitch;
 
-        public IEventTypeProvider<TAggregate> EventTypeProvider { get; private set; }
+        public IEventTypeProvider EventTypeProvider { get; private set; }
 
         protected TAggregateCacheConfiguration AggregateCacheConfiguration => _catchupCacheConfiguration;
 
@@ -55,17 +55,19 @@ namespace Anabasis.EventStore.Cache
         }
 
         public BaseEventStoreStatefulActor(
-           IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory,
+           IActorConfigurationFactory actorConfigurationFactory,
            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-           TAggregateCacheConfiguration catchupCacheConfiguration,
-           IEventTypeProvider<TAggregate> eventTypeProvider,
            ILoggerFactory? loggerFactory = null,
            ISnapshotStore<TAggregate>? snapshotStore = null,
            ISnapshotStrategy? snapshotStrategy = null,
-           IKillSwitch? killSwitch = null) : base(eventStoreActorConfigurationFactory, loggerFactory)
+           IKillSwitch? killSwitch = null) : base(actorConfigurationFactory, loggerFactory)
         {
+            var actorType = GetType();
+            var aggregateCacheConfiguration = actorConfigurationFactory.GetAggregateCacheConfiguration<TAggregateCacheConfiguration>(actorType);
+            var eventTypeProvider = actorConfigurationFactory.GetEventTypeProvider(actorType);
+
             Setup(connectionMonitor,
-                catchupCacheConfiguration,
+                aggregateCacheConfiguration,
                 eventTypeProvider,
                 loggerFactory,
                 snapshotStore,
@@ -78,7 +80,7 @@ namespace Anabasis.EventStore.Cache
            IActorConfiguration actorConfiguration,
            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
            TAggregateCacheConfiguration catchupCacheConfiguration,
-           IEventTypeProvider<TAggregate> eventTypeProvider,
+           IEventTypeProvider eventTypeProvider,
            ILoggerFactory? loggerFactory = null,
            ISnapshotStore<TAggregate>? snapshotStore = null,
            ISnapshotStrategy? snapshotStrategy = null,
@@ -96,7 +98,7 @@ namespace Anabasis.EventStore.Cache
         private void Setup(
            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
            TAggregateCacheConfiguration catchupCacheConfiguration,
-           IEventTypeProvider<TAggregate> eventTypeProvider,
+           IEventTypeProvider eventTypeProvider,
            ILoggerFactory? loggerFactory = null,
            ISnapshotStore<TAggregate>? snapshotStore = null,
            ISnapshotStrategy? snapshotStrategy = null,
@@ -297,7 +299,7 @@ namespace Anabasis.EventStore.Cache
 
         public async Task ConnectToEventStream()
         {
-   
+
             if (null == _catchupCacheSubscriptionHolders)
             {
                 throw new ArgumentNullException("_catchupCacheSubscriptionHolders");

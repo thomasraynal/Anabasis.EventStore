@@ -39,7 +39,7 @@ namespace Anabasis.Common
         }
     }
 
-    public class ServiceCollectionEventTypeProvider<TAggregate> : IEventTypeProvider<TAggregate> where TAggregate : class, IAggregate
+    public class ServiceCollectionEventTypeProvider<TAggregate> : IEventTypeProvider where TAggregate : class, IAggregate
     {
         private readonly Dictionary<string, Type?> _eventTypeCache;
         private readonly IServiceProvider _serviceProvider;

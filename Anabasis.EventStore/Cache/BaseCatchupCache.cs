@@ -30,11 +30,11 @@ namespace Anabasis.EventStore.Cache
         private readonly SourceCache<TAggregate, string> _caughtingUpCache;
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
         private readonly BehaviorSubject<bool> _isStaleSubject;
-        private readonly IAggregateCacheConfiguration<TAggregate> _catchupCacheConfiguration;
+        private readonly IAggregateCacheConfiguration _catchupCacheConfiguration;
         private readonly IKillSwitch _killSwitch;
 
         protected Microsoft.Extensions.Logging.ILogger? Logger { get; }
-        public IEventTypeProvider<TAggregate> EventTypeProvider { get; }
+        public IEventTypeProvider EventTypeProvider { get; }
         public string Id { get; }
         public bool UseSnapshot => _catchupCacheConfiguration.UseSnapshot;
         public IObservable<bool> OnStale => _isStaleSubject.AsObservable();
@@ -52,8 +52,8 @@ namespace Anabasis.EventStore.Cache
 
         public BaseCatchupCache(
            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-           IAggregateCacheConfiguration<TAggregate> catchupCacheConfiguration,
-           IEventTypeProvider<TAggregate> eventTypeProvider,
+           IAggregateCacheConfiguration catchupCacheConfiguration,
+           IEventTypeProvider eventTypeProvider,
            ILoggerFactory? loggerFactory =null,
            ISnapshotStore<TAggregate>? snapshotStore = null,
            ISnapshotStrategy? snapshotStrategy = null,

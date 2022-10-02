@@ -10,7 +10,4 @@ namespace Anabasis.Common
         Type? GetEventTypeByName(string name);
     }
 
-    public interface IEventTypeProvider<TAggregate> : IEventTypeProvider
-    {
-    }
 }

@@ -12,17 +12,18 @@ namespace Anabasis.EventStore.Standalone.Embedded
 {
     public static class EventStoreEmbeddedStatefulActorBuilder<TActor, TAggregateCacheConfiguration, TAggregate, TRegistry>
         where TActor : IStatefulActor<TAggregate, TAggregateCacheConfiguration>
-        where TAggregateCacheConfiguration : class, IAggregateCacheConfiguration<TAggregate>
+        where TAggregateCacheConfiguration : class, IAggregateCacheConfiguration
         where TAggregate : class, IAggregate, new()
         where TRegistry : ServiceRegistry, new()
     {
+
 
         public static EventStoreStatefulActorBuilder<TActor, TAggregateCacheConfiguration, TAggregate, TRegistry> Create(
           ClusterVNode clusterVNode,
           ConnectionSettings connectionSettings,
           IActorConfiguration actorConfiguration,
           TAggregateCacheConfiguration aggregateCacheConfiguration,
-          IEventTypeProvider<TAggregate>? eventTypeProvider = null,
+          IEventTypeProvider? eventTypeProvider = null,
           ILoggerFactory? loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration>? eventStoreRepositoryConfigurationBuilder = null)
         {

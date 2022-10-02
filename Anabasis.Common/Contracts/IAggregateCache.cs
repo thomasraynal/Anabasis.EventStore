@@ -15,7 +15,7 @@ namespace Anabasis.Common
         TAggregate? GetCurrent(string key);
         TAggregate[] GetCurrents();
         IObservableCache<TAggregate, string> AsObservableCache();
-        IEventTypeProvider<TAggregate> EventTypeProvider { get; }
+        IEventTypeProvider EventTypeProvider { get; }
         Task ConnectToEventStream();
         Task DisconnectFromEventStream();
     }

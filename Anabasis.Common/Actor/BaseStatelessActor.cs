@@ -30,7 +30,7 @@ namespace Anabasis.Common
 
         protected BaseStatelessActor(IActorConfigurationFactory actorConfigurationFactory, ILoggerFactory loggerFactory = null)
         {
-            Setup(actorConfigurationFactory.GetConfiguration(GetType()), loggerFactory);
+            Setup(actorConfigurationFactory.GetActorConfiguration(GetType()), loggerFactory);
         }
 
         protected BaseStatelessActor(IActorConfiguration actorConfiguration, ILoggerFactory loggerFactory = null)

@@ -2,7 +2,6 @@
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
-using Anabasis.EventStore.Factories;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Standalone.Embedded;
@@ -203,11 +202,11 @@ namespace Anabasis.EventStore.Tests
 
     public class TestBusRegistrationStatefulActor : SubscribeToAllStreamsEventStoreStatefulActor<SomeDataAggregate>
     {
-        public TestBusRegistrationStatefulActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public TestBusRegistrationStatefulActor(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
-        public TestBusRegistrationStatefulActor(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider<SomeDataAggregate> eventTypeProvider, ILoggerFactory loggerFactory, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+        public TestBusRegistrationStatefulActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
@@ -283,9 +282,9 @@ namespace Anabasis.EventStore.Tests
         [Test, Order(1)]
         public async Task ShouldRegisterABusOnAStatefulActor()
         {
-            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration<SomeDataAggregate>(Position.End);
+            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration(Position.End);
 
-            var testBusRegistrationActor = EventStoreEmbeddedStatefulActorBuilder<TestBusRegistrationStatefulActor, AllStreamsCatchupCacheConfiguration<SomeDataAggregate>, SomeDataAggregate, DummyBusRegistry>
+            var testBusRegistrationActor = EventStoreEmbeddedStatefulActorBuilder<TestBusRegistrationStatefulActor, AllStreamsCatchupCacheConfiguration, SomeDataAggregate, DummyBusRegistry>
                                                  .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration,loggerFactory: _loggerFactory)
                                                  .WithBus<IDummyBus>((actor, bus) =>
                                                  {

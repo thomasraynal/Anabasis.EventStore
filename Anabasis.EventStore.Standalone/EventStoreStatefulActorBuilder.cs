@@ -12,7 +12,7 @@ namespace Anabasis.EventStore.Standalone
 {
     public class EventStoreStatefulActorBuilder<TActor, TAggregateCacheConfiguration, TAggregate, TRegistry>
       where TActor : IStatefulActor<TAggregate, TAggregateCacheConfiguration>
-      where TAggregateCacheConfiguration : class, IAggregateCacheConfiguration<TAggregate>
+      where TAggregateCacheConfiguration : class, IAggregateCacheConfiguration
       where TAggregate : class, IAggregate, new()
       where TRegistry : ServiceRegistry, new()
     {
@@ -20,7 +20,7 @@ namespace Anabasis.EventStore.Standalone
         public ILoggerFactory? LoggerFactory { get; private set; }
         public IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; private set; }
         public IActorConfiguration ActorConfiguration { get; private set; }
-        public IEventTypeProvider<TAggregate>? EventTypeProvider { get; private set; }
+        public IEventTypeProvider? EventTypeProvider { get; private set; }
         public TAggregateCacheConfiguration AggregateCacheConfiguration { get; private set; }
         public ISnapshotStore<TAggregate>? SnapshotStore { get; private set; }
         public ISnapshotStore<TAggregate>? SnapshotStrategy { get; private set; }
@@ -32,7 +32,7 @@ namespace Anabasis.EventStore.Standalone
             IEventStoreAggregateRepository eventStoreRepository,
             TAggregateCacheConfiguration aggregateCacheConfiguration,
             IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-            IEventTypeProvider<TAggregate>? eventTypeProvider = null,
+            IEventTypeProvider? eventTypeProvider = null,
             ILoggerFactory? loggerFactory = null)
         {
             ActorConfiguration = actorConfiguration;
@@ -52,7 +52,7 @@ namespace Anabasis.EventStore.Standalone
             {
                 configuration.For<IActorConfiguration>().Use(ActorConfiguration);
                 if (null != LoggerFactory) configuration.For<ILoggerFactory>().Use(LoggerFactory);
-                configuration.For<IEventTypeProvider<TAggregate>>().Use(EventTypeProvider);
+                configuration.For<IEventTypeProvider>().Use(EventTypeProvider);
                 configuration.For<TAggregateCacheConfiguration>().Use(AggregateCacheConfiguration);
                 if (null != SnapshotStore) configuration.For<ISnapshotStore<TAggregate>>().Use(SnapshotStore);
                 if (null != SnapshotStrategy) configuration.For<ISnapshotStore<TAggregate>>().Use(SnapshotStrategy);
@@ -91,7 +91,7 @@ namespace Anabasis.EventStore.Standalone
             ConnectionSettings connectionSettings,
             TAggregateCacheConfiguration aggregateCacheConfiguration,
             IActorConfiguration actorConfiguration,
-            IEventTypeProvider<TAggregate>? eventTypeProvider = null,
+            IEventTypeProvider? eventTypeProvider = null,
             ILoggerFactory? loggerFactory = null,
             Action<IEventStoreRepositoryConfiguration>? getEventStoreRepositoryConfigurationBuilder = null)
         {
@@ -106,7 +106,7 @@ namespace Anabasis.EventStore.Standalone
              ConnectionSettingsBuilder connectionSettingsBuilder,
              TAggregateCacheConfiguration aggregateCacheConfiguration,
              IActorConfiguration actorConfiguration,
-             IEventTypeProvider<TAggregate>? eventTypeProvider = null,
+             IEventTypeProvider? eventTypeProvider = null,
              ILoggerFactory? loggerFactory = null,
              Action<IEventStoreRepositoryConfiguration>? eventStoreRepositoryConfigurationBuilder = null)
         {
@@ -121,7 +121,7 @@ namespace Anabasis.EventStore.Standalone
           IActorConfiguration actorConfiguration,
           TAggregateCacheConfiguration aggregateCacheConfiguration,
           IEventStoreConnection eventStoreConnection,
-          IEventTypeProvider<TAggregate>? eventTypeProvider = null,
+          IEventTypeProvider? eventTypeProvider = null,
           ILoggerFactory? loggerFactory = null,
           Action<IEventStoreRepositoryConfiguration>? eventStoreRepositoryConfigurationBuilder = null)
         {

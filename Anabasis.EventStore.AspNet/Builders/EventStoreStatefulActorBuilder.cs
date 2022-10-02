@@ -1,32 +1,21 @@
 ﻿using System;
-using Anabasis.EventStore.Snapshot;
-using Anabasis.EventStore.Cache;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-using EventStore.ClientAPI;
 using Anabasis.Common;
 using System.Linq;
-using Anabasis.EventStore.Factories;
 
 namespace Anabasis.EventStore.AspNet.Builders
 {
 
-    public class EventStoreStatefulActorBuilder<TActor, TAggregate>: IActorBuilder
-        where TActor : class, IStatefulActor<TAggregate>
+    public class EventStoreStatefulActorBuilder<TActor, TAggregate, TAggregateCacheConfiguration> : IActorBuilder
+        where TActor : class, IStatefulActor<TAggregate, TAggregateCacheConfiguration>
+        where TAggregateCacheConfiguration : IAggregateCacheConfiguration
         where TAggregate : class, IAggregate, new()
     {
         private readonly World _world;
-        private readonly List<Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>> _streamsToRegisterTo;
         private readonly Dictionary<Type, Action<IServiceProvider, IActor>> _busToRegisterTo;
-        private readonly IEventStoreActorConfigurationFactory _eventStoreCacheFactory;
-        private readonly IActorConfiguration _actorConfiguration;
-        private IEventStoreActorConfiguration<TAggregate> _eventStoreActorConfiguration;
 
-        public EventStoreStatefulActorBuilder(World world, IActorConfiguration actorConfiguration, IEventStoreActorConfigurationFactory eventStoreCacheFactory)
+        public EventStoreStatefulActorBuilder(World world)
         {
-            _streamsToRegisterTo = new List<Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>>();
-            _eventStoreCacheFactory = eventStoreCacheFactory;
-            _actorConfiguration = actorConfiguration;
             _busToRegisterTo = new Dictionary<Type, Action<IServiceProvider, IActor>>();
             _world = world;
         }
@@ -34,117 +23,9 @@ namespace Anabasis.EventStore.AspNet.Builders
         public World CreateActor()
         {
             _world.AddBuilder<TActor>(this);
-            _eventStoreCacheFactory.AddConfiguration<TActor>(_actorConfiguration);
-            _eventStoreCacheFactory.AddConfiguration<TActor, TAggregate>(_eventStoreActorConfiguration);
             return _world;
         }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithReadAllFromStartCache(
-          IEventTypeProvider<TAggregate> eventTypeProvider = null,
-          Action<AllStreamsCatchupCacheConfiguration<TAggregate>> catchupEventStoreCacheConfigurationBuilder = null)
-        {
-
-            var getCatchupEventStoreStream = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, ISnapshotStore<TAggregate>, ISnapshotStrategy, IAggregateCache<TAggregate>>((
-                connectionMonitor, 
-                loggerFactory,
-                snapshotStore,
-                snapshotStrategy) =>
-               {
-                   var catchupEventStoreCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.Start)
-                   {
-                       CrashAppIfSubscriptionFail = _actorConfiguration.CrashAppOnError
-                   };
-
-                   catchupEventStoreCacheConfigurationBuilder?.Invoke(catchupEventStoreCacheConfiguration);
-
-                   var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TAggregate, TActor>();
-
-                   var catchupEventStoreCache = new AllStreamsCatchupCache<TAggregate>(connectionMonitor,
-                       catchupEventStoreCacheConfiguration,
-                       eventProvider,
-                       loggerFactory,
-                       snapshotStore,
-                       snapshotStrategy);
-
-                   return catchupEventStoreCache;
-
-               });
-
-            if (null != _eventStoreActorConfiguration) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
-
-            _eventStoreActorConfiguration = new EventStoreActorConfiguration<TAggregate>(_actorConfiguration, getCatchupEventStoreStream);
-
-            return this;
-
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithReadOneStreamFromStartCache(
-          string streamId,
-          IEventTypeProvider<TAggregate> eventTypeProvider = null,
-          Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null)
-        {
-            return WithReadManyStreamFromStartCache(new[] { streamId }, eventTypeProvider, getMultipleStreamsCatchupCacheConfiguration);
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithReadManyStreamFromStartCache(
-          string[] streamIds,
-          IEventTypeProvider<TAggregate> eventTypeProvider = null,
-          Action<MultipleStreamsCatchupCacheConfiguration<TAggregate>> getMultipleStreamsCatchupCacheConfiguration = null)
-        {
-
-            var getSubscribeFromEndMultipleStreamsEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, ISnapshotStore<TAggregate>, ISnapshotStrategy, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy) =>
-           {
-               var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<TAggregate>(streamIds)
-               {
-                   CrashAppIfSubscriptionFail = _actorConfiguration.CrashAppOnError
-               };
-
-               getMultipleStreamsCatchupCacheConfiguration?.Invoke(multipleStreamsCatchupCacheConfiguration);
-
-               var multipleStreamsCatchupCache = new MultipleStreamsCatchupCache<TAggregate>(connectionMonitor, multipleStreamsCatchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy);
-
-               return multipleStreamsCatchupCache;
-           });
-
-            if (null != _eventStoreActorConfiguration) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
-
-            _eventStoreActorConfiguration = new EventStoreActorConfiguration<TAggregate>(_actorConfiguration, getSubscribeFromEndMultipleStreamsEventStoreCache);
-
-            return this;
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithReadAllFromEndCache(
-          IEventTypeProvider<TAggregate> eventTypeProvider = null,
-          Action<AllStreamsCatchupCacheConfiguration<TAggregate>> volatileCacheConfigurationBuilder = null)
-        {
-            var getSubscribeFromEndEventStoreCache = new Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, ISnapshotStore<TAggregate>, ISnapshotStrategy, IAggregateCache<TAggregate>>((connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy) =>
-           {
-               var subscribeFromEndCacheConfiguration = new AllStreamsCatchupCacheConfiguration<TAggregate>(Position.End)
-               {
-                   CrashAppIfSubscriptionFail = _actorConfiguration.CrashAppOnError
-               };
-
-               volatileCacheConfigurationBuilder?.Invoke(subscribeFromEndCacheConfiguration);
-
-               var eventProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TAggregate, TActor>();
-
-               var subscribeFromEndEventStoreCache = new AllStreamsCatchupCache<TAggregate>(connectionMonitor,
-                   subscribeFromEndCacheConfiguration,
-                   eventProvider, loggerFactory);
-
-               return subscribeFromEndEventStoreCache;
-
-           });
-
-            if (null != _eventStoreActorConfiguration) throw new InvalidOperationException("A cache as already been registered - only one cache allowed");
-
-            _eventStoreActorConfiguration = new EventStoreActorConfiguration<TAggregate>(_actorConfiguration, getSubscribeFromEndEventStoreCache);
-
-
-            return this;
-        }
-
-        public EventStoreStatefulActorBuilder<TActor, TAggregate> WithBus<TBus>(Action<TActor, TBus> onStartup = null) where TBus : IBus
+        public EventStoreStatefulActorBuilder<TActor,TAggregate, TAggregateCacheConfiguration> WithBus<TBus>(Action<TActor, TBus>? onStartup = null) where TBus : IBus
         {
             var busType = typeof(TBus);
 
@@ -177,10 +58,6 @@ namespace Anabasis.EventStore.AspNet.Builders
             return this;
         }
 
-        public Func<IConnectionStatusMonitor<IEventStoreConnection>, ILoggerFactory, IEventStoreStream>[] GetStreamFactories()
-        {
-            return _streamsToRegisterTo.ToArray();
-        }
 
         public (Type actor, Action<IServiceProvider, IActor> factory)[] GetBusFactories()
         {

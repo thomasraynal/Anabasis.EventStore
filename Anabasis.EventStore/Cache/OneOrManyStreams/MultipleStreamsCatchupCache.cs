@@ -15,7 +15,7 @@ namespace Anabasis.EventStore.Cache
 
         public MultipleStreamsCatchupCache(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
             MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration,
-            IEventTypeProvider<TAggregate> eventTypeProvider,
+            IEventTypeProvider eventTypeProvider,
             ILoggerFactory? loggerFactory = null,
             ISnapshotStore<TAggregate>? snapshotStore = null,
             ISnapshotStrategy? snapshotStrategy = null) : base(connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)

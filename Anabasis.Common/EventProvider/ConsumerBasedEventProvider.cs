@@ -54,7 +54,7 @@ namespace Anabasis.Common
 
     }
 
-    public class ConsumerBasedEventProvider<TAggregate, TConsumer> : ConsumerBasedEventProvider<TConsumer>, IEventTypeProvider<TAggregate> where TAggregate : IAggregate, new()
+    public class ConsumerBasedEventProvider<TAggregate, TConsumer> : ConsumerBasedEventProvider<TConsumer>, IEventTypeProvider where TAggregate : IAggregate, new()
     {
         public ConsumerBasedEventProvider()
         {

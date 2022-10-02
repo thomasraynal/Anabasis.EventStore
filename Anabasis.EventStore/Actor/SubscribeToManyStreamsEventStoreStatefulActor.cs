@@ -1,5 +1,5 @@
 using Anabasis.Common;
-using Anabasis.EventStore.Factories;
+using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using EventStore.ClientAPI;
@@ -16,7 +16,7 @@ namespace Anabasis.EventStore.Cache
         protected SubscribeToManyStreamsEventStoreStatefulActor(IActorConfiguration actorConfiguration, 
             IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
             MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
-            IEventTypeProvider<TAggregate> eventTypeProvider, 
+            IEventTypeProvider eventTypeProvider, 
             ILoggerFactory? loggerFactory = null,
             ISnapshotStore<TAggregate>? snapshotStore = null, 
             ISnapshotStrategy? snapshotStrategy = null)
@@ -29,17 +29,15 @@ namespace Anabasis.EventStore.Cache
 
         }
 
-        protected SubscribeToManyStreamsEventStoreStatefulActor(IEventStoreActorConfigurationFactory eventStoreActorConfigurationFactory,
+        protected SubscribeToManyStreamsEventStoreStatefulActor(IActorConfigurationFactory actorConfigurationFactory,
             IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
-            MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
-            IEventTypeProvider<TAggregate> eventTypeProvider, 
             ILoggerFactory? loggerFactory = null, 
             ISnapshotStore<TAggregate>? snapshotStore = null, 
             ISnapshotStrategy? snapshotStrategy = null, 
             IKillSwitch? killSwitch = null) 
-            : base(eventStoreActorConfigurationFactory, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+            : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
-            var catchupCacheSubscriptionHolders = catchupCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, catchupCacheConfiguration.CrashAppIfSubscriptionFail)).ToArray();
+            var catchupCacheSubscriptionHolders = AggregateCacheConfiguration.StreamIds.Select(streamId => new CatchupCacheSubscriptionHolder<TAggregate>(streamId, AggregateCacheConfiguration.CrashAppIfSubscriptionFail)).ToArray();
 
             Initialize(catchupCacheSubscriptionHolders);
         }
