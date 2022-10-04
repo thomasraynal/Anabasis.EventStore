@@ -78,7 +78,7 @@ namespace Anabasis.EventStore.AspNet
             where TAggregateCacheConfiguration : IAggregateCacheConfiguration, new()
             where TAggregate : class, IAggregate, new()
         {
-                
+
             EnsureIsEventStoreWorld();
 
             EnsureActorNotAlreadyRegistered<TActor>();

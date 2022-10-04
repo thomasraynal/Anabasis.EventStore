@@ -44,7 +44,7 @@ namespace Anabasis.EventStore.Tests
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public Task Handle(SomeDataAggregateEvent someData)
+        public Task Handle(SomeMoreData someData)
         {
             Events.Add(someData);
 
@@ -63,7 +63,7 @@ namespace Anabasis.EventStore.Tests
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public Task Handle(SomeDataAggregateEvent someData)
+        public Task Handle(SomeMoreData someData)
         {
             Events.Add(someData);
 
@@ -83,7 +83,7 @@ namespace Anabasis.EventStore.Tests
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public Task Handle(SomeDataAggregateEvent someData)
+        public Task Handle(SomeMoreData someData)
         {
             Events.Add(someData);
 
@@ -96,7 +96,7 @@ namespace Anabasis.EventStore.Tests
         public void ConfigureServices(IServiceCollection services)
         {
 
-            var eventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeDataAggregateEvent) });
+            var eventTypeProvider = new DefaultEventTypeProvider<SomeDataAggregate>(() => new[] { typeof(SomeMoreData) });
 
             services.AddSingleton<IDummyBus, DummyBus>();
             services.AddSingleton<IEventStoreBus, EventStoreBus>();
@@ -226,7 +226,7 @@ namespace Anabasis.EventStore.Tests
 
             var bus = testBusRegistrationEventStoreStatelessActorMvc.GetConnectedBus<IDummyBus>();
 
-            bus.Push(new SomeDataAggregatedEvent("entityId", Guid.NewGuid()));
+            bus.Push(new SomeMoreData(Guid.NewGuid(), "entityId"));
 
             await Task.Delay(1000);
 

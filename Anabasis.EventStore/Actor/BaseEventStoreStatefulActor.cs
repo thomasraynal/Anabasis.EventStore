@@ -135,6 +135,11 @@ namespace Anabasis.EventStore.Cache
             Initialize(catchupCacheSubscriptionHolders);
         }
 
+        public override async Task OnInitialized()
+        {
+            await ConnectToEventStream();
+        }
+
         protected void Initialize(CatchupCacheSubscriptionHolder<TAggregate>[] catchupCacheSubscriptionHolders)
         {
 
