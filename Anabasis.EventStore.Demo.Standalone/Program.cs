@@ -5,6 +5,7 @@ using Anabasis.EventStore.Standalone;
 using Anabasis.EventStore.Standalone.Embedded;
 using Anabasis.RabbitMQ;
 using Anabasis.RabbitMQ.Connection;
+using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using Serilog;
 using Serilog.Events;
@@ -19,15 +20,6 @@ namespace Anabasis.EventStore.Demo
         static void Main(string[] args)
         {
 
-            //var dispatchQueue = new DispatchQueue<int>(new DispatchQueueConfiguration<int>((i=>
-            //{
-            //    throw new Exception("boom");
-
-            //}),1,1));
-
-            //dispatchQueue.Enqueue(1);
-
-
             Task.Run(() =>
             {
 
@@ -40,7 +32,7 @@ namespace Anabasis.EventStore.Demo
                                                 .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
                                                 .WithBus<IEventStoreBus>((actor, bus) =>
                                                 {
-                                                    actor.SubscribeFromEndToAllStreams();
+                                                    actor.SubscribeToAllStreams(Position.End);
                                                 })
                                                 .Build();
 

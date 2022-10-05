@@ -1,5 +1,8 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Snapshot;
+using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -114,16 +117,15 @@ namespace Anabasis.EventStore.Samples2
 
     }
 
-    public class MerchantCatalogActor : BaseEventStoreStatefulActor<MerchantProduct>
+    public class MerchantCatalogActor : SubscribeToManyStreamsEventStoreStatefulActor<MerchantProduct>
     {
-        public MerchantCatalogActor(IActorConfiguration actorConfiguration, IAggregateCache<MerchantProduct> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
+        public MerchantCatalogActor(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<MerchantProduct> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
-        public MerchantCatalogActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<MerchantProduct> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
+        public MerchantCatalogActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, MultipleStreamsCatchupCacheConfiguration<MerchantProduct> catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<MerchantProduct> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
         }
-
     }
 
     public class Registry : ServiceRegistry
@@ -136,7 +138,7 @@ namespace Anabasis.EventStore.Samples2
 
     internal class Program
     {
-   
+
 
         static void Main(string[] args)
         {
@@ -181,19 +183,32 @@ namespace Anabasis.EventStore.Samples2
                     "ProductF"
                 };
 
-                var merchantCatalogActor = EventStoreEmbeddedStatefulActorBuilder<MerchantCatalogActor, MerchantProduct, Registry>
-                                .Create(clusterVNode, connectionSettings, ActorConfiguration.Default)
-                                .WithReadManyStreamsFromStartCache(streamIds: products, eventTypeProvider: defaultEventTypeProvider)
+                var newProducts = new[]{
+                    "NEW-ProductW",
+                    "NEW-ProductZ"
+                };
+
+                var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<MerchantProduct>(products);
+
+                var merchantCatalogActor = EventStoreEmbeddedStatefulActorBuilder<MerchantCatalogActor, MultipleStreamsCatchupCacheConfiguration<MerchantProduct>, MerchantProduct, Registry>
+                                .Create(clusterVNode, connectionSettings, ActorConfiguration.Default, multipleStreamsCatchupCacheConfiguration, defaultEventTypeProvider)
                                 .WithBus<IEventStoreBus>()
                                 .Build();
-           
 
-                await Task.Delay(5000);
+                await merchantCatalogActor.ConnectToEventStream();
+
+                merchantCatalogActor.AsObservableCache().Connect().Subscribe((changeSet) =>
+                {
+                    foreach (var set in changeSet)
+                    {
+                        Console.WriteLine($"{set.Current.EntityId}=>{set.Reason}");
+                    }
+                });
+
+                await Task.Delay(2000);
 
 
-                //*************
-
-                var loadedProducts = merchantCatalogActor.State.GetCurrents();
+                var loadedProducts = merchantCatalogActor.GetCurrents();
 
                 foreach (var product in products)
                 {
@@ -205,6 +220,18 @@ namespace Anabasis.EventStore.Samples2
                 }
 
                 await Task.Delay(500);
+
+                await merchantCatalogActor.AddEventStoreStreams(newProducts);
+
+                foreach (var newProduct in newProducts)
+                {
+                    await merchantCatalogActor.EmitEventStore(new MerchantProductCreatedEvent(newProduct));
+                    await merchantCatalogActor.EmitEventStore(new MerchantProductAvailableEvent(newProduct, 10));
+                }
+
+                await Task.Delay(500);
+
+         
 
             });
 

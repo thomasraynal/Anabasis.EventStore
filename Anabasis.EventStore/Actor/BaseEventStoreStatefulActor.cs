@@ -69,7 +69,6 @@ namespace Anabasis.EventStore.Cache
             Setup(connectionMonitor,
                 aggregateCacheConfiguration,
                 eventTypeProvider,
-                loggerFactory,
                 snapshotStore,
                 snapshotStrategy,
                 killSwitch);
@@ -89,7 +88,6 @@ namespace Anabasis.EventStore.Cache
             Setup(connectionMonitor,
                 catchupCacheConfiguration,
                 eventTypeProvider,
-                loggerFactory,
                 snapshotStore,
                 snapshotStrategy,
                 killSwitch);
@@ -99,7 +97,6 @@ namespace Anabasis.EventStore.Cache
            IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
            TAggregateCacheConfiguration catchupCacheConfiguration,
            IEventTypeProvider eventTypeProvider,
-           ILoggerFactory? loggerFactory = null,
            ISnapshotStore<TAggregate>? snapshotStore = null,
            ISnapshotStrategy? snapshotStrategy = null,
            IKillSwitch? killSwitch = null)

@@ -42,7 +42,7 @@ namespace Anabasis.EventStore.Demo
                                     .AddStatelessActor<TradeService>(ActorConfiguration.Default)
                                         .WithBus<IEventStoreBus>((actor, bus) =>
                                         {
-                                            actor.SubscribeFromEndToAllStreams();
+                                            actor.SubscribeToAllStreams(Position.End);
                                         })
                                         .CreateActor()
 
