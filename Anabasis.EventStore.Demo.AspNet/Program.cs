@@ -7,6 +7,7 @@ using Anabasis.EventStore.Demo.AspNet;
 using Microsoft.AspNetCore.Builder;
 using Anabasis.EventStore.Demo.Bus;
 using Anabasis.EventStore.AspNet;
+using Anabasis.EventStore.Cache;
 
 namespace Anabasis.EventStore.Demo
 {
@@ -28,29 +29,28 @@ namespace Anabasis.EventStore.Demo
                                     .KeepReconnecting()
                                     .KeepRetrying()
                                     .SetDefaultUserCredentials(StaticData.UserCredentials);
-                                
 
                             var tradeDataEventProvider = new DefaultEventTypeProvider<Trade>(() => new[] { typeof(TradeCreated), typeof(TradeStatusChanged) });
                             var marketDataEventProvider = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
+                            
+                            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration();
 
                             serviceCollection.AddSingleton<IMarketDataBus, MarketDataBus>();
                             serviceCollection.AddSingleton<IEventStoreBus, EventStoreBus>();
 
                             serviceCollection.AddWorld("ConnectTo=tcp://admin:changeit@localhost:1113; HeartBeatTimeout=1500; VerboseLogging=false; OperationTimeout=60000; UseSslConnection=false;", connectionSettings)
 
-
                                     .AddStatelessActor<TradeService>(ActorConfiguration.Default)
                                         .WithBus<IEventStoreBus>((actor, bus) =>
                                         {
-                                            actor.SubscribeToAllStreams(Position.End);
+                                            actor.SubscribeToAllStreams(Position.Start);
                                         })
                                         .CreateActor()
 
-                                    .AddEventStoreStatefulActor<TradePriceUpdateService, Trade>(ActorConfiguration.Default)
-                                        .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+                                    .AddEventStoreStatefulActor<TradePriceUpdateService, Trade, AllStreamsCatchupCacheConfiguration>(tradeDataEventProvider)
                                         .WithBus<IEventStoreBus>((actor, bus) =>
                                         {
-                                            actor.SubscribeFromEndToAllStreams();
+                                            actor.SubscribeToAllStreams(Position.Start);
                                         })
                                         .WithBus<IMarketDataBus>((actor, bus) =>
                                         {
@@ -58,8 +58,7 @@ namespace Anabasis.EventStore.Demo
                                         })
                                         .CreateActor()
 
-                                    .AddEventStoreStatefulActor<TradeSink, Trade>(ActorConfiguration.Default)
-                                        .WithReadAllFromStartCache(eventTypeProvider: tradeDataEventProvider)
+                                    .AddEventStoreStatefulActor<TradeSink, Trade, AllStreamsCatchupCacheConfiguration>(tradeDataEventProvider)
                                         .CreateActor()
 
                                     .AddStatelessActor<MarketDataSink>(ActorConfiguration.Default)

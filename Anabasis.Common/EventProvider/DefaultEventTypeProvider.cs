@@ -24,6 +24,11 @@ namespace Anabasis.Common
             return _eventTypeCache.Values.ToArray();
         }
 
+        public bool CanHandle(IEvent @event)
+        {
+            return _eventTypeCache.Values.Any(value => value == @event.GetType());
+        }
+
         public Type? GetEventTypeByName(string name)
         {
 
@@ -49,6 +54,10 @@ namespace Anabasis.Common
 
         }
 
+        public bool CanHandle(IEvent @event)
+        {
+            return _eventTypeCache.Values.Any(value => value == @event.GetType());
+        }
         public Type[] GetAll()
         {
             return _eventTypeCache.Values.ToArray();

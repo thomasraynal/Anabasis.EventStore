@@ -1,10 +1,7 @@
 using Anabasis.Common;
 using Anabasis.Common.Configuration;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Repository;
 using DynamicData;
 using DynamicData.Kernel;
-using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;

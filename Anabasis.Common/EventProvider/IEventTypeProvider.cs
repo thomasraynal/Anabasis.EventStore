@@ -8,6 +8,7 @@ namespace Anabasis.Common
     {
         Type[] GetAll();
         Type? GetEventTypeByName(string name);
+        bool CanHandle(IEvent @event);
     }
 
 }

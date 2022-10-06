@@ -1,5 +1,6 @@
 using Anabasis.Api.Tests.Common;
 using Anabasis.Common;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Standalone;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
@@ -31,38 +32,36 @@ namespace Anabasis.EventStore.Integration.Tests
 
             var userCredentials = new UserCredentials("admin", "changeit");
 
-            var connectionSettings =  ConnectionSettings.Create()
+            var connectionSettings = ConnectionSettings.Create()
                             .UseDebugLogger()
                             .DisableTls()
                             .SetDefaultUserCredentials(userCredentials)
                             .KeepRetrying()
                             .Build();
 
+            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration();
+
             var defaultEventTypeProvider = new DefaultEventTypeProvider<CurrencyPair>(() => new[] { typeof(CurrencyPairPriceChanged), typeof(CurrencyPairStateChanged) });
 
-            var traderOne = EventStoreStatefulActorBuilder<Trader, CurrencyPair, TestRegistry>.Create(url, connectionSettings, ActorConfiguration.Default)
-                                                                                              .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
-                                                                                                getCatchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
+            var traderOne = EventStoreStatefulActorBuilder<Trader, AllStreamsCatchupCacheConfiguration, CurrencyPair, TestRegistry>.Create(url, connectionSettings, allStreamsCatchupCacheConfiguration, ActorConfiguration.Default, defaultEventTypeProvider)
                                                                                               .Build();
             await Task.Delay(2000);
 
-            Assert.IsTrue(traderOne.State.IsConnected);
+            Assert.IsTrue(traderOne.IsConnected);
 
-            var traderTwo = EventStoreStatefulActorBuilder<Trader, CurrencyPair, TestRegistry>.Create(url, connectionSettings, ActorConfiguration.Default)
-                                                                                            .WithReadAllFromStartCache(eventTypeProvider: defaultEventTypeProvider,
-                                                                                               getCatchupEventStoreCacheConfigurationBuilder: (configuration) => configuration.KeepAppliedEventsOnAggregate = true)
+            var traderTwo = EventStoreStatefulActorBuilder<Trader, AllStreamsCatchupCacheConfiguration, CurrencyPair, TestRegistry>.Create(url, connectionSettings, allStreamsCatchupCacheConfiguration, ActorConfiguration.Default, defaultEventTypeProvider)
                                                                                             .Build();
 
             await Task.Delay(500);
 
-            Assert.IsTrue(traderTwo.State.IsConnected);
+            Assert.IsTrue(traderTwo.IsConnected);
 
             await Task.Delay(4000);
 
-            var eurodolOne = traderOne.State.GetCurrent("EUR/USD");
-            var eurodolTwo = traderTwo.State.GetCurrent("EUR/USD");
-            var chunnelOne = traderOne.State.GetCurrent("EUR/GBP");
-            var chunnelTwo = traderTwo.State.GetCurrent("EUR/GBP");
+            var eurodolOne = traderOne.GetCurrent("EUR/USD");
+            var eurodolTwo = traderTwo.GetCurrent("EUR/USD");
+            var chunnelOne = traderOne.GetCurrent("EUR/GBP");
+            var chunnelTwo = traderTwo.GetCurrent("EUR/GBP");
 
             Assert.Greater(eurodolOne.AppliedEvents.Length, 0);
             Assert.Greater(eurodolTwo.AppliedEvents.Length, 0);

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class TradePriceUpdateService :  <Trade>
+    public class TradePriceUpdateService : SubscribeToAllStreamsEventStoreStatefulActor<Trade>
     {
         public TradePriceUpdateService(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<Trade> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {

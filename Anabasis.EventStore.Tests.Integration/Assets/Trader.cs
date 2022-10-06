@@ -3,8 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Factories;
+using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
@@ -12,7 +12,7 @@ using Microsoft.Extensions.Logging;
 namespace Anabasis.EventStore.Integration.Tests
 {
 
-    public class Trader : BaseEventStoreStatefulActor<CurrencyPair>
+    public class Trader : SubscribeToAllStreamsEventStoreStatefulActor<CurrencyPair>
     {
 
         private static readonly string[] CcyPairs = { "EUR/USD", "EUR/GBP" };
@@ -23,14 +23,12 @@ namespace Anabasis.EventStore.Integration.Tests
 
         private TraderConfiguration _configuration;
 
-        public Trader(TraderConfiguration traderConfiguration, IActorConfiguration actorConfiguration, IAggregateCache<CurrencyPair> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
+        public Trader(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<CurrencyPair> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
-            Initialize(traderConfiguration);
         }
 
-        public Trader(TraderConfiguration traderConfiguration, IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<CurrencyPair> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
+        public Trader(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<CurrencyPair> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
-            Initialize(traderConfiguration);
         }
 
         public void Initialize(TraderConfiguration traderConfiguration)
@@ -41,8 +39,6 @@ namespace Anabasis.EventStore.Integration.Tests
             _workProc = Task.Run(HandleWork);
 
         }
-
-
 
         public CurrencyPairPriceChanged Next()
         {
@@ -65,8 +61,8 @@ namespace Anabasis.EventStore.Integration.Tests
 
 
         public async Task WaitUntilConnected()
-        {
-            while (!State.IsConnected)
+        { 
+            while (!IsConnected)
             {
                 await Task.Delay(2000);
             }
@@ -84,7 +80,7 @@ namespace Anabasis.EventStore.Integration.Tests
 
                 await WaitUntilConnected();
 
-                if (State.IsConnected)
+                if (IsConnected)
                 {
                     var changePrice = Next();
 

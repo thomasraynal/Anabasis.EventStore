@@ -31,6 +31,11 @@ namespace Anabasis.Common
 #nullable restore
         }
 
+        public bool CanHandle(IEvent @event)
+        {
+            return _eventTypeCache.Values.Any(value => value == @event.GetType());
+        }
+
         public Type[] GetAll()
         {
             return _eventTypeCache.Values.ToArray();

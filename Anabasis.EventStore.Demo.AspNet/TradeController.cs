@@ -18,13 +18,14 @@ namespace Anabasis.EventStore.Demo
         [HttpGet]
         public IActionResult GetTrades()
         {
-            return Ok(_tradeSink.State.GetCurrents());
+            return Ok(_tradeSink.GetCurrents());
         }
 
         [HttpGet("{id}")]
         public IActionResult GetOneTrade(string tradeId)
         {
-            var trade = _tradeSink.State.GetCurrents().FirstOrDefault(trade => trade.EntityId == tradeId);
+            var trade = _tradeSink.GetCurrents().FirstOrDefault(trade => trade.EntityId == tradeId);
+
             return Ok(trade);
         }
 

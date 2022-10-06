@@ -219,51 +219,47 @@ namespace Anabasis.EventStore.Cache
             _manualResetEventSlim.Set();
         }
 
+
         protected async override Task OnEventConsumed(IEvent @event)
         {
-            if (!@event.IsAggregateEvent)
-            {
-                await base.OnEventConsumed(@event);
-                return;
-            }
 
-            if (!IsCaughtUp && @event.IsCommand) return;
-
-            if (@event is not IAggregateEvent<TAggregate> aggregateEvent)
+            if (@event is IAggregateEvent<TAggregate> aggregateEvent && EventTypeProvider.CanHandle(@event))
             {
-                throw new InvalidOperationException($"{@event.GetType().Name} is an aggregate event but does not implement {nameof(IAggregateEvent)}");
-            }
+
+                if (!IsCaughtUp && @event.IsCommand) return;
 
 #nullable disable
-
-            var entry = CurrentCache.Lookup(@event.EntityId);
-
+                var entry = CurrentCache.Lookup(@event.EntityId);
 #nullable enable
 
-            TAggregate entity;
+                TAggregate entity;
 
-            if (entry.HasValue)
-            {
-                entity = entry.Value;
-
-                if (entity.Version == aggregateEvent.EventNumber)
+                if (entry.HasValue)
                 {
-                    return;
+                    entity = entry.Value;
+
+                    if (entity.Version == aggregateEvent.EventNumber)
+                    {
+                        return;
+                    }
                 }
+                else
+                {
+                    Logger?.LogDebug($"{Id} => Creating aggregate: {aggregateEvent.EventId} {aggregateEvent.EntityId} - v.{aggregateEvent.EventNumber}");
+
+                    entity = new TAggregate();
+                    entity.SetEntityId(@event.EntityId);
+                }
+
+                Logger?.LogDebug($"{Id} => Updating aggregate: {aggregateEvent.EventId} {aggregateEvent.EntityId} - v.{aggregateEvent.EventNumber}");
+
+                entity.ApplyEvent(aggregateEvent, false, _catchupCacheConfiguration.KeepAppliedEventsOnAggregate);
+
+                CurrentCache.AddOrUpdate(entity);
+
             }
-            else
-            {
-                Logger?.LogDebug($"{Id} => Creating aggregate: {aggregateEvent.EventId} {aggregateEvent.EntityId} - v.{aggregateEvent.EventNumber}");
 
-                entity = new TAggregate();
-                entity.SetEntityId(@event.EntityId);
-            }
-
-            Logger?.LogDebug($"{Id} => Updating aggregate: {aggregateEvent.EventId} {aggregateEvent.EntityId} - v.{aggregateEvent.EventNumber}");
-
-            entity.ApplyEvent(aggregateEvent, false, _catchupCacheConfiguration.KeepAppliedEventsOnAggregate);
-
-            CurrentCache.AddOrUpdate(entity);
+            await base.OnEventConsumed(@event);
 
         }
 
