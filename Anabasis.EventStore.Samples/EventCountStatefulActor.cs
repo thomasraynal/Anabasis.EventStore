@@ -1,19 +1,30 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Factories;
+using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
 namespace Anabasis.EventStore.Samples
 {
-    public class EventCountStatefulActor : BaseEventStoreStatefulActor<EventCountAggregate>
+    public class EventCountStatefulActor : SubscribeToAllStreamsEventStoreStatefulActor<EventCountAggregate>
     {
-        public EventCountStatefulActor(IActorConfiguration actorConfiguration, IAggregateCache<EventCountAggregate> eventStoreCache, ILoggerFactory loggerFactory = null) : base(actorConfiguration, eventStoreCache, loggerFactory)
+        public EventCountStatefulActor(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<EventCountAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
         {
         }
 
-        public EventCountStatefulActor(IEventStoreActorConfigurationFactory eventStoreCacheFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionStatusMonitor, ISnapshotStore<EventCountAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, ILoggerFactory loggerFactory = null) : base(eventStoreCacheFactory, connectionStatusMonitor, snapshotStore, snapshotStrategy, loggerFactory)
+        public EventCountStatefulActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, AllStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<EventCountAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+        {
+        }
+    }
+
+    public class EventCountStatefulActor2 : SubscribeToManyStreamsEventStoreStatefulActor<EventCountAggregate>
+    {
+        public EventCountStatefulActor2(IActorConfigurationFactory actorConfigurationFactory, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, ILoggerFactory loggerFactory = null, ISnapshotStore<EventCountAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null, IKillSwitch killSwitch = null) : base(actorConfigurationFactory, connectionMonitor, loggerFactory, snapshotStore, snapshotStrategy, killSwitch)
+        {
+        }
+
+        public EventCountStatefulActor2(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, MultipleStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<EventCountAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
         }
     }

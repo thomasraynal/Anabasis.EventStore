@@ -11,10 +11,10 @@ namespace Anabasis.EventStore.Cache
 
     public class MultipleStreamsCatchupCache<TAggregate> : BaseOneOrManyStreamCatchupCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
-        private readonly MultipleStreamsCatchupCacheConfiguration<TAggregate> _multipleStreamsCatchupCacheConfiguration;
+        private readonly MultipleStreamsCatchupCacheConfiguration _multipleStreamsCatchupCacheConfiguration;
 
         public MultipleStreamsCatchupCache(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-            MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration,
+            MultipleStreamsCatchupCacheConfiguration catchupCacheConfiguration,
             IEventTypeProvider eventTypeProvider,
             ILoggerFactory? loggerFactory = null,
             ISnapshotStore<TAggregate>? snapshotStore = null,

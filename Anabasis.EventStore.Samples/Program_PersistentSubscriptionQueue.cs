@@ -1,13 +1,9 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Standalone;
 using Anabasis.EventStore.Standalone.Embedded;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.Core;
 using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Samples

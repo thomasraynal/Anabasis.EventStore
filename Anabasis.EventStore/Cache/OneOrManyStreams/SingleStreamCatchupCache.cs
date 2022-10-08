@@ -8,7 +8,7 @@ namespace Anabasis.EventStore.Cache
     public class SingleStreamCatchupCache<TAggregate> : MultipleStreamsCatchupCache<TAggregate> where TAggregate : class, IAggregate, new()
     {
         public SingleStreamCatchupCache(IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
-          SingleStreamCatchupCacheConfiguration<TAggregate> cacheConfiguration,
+          SingleStreamCatchupCacheConfiguration cacheConfiguration,
           IEventTypeProvider eventTypeProvider,
           ILoggerFactory loggerFactory,
           ISnapshotStore<TAggregate>? snapshotStore = null,

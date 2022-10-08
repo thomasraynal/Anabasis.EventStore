@@ -1,11 +1,8 @@
 ﻿using Anabasis.Common;
-using Anabasis.EventStore.Actor;
-using Anabasis.EventStore.Shared;
+using Anabasis.EventStore.Cache;
 using EventStore.ClientAPI;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace Anabasis.EventStore.Samples
 {
@@ -64,11 +61,12 @@ namespace Anabasis.EventStore.Samples
             }
         }
 
-        public static void Run(params IStatefulActor<EventCountAggregate>[] statefulActors)
+        public static void Run<TConfiguration>(params IStatefulActor<EventCountAggregate, TConfiguration>[] statefulActors)
+            where TConfiguration : IAggregateCacheConfiguration
         {
             foreach(var statefulActor in statefulActors)
             {
-                statefulActor.State.AsObservableCache().Connect().Subscribe((changes) =>
+                statefulActor.AsObservableCache().Connect().Subscribe((changes) =>
                 {
                     foreach (var change in changes)
                     {

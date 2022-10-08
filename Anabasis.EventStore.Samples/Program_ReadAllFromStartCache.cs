@@ -1,6 +1,8 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Standalone;
 using Anabasis.EventStore.Standalone.Embedded;
+using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using Microsoft.Extensions.Logging;
 using Serilog;
@@ -34,11 +36,14 @@ namespace Anabasis.EventStore.Samples
 
             var eventTypeProvider = new DefaultEventTypeProvider<EventCountAggregate>(() => new[] { typeof(EventCountOne), typeof(EventCountTwo) }); ;
 
-            var eventCountActor = EventStoreEmbeddedStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
-                                       .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default, loggerFactory)
-                                       .WithReadAllFromStartCache(
-                                            eventTypeProvider: eventTypeProvider,
-                                            getCatchupEventStoreCacheConfigurationBuilder: builder => builder.KeepAppliedEventsOnAggregate = true)
+
+            var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration(Position.Start)
+            {
+                KeepAppliedEventsOnAggregate = true
+            };
+
+            var eventCountActor = EventStoreEmbeddedStatefulActorBuilder<EventCountStatefulActor, AllStreamsCatchupCacheConfiguration, EventCountAggregate, DemoSystemRegistry >
+                                       .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, eventTypeProvider, loggerFactory)
                                        .Build();
 
             Do.Run(eventCountActor);

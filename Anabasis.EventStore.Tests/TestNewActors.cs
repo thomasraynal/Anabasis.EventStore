@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.Tests
         {
         }
 
-        public TestSomeDataSubscribeToManyAggregateActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate> catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public TestSomeDataSubscribeToManyAggregateActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, MultipleStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<SomeDataAggregate> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
         }
     }
@@ -151,7 +151,7 @@ namespace Anabasis.EventStore.Tests
             var embeddedEventStoreConnection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
             var actorConfiguration = new ActorConfiguration();
 
-            var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
+            var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration(
                 "stream1", "stream2", "stream3"
                 )
             {
@@ -216,7 +216,7 @@ namespace Anabasis.EventStore.Tests
             var embeddedEventStoreConnection = EmbeddedEventStoreConnection.Create(_clusterVNode, _connectionSettings);
             var actorConfiguration = new ActorConfiguration();
 
-            var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
+            var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration(
                 "stream4", "stream5", "stream6"
                 )
             {
@@ -276,7 +276,7 @@ namespace Anabasis.EventStore.Tests
                 Assert.AreEqual(1, aggregate.AppliedEvents.Length);
             }
 
-            var multipleStreamsCatchupCacheConfiguration2 = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(
+            var multipleStreamsCatchupCacheConfiguration2 = new MultipleStreamsCatchupCacheConfiguration(
                 "stream4", "stream5", "stream6", "stream7"
                 )
             {

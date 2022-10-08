@@ -42,7 +42,7 @@ namespace Anabasis.EventStore.Standalone.Embedded
               connectionMonitor,
               loggerFactory);
 
-            var builder = new EventStoreStatefulActorBuilder<TActor, TAggregateCacheConfiguration, TAggregate, TRegistry>(actorConfiguration, eventStoreRepository, aggregateCacheConfiguration, connectionMonitor, eventTypeProvider, loggerFactory);
+            var builder = new EventStoreStatefulActorBuilder<TActor, TAggregateCacheConfiguration, TAggregate, TRegistry>(actorConfiguration, eventStoreRepository, aggregateCacheConfiguration, connectionMonitor, eventTypeProvider, loggerFactory: loggerFactory);
 
             return builder;
 

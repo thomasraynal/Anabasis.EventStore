@@ -83,7 +83,7 @@ namespace Anabasis.EventStore.Tests
 
             var connectionMonitor = new EventStoreConnectionStatusMonitor(connection, _loggerFactory);
 
-            var cacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<SomeDataAggregate>(streamIds)
+            var cacheConfiguration = new MultipleStreamsCatchupCacheConfiguration(streamIds)
             {
                 KeepAppliedEventsOnAggregate = true,
                 IsStaleTimeSpan = TimeSpan.FromSeconds(1)

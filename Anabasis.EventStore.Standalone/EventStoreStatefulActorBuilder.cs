@@ -23,7 +23,7 @@ namespace Anabasis.EventStore.Standalone
         public IEventTypeProvider? EventTypeProvider { get; private set; }
         public TAggregateCacheConfiguration AggregateCacheConfiguration { get; private set; }
         public ISnapshotStore<TAggregate>? SnapshotStore { get; private set; }
-        public ISnapshotStore<TAggregate>? SnapshotStrategy { get; private set; }
+        public ISnapshotStrategy? SnapshotStrategy { get; private set; }
 
 
         private readonly Dictionary<Type, Action<Container, IActor>> _busToRegisterTo;
@@ -33,6 +33,8 @@ namespace Anabasis.EventStore.Standalone
             TAggregateCacheConfiguration aggregateCacheConfiguration,
             IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor,
             IEventTypeProvider? eventTypeProvider = null,
+            ISnapshotStore<TAggregate>? snapshotStore = null,
+            ISnapshotStrategy? snapshotStrategy = null,
             ILoggerFactory? loggerFactory = null)
         {
             ActorConfiguration = actorConfiguration;
@@ -41,6 +43,8 @@ namespace Anabasis.EventStore.Standalone
             LoggerFactory = loggerFactory;
             ConnectionMonitor = connectionMonitor;
             EventTypeProvider = eventTypeProvider ?? new ConsumerBasedEventProvider<TAggregate, TActor>();
+            SnapshotStrategy = snapshotStrategy;
+            SnapshotStore = snapshotStore;
 
             _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
         }
@@ -55,7 +59,7 @@ namespace Anabasis.EventStore.Standalone
                 configuration.For<IEventTypeProvider>().Use(EventTypeProvider);
                 configuration.For<TAggregateCacheConfiguration>().Use(AggregateCacheConfiguration);
                 if (null != SnapshotStore) configuration.For<ISnapshotStore<TAggregate>>().Use(SnapshotStore);
-                if (null != SnapshotStrategy) configuration.For<ISnapshotStore<TAggregate>>().Use(SnapshotStrategy);
+                if (null != SnapshotStrategy) configuration.For<ISnapshotStrategy>().Use(SnapshotStrategy);
                 configuration.For<IEventStoreAggregateRepository>().Use(EventStoreRepository);
                 configuration.For<IEventStoreRepository>().Use(EventStoreRepository);
                 configuration.For<IConnectionStatusMonitor<IEventStoreConnection>>().Use(ConnectionMonitor);
@@ -93,11 +97,20 @@ namespace Anabasis.EventStore.Standalone
             IActorConfiguration actorConfiguration,
             IEventTypeProvider? eventTypeProvider = null,
             ILoggerFactory? loggerFactory = null,
+            ISnapshotStore<TAggregate>? snapshotStore = null,
+            ISnapshotStrategy? snapshotStrategy = null,
             Action<IEventStoreRepositoryConfiguration>? getEventStoreRepositoryConfigurationBuilder = null)
         {
             var eventStoreConnection = EventStoreConnection.Create(connectionSettings, eventStoreUrl);
 
-            return CreateInternal(actorConfiguration, aggregateCacheConfiguration, eventStoreConnection, eventTypeProvider, loggerFactory, getEventStoreRepositoryConfigurationBuilder);
+            return CreateInternal(actorConfiguration, 
+                aggregateCacheConfiguration, 
+                eventStoreConnection, 
+                eventTypeProvider, 
+                loggerFactory,
+                snapshotStore,
+                snapshotStrategy,
+                getEventStoreRepositoryConfigurationBuilder);
 
         }
 
@@ -108,12 +121,14 @@ namespace Anabasis.EventStore.Standalone
              IActorConfiguration actorConfiguration,
              IEventTypeProvider? eventTypeProvider = null,
              ILoggerFactory? loggerFactory = null,
+             ISnapshotStore<TAggregate>? snapshotStore = null,
+             ISnapshotStrategy? snapshotStrategy = null,
              Action<IEventStoreRepositoryConfiguration>? eventStoreRepositoryConfigurationBuilder = null)
         {
 
             var eventStoreConnection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettingsBuilder);
 
-            return CreateInternal(actorConfiguration, aggregateCacheConfiguration, eventStoreConnection, eventTypeProvider, loggerFactory, eventStoreRepositoryConfigurationBuilder);
+            return CreateInternal(actorConfiguration, aggregateCacheConfiguration, eventStoreConnection, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy, eventStoreRepositoryConfigurationBuilder);
 
         }
 
@@ -123,6 +138,8 @@ namespace Anabasis.EventStore.Standalone
           IEventStoreConnection eventStoreConnection,
           IEventTypeProvider? eventTypeProvider = null,
           ILoggerFactory? loggerFactory = null,
+          ISnapshotStore<TAggregate>? snapshotStore = null,
+          ISnapshotStrategy? snapshotStrategy = null,
           Action<IEventStoreRepositoryConfiguration>? eventStoreRepositoryConfigurationBuilder = null)
         {
 
@@ -146,6 +163,8 @@ namespace Anabasis.EventStore.Standalone
                 aggregateCacheConfiguration,
                 connectionMonitor,
                 eventTypeProvider,
+                snapshotStore,
+                snapshotStrategy,
                 loggerFactory);
 
             return builder;

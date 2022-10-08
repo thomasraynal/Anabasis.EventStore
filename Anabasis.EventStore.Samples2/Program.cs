@@ -123,7 +123,7 @@ namespace Anabasis.EventStore.Samples2
         {
         }
 
-        public MerchantCatalogActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, MultipleStreamsCatchupCacheConfiguration<MerchantProduct> catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<MerchantProduct> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
+        public MerchantCatalogActor(IActorConfiguration actorConfiguration, IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, MultipleStreamsCatchupCacheConfiguration catchupCacheConfiguration, IEventTypeProvider eventTypeProvider, ILoggerFactory loggerFactory = null, ISnapshotStore<MerchantProduct> snapshotStore = null, ISnapshotStrategy snapshotStrategy = null) : base(actorConfiguration, connectionMonitor, catchupCacheConfiguration, eventTypeProvider, loggerFactory, snapshotStore, snapshotStrategy)
         {
         }
     }
@@ -188,9 +188,9 @@ namespace Anabasis.EventStore.Samples2
                     "NEW-ProductZ"
                 };
 
-                var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration<MerchantProduct>(products);
+                var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration(products);
 
-                var merchantCatalogActor = EventStoreEmbeddedStatefulActorBuilder<MerchantCatalogActor, MultipleStreamsCatchupCacheConfiguration<MerchantProduct>, MerchantProduct, Registry>
+                var merchantCatalogActor = EventStoreEmbeddedStatefulActorBuilder<MerchantCatalogActor, MultipleStreamsCatchupCacheConfiguration, MerchantProduct, Registry>
                                 .Create(clusterVNode, connectionSettings, ActorConfiguration.Default, multipleStreamsCatchupCacheConfiguration, defaultEventTypeProvider)
                                 .WithBus<IEventStoreBus>()
                                 .Build();

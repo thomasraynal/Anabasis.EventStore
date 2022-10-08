@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Standalone;
+using EventStore.ClientAPI;
 
 namespace Anabasis.EventStore.Samples
 {
@@ -14,7 +15,7 @@ namespace Anabasis.EventStore.Samples
                                        .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
                                         .WithBus<IEventStoreBus>((actor, bus) =>
                                         {
-                                            actor.SubscribeFromEndToAllStreams();
+                                            actor.SubscribeToAllStreams(Position.End);
                                         })
                                        .Build();
 

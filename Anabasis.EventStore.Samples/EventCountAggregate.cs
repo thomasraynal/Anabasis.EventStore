@@ -31,7 +31,6 @@ namespace Anabasis.EventStore.Samples
                 foreach (var events in groupedEvents)
                 {
                     Console.WriteLine($"    {events.Key} : {events.Count()}");
-
                 }
 
             }

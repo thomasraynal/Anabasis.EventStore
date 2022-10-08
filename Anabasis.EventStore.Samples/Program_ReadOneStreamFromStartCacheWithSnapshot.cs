@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.EventStore.Standalone;
 
@@ -15,26 +16,23 @@ namespace Anabasis.EventStore.Samples
 
             var defaultSnapshotStrategy = new DefaultSnapshotStrategy(5);
 
-            var eventCountActorWithSnapshot = EventStoreStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
-                                       .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
-                                       .WithReadOneStreamFromStartCache(StaticData.EntityOne,
-                                            eventTypeProvider: eventTypeProvider,
-                                            getMultipleStreamsCatchupCacheConfiguration: builder =>
-                                            {
-                                                builder.KeepAppliedEventsOnAggregate = true;
-                                            },
-                                           snapshotStore: fileSystemSnapshotProvider,
-                                           snapshotStrategy: defaultSnapshotStrategy)
+            var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration(StaticData.EntityOne)
+            {
+                KeepAppliedEventsOnAggregate = true
+            };
+
+            var eventCountActorWithSnapshot = EventStoreStatefulActorBuilder<EventCountStatefulActor2, MultipleStreamsCatchupCacheConfiguration, EventCountAggregate, DemoSystemRegistry>
+                                       .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), multipleStreamsCatchupCacheConfiguration, ActorConfiguration.Default, eventTypeProvider)
                                        .Build();
 
-            var eventCountActor = EventStoreStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
-                           .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
-                           .WithReadOneStreamFromStartCache(StaticData.EntityOne,
+            var eventCountActor = EventStoreStatefulActorBuilder<EventCountStatefulActor2, MultipleStreamsCatchupCacheConfiguration, EventCountAggregate, DemoSystemRegistry>
+                           .Create(StaticData.EventStoreUrl, 
+                                connectionSettings: Do.GetConnectionSettings(), 
+                                aggregateCacheConfiguration: multipleStreamsCatchupCacheConfiguration, 
+                                actorConfiguration: ActorConfiguration.Default, 
                                 eventTypeProvider: eventTypeProvider,
-                                getMultipleStreamsCatchupCacheConfiguration: builder =>
-                                {
-                                    builder.KeepAppliedEventsOnAggregate = true;
-                                })
+                                snapshotStore: fileSystemSnapshotProvider, 
+                                snapshotStrategy: defaultSnapshotStrategy)
                            .Build();
 
             Do.Run(eventCountActor, eventCountActorWithSnapshot);

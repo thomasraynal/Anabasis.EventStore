@@ -11,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Cache
 {
-    public abstract class SubscribeToManyStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate, MultipleStreamsCatchupCacheConfiguration<TAggregate>> where TAggregate : class, IAggregate, new()
+    public abstract class SubscribeToManyStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate, MultipleStreamsCatchupCacheConfiguration> where TAggregate : class, IAggregate, new()
     {
         protected SubscribeToManyStreamsEventStoreStatefulActor(IActorConfiguration actorConfiguration, 
             IConnectionStatusMonitor<IEventStoreConnection> connectionMonitor, 
-            MultipleStreamsCatchupCacheConfiguration<TAggregate> catchupCacheConfiguration, 
+            MultipleStreamsCatchupCacheConfiguration catchupCacheConfiguration, 
             IEventTypeProvider eventTypeProvider, 
             ILoggerFactory? loggerFactory = null,
             ISnapshotStore<TAggregate>? snapshotStore = null, 

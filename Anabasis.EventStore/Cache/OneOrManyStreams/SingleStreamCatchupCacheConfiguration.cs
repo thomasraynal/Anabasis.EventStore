@@ -4,7 +4,7 @@ using EventStore.ClientAPI.SystemData;
 
 namespace Anabasis.EventStore.Cache
 {
-    public class SingleStreamCatchupCacheConfiguration<TAggregate> : MultipleStreamsCatchupCacheConfiguration<TAggregate> where TAggregate : IAggregate
+    public class SingleStreamCatchupCacheConfiguration : MultipleStreamsCatchupCacheConfiguration
     {
         public SingleStreamCatchupCacheConfiguration(string streamId, UserCredentials? userCredentials = null) : base(streamId)
         {

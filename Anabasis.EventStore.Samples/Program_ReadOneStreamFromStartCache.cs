@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Standalone;
 
 namespace Anabasis.EventStore.Samples
@@ -8,13 +9,15 @@ namespace Anabasis.EventStore.Samples
 
         public static void Run()
         {
-            var eventTypeProvider = new DefaultEventTypeProvider<EventCountAggregate>(() => new[] { typeof(EventCountOne), typeof(EventCountTwo) }); ;
+            var eventTypeProvider = new DefaultEventTypeProvider<EventCountAggregate>(() => new[] { typeof(EventCountOne), typeof(EventCountTwo) });
+            
+            var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration(StaticData.EntityOne)
+            {
+                KeepAppliedEventsOnAggregate = true
+            };
 
-            var eventCountActor = EventStoreStatefulActorBuilder<EventCountStatefulActor, EventCountAggregate, DemoSystemRegistry>
-                                       .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), ActorConfiguration.Default)
-                                       .WithReadOneStreamFromStartCache(StaticData.EntityOne,
-                                            eventTypeProvider: eventTypeProvider,
-                                            getMultipleStreamsCatchupCacheConfiguration: builder => builder.KeepAppliedEventsOnAggregate = true)
+            var eventCountActor = EventStoreStatefulActorBuilder<EventCountStatefulActor2, MultipleStreamsCatchupCacheConfiguration, EventCountAggregate, DemoSystemRegistry>
+                                       .Create(StaticData.EventStoreUrl, Do.GetConnectionSettings(), multipleStreamsCatchupCacheConfiguration, ActorConfiguration.Default, eventTypeProvider)
                                        .Build();
 
 
