@@ -45,7 +45,7 @@ namespace Anabasis.EventStore.Samples
             CreateSubscriptionGroups(clusterVNode).Wait();
 
             var eventCountActorOne = EventStoreEmbeddedStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
-                                       .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default)
+                                       .Create(clusterVNode, Do.GetConnectionSettings())
                                         .WithBus<IEventStoreBus>((actor, bus) =>
                                         {
                                             actor.SubscribeToPersistentSubscriptionStream(StaticData.PersistentStreamOne, StaticData.GroupIdOne);
@@ -53,7 +53,7 @@ namespace Anabasis.EventStore.Samples
                                        .Build();
 
             var eventCountActorTwo = EventStoreEmbeddedStatelessActorBuilder<EventCountStatelessActor, DemoSystemRegistry>
-                                       .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default)
+                                       .Create(clusterVNode, Do.GetConnectionSettings())
                                         .WithBus<IEventStoreBus>((actor, bus) =>
                                         {
                                             actor.SubscribeToPersistentSubscriptionStream(StaticData.PersistentStreamOne, StaticData.GroupIdOne);

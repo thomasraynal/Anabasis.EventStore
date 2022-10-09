@@ -96,7 +96,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             var actorQueue = typeof(TestWorkerActor).Name;
 
             _testWorkerActor = EventStoreEmbeddedStatelessActorBuilder<TestWorkerActor, TestWorkerActorRegistry>
-                               .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+                               .Create(_clusterVNode, _connectionSettings, loggerFactory: _loggerFactory)
                                .WithBus<IRabbitMqBus>((actor, bus) =>
                                {
                                    actor.SubscribeToExchange<DoWorkEvent>(

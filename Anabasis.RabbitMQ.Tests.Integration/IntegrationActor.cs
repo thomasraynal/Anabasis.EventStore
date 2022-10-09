@@ -88,7 +88,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
         {
 
              _testRabbitMqActor = EventStoreEmbeddedStatelessActorBuilder<TestRabbitMqActor, SomeRegistry>
-                                            .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+                                            .Create(_clusterVNode, _connectionSettings, loggerFactory: _loggerFactory)
                                             .Build();
 
             await _testRabbitMqActor.ConnectTo(_rabbitMqBus, true);

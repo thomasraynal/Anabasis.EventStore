@@ -229,7 +229,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldBuildFromActorBuilderAndRunActors()
         {
 
-            var testActorAutoBuildOne = EventStoreEmbeddedStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+            var testActorAutoBuildOne = EventStoreEmbeddedStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, loggerFactory: _loggerFactory)
                                                                                          .WithBus<IEventStoreBus>((actor, bus) =>
                                                                                          {
                                                                                              actor.SubscribeToAllStreams(Position.End);
@@ -237,7 +237,7 @@ namespace Anabasis.EventStore.Tests
                                                                                          })
                                                                                          .Build();
 
-            var testActorAutoBuildTwo = EventStoreEmbeddedStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+            var testActorAutoBuildTwo = EventStoreEmbeddedStatelessActorBuilder<TestActorAutoBuildOne, SomeRegistry>.Create(_clusterVNode, _connectionSettings, loggerFactory: _loggerFactory)
                                                                                          .WithBus<IEventStoreBus>((actor, bus) =>
                                                                                          {
                                                                                              actor.SubscribeToAllStreams(Position.End);

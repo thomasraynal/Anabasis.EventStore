@@ -31,7 +31,7 @@ namespace Anabasis.EventStore.Samples
             };
 
             var eventCountActor = EventStoreEmbeddedStatefulActorBuilder<EventCountStatefulActor, AllStreamsCatchupCacheConfiguration, EventCountAggregate, DemoSystemRegistry>
-                                       .Create(clusterVNode, Do.GetConnectionSettings(), ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, eventTypeProvider)
+                                       .Create(clusterVNode, Do.GetConnectionSettings(), allStreamsCatchupCacheConfiguration, eventTypeProvider: eventTypeProvider)
                                        .Build();
 
             Do.Run(eventCountActor);

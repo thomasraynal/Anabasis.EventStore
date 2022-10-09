@@ -14,8 +14,8 @@ namespace Anabasis.Common
             CrashAppOnError = crashAppOnError;
         }
 
-        public int ActorMailBoxMessageBatchSize { get; }
-        public int ActorMailBoxMessageMessageQueueMaxSize { get; }
-        public bool CrashAppOnError { get; }
+        public int ActorMailBoxMessageBatchSize { get; set; }
+        public int ActorMailBoxMessageMessageQueueMaxSize { get; set; }
+        public bool CrashAppOnError { get; set; }
     }
 }

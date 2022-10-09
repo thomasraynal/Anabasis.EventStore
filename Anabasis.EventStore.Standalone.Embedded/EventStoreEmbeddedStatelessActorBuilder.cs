@@ -18,7 +18,7 @@ namespace Anabasis.EventStore.Standalone.Embedded
         public static EventStoreStatelessActorBuilder<TActor, TRegistry> Create(
             ClusterVNode clusterVNode,
             ConnectionSettings connectionSettings,
-            IActorConfiguration actorConfiguration,
+            Action<IActorConfiguration>? getActorConfiguration = null,
             ILoggerFactory? loggerFactory = null,
             Action<IEventStoreRepositoryConfiguration>? getEventStoreRepositoryConfiguration = null)
 
@@ -30,6 +30,9 @@ namespace Anabasis.EventStore.Standalone.Embedded
 
             var eventStoreRepositoryConfiguration = new EventStoreRepositoryConfiguration();
             getEventStoreRepositoryConfiguration?.Invoke(eventStoreRepositoryConfiguration);
+
+            var actorConfiguration = new ActorConfiguration();
+            getActorConfiguration?.Invoke(actorConfiguration);
 
             var connectionStatusMonitor = new EventStoreConnectionStatusMonitor(connection, loggerFactory);
 
