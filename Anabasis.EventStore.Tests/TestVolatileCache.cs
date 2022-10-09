@@ -204,7 +204,6 @@ namespace Anabasis.EventStore.Tests
             await Task.Delay(100);
 
             Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsCaughtUp);
-            Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsStale);
             Assert.IsTrue(_cacheOne.catchupEventStoreCache.IsConnected);
 
             Assert.AreEqual(0, _cacheOne.someDataAggregates.Count);
