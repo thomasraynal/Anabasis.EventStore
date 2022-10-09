@@ -49,3 +49,7 @@
 **Anabasis.Api**
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.Api.svg)](https://www.nuget.org/packages/Anabasis.Api)
+
+**Anabasis.EventHubs**
+
+[![NuGet](https://img.shields.io/nuget/v/Anabasis.EventHubs.svg)](https://www.nuget.org/packages/Anabasis.EventHubs)
