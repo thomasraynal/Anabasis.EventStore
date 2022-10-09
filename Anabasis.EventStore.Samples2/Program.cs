@@ -191,7 +191,7 @@ namespace Anabasis.EventStore.Samples2
                 var multipleStreamsCatchupCacheConfiguration = new MultipleStreamsCatchupCacheConfiguration(products);
 
                 var merchantCatalogActor = EventStoreEmbeddedStatefulActorBuilder<MerchantCatalogActor, MultipleStreamsCatchupCacheConfiguration, MerchantProduct, Registry>
-                                .Create(clusterVNode, connectionSettings, ActorConfiguration.Default, multipleStreamsCatchupCacheConfiguration, defaultEventTypeProvider)
+                                .Create(clusterVNode, connectionSettings, aggregateCacheConfiguration:  multipleStreamsCatchupCacheConfiguration, eventTypeProvider: defaultEventTypeProvider)
                                 .WithBus<IEventStoreBus>()
                                 .Build();
 

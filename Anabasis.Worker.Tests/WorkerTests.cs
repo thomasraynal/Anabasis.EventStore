@@ -34,7 +34,7 @@ namespace Anabasis.Worker.Tests
                 MessageBufferMaxSize = 50
             });
 
-            var testEventBus = new TestEventBus();
+            var testEventBus = new TestEventBus(500);
 
             await testWorker.ConnectTo(testEventBus);
 
@@ -67,7 +67,7 @@ namespace Anabasis.Worker.Tests
 
             testWorker.SubscribeToTestEventBus();
 
-            await Task.Delay(1500);
+            await Task.Delay(2000);
 
             foreach(var dispatchQueue in dispatchQueues)
             {

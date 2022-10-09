@@ -261,7 +261,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldRegisterABusOnAStatelessActor()
         {
             var testBusRegistrationActor = EventStoreEmbeddedStatelessActorBuilder<TestBusRegistrationStatelessActor, DummyBusRegistry>
-                                                 .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+                                                 .Create(_clusterVNode, _connectionSettings, loggerFactory: _loggerFactory)
                                                  .WithBus<IDummyBus>((actor, bus) =>
                                                  {
                                                      actor.SubscribeDummyBus("somesubject");
@@ -285,7 +285,7 @@ namespace Anabasis.EventStore.Tests
             var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration(Position.End);
 
             var testBusRegistrationActor = EventStoreEmbeddedStatefulActorBuilder<TestBusRegistrationStatefulActor, AllStreamsCatchupCacheConfiguration, SomeDataAggregate, DummyBusRegistry>
-                                                 .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration,loggerFactory: _loggerFactory)
+                                                 .Create(_clusterVNode, _connectionSettings,  allStreamsCatchupCacheConfiguration, loggerFactory: _loggerFactory)
                                                  .WithBus<IDummyBus>((actor, bus) =>
                                                  {
                                                      actor.SubscribeDummyBus("somesubject");
@@ -309,7 +309,7 @@ namespace Anabasis.EventStore.Tests
         public async Task ShouldRegisterTwoBusAndHandleEventsFromDifferentSources()
         {
             var testBusRegistrationActor = EventStoreEmbeddedStatelessActorBuilder<TestBusRegistrationStatelessActor, DummyBusRegistry>
-                                                 .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+                                                 .Create(_clusterVNode, _connectionSettings, loggerFactory: _loggerFactory)
                                                  .WithBus<IDummyBus>((actor, bus) =>
                                                  {
                                                      actor.SubscribeDummyBus("somesubject");
@@ -337,7 +337,7 @@ namespace Anabasis.EventStore.Tests
         {
 
             var testBusRegistrationActor = EventStoreEmbeddedStatelessActorBuilder<TestBusRegistrationStatelessActor, DummyBusRegistry>
-                                               .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+                                               .Create(_clusterVNode, _connectionSettings, loggerFactory: _loggerFactory)
                                                .WithBus<IEventStoreBus>((actor, bus) => actor.SubscribeToAllStreams(Position.End))
                                                .WithBus<IDummyBus>((actor, bus) =>
                                                {

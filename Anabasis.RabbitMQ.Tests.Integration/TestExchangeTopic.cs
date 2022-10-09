@@ -96,7 +96,7 @@ namespace Anabasis.RabbitMQ.Tests.Integration
             var actorQueue = typeof(TestMarketDataChangedActor).Name;
 
             _testSingleQueueMqActor = EventStoreEmbeddedStatelessActorBuilder<TestMarketDataChangedActor, TestSingleQueueMqActorRegistry>
-                               .Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, _loggerFactory)
+                               .Create(_clusterVNode, _connectionSettings, loggerFactory: _loggerFactory)
                                .WithBus<IRabbitMqBus>((actor, bus) =>
                                {
                                    actor.SubscribeToExchange<MarketDataChanged>(

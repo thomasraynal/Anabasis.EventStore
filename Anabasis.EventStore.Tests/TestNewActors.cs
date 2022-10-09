@@ -265,7 +265,7 @@ namespace Anabasis.EventStore.Tests
 
             await testSomeDataAggregateActor.AddEventStoreStreams("stream6");
 
-            await Task.Delay(1000);
+            await Task.Delay(2000);
 
             var aggregates = testSomeDataAggregateActor.GetCurrents();
 

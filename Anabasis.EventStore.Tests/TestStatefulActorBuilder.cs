@@ -164,7 +164,7 @@ namespace Anabasis.EventStore.Tests
                 KeepAppliedEventsOnAggregate = true
             };
 
-            var testActorAutoBuildOne = EventStoreEmbeddedStatefulActorBuilder<TestStatefulActorOne, AllStreamsCatchupCacheConfiguration, SomeDataAggregate, SomeRegistry >.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, defaultEventTypeProvider, _loggerFactory)
+            var testActorAutoBuildOne = EventStoreEmbeddedStatefulActorBuilder<TestStatefulActorOne, AllStreamsCatchupCacheConfiguration, SomeDataAggregate, SomeRegistry >.Create(_clusterVNode, _connectionSettings, aggregateCacheConfiguration: allStreamsCatchupCacheConfiguration, eventTypeProvider: defaultEventTypeProvider, loggerFactory: _loggerFactory)
                                                                                            .WithBus<IEventStoreBus>((actor, bus) =>
                                                                                              {
                                                                                                  actor.SubscribeToAllStreams(Position.Start);
@@ -172,7 +172,7 @@ namespace Anabasis.EventStore.Tests
                                                                                              })
                                                                                          .Build();
 
-            var testActorAutoBuildTwo = EventStoreEmbeddedStatefulActorBuilder<TestAggregatedActorTwo, AllStreamsCatchupCacheConfiguration, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, defaultEventTypeProvider, _loggerFactory)
+            var testActorAutoBuildTwo = EventStoreEmbeddedStatefulActorBuilder<TestAggregatedActorTwo, AllStreamsCatchupCacheConfiguration, SomeDataAggregate, SomeRegistry>.Create(_clusterVNode, _connectionSettings, aggregateCacheConfiguration: allStreamsCatchupCacheConfiguration, eventTypeProvider: defaultEventTypeProvider, loggerFactory: _loggerFactory)
                                                                                          .WithBus<IEventStoreBus>((actor, bus) =>
                                                                                             {
                                                                                                 actor.SubscribeToAllStreams(Position.Start);

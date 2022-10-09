@@ -26,7 +26,7 @@ namespace Anabasis.EventStore.Demo
                 var allStreamsCatchupCacheConfiguration = new AllStreamsCatchupCacheConfiguration();
 
                 var tradeService = EventStoreEmbeddedStatelessActorBuilder<TradeService, DemoSystemRegistry>
-                                                .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default)
+                                                .Create(StaticData.ClusterVNode, connectionSettings)
                                                 .WithBus<IEventStoreBus>((actor, bus) =>
                                                 {
                                                     actor.SubscribeToAllStreams(Position.Start);
@@ -34,7 +34,7 @@ namespace Anabasis.EventStore.Demo
                                                 .Build();
 
                 var tradePriceUpdateService = EventStoreEmbeddedStatefulActorBuilder<TradePriceUpdateService, AllStreamsCatchupCacheConfiguration, Trade, DemoSystemRegistry>
-                                                .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, tradeDataEventProvider)
+                                                .Create(StaticData.ClusterVNode, connectionSettings, allStreamsCatchupCacheConfiguration, eventTypeProvider: tradeDataEventProvider)
                                                 .WithBus<IEventStoreBus>((actor, bus) =>
                                                 {
                                                     actor.SubscribeToAllStreams(Position.Start);
@@ -46,7 +46,7 @@ namespace Anabasis.EventStore.Demo
                                                 .Build();
 
                 var tradeSink = EventStoreEmbeddedStatefulActorBuilder<TradeSink, AllStreamsCatchupCacheConfiguration, Trade, DemoSystemRegistry>
-                                                .Create(StaticData.ClusterVNode, connectionSettings, ActorConfiguration.Default, allStreamsCatchupCacheConfiguration, tradeDataEventProvider)
+                                                .Create(StaticData.ClusterVNode, connectionSettings, allStreamsCatchupCacheConfiguration, eventTypeProvider: tradeDataEventProvider)
                                                 .Build();
 
                 var marketDataSink = StatelessActorBuilder<MarketDataSink, DemoSystemRegistry>

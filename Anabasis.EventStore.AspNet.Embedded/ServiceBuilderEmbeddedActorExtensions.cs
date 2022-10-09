@@ -16,7 +16,7 @@ namespace Anabasis.EventStore.AspNet.Embedded
         public static World AddWorld(this IServiceCollection services,
             ClusterVNode clusterVNode,
             ConnectionSettings connectionSettings,
-            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
+            Action<IEventStoreRepositoryConfiguration>? getEventStoreRepositoryConfiguration = null)
         {
 
             var eventStoreConnection = EmbeddedEventStoreConnection.Create(clusterVNode, connectionSettings);

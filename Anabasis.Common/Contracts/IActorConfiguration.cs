@@ -2,8 +2,8 @@
 {
     public interface IActorConfiguration
     {
-        int ActorMailBoxMessageMessageQueueMaxSize { get; }
-        int ActorMailBoxMessageBatchSize { get; }
-        bool CrashAppOnError { get; }
+        int ActorMailBoxMessageMessageQueueMaxSize { get; set; }
+        int ActorMailBoxMessageBatchSize { get; set; }
+        bool CrashAppOnError { get; set; }
     }
 }
