@@ -31,6 +31,9 @@ class Build : NukeBuild
     [Parameter("Should run integration tests?")]
     public readonly bool SkipIntegrationTests = false;
 
+    [Parameter("Should run tests?")]
+    public readonly bool SkipTests = false;
+
     [Solution] readonly Solution Solution;
 
     public AbsolutePath ArtifactsDirectory = RootDirectory / "artifacts";
@@ -154,6 +157,7 @@ class Build : NukeBuild
         });
 
     Target Test => _ => _
+        .OnlyWhenDynamic(()=> !SkipTests)
         .DependsOn(Publish)
         .ProceedAfterFailure()
         .Executes(() =>

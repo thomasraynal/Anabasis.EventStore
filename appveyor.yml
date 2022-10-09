@@ -18,7 +18,7 @@ nuget:
   disable_publish_on_pr: true
 test: off
 build_script:
-  - ps: ./build.ps1 -SkipIntegrationTests true
+  - ps: ./build.ps1 -SkipIntegrationTests true -SkipTests true
 
 #before_build:
 #- cmd: docker-compose down
