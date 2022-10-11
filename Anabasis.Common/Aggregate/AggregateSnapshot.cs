@@ -5,6 +5,9 @@ namespace Anabasis.Common
 {
     public class AggregateSnapshot : IAggregateSnapshot
     {
+        public AggregateSnapshot()
+        {
+        }
 
         public AggregateSnapshot(string entityId, string eventFilter, long version, string serializedAggregate, DateTime lastModifiedUtc)
         {
