@@ -142,6 +142,12 @@ namespace Anabasis.RabbitMQ
 
                 basicProperties.Headers = new Dictionary<string, object>();
 
+
+                if (null != _appContext.MachineName)
+                {
+                    basicProperties.Headers.Add("machineName", @event.CauseId);
+                }
+
                 if (null != @event.CauseId)
                 {
                     basicProperties.Headers.Add("causeId", @event.CauseId);
