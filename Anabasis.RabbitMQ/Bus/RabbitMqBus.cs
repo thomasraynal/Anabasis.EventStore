@@ -137,15 +137,13 @@ namespace Anabasis.RabbitMQ
                 basicProperties.MessageId = $"{@event.EventId}";
                 basicProperties.Type = @event.GetReadableNameFromType();
                 basicProperties.AppId = _appContext.ApplicationNameAndApiVersion;
-                basicProperties.UserId = _appContext.MachineName;
                 basicProperties.Timestamp = @event.Timestamp.ToAmqpTimestamp();
 
                 basicProperties.Headers = new Dictionary<string, object>();
 
-
                 if (null != _appContext.MachineName)
                 {
-                    basicProperties.Headers.Add("machineName", @event.CauseId);
+                    basicProperties.Headers.Add("machineName", _appContext.MachineName);
                 }
 
                 if (null != @event.CauseId)
@@ -238,25 +236,35 @@ namespace Anabasis.RabbitMQ
             return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag, isAutoAck);
         }
 
-        private void CreateExchangeIfNotExist(string exchange, string exchangeType = "topic", bool durable = true, bool autodelete = false, bool createDeadLetterExchangeIfNotExist = true)
+        private void CreateExchangeIfNotExist(string exchange, string exchangeType = "topic", bool durable = true, bool autodelete = true, bool createDeadLetterExchangeIfNotExist = true)
         {
             if (_ensureExchangeCreated.Contains(exchange)) return;
 
             RabbitMqConnection.DoWithChannel(channel =>
             {
+                try
+                {
 
-                channel.ExchangeDeclare(exchange, type: "x-delayed-message", durable: durable, autoDelete: autodelete, new Dictionary<string, object>()
+                    channel.ExchangeDeclare(exchange, type: "x-delayed-message", durable: durable, autoDelete: autodelete, new Dictionary<string, object>()
                     {
                         {"x-delayed-type",exchangeType}
                     });
 
-                if (createDeadLetterExchangeIfNotExist)
-                {
-                    var deadletterExchangeForThisSubscription = $"{exchange}-deadletters";
+                    if (createDeadLetterExchangeIfNotExist)
+                    {
+                        var deadletterExchangeForThisSubscription = $"{exchange}-deadletters";
 
-                    channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: durable, autoDelete: autodelete);
+                        channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: durable, autoDelete: autodelete);
+
+                    }
 
                 }
+                //we allow failures here, to handle possible differences in exchange configuration
+                catch(Exception exception)
+                {
+                    _logger?.LogError($"An error occured while trying to create exchange {exchange}", exception);
+                }
+
                 _ensureExchangeCreated.Add(exchange);
 
             });

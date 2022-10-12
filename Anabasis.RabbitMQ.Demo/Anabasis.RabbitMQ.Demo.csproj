@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net5.0</TargetFramework>
+    <OutputType>Exe</OutputType>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Api\Anabasis.Api.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.AspNet\Anabasis.EventStore.AspNet.csproj" />
+    <ProjectReference Include="..\Anabasis.RabbitMQ\Anabasis.RabbitMQ.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.app.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="config.group.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+</Project>

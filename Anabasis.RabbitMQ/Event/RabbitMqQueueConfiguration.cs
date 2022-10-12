@@ -11,7 +11,7 @@ namespace Anabasis.RabbitMQ.Event
             string? queueName = null,
             bool isAutoAck = false,
             bool isDurable = true,
-            bool isAutoDelete = false,
+            bool isAutoDelete = true,
             bool isExclusive = false)
         {
 
