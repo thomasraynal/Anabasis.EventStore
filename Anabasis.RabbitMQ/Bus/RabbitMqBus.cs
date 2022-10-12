@@ -90,6 +90,7 @@ namespace Anabasis.RabbitMQ
             TimeSpan? expiration = null,
             bool isMessagePersistent = true,
             bool isMessageMandatory = false,
+            bool createExchangeIfNotExist = true,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
         {
             Emit(new[] { @event },
@@ -99,6 +100,7 @@ namespace Anabasis.RabbitMQ
                 expiration,
                 isMessagePersistent,
                 isMessageMandatory,
+                createExchangeIfNotExist,
                 additionalHeaders);
         }
 
@@ -109,6 +111,7 @@ namespace Anabasis.RabbitMQ
             TimeSpan? expiration = null,
             bool isMessagePersistent = true,
             bool isMessageMandatory = false,
+            bool createExchangeIfNotExist = true,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
         {
 
@@ -156,6 +159,11 @@ namespace Anabasis.RabbitMQ
                 {
                     try
                     {
+
+                        if (createExchangeIfNotExist)
+                        {
+                            CreateExchangeIfNotExist(exchange);
+                        }
 
                         if (initialVisibilityDelay.HasValue && initialVisibilityDelay.Value > TimeSpan.Zero)
                         {

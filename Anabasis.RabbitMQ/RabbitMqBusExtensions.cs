@@ -18,12 +18,13 @@ namespace Anabasis.RabbitMQ
             TimeSpan? messageExpiration = null,
             bool isMessagePersistent = true,
             bool isMessageMandatory = false,
+            bool createExchangeIfNotExist = true,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
               where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
-            rabbitMqBus.Emit(events, exchange, exchangeType, initialVisibilityDelay, messageExpiration, isMessagePersistent, isMessageMandatory, additionalHeaders: additionalHeaders);
+            rabbitMqBus.Emit(events, exchange, exchangeType, initialVisibilityDelay, messageExpiration, isMessagePersistent, isMessageMandatory, createExchangeIfNotExist, additionalHeaders: additionalHeaders);
         }
 
         public static void EmitRabbitMq<TEvent>(this IActor actor, TEvent @event, string exchange, 
@@ -32,12 +33,13 @@ namespace Anabasis.RabbitMQ
             TimeSpan? messageExpiration = null,
             bool isMessagePersistent = true,
             bool isMessageMandatory = false,
+            bool createExchangeIfNotExist = true,
             (string headerKey, string headerValue)[]? additionalHeaders = null)
                 where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
 
-            rabbitMqBus.Emit(@event, exchange, exchangeType, initialVisibilityDelay, messageExpiration, isMessagePersistent, isMessageMandatory, additionalHeaders: additionalHeaders);
+            rabbitMqBus.Emit(@event, exchange, exchangeType, initialVisibilityDelay, messageExpiration, isMessagePersistent, isMessageMandatory, createExchangeIfNotExist, additionalHeaders: additionalHeaders);
         }
 
         public static TEvent[] PullRabbitMq<TEvent>(this IActor actor, string queueName, bool isAutoAck = false, int? chunkSize = null)
