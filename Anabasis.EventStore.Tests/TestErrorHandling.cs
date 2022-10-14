@@ -17,6 +17,7 @@ using Anabasis.EventStore.Stream;
 using DynamicData;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Actor;
 
 namespace Anabasis.EventStore.Tests
 {

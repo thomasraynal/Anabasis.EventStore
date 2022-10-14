@@ -14,7 +14,7 @@ using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Cache
+namespace Anabasis.EventStore.Actor
 {
     public abstract class BaseEventStoreStatefulActor<TAggregate, TAggregateCacheConfiguration> : BaseStatelessActor, IStatefulActor<TAggregate, TAggregateCacheConfiguration>
         where TAggregate : class, IAggregate, new()

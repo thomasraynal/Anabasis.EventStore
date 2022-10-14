@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using EventStore.ClientAPI;
@@ -9,7 +10,7 @@ using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Cache
+namespace Anabasis.EventStore.Actor
 {
     public abstract class SubscribeToManyStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate, MultipleStreamsCatchupCacheConfiguration> where TAggregate : class, IAggregate, new()
     {

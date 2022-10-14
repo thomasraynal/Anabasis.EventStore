@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Anabasis.EventStore.Cache
+namespace Anabasis.EventStore
 {
     public interface ICatchupCacheSubscriptionHolder
     {

@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 using Anabasis.Common;
 using Anabasis.EventStore.Snapshot;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Actor;
 
 namespace Anabasis.EventStore.Tests
 {

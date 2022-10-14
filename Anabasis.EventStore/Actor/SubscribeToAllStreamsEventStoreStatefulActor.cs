@@ -2,11 +2,12 @@ using System;
 using System.Threading.Tasks;
 using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 
-namespace Anabasis.EventStore.Cache
+namespace Anabasis.EventStore.Actor
 {
     public abstract class SubscribeToAllStreamsEventStoreStatefulActor<TAggregate> : BaseEventStoreStatefulActor<TAggregate, AllStreamsCatchupCacheConfiguration> where TAggregate : class, IAggregate, new()
     {

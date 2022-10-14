@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.AspNet;
 using Anabasis.EventStore.AspNet.Embedded;
 using Anabasis.EventStore.Cache;

@@ -3,7 +3,7 @@ using System;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
-namespace Anabasis.EventStore.Cache
+namespace Anabasis.EventStore
 {
     public class CatchupCacheSubscriptionHolder< TAggregate> : IDisposable, ICatchupCacheSubscriptionHolder
     {
