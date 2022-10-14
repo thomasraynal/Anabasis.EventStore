@@ -23,7 +23,7 @@ namespace Anabasis.RabbitMQ
             string queueName = "",
             Expression<Func<TEvent, bool>>? routingStrategy = null,
             bool isExchangeDurable = true,
-            bool isExchangeAutoDelete = true,
+            bool isExchangeAutoDelete = false,
             bool createExchangeIfNotExist = true,
             bool createDeadLetterExchangeIfNotExist = true,
             bool isQueueDurable = false,

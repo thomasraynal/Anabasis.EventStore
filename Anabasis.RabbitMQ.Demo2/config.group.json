@@ -1,0 +1,24 @@
+{
+  "groupConfigurationOptions": {
+    "groupName": "AnabasisDemo"
+  },
+  "demoConfigurationOptions": {
+    "shouldRandomlyThrow": true,
+    "marketDataFrequencyIntervalInMilliseconds": 1000
+  },
+  "rabbitMqConnectionOptions": {
+    "hostName": "localhost",
+    "username": "username",
+    "password": "password",
+    "isAutoAck": true
+  },
+  "eventStoreConnectionOptions": {
+    "hostName": "localhost",
+    "username": "admin",
+    "password": "changeit",
+    "disableAuthentication": true
+  },
+  "sqlServerSnapshotStoreOptions": {
+    "connectionString": "Server=tcp:localhost,5434;Initial Catalog=tempdb;Persist Security Info=False;User ID=SA;Password=Your_password123;MultipleActiveResultSets=False;Encrypt=False;TrustServerCertificate=True;Connection Timeout=30;"
+  }
+}

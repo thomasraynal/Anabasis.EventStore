@@ -36,7 +36,7 @@ namespace Anabasis.RabbitMQ.Event
 
         public DateTime Timestamp { get; }
 
-        public string Name => GetType().Name;
+        public string EventName => GetType().Name;
 
         public Guid MessageId { get; }
 

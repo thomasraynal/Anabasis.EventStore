@@ -202,7 +202,7 @@ namespace Anabasis.EventHubs
 
                 if (!eventDataBatch.TryAdd(eventData))
                 {
-                    var invalidOperationException = new InvalidOperationException($"Event {@event.EventId} -  {@event.Name} cannot be processsed by {nameof(EventDataBatch)}");
+                    var invalidOperationException = new InvalidOperationException($"Event {@event.EventId} -  {@event.EventName} cannot be processsed by {nameof(EventDataBatch)}");
 
                     invalidOperationException.Data["event"] = @event.ToJson();
 

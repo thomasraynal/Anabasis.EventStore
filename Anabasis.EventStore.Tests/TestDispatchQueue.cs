@@ -22,7 +22,7 @@ namespace Anabasis.EventStore.Tests
 
         public Guid CorrelationId => Guid.NewGuid();
 
-        public string Name => nameof(TestEvent);
+        public string EventName => nameof(TestEvent);
 
         public bool IsCommand => false;
 

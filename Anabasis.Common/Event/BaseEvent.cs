@@ -36,6 +36,6 @@ namespace Anabasis.Common
         public bool IsCommand { get; internal set; }
         [JsonProperty]
         public DateTime Timestamp { get; internal set; }
-        public string Name => GetType().Name;
+        public string EventName => GetType().Name;
     }
 }

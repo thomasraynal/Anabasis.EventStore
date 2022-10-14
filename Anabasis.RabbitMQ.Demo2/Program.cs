@@ -4,17 +4,17 @@ using Anabasis.EventStore;
 using Anabasis.EventStore.AspNet;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
+using Anabasis.RabbitMQ.Demo;
 using EventStore.ClientAPI;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 
-namespace Anabasis.RabbitMQ.Demo
+namespace Anabasis.RabbitMQ.Demo2
 {
-    //all persistent, no auto delete
-    //exchange persistent, queue autodelete
 
-    class Program
+
+    public class Program
     {
         static void Main(string[] _)
         {
@@ -34,7 +34,7 @@ namespace Anabasis.RabbitMQ.Demo
 
                             var connectionSettings = connectionSettingsBuilder.Build();
 
-                            var marketDataEventHandler = new DefaultEventTypeProvider<MarketData>(() => new[] { typeof(MarketDataChanged) });
+                            var marketDataEventHandler = new DefaultEventTypeProvider<Product>(() => new[] { typeof(ProductChanged) });
 
                             serviceCollection.WithConfiguration<RabbitMqConnectionOptions>(configurationRoot);
                             serviceCollection.WithConfiguration<EventStoreConnectionOptions>(configurationRoot);
@@ -44,23 +44,21 @@ namespace Anabasis.RabbitMQ.Demo
 
                             serviceCollection.AddWorld("ConnectTo=tcp://admin:changeit@localhost:1113; HeartBeatTimeout=1500; VerboseLogging=false; OperationTimeout=60000; UseSslConnection=false;", connectionSettingsBuilder)
 
-                                         .AddEventStoreStatefulActor<MarketDataActor, MarketData, AllStreamsCatchupCacheConfiguration>(
+                                         .AddEventStoreStatefulActor<ProductInventoryActor, Product, AllStreamsCatchupCacheConfiguration>(
                                                 eventTypeProvider: marketDataEventHandler,
-                                                getAggregateCacheConfiguration: (conf) => conf.Checkpoint = Position.End)
+                                                getAggregateCacheConfiguration: (conf) => conf.Checkpoint = Position.Start)
                                          .WithBus<IEventStoreBus>()
                                          .WithBus<IRabbitMqBus>((actor, bus) =>
-                                             {
-                                                 actor.SubscribeToExchange<MarketDataQuoteChanged>(StaticData.MarketDataBusOne);
-                                                 actor.SubscribeToExchange<MarketDataQuoteChanged>(StaticData.MarketDataBusTwo);
-                                             })
-                                         .CreateActor()
+                                         {
+                                             actor.SubscribeToExchange<ProductInventoryChanged>(StaticData.ProducyInventoryExchange,
+                                                 queueName : "ProductInventoryActor",
+                                                 isQueueDurable: true,
+                                                 isQueueAutoDelete: false,
+                                                 isQueueExclusive: false);
+                                         })
+                                         .CreateActor();
 
-                                        .AddStatelessActor<MarketDataGenerator>(ActorConfiguration.Default)
-                                         .WithBus<IEventStoreBus>()
-                                         .WithBus<IRabbitMqBus>()
-                                        .CreateActor();
-
-
+                            serviceCollection.AddHostedService<ChangeProductHostedService>();
 
                         },
                         configureApplicationBuilder: (anabasisContext, app) =>
