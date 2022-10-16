@@ -5,6 +5,8 @@ using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.Common.HealthChecks;
 using Anabasis.Common.Utilities;
+using Anabasis.Insights;
+using Honeycomb.OpenTelemetry;
 using Microsoft.AspNetCore;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Diagnostics.HealthChecks;
@@ -20,6 +22,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
+using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
 using System;
@@ -47,16 +50,21 @@ namespace Anabasis.Api
             Action<AnabasisAppContext, IApplicationBuilder>? configureApplicationBuilder = null,
             Action<AnabasisAppContext, IServiceCollection, IConfigurationRoot>? configureServiceCollection = null,
             Action<ConfigurationBuilder>? configureConfigurationBuilder = null,
-            Action<LoggerConfiguration>? configureLogging = null)
+            Action<LoggerConfiguration>? configureLogging = null,
+            Action<TracerProviderBuilder>? configureTracerProviderBuilder = null)
         {
-
+      
             var anabasisConfiguration = Configuration.GetConfigurations(configureConfigurationBuilder);
+
+            var honeycombConfiguration = anabasisConfiguration.ConfigurationRoot.GetSection("Honeycomb").Get<HoneycombOptions>();
 
             var anabasisAppContext = new AnabasisAppContext(
                 anabasisConfiguration.AppConfigurationOptions.ApplicationName,
                 anabasisConfiguration.GroupConfigurationOptions.GroupName,
                 anabasisConfiguration.AppConfigurationOptions.ApiVersion,
                 anabasisConfiguration.AppConfigurationOptions.SentryDsn,
+                honeycombConfiguration.ServiceName,
+                honeycombConfiguration.ApiKey,
                 anabasisConfiguration.AnabasisEnvironment,
                 anabasisConfiguration.AppConfigurationOptions.DocUrl,
                 apiPort,
@@ -87,7 +95,7 @@ namespace Anabasis.Api
 
             var webHostBuilder = WebHost.CreateDefaultBuilder()
                                         .UseKestrel(configureKestrel);
-
+         
             webHostBuilder = webHostBuilder
                 .UseUrls("http://+:" + anabasisAppContext.ApiPort)
                 .UseEnvironment($"{anabasisAppContext.Environment}")
@@ -96,14 +104,23 @@ namespace Anabasis.Api
                 .UseSerilog()
                 .ConfigureServices((context, services) =>
                 {
-
-                    ConfigureServices<THost>(services, useCors, anabasisAppContext, serializer, configureMvcBuilder, configureMvc, configureJson);
+                    
+                    ConfigureServices<THost>(services, 
+                        useCors, 
+                        anabasisAppContext, 
+                        honeycombConfiguration, 
+                        serializer,
+                        configureMvcBuilder,
+                        configureTracerProviderBuilder,
+                        configureMvc,
+                        configureJson);
 
                     configureServiceCollection?.Invoke(anabasisAppContext, services, anabasisConfiguration.ConfigurationRoot);
 
                 })
                 .Configure((context, appBuilder) =>
                 {
+
                     configureMiddlewares?.Invoke(anabasisAppContext, appBuilder);
 
                     ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useCors);
@@ -119,15 +136,21 @@ namespace Anabasis.Api
             IServiceCollection services,
             bool useCors,
             AnabasisAppContext appContext,
+            HoneycombOptions? honeycombOptions =null,
             ISerializer? serializer = null,
             Action<MvcOptions>? configureMvcBuilder = null,
+            Action<TracerProviderBuilder>? configureTracerProviderBuilder = null,
             Action<IMvcBuilder>? configureMvc = null,
             Action<MvcNewtonsoftJsonOptions>? configureJson = null)
         {
+            const long MBytes = 1024L * 1024L;
 
             services.AddOptions();
 
-            const long MBytes = 1024L * 1024L;
+            if (appContext.UseHoneycomb && null != honeycombOptions)
+            {
+                services.AddOpenTracing(honeycombOptions, configureTracerProviderBuilder);
+            }
 
             services.AddHealthChecks()
                     .AddWorkingSetHealthCheck(appContext.MemoryCheckTresholdInMB * 3L * MBytes, "Working set", HealthStatus.Unhealthy);

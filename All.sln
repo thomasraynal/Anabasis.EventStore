@@ -89,6 +89,10 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.RabbitMQ.Demo", "A
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.RabbitMQ.Demo2", "Anabasis.RabbitMQ.Demo2\Anabasis.RabbitMQ.Demo2.csproj", "{73B69C4D-A864-4000-992B-5FD71A20C852}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Insights", "Anabasis.Insights\Anabasis.Insights.csproj", "{70629021-1A91-49AC-80C9-C661A09F9E20}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.TableStorage", "Anabasis.TableStorage\Anabasis.TableStorage.csproj", "{EC2DCBDA-59C0-44D9-B74D-276867900D7F}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -375,6 +379,22 @@ Global
 		{73B69C4D-A864-4000-992B-5FD71A20C852}.Release|Any CPU.Build.0 = Release|Any CPU
 		{73B69C4D-A864-4000-992B-5FD71A20C852}.Release|x64.ActiveCfg = Release|Any CPU
 		{73B69C4D-A864-4000-992B-5FD71A20C852}.Release|x64.Build.0 = Release|Any CPU
+		{70629021-1A91-49AC-80C9-C661A09F9E20}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{70629021-1A91-49AC-80C9-C661A09F9E20}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{70629021-1A91-49AC-80C9-C661A09F9E20}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{70629021-1A91-49AC-80C9-C661A09F9E20}.Debug|x64.Build.0 = Debug|Any CPU
+		{70629021-1A91-49AC-80C9-C661A09F9E20}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{70629021-1A91-49AC-80C9-C661A09F9E20}.Release|Any CPU.Build.0 = Release|Any CPU
+		{70629021-1A91-49AC-80C9-C661A09F9E20}.Release|x64.ActiveCfg = Release|Any CPU
+		{70629021-1A91-49AC-80C9-C661A09F9E20}.Release|x64.Build.0 = Release|Any CPU
+		{EC2DCBDA-59C0-44D9-B74D-276867900D7F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{EC2DCBDA-59C0-44D9-B74D-276867900D7F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{EC2DCBDA-59C0-44D9-B74D-276867900D7F}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{EC2DCBDA-59C0-44D9-B74D-276867900D7F}.Debug|x64.Build.0 = Debug|Any CPU
+		{EC2DCBDA-59C0-44D9-B74D-276867900D7F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{EC2DCBDA-59C0-44D9-B74D-276867900D7F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{EC2DCBDA-59C0-44D9-B74D-276867900D7F}.Release|x64.ActiveCfg = Release|Any CPU
+		{EC2DCBDA-59C0-44D9-B74D-276867900D7F}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -12,6 +12,8 @@ namespace Anabasis.Common
         public Version ApiVersion { get; set; }
 #nullable enable
         public string? SentryDsn { get; set; }
+        public string? HoneycombServiceName { get; set; }
+        public string? HoneycombApiKey { get; set; }
         public Uri? DocUrl { get; set; }
 
     }

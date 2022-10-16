@@ -10,6 +10,8 @@ namespace Anabasis.Common
             string applicationGroup,
             Version apiVersion,
             string? sentryDsn = null,
+            string? honeycombServiceName = null,
+            string? honeycombApiKey = null,
             AnabasisEnvironment environnement = AnabasisEnvironment.Development,
             Uri? docUrl = null,
             int apiPort = 80,
@@ -25,6 +27,8 @@ namespace Anabasis.Common
             MachineName = machineName;
             SentryDsn = sentryDsn;
             Environment = environnement;
+            HoneycombServiceName = honeycombServiceName;
+            HoneycombApiKey = honeycombApiKey;
         }
 
         public Uri? DocUrl { get; }
@@ -36,8 +40,11 @@ namespace Anabasis.Common
         public int MemoryCheckTresholdInMB { get; }
         public string? MachineName { get;  }
         public string? SentryDsn { get; }
+        public string? HoneycombServiceName { get; }
+        public string? HoneycombApiKey { get; }
         public AnabasisEnvironment Environment { get; }
         public bool UseSentry => !string.IsNullOrEmpty(SentryDsn);
+        public bool UseHoneycomb => !string.IsNullOrEmpty(HoneycombServiceName) && !string.IsNullOrEmpty(HoneycombApiKey);
 
     }
 }

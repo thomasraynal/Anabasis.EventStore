@@ -1,13 +1,9 @@
-﻿using Anabasis.Api.Storage;
-using Anabasis.Common;
+﻿using Anabasis.Common;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Routing;
 using Microsoft.Extensions.Logging;
-using Serilog;
 using System;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
@@ -53,7 +49,6 @@ namespace Anabasis.Api.Middleware
 
             var requestId = GetRequestIdFromRequest(context.Request);
       
-
             await LogRequestAsync(requestId, context.Request);
             await LogResponseAsync(requestId, context);
 

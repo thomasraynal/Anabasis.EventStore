@@ -5,4 +5,18 @@
     <TargetFramework>net5.0</TargetFramework>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Api\Anabasis.Api.csproj" />
+    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="config.app.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="config.group.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

@@ -44,19 +44,19 @@ namespace Anabasis.RabbitMQ.Demo2
 
                             serviceCollection.AddWorld("ConnectTo=tcp://admin:changeit@localhost:1113; HeartBeatTimeout=1500; VerboseLogging=false; OperationTimeout=60000; UseSslConnection=false;", connectionSettingsBuilder)
 
-                                         .AddEventStoreStatefulActor<ProductInventoryActor, Product, AllStreamsCatchupCacheConfiguration>(
+                                             .AddEventStoreStatefulActor<ProductInventoryActor, Product, AllStreamsCatchupCacheConfiguration>(
                                                 eventTypeProvider: marketDataEventHandler,
                                                 getAggregateCacheConfiguration: (conf) => conf.Checkpoint = Position.Start)
-                                         .WithBus<IEventStoreBus>()
-                                         .WithBus<IRabbitMqBus>((actor, bus) =>
-                                         {
-                                             actor.SubscribeToExchange<ProductInventoryChanged>(StaticData.ProducyInventoryExchange,
-                                                 queueName : "ProductInventoryActor",
-                                                 isQueueDurable: true,
-                                                 isQueueAutoDelete: false,
-                                                 isQueueExclusive: false);
-                                         })
-                                         .CreateActor();
+                                             .WithBus<IEventStoreBus>()
+                                             .WithBus<IRabbitMqBus>((actor, bus) =>
+                                             {
+                                                 actor.SubscribeToExchange<ProductInventoryChanged>(StaticData.ProducyInventoryExchange,
+                                                     queueName : "ProductInventoryActor",
+                                                     isQueueDurable: true,
+                                                     isQueueAutoDelete: false,
+                                                     isQueueExclusive: false);
+                                             })
+                                             .CreateActor();
 
                             serviceCollection.AddHostedService<ChangeProductHostedService>();
 

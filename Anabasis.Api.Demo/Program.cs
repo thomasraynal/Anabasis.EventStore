@@ -1,12 +1,22 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
+using System;
 
 namespace Anabasis.Api.Demo
 {
     class Program
     {
-        static void Main(string[] args)
+        static void Main(string[] _)
         {
-            Console.WriteLine("Hello World!");
+            {
+                WebAppBuilder.Create<Program>(
+                        configureServiceCollection: (anabasisContext, serviceCollection, configurationRoot) =>
+                        {
+                            serviceCollection.AddHostedService<HostedService>();
+                        })
+                        .Build()
+                        .Run();
+            }
         }
     }
 }

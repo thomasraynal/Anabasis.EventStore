@@ -7,16 +7,17 @@
 //{
 //    public class AllowAllAvailableEventTypeProvider : IEventTypeProvider
 //    {
-//        public AllowAllAvailableEventTypeProvider()
+//        public bool CanHandle(IEvent @event)
 //        {
+//            return true;
 //        }
 
 //        public Type[] GetAll()
 //        {
-//            return new Type[0];
+//            return Array.Empty<Type>();
 //        }
 
-//        public Type GetEventTypeByName(string name)
+//        public Type? GetEventTypeByName(string name)
 //        {
 //            throw new NotImplementedException();
 //        }

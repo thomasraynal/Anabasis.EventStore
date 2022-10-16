@@ -29,6 +29,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+    <ProjectReference Include="..\Anabasis.Insights\Anabasis.Insights.csproj" />
   </ItemGroup>
 
   <ItemGroup>
