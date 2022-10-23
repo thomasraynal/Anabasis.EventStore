@@ -22,4 +22,8 @@
     <PackageReference Include="OpenTelemetry.Extensions.Hosting" Version="1.0.0-rc9.7" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+  </ItemGroup>
+
 </Project>

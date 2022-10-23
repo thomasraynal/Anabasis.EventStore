@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	  <RootNamespace>Anabasis.EventHubs</RootNamespace>
-	  <TargetFramework>net5.0</TargetFramework>
+	  <TargetFramework>net6.0</TargetFramework>
 	  <LangVersion>Latest</LangVersion>
 	  <Platforms>AnyCPU;x64</Platforms>
 	  <PackageProjectUrl>https://github.com/thomasraynal/Anabasis.EventStore</PackageProjectUrl>

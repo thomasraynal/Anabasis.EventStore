@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Hosting;
+﻿using Anabasis.Insights;
+using Microsoft.Extensions.Hosting;
 using OpenTelemetry.Trace;
 using System;
 using System.Collections.Generic;
@@ -13,37 +14,36 @@ namespace Anabasis.Api.Demo
     public class HostedService : IHostedService
     {
         private IDisposable _disposable;
-        private readonly Tracer _tracer;
+        private readonly ITracer _tracer;
 
-        public HostedService(Tracer tracer)
+        public HostedService(ITracer tracer)
         {
-            _tracer = tracer;
+               _tracer = tracer;
         }
 
         public Task StartAsync(CancellationToken cancellationToken)
         {
+
+            var traceId = Guid.NewGuid();
+
             _disposable = Observable.Interval(TimeSpan.FromMilliseconds(2000)).Subscribe(async _ =>
             {
-                using (var mainSpan = _tracer.StartActiveSpan("process",  startTime: DateTime.UtcNow))
+
+
+                using (var mainSpan = _tracer.StartActiveSpan("process", traceId,  startTime: DateTime.UtcNow))
                 {
                     mainSpan.SetAttribute("delay_ms", 100);
                     await Task.Delay(500);
 
                     mainSpan.AddEvent("one");
 
-                    using (var childSpan = _tracer.StartSpan("childProcess", startTime: DateTime.UtcNow))
+                    using (var childSpan = _tracer.StartSpan("childProcess", traceId, startTime: DateTime.UtcNow))
                     {
                         await Task.Delay(1000);
 
                         childSpan.AddEvent("tow");
                     }
-
                 }
-
-            
-
-
-
             });
 
             return Task.CompletedTask;

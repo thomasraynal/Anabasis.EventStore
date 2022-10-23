@@ -150,6 +150,7 @@ namespace Anabasis.Api
             if (appContext.UseHoneycomb && null != honeycombOptions)
             {
                 services.AddOpenTracing(honeycombOptions, configureTracerProviderBuilder);
+                services.AddTransient<ITracer, AnabasisTracer>();
             }
 
             services.AddHealthChecks()
