@@ -8,12 +8,13 @@ namespace Anabasis.RabbitMQ.Event
         [JsonConstructor]
         private BaseRabbitMqEvent() { }
 
-        public BaseRabbitMqEvent(Guid? messageId, Guid? eventId, Guid? correlationId , Guid? causeId = null)
+        public BaseRabbitMqEvent(Guid? messageId, Guid? eventId, Guid? correlationId, Guid? causeId = null, Guid? traceId = null)
         {
             MessageId = messageId ?? Guid.NewGuid();
             EventId = eventId ?? Guid.NewGuid();
             CorrelationId = correlationId ?? Guid.NewGuid();
             CauseId = causeId;
+            TraceId = traceId;
         }
 
         public virtual string Subject
@@ -43,5 +44,7 @@ namespace Anabasis.RabbitMQ.Event
         public Guid? CauseId { get; }
 
         public bool IsAggregateEvent => false;
+
+        public Guid? TraceId { get; }
     }
 }

@@ -41,7 +41,7 @@ namespace Anabasis.Api.Demo
                     {
                         await Task.Delay(1000);
 
-                        childSpan.AddEvent("tow");
+                        mainSpan.AddEvent("tow");
                     }
                 }
             });

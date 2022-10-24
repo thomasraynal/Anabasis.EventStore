@@ -15,6 +15,8 @@ namespace Anabasis.EventStore.Demo
 
         public IEvent Content { get; }
 
+        public Guid? TraceId { get; }
+
         public Task Acknowledge()
         {
             return Task.CompletedTask;

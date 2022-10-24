@@ -115,6 +115,8 @@ namespace Anabasis.Worker.Tests.Model
 
         public bool IsAcknowledge { get; private set; }
 
+        public Guid? TraceId { get; set; }
+
         public Task Acknowledge()
         {
             IsAcknowledge = true;

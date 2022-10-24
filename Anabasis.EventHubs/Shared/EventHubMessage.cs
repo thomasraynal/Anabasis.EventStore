@@ -9,10 +9,11 @@ namespace Anabasis.EventHubs.Shared
 {
     public class EventHubMessage : IEventHubMessage
     {
-        public EventHubMessage(Guid messageId, IEvent content)
+        public EventHubMessage(Guid messageId, IEvent content, Guid? traceId = null)
         {
             MessageId = messageId;
             Content = content;
+            TraceId = traceId;
 
         }
 
@@ -21,6 +22,8 @@ namespace Anabasis.EventHubs.Shared
         public IEvent Content { get; }
 
         public bool IsAcknowledged { get; private set; }
+
+        public Guid? TraceId { get; }
 
         public Task Acknowledge()
         {

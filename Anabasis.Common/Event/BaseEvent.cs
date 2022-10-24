@@ -13,13 +13,14 @@ namespace Anabasis.Common
         }
 #nullable enable
 
-        public BaseEvent(string entityId, Guid? correlationId = null, Guid? causeId = null)
+        public BaseEvent(string entityId, Guid? correlationId = null, Guid? causeId = null, Guid? traceId = null)
         {
             EventId = Guid.NewGuid();
             Timestamp = DateTime.UtcNow;
             CorrelationId = correlationId ?? Guid.NewGuid();
             CauseId = causeId ?? Guid.NewGuid();
             EntityId = entityId;
+            TraceId = traceId;
         }
 
         [JsonProperty]
@@ -36,6 +37,9 @@ namespace Anabasis.Common
         public bool IsCommand { get; internal set; }
         [JsonProperty]
         public DateTime Timestamp { get; internal set; }
+        [JsonProperty]
+        public Guid? TraceId { get; internal set; }
         public string EventName => GetType().Name;
+
     }
 }

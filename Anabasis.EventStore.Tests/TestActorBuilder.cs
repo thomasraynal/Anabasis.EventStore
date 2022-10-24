@@ -23,6 +23,8 @@ namespace Anabasis.EventStore.Tests
 
         public IEvent Content { get; }
 
+        public Guid? TraceId { get; set; }
+
         public Task Acknowledge()
         {
             return Task.CompletedTask;

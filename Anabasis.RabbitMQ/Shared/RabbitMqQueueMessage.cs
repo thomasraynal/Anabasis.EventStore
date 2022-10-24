@@ -12,12 +12,13 @@ namespace Anabasis.RabbitMQ
 
         public RabbitMqQueueMessage(
             Guid messageId,
-            IRabbitMqConnection rabbitMqConnection, 
-            Type type, 
-            IRabbitMqEvent content, 
-            bool redelivered, 
+            IRabbitMqConnection rabbitMqConnection,
+            Type type,
+            IRabbitMqEvent content,
+            bool redelivered,
             ulong deliveryTag,
-            bool isAutoAck)
+            bool isAutoAck,
+            Guid? traceId = null)
         {
             _rabbitMqConnection = rabbitMqConnection;
             _deliveryTag = deliveryTag;
@@ -27,12 +28,14 @@ namespace Anabasis.RabbitMQ
             Type = type;
             Content = content;
             DequeueCount = redelivered ? 1 : 0;
+            TraceId = traceId;
         }
 
         public Type Type { get; }
         public IEvent Content { get; }
         public int DequeueCount { get; }
         public Guid MessageId { get; }
+        public Guid? TraceId { get; }
 
         public Task Acknowledge()
         {

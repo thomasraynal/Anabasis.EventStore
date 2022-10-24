@@ -17,9 +17,11 @@ namespace Anabasis.EventStore.Tests
             Content = @event;
         }
 
-        public Guid MessageId => throw new NotImplementedException();
+        public Guid MessageId { get; }
 
         public IEvent Content { get; }
+
+        public Guid? TraceId { get; }
 
         public Task Acknowledge()
         {

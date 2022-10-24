@@ -95,8 +95,14 @@ namespace Anabasis.Insights
             IEnumerable<Link>? links = null,
             DateTimeOffset startTime = default)
         {
+
+            if (null == @event.TraceId)
+            {
+                throw new InvalidOperationException("A traceId must be specified");
+            }
+
             initialAttributes = CreateSpanAttributes(
-                @event.TraceId,
+                @event.TraceId.Value,
                 @event.CorrelationId,
                 null,
                 @event.CauseId,
@@ -109,8 +115,13 @@ namespace Anabasis.Insights
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public TelemetrySpan StartActiveSpan(string name, SpanKind kind, in TelemetrySpan parentSpan, IMessage message, SpanAttributes? initialAttributes = null, IEnumerable<Link>? links = null, DateTimeOffset startTime = default)
         {
+            if (null == message.TraceId)
+            {
+                throw new InvalidOperationException("A traceId must be specified");
+            }
+
             initialAttributes = CreateSpanAttributes(
-                message.TraceId,
+                message.TraceId.Value,
                 null,
                 null,
                 null,

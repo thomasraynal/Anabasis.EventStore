@@ -33,6 +33,8 @@ namespace Anabasis.EventStore.Tests
         public Guid? CauseId => null;
 
         public bool IsAggregateEvent => false;
+
+        public Guid? TraceId { get; set; }
     }
 
 
@@ -45,6 +47,8 @@ namespace Anabasis.EventStore.Tests
         public Guid MessageId => Guid.NewGuid();
 
         public IEvent Content { get; }
+
+        public Guid? TraceId { get; set; }
 
         public TestMessage(int value)
         {
