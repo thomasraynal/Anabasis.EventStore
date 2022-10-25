@@ -9,38 +9,61 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Api.Demo
 {
-    public class BusOne : IBus
+    public class DummyBusConnectionMonitor : IConnectionStatusMonitor
     {
+        public bool IsConnected => true;
+
+        public ConnectionInfo ConnectionInfo => ConnectionInfo.InitialConnected;
+
+        public IObservable<bool> OnConnected => throw new NotImplementedException();
+
+        public void Dispose()
+        {
+
+        }
+    }
+
+    public class BusOne : IBusOne
+    {
+        private readonly List<Action<IEvent>> _subscribers;
+
         public BusOne()
         {
+            _subscribers = new List<Action<IEvent>>();
         }
 
         public string BusId { get; }
 
-        public IConnectionStatusMonitor ConnectionStatusMonitor => throw new NotImplementedException();
+        public IConnectionStatusMonitor ConnectionStatusMonitor => new DummyBusConnectionMonitor();
 
-        public void Push(IEvent push)
+        public void Push(IEvent @event)
         {
-
+            foreach (var subscribers in _subscribers)
+            {
+                subscribers(@event);
+            }
         }
-        public void Subscribe(Action<IMessage> onMessageReceived)
+        public void Subscribe(Action<IEvent> onEventReceived)
         {
-
+            _subscribers.Add(onEventReceived);
         }
 
         public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            return Task.FromResult(HealthCheckResult.Healthy("healthcheck from BusOne", new Dictionary<string, object>()
+            {
+                {"BusOne", "ok"}
+            }));
         }
 
         public void Dispose()
         {
-            throw new NotImplementedException();
+
         }
 
         public Task WaitUntilConnected(TimeSpan? timeout = null)
         {
-            throw new NotImplementedException();
+            return Task.CompletedTask;
         }
     }
 }

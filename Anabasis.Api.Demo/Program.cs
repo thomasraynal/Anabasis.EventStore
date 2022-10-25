@@ -13,6 +13,7 @@ namespace Anabasis.Api.Demo
                         configureServiceCollection: (anabasisContext, serviceCollection, configurationRoot) =>
                         {
                             serviceCollection.AddHostedService<HostedService>();
+                            serviceCollection.AddSingleton<IBusOne, BusOne>();
                         })
                         .Build()
                         .Run();
