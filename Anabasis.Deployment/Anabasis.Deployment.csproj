@@ -13,6 +13,7 @@
     <Product />
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	<Nullable>enable</Nullable>
+	<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
 
   <ItemGroup>
