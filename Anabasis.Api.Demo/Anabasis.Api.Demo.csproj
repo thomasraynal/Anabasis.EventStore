@@ -8,6 +8,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.Api\Anabasis.Api.csproj" />
     <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore.AspNet\Anabasis.EventStore.AspNet.csproj" />
   </ItemGroup>
 
   <ItemGroup>

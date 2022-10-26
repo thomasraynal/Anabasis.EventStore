@@ -34,10 +34,11 @@ namespace Anabasis.Common.Worker
 #nullable disable
 
         protected BaseWorker(IWorkerConfigurationFactory workerConfigurationFactory,
-            IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null,
             ILoggerFactory loggerFactory = null)
         {
-            Setup(workerConfigurationFactory.GetConfiguration(GetType()), workerMessageDispatcherStrategy, loggerFactory);
+            var configuration = workerConfigurationFactory.GetConfiguration(GetType());
+
+            Setup(configuration.workerConfiguration, configuration.workerMessageDispatcherStrategy, loggerFactory);
         }
 
         protected BaseWorker(IWorkerConfiguration workerConfiguration,

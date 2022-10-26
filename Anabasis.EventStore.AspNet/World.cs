@@ -1,6 +1,8 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.Common.Contracts;
 using Anabasis.Common.HealthChecks;
+using Anabasis.Common.Worker;
 using Anabasis.EventStore.AspNet.Builders;
 using Anabasis.EventStore.Repository;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,10 +14,11 @@ namespace Anabasis.EventStore.AspNet
 {
     public class World
     {
-
+        private readonly List<(Type actorType, IWorkerBuilder builder)> _workerBuilders;
         private readonly List<(Type actorType, IActorBuilder builder)> _actorBuilders;
         private readonly IServiceCollection _serviceCollection;
         private readonly IActorConfigurationFactory _actorConfigurationFactory;
+        private readonly IWorkerConfigurationFactory _workerConfigurationFactory;
         private readonly bool _useEventStore;
 
         public World(IServiceCollection services, bool useEventStore)
@@ -23,23 +26,36 @@ namespace Anabasis.EventStore.AspNet
             _useEventStore = useEventStore;
 
             _actorBuilders = new List<(Type actorType, IActorBuilder builder)>();
+            _workerBuilders = new List<(Type actorType, IWorkerBuilder builder)>();
 
             _serviceCollection = services;
 
             _actorConfigurationFactory = new ActorConfigurationFactory();
+            _workerConfigurationFactory = new WorkerConfigurationFactory();
 
             _serviceCollection.AddSingleton<IDynamicHealthCheckProvider, DynamicHealthCheckProvider>();
             _serviceCollection.AddSingleton(_actorConfigurationFactory);
+            _serviceCollection.AddSingleton(_workerConfigurationFactory);
         }
 
-        public (Type actorType,IActorBuilder actorBuilder)[] GetBuilders()
+        public (Type actorType,IActorBuilder actorBuilder)[] GetActorBuilders()
         {
             return _actorBuilders.ToArray();
+        }
+
+        public (Type actorType, IWorkerBuilder actorBuilder)[] GetWorkerBuilders()
+        {
+            return _workerBuilders.ToArray();
         }
 
         public void AddBuilder<TActor>(IActorBuilder builder) where TActor : IActor
         {
             _actorBuilders.Add((typeof(TActor), builder));
+        }
+
+        public void AddBuilder<TWorker>(IWorkerBuilder builder) where TWorker : IWorker
+        {
+            _workerBuilders.Add((typeof(TWorker), builder));
         }
 
         private void EnsureIsEventStoreWorld()
@@ -48,13 +64,36 @@ namespace Anabasis.EventStore.AspNet
                 throw new InvalidOperationException("This world does not support eventstore - use another world builder method");
         }
 
+        private void EnsureWorkerNotAlreadyRegistered<TWorker>()
+        {
+            if (_workerBuilders.Any(workerBuilder => workerBuilder.actorType == typeof(TWorker)))
+            {
+                throw new InvalidOperationException($"Worker {typeof(TWorker)} has already been registered. Workers are registered as singleton in the AspNetCore.Builder context : only one instance of each actor type is authorized." +
+                         $" Use the Anabasis.EventStore.AspNet.Builders.WorkerBuilder and register/invoke them manually if you wish create multiples actors of the same type");
+            }
+        }
+
         private void EnsureActorNotAlreadyRegistered<TActor>()
         {
             if (_actorBuilders.Any(statefulActorBuilder => statefulActorBuilder.actorType == typeof(TActor)))
             {
                 throw new InvalidOperationException($"Actor {typeof(TActor)} has already been registered. Actors are registered as singleton in the AspNetCore.Builder context : only one instance of each actor type is authorized." +
-                         $" Use the Anabasis.EventStore.Actor.*Builders and register/invoke them manually if you wish create multiples actors of the same type");
+                         $" Use the Anabasis.EventStore.AspNet.Builders.* and register/invoke them manually if you wish create multiples actors of the same type");
             }
+        }
+
+        public WorkerBuilder<TWorker> AddWorker<TWorker>(IWorkerConfiguration actorConfiguration, IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null)
+            where TWorker : class, IWorker
+        {
+            EnsureWorkerNotAlreadyRegistered<TWorker>();
+
+            _workerConfigurationFactory.AddConfiguration<TWorker>(actorConfiguration, workerMessageDispatcherStrategy);
+
+            var workerBuilder = new WorkerBuilder<TWorker>(this);
+
+            _serviceCollection.AddSingleton<TWorker>();
+
+            return workerBuilder;
         }
 
         public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IActorConfiguration actorConfiguration)

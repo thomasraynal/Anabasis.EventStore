@@ -1,7 +1,7 @@
 ﻿    <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
+	  <TargetFramework>net6.0</TargetFramework>
 	  <Nullable>enable</Nullable>
 	  <OutputType>Library</OutputType>
 	  <LangVersion>Latest</LangVersion>
@@ -12,6 +12,7 @@
 	  <Authors>Thomas Raynal</Authors>
 	  <Company />
 	  <Product />
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>

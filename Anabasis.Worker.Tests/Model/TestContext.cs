@@ -161,7 +161,7 @@ namespace Anabasis.Worker.Tests.Model
 
         public List<IEvent> Events { get; } = new List<IEvent>();
 
-        public TestWorker(IWorkerConfigurationFactory workerConfigurationFactory, IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null, ILoggerFactory loggerFactory = null) : base(workerConfigurationFactory, workerMessageDispatcherStrategy, loggerFactory)
+        public TestWorker(IWorkerConfigurationFactory workerConfigurationFactory, ILoggerFactory loggerFactory = null) : base(workerConfigurationFactory, loggerFactory)
         {
         }
 

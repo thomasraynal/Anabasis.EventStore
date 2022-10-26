@@ -15,7 +15,7 @@ namespace Anabasis.EventHubs.Tests.Integration
     {
         public ConcurrentBag<IEvent> Events { get; private set; }
 
-        public TestEventHubWorker(IWorkerConfigurationFactory workerConfigurationFactory, IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null, ILoggerFactory loggerFactory = null) : base(workerConfigurationFactory, workerMessageDispatcherStrategy, loggerFactory)
+        public TestEventHubWorker(IWorkerConfigurationFactory workerConfigurationFactory, ILoggerFactory loggerFactory = null) : base(workerConfigurationFactory, loggerFactory)
         {
             Events = new ConcurrentBag<IEvent>();
         }

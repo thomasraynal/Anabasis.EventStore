@@ -48,14 +48,23 @@ namespace Anabasis.Common.HealthChecks
 
             }
 
-            var totalDuration = healthReportEntries.Select(healthReportEntry => healthReportEntry.Value.Duration)
-                                                   .Aggregate((healthReportEntry1, healthReportEntry2) => healthReportEntry1 + healthReportEntry2);
+            if (healthReportEntries.Any())
+            {
 
-            var healthStatus = healthReportEntries.Min(healthReportEntry => healthReportEntry.Value.Status);
+                var totalDuration = healthReportEntries.Select(healthReportEntry => healthReportEntry.Value.Duration)
+                                                       .Aggregate((healthReportEntry1, healthReportEntry2) => healthReportEntry1 + healthReportEntry2);
 
-            var healthReport = new HealthReport(healthReportEntries, healthStatus, totalDuration);
+                var healthStatus = healthReportEntries.Min(healthReportEntry => healthReportEntry.Value.Status);
 
-            return healthReport;
+                var healthReport = new HealthReport(healthReportEntries, healthStatus, totalDuration);
+
+                return healthReport;
+
+            }
+            else
+            {
+                return new HealthReport(healthReportEntries, HealthStatus.Healthy, TimeSpan.FromMilliseconds(10));
+            }
 
         }
     }

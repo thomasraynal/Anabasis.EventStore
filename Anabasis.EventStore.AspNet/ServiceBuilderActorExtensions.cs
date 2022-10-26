@@ -8,6 +8,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Anabasis.Common.HealthChecks;
 using Anabasis.Common;
 using Anabasis.EventStore.AspNet.Builders;
+using Anabasis.Common.Contracts;
 
 namespace Anabasis.EventStore.AspNet
 {
@@ -17,10 +18,42 @@ namespace Anabasis.EventStore.AspNet
 
         public static IApplicationBuilder UseWorld(this IApplicationBuilder applicationBuilder)
         {
+            var registerWorkerHealthChecksAndBus = new Action<IWorkerBuilder, Type>((builder, workerType) =>
+            {
+                var worker = (IWorker)applicationBuilder.ApplicationServices.GetService(workerType);
 
-            var registerHealthChecksAndBus = new Action<IActorBuilder, Type>((builder, actorType) =>
+                if (null == worker)
+                {
+                    throw new NullReferenceException($"Worker {workerType} is not registered");
+                }
+
+                var healthCheckService = applicationBuilder.ApplicationServices.GetService<IDynamicHealthCheckProvider>();
+                healthCheckService.AddHealthCheck(new HealthCheckRegistration(worker.Id, worker, HealthStatus.Unhealthy, null));
+
+                foreach (var (_, factory) in builder.GetBusFactories())
+                {
+                    factory(applicationBuilder.ApplicationServices, worker);
+                }
+
+            });
+
+            var initializeWorker = new Action<IWorkerBuilder, Type>((builder, workerType) =>
+           {
+               var worker = (IWorker)applicationBuilder.ApplicationServices.GetService(workerType);
+
+               worker.OnInitialized().Wait();
+
+           });
+
+
+            var registerActorHealthChecksAndBus = new Action<IActorBuilder, Type>((builder, actorType) =>
             {
                 var actor = (IActor)applicationBuilder.ApplicationServices.GetService(actorType);
+
+                if (null == actor)
+                {
+                    throw new NullReferenceException($"Actor {actorType} is not registred");
+                }
 
                 var healthCheckService = applicationBuilder.ApplicationServices.GetService<IDynamicHealthCheckProvider>();
                 healthCheckService.AddHealthCheck(new HealthCheckRegistration(actor.Id, actor, HealthStatus.Unhealthy, null));
@@ -44,10 +77,16 @@ namespace Anabasis.EventStore.AspNet
 
             var world = applicationBuilder.ApplicationServices.GetService<World>();
 
-            foreach (var (actorType, builder) in world.GetBuilders())
+            foreach (var (actorType, builder) in world.GetActorBuilders())
             {
-                registerHealthChecksAndBus(builder, actorType);
+                registerActorHealthChecksAndBus(builder, actorType);
                 initializeActor(builder, actorType);
+            }
+
+            foreach (var (workerType, builder) in world.GetWorkerBuilders())
+            {
+                registerWorkerHealthChecksAndBus(builder, workerType);
+                initializeWorker(builder, workerType);
             }
 
             return applicationBuilder;

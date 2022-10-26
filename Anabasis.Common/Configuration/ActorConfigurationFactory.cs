@@ -38,7 +38,7 @@ namespace Anabasis.Common.Configuration
         public IActorConfiguration GetActorConfiguration(Type type)
         {
             if (!_actorConfigurations.ContainsKey(type))
-                throw new InvalidOperationException($"Unable to find a configuration {typeof(IActorConfiguration)}  for actor {type}");
+                throw new InvalidOperationException($"Unable to find a configuration {typeof(IActorConfiguration)} for actor {type}");
 
             return _actorConfigurations[type];
         }

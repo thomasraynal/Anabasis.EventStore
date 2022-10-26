@@ -15,12 +15,12 @@ namespace Anabasis.Api.Demo
     {
         private readonly ITracer _tracer;
 
-        public WorkerOne(ITracer tracer, IWorkerConfigurationFactory workerConfigurationFactory, IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null, ILoggerFactory loggerFactory = null) : base(workerConfigurationFactory, workerMessageDispatcherStrategy, loggerFactory)
+        public WorkerOne(IWorkerConfigurationFactory workerConfigurationFactory, ITracer tracer = null, ILoggerFactory loggerFactory = null) : base(workerConfigurationFactory, loggerFactory)
         {
             _tracer = tracer;
         }
 
-        public WorkerOne(ITracer tracer, IWorkerConfiguration workerConfiguration, IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null, ILoggerFactory loggerFactory = null) : base(workerConfiguration, workerMessageDispatcherStrategy, loggerFactory)
+        public WorkerOne(IWorkerConfiguration workerConfiguration, ITracer tracer = null, IWorkerMessageDispatcherStrategy workerMessageDispatcherStrategy = null, ILoggerFactory loggerFactory = null) : base(workerConfiguration, workerMessageDispatcherStrategy, loggerFactory)
         {
             _tracer = tracer;
         }
@@ -30,13 +30,13 @@ namespace Anabasis.Api.Demo
 
             foreach (var message in messages.Cast<EventCreated>())
             {
-                using var mainSpan = _tracer.StartActiveSpan("WorkerOne", traceId: message.TraceId.Value, startTime: DateTime.UtcNow);
+                using var mainSpan = _tracer?.StartActiveSpan("WorkerOne", traceId: message.TraceId.Value, startTime: DateTime.UtcNow);
 
-                mainSpan.AddEvent("HandleEventStart");
+                mainSpan?.AddEvent("HandleEventStart");
 
                 Logger.LogInformation($"Handling {message.EventId}");
 
-                mainSpan.AddEvent("HandleEventEnd");
+                mainSpan?.AddEvent("HandleEventEnd");
             }
 
             return Task.CompletedTask;

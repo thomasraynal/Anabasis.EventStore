@@ -5,11 +5,11 @@
     "apiVersion": "1.0",
     "docUrl": "https://apidocjs.com/example/"
   },
-  "Honeycomb": {
-    "ServiceName": "my-app",
-    "ApiKey": "MFBQMyf1mGCfNALKeQKZ3X",
-    "EnableLocalVisualizations": true
-  },
+  //"Honeycomb": {
+  //  "ServiceName": "my-app",
+  //  "ApiKey": "MFBQMyf1mGCfNALKeQKZ3X",
+  //  "EnableLocalVisualizations": true
+  //},
   "AllowedHosts": "*",
   "IpRateLimiting": {
     "EnableEndpointRateLimiting": false,

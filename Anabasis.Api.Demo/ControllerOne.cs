@@ -15,7 +15,7 @@ namespace Anabasis.Api.Demo
         private readonly IBusOne _busOne;
         private readonly ITracer _tracer;
 
-        public ControllerOne(IBusOne busOne, ITracer tracer)
+        public ControllerOne(IBusOne busOne, ITracer tracer = null)
         {
             _busOne = busOne;
             _tracer = tracer;
@@ -26,14 +26,14 @@ namespace Anabasis.Api.Demo
         {
             var eventCreated = new EventCreated("nothing", traceId: Guid.NewGuid());
 
-            using (var mainSpan = _tracer.StartActiveSpan("ControllerOne", traceId: eventCreated.TraceId.Value, startTime: DateTime.UtcNow))
+            using (var mainSpan = _tracer?.StartActiveSpan("ControllerOne", traceId: eventCreated.TraceId.Value, startTime: DateTime.UtcNow))
             {
 
-                mainSpan.AddEvent("CreateEventStart");
+                mainSpan?.AddEvent("CreateEventStart");
 
                 _busOne.Push(eventCreated);
 
-                mainSpan.AddEvent("CreateEventEnd");
+                mainSpan?.AddEvent("CreateEventEnd");
             }
           
             return Ok();

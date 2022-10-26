@@ -18,7 +18,7 @@ namespace Anabasis.EventStore.AspNet.Builders
             _busToRegisterTo = new Dictionary<Type, Action<IServiceProvider, IActor>>();
         }
 
-        public StatelessActorBuilder<TActor> WithBus<TBus>(Action<TActor, TBus> onStartup=null) where TBus : IBus
+        public StatelessActorBuilder<TActor> WithBus<TBus>(Action<TActor, TBus>? onStartup = null) where TBus : IBus
         {
             var busType = typeof(TBus);
 
@@ -42,7 +42,7 @@ namespace Anabasis.EventStore.AspNet.Builders
 
             _busToRegisterTo.Add(busType, onRegistration);
 
-            return this;    
+            return this;
         }
 
         public World CreateActor()

@@ -16,34 +16,11 @@ namespace Anabasis.Api.Demo
 {
     public class HostedService : IHostedService
     {
-        private readonly WorkerOne _workerOne;
-        private readonly IBusOne _busOne;
+
         private IDisposable _disposable;
 
-        public HostedService(IBusOne busOne, ITracer tracer, ILoggerFactory loggerFactory)
+        public Task StartAsync(CancellationToken cancellationToken)
         {
-
-            var workerConfiguration = new WorkerConfiguration()
-            {
-                DispatcherCount = 2,
-            };
-
-            _workerOne = new WorkerOne(tracer, workerConfiguration,loggerFactory: loggerFactory);
-
-            _busOne = busOne;
-        }
-
-        public async Task StartAsync(CancellationToken cancellationToken)
-        {
-
-            await _workerOne.ConnectTo(_busOne);
-
-            await _workerOne.WaitUntilConnected();
-
-            _busOne.Subscribe((@event) =>
-            {
-                _workerOne.Handle(new[] { @event });
-            });
 
              var httpClient = new HttpClient();
 
@@ -51,6 +28,8 @@ namespace Anabasis.Api.Demo
             {
                 await httpClient.PutAsync("http://localhost/event", null);
             });
+
+            return Task.CompletedTask;
 
         }
 
