@@ -9,14 +9,12 @@ namespace Anabasis.RabbitMQ.Event
         public RabbitMqExchangeConfiguration(string exchangeName,
             string exchangeType, 
             bool createExchangeIfNotExist = true,
-            bool createDeadLetterExchangeIfNotExist = true,
             bool isAutoDelete = false,
             bool isDurable = true)
         {
             ExchangeName = exchangeName;
             ExchangeType = exchangeType;
             CreateExchangeIfNotExist = createExchangeIfNotExist;
-            CreateDeadLetterExchangeIfNotExist = createDeadLetterExchangeIfNotExist;
             IsAutoDelete = isAutoDelete;
             IsDurable = isDurable;
         }
@@ -26,8 +24,6 @@ namespace Anabasis.RabbitMQ.Event
         public string ExchangeType { get; }
 
         public bool CreateExchangeIfNotExist { get; }
-
-        public bool CreateDeadLetterExchangeIfNotExist { get; }
 
         public bool IsAutoDelete { get; }
 

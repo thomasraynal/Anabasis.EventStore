@@ -17,9 +17,11 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="KubernetesClient.Basic" Version="9.0.38" />
+    <PackageReference Include="KubernetesClient.Models" Version="9.0.38" />
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="6.0.0" />
-    <PackageReference Include="Nuke.Common" Version="6.0.1" />
-    <PackageReference Include="KubernetesClient" Version="6.0.1" />
+    <PackageReference Include="Nuke.Common" Version="6.2.1" />
+    <PackageReference Include="KubernetesClient" Version="9.0.38" />
     <PackageReference Include="GitVersion.CommandLine.DotNetCore" Version="5.0.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

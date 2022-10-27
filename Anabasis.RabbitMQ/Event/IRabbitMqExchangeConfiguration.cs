@@ -9,7 +9,6 @@ namespace Anabasis.RabbitMQ.Event
         string ExchangeName { get; }
         string ExchangeType { get; }
         bool CreateExchangeIfNotExist { get; }
-        bool CreateDeadLetterExchangeIfNotExist { get; }
         bool IsAutoDelete { get; }
         bool IsDurable { get; }
     }

@@ -236,7 +236,7 @@ namespace Anabasis.RabbitMQ
             return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag, isAutoAck);
         }
 
-        private void CreateExchangeIfNotExist(string exchange, string exchangeType = "topic", bool durable = true, bool autodelete = true, bool createDeadLetterExchangeIfNotExist = true)
+        private void CreateExchangeIfNotExist(string exchange, string exchangeType = "topic", bool durable = true, bool autodelete = true)
         {
             if (_ensureExchangeCreated.Contains(exchange)) return;
 
@@ -250,13 +250,13 @@ namespace Anabasis.RabbitMQ
                         {"x-delayed-type",exchangeType}
                     });
 
-                    if (createDeadLetterExchangeIfNotExist)
-                    {
-                        var deadletterExchangeForThisSubscription = $"{exchange}-deadletters";
+                    //if (createDeadLetterExchangeIfNotExist)
+                    //{
+                    //    var deadletterExchangeForThisSubscription = $"{exchange}-deadletters";
 
-                        channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: durable, autoDelete: autodelete);
+                    //    channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: durable, autoDelete: autodelete);
 
-                    }
+                    //}
 
                 }
                 //we allow failures here, to handle possible differences in exchange configuration
@@ -285,16 +285,15 @@ namespace Anabasis.RabbitMQ
                         CreateExchangeIfNotExist(subscription.RabbitMqExchangeConfiguration.ExchangeName,
                             subscription.RabbitMqExchangeConfiguration.ExchangeType,
                             subscription.RabbitMqExchangeConfiguration.IsDurable,
-                            subscription.RabbitMqExchangeConfiguration.IsAutoDelete,
-                            subscription.RabbitMqExchangeConfiguration.CreateDeadLetterExchangeIfNotExist);
+                            subscription.RabbitMqExchangeConfiguration.IsAutoDelete);
                     }
 
                     var arguments = new Dictionary<string, object>();
 
-                    if (subscription.RabbitMqExchangeConfiguration.CreateDeadLetterExchangeIfNotExist)
-                    {
-                        arguments.Add("x-dead-letter-exchange", $"{subscription.RabbitMqExchangeConfiguration.ExchangeName}-deadletters");
-                    }
+                    //if (subscription.RabbitMqExchangeConfiguration.CreateDeadLetterExchangeIfNotExist)
+                    //{
+                    //    arguments.Add("x-dead-letter-exchange", $"{subscription.RabbitMqExchangeConfiguration.ExchangeName}-deadletters");
+                    //}
 
                     var queueName = channel.QueueDeclare(
                         queue: subscription.RabbitMqQueueConfiguration.QueueName ?? string.Empty,

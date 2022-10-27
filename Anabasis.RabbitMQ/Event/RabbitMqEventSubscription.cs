@@ -25,7 +25,6 @@ namespace Anabasis.RabbitMQ
             bool isExchangeDurable = true,
             bool isExchangeAutoDelete = false,
             bool createExchangeIfNotExist = true,
-            bool createDeadLetterExchangeIfNotExist = true,
             bool isQueueDurable = false,
             bool isQueueAutoAck = false,
             bool isQueueAutoDelete = true,
@@ -42,7 +41,6 @@ namespace Anabasis.RabbitMQ
             RabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange, 
                 exchangeType,
                 createExchangeIfNotExist : createExchangeIfNotExist,
-                createDeadLetterExchangeIfNotExist : createDeadLetterExchangeIfNotExist,
                 isAutoDelete : isExchangeAutoDelete,
                 isDurable : isExchangeDurable
                 );

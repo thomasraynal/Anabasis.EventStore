@@ -55,11 +55,11 @@ namespace Anabasis.Deployment.Tests
         [Test]
         public async Task ShouldGenerateNamespace()
         {
-            var @namespace = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/namespace.yaml")).First() as k8s.Models.V1Namespace;
+            var @namespace = (await KubernetesYaml.LoadAllFromFileAsync("./kustomize/templates/namespace.yaml")).First() as k8s.Models.V1Namespace;
             @namespace.Metadata.Name = _namespaceName;
             @namespace.Metadata.Labels["group"] = _appGroup;
 
-            var namespaceYaml = Yaml.SaveToString(@namespace);
+            var namespaceYaml = KubernetesYaml.Serialize(@namespace);
 
             Assert.AreEqual(File.ReadAllText("./data/expected-namespace.yaml").SanitizeYamlForTests(), namespaceYaml.SanitizeYamlForTests());
         }
@@ -68,7 +68,7 @@ namespace Anabasis.Deployment.Tests
         public async Task ShouldGenerateService()
         {
 
-            var service = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/service.yaml")).First() as k8s.Models.V1Service;
+            var service = (await KubernetesYaml.LoadAllFromFileAsync("./kustomize/templates/service.yaml")).First() as k8s.Models.V1Service;
 
             service.Metadata.NamespaceProperty = _namespaceName;
             service.Metadata.Name = _serviceName;
@@ -79,7 +79,7 @@ namespace Anabasis.Deployment.Tests
             service.Spec.Selector["release"] = _release;
             service.Spec.Selector["app"] = _appName;
 
-            var serviceYaml = Yaml.SaveToString(service);
+            var serviceYaml = KubernetesYaml.Serialize(service);
 
             Assert.AreEqual(File.ReadAllText("./data/expected-service.yaml").SanitizeYamlForTests(), serviceYaml.SanitizeYamlForTests());
         }
@@ -87,7 +87,7 @@ namespace Anabasis.Deployment.Tests
         [Test]
         public async Task ShouldGenerateIngress()
         {
-            var ingress = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/ingress.yaml")).First() as k8s.Models.V1Ingress;
+            var ingress = (await KubernetesYaml.LoadAllFromFileAsync("./kustomize/templates/ingress.yaml")).First() as k8s.Models.V1Ingress;
 
             ingress.Metadata.Name = $"ingress-{_appName}";
             ingress.Metadata.NamespaceProperty = _appGroup;
@@ -100,7 +100,7 @@ namespace Anabasis.Deployment.Tests
             path.Path = "/trades/V1";
             path.Backend.Service.Name = _serviceName;
 
-            var ingressYaml = Yaml.SaveToString(ingress);
+            var ingressYaml = KubernetesYaml.Serialize(ingress);
 
             Assert.AreEqual(File.ReadAllText("./data/expected-ingress.yaml").SanitizeYamlForTests(), ingressYaml.SanitizeYamlForTests());
         }
@@ -109,7 +109,7 @@ namespace Anabasis.Deployment.Tests
         public async Task ShouldGenerateDeployment()
         {
 
-            var deployment = (await Yaml.LoadAllFromFileAsync("./kustomize/templates/deployment.yaml")).First() as k8s.Models.V1Deployment;
+            var deployment = (await KubernetesYaml.LoadAllFromFileAsync("./kustomize/templates/deployment.yaml")).First() as k8s.Models.V1Deployment;
 
             deployment.Metadata.NamespaceProperty = _appGroup;
             deployment.Metadata.Name = _appName;
@@ -128,7 +128,7 @@ namespace Anabasis.Deployment.Tests
             container.Name = _appName;
             container.Image = _imageName;
 
-            var deploymentYaml = Yaml.SaveToString(deployment);
+            var deploymentYaml = KubernetesYaml.Serialize(deployment);
 
             Assert.AreEqual(File.ReadAllText("./data/expected-deployment.yaml").SanitizeYamlForTests(), deploymentYaml.SanitizeYamlForTests());
 

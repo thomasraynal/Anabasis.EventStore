@@ -131,14 +131,14 @@ namespace Anabasis.Deployment
         {
 #nullable disable
 
-            var secret = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "secret-docker-registry.yaml")).First() as k8s.Models.V1Secret;
+            var secret = (await KubernetesYaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "secret-docker-registry.yaml")).First() as k8s.Models.V1Secret;
 
             var dockerConfigToJson = GetDockerConfiguration();
 
             secret.Metadata.NamespaceProperty = appDescriptor.AppGroup;
             secret.Data[".dockerconfigjson"] = dockerConfigToJson.ToBase64ByteArray();
 
-            var secretYaml = Yaml.SaveToString(secret);
+            var secretYaml = KubernetesYaml.Serialize(secret);
             var secretYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "secret-docker-registry.yaml");
 
             WriteFile(secretYamlPath, secretYaml);
@@ -483,7 +483,7 @@ namespace Anabasis.Deployment
         private async Task GenerateKubernetesYamlIngress(AppDescriptor appDescriptor)
         {
 #nullable disable
-            var ingress = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "ingress.yaml")).First() as k8s.Models.V1Ingress;
+            var ingress = (await KubernetesYaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "ingress.yaml")).First() as k8s.Models.V1Ingress;
 
             ingress.Metadata.Name = $"ingress-{appDescriptor.AppLongName}";
             ingress.Metadata.NamespaceProperty = appDescriptor.AppGroup;
@@ -501,7 +501,7 @@ namespace Anabasis.Deployment
             path.Path = appDescriptor.IngressPath;
             path.Backend.Service.Name = $"svc-{appDescriptor.AppLongName}";
 
-            var ingressYaml = Yaml.SaveToString(ingress);
+            var ingressYaml = KubernetesYaml.Serialize(ingress);
 
             var ingressYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "ingress.yaml");
 #nullable enable
@@ -513,12 +513,12 @@ namespace Anabasis.Deployment
         private async Task GenerateKubernetesYamlNamespace(AppDescriptor appDescriptor)
         {
 #nullable disable
-            var @namespace = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "namespace.yaml")).First() as k8s.Models.V1Namespace;
+            var @namespace = (await KubernetesYaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "namespace.yaml")).First() as k8s.Models.V1Namespace;
 
             @namespace.Metadata.Name = appDescriptor.AppGroup;
             @namespace.Metadata.Labels["group"] = appDescriptor.AppGroup;
 
-            var namespaceYaml = Yaml.SaveToString(@namespace);
+            var namespaceYaml = KubernetesYaml.Serialize(@namespace);
 
             var namespaceYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "namespace.yaml");
 #nullable enable
@@ -530,7 +530,7 @@ namespace Anabasis.Deployment
         private async Task GenerateKubernetesYamlDeployment(AppDescriptor appDescriptor)
         {
 #nullable disable
-            var deployment = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "deployment.yaml")).First() as k8s.Models.V1Deployment;
+            var deployment = (await KubernetesYaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "deployment.yaml")).First() as k8s.Models.V1Deployment;
 
             deployment.Metadata.NamespaceProperty = appDescriptor.AppGroup;
             deployment.Metadata.Name = appDescriptor.AppLongName;
@@ -552,7 +552,7 @@ namespace Anabasis.Deployment
             container.Name = appDescriptor.AppLongName;
             container.Image = GetDockerImageNameWithDockerRegistry(appDescriptor);
 
-            var deploymentYaml = Yaml.SaveToString(deployment);
+            var deploymentYaml = KubernetesYaml.Serialize(deployment);
             var deploymentYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "deployment.yaml");
 
 #nullable enable
@@ -564,7 +564,7 @@ namespace Anabasis.Deployment
         private async Task GenerateKubernetesYamlService(AppDescriptor appDescriptor)
         {
 #nullable disable
-            var service = (await Yaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "service.yaml")).First() as k8s.Models.V1Service;
+            var service = (await KubernetesYaml.LoadAllFromFileAsync(BuildProjectKustomizeTemplateDirectory / "service.yaml")).First() as k8s.Models.V1Service;
 
             service.Metadata.NamespaceProperty = appDescriptor.AppGroup;
             service.Metadata.Name = $"svc-{appDescriptor.AppLongName}";
@@ -575,7 +575,7 @@ namespace Anabasis.Deployment
             service.Spec.Selector["release"] = appDescriptor.AppRelease;
             service.Spec.Selector["app"] = appDescriptor.AppLongName;
 
-            var serviceYaml = Yaml.SaveToString(service);
+            var serviceYaml = KubernetesYaml.Serialize(service);
             var serviceYamlPath = Path.Combine(appDescriptor.AppSourceKustomizeBaseDirectory.FullName, "service.yaml");
 #nullable enable
 

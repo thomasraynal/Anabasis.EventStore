@@ -214,7 +214,7 @@ namespace Anabasis.EventStore.Tests
             Assert.AreEqual(2, _cacheOne.someDataAggregates[0].AppliedEvents.Length);
 
             Assert.AreEqual(3, _cacheTwo.someDataAggregates.Count);
-            Assert.AreEqual(3, _cacheTwo.someDataAggregates[0].AppliedEvents.Length);
+            Assert.AreEqual(1, _cacheTwo.someDataAggregates[0].AppliedEvents.Length);
 
             await _cacheOne.catchupEventStoreCache.ConnectToEventStream();
 

@@ -60,7 +60,6 @@ namespace Anabasis.RabbitMQ
             bool isExchangeDurable = true,
             bool isExchangeAutoDelete = false,
             bool createExchangeIfNotExist = true,
-            bool createDeadLetterExchangeIfNotExist = true,
             bool isQueueDurable = false,
             bool isQueueAutoAck = false,
             bool isQueueAutoDelete = true,
@@ -79,7 +78,6 @@ namespace Anabasis.RabbitMQ
             var rabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange,
                 exchangeType,
                 createExchangeIfNotExist,
-                createDeadLetterExchangeIfNotExist,
                 isExchangeAutoDelete,
                 isExchangeDurable);
 
@@ -125,7 +123,6 @@ namespace Anabasis.RabbitMQ
 
             var rabbitMqExchangeConfiguration = new RabbitMqExchangeConfiguration(exchange,
                 exchangeType,
-                true,
                 true,
                 isExchangeAutoDelete,
                 isExchangeDurable);

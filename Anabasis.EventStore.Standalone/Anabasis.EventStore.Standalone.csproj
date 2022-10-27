@@ -15,7 +15,7 @@
   </PropertyGroup>
   
   <ItemGroup>
-    <PackageReference Include="Lamar" Version="6.0.0" />
+    <PackageReference Include="Lamar" Version="8.0.1" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
