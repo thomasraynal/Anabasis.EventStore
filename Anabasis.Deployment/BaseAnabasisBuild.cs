@@ -21,7 +21,7 @@ namespace Anabasis.Deployment
     {
 
         private const string Configuration = "Release";
-        private const string RuntimeDockerImage = "mcr.microsoft.com/dotnet/aspnet:5.0";
+        private const string RuntimeDockerImage = "mcr.microsoft.com/dotnet/aspnet:6.0";
         private const string KustomizeAnabasisEnvironmentStringOnTemplate = "{{ANABASIS_ENVIRONMENT}}";
 
         public abstract bool IsDeployOnKubernetes { get; }
