@@ -236,7 +236,7 @@ namespace Anabasis.RabbitMQ
             return new RabbitMqQueueMessage(message.MessageId, RabbitMqConnection, type, message, redelivered, deliveryTag, isAutoAck);
         }
 
-        private void CreateExchangeIfNotExist(string exchange, string exchangeType = "topic", bool durable = true, bool autodelete = true)
+        private void CreateExchangeIfNotExist(string exchange, string exchangeType = "topic", bool durable = true, bool autodelete = false)
         {
             if (_ensureExchangeCreated.Contains(exchange)) return;
 
@@ -250,13 +250,6 @@ namespace Anabasis.RabbitMQ
                         {"x-delayed-type",exchangeType}
                     });
 
-                    //if (createDeadLetterExchangeIfNotExist)
-                    //{
-                    //    var deadletterExchangeForThisSubscription = $"{exchange}-deadletters";
-
-                    //    channel.ExchangeDeclare(deadletterExchangeForThisSubscription, "fanout", durable: durable, autoDelete: autodelete);
-
-                    //}
 
                 }
                 //we allow failures here, to handle possible differences in exchange configuration
