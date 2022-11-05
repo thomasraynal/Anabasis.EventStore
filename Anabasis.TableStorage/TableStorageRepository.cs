@@ -113,5 +113,10 @@ namespace Anabasis.TableStorage
 
             return azureResponse.Value;
         }
+
+        public async Task Truncate()
+        {
+          await _tableClient.DeleteAsync();
+        }
     }
 }

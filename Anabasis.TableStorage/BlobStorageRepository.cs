@@ -13,18 +13,16 @@ namespace Anabasis.TableStorage
         private readonly string _tableStorageConnectionString;
         private readonly HttpClient _httpClient;
 
-        public BlobStorageRepository(string connectionString, HttpClient httpClient)
+        public BlobStorageRepository(string connectionString, HttpClient httpClient = null)
         {
             _blobContainerClientCache = new ConcurrentDictionary<string, BlobContainerClient>();
             _tableStorageConnectionString = connectionString;
-            _httpClient = httpClient;
+            _httpClient = httpClient ?? new HttpClient();
         }
 
-        private Uri GetBlobUri(string blobContainerPath, string blobContainerName)
+        private Uri GetBlobUri(BlobContainerClient blobContainerClient, string blobContainerName)
         {
-            var blobContainerClient = GetBlobContainerClient(blobContainerName);
-
-            return new Uri(Path.Combine(blobContainerClient.Uri.AbsolutePath, blobContainerPath));
+            return new Uri(Path.Combine(blobContainerClient.Uri.AbsoluteUri, blobContainerName));
         }
 
         private BlobContainerClient GetBlobContainerClient(string blobContainerName)
@@ -39,7 +37,7 @@ namespace Anabasis.TableStorage
         {
 
             var blobContainerClient = GetBlobContainerClient(blobContainerName);
-            var uri = GetBlobUri(blobContainerClient.Uri.AbsolutePath, blobContainerPath);
+            var uri = GetBlobUri(blobContainerClient, blobContainerPath);
 
             var httpResponseMessage = await _httpClient.GetAsync(uri);
 
@@ -57,7 +55,7 @@ namespace Anabasis.TableStorage
         public async Task<string> ReadFile(string blobContainerPath, string blobContainerName)
         {
             var blobContainerClient = GetBlobContainerClient(blobContainerName);
-            var uri = GetBlobUri(blobContainerClient.Uri.AbsolutePath, blobContainerPath);
+            var uri = GetBlobUri(blobContainerClient, blobContainerPath);
 
             return await _httpClient.GetStringAsync(uri);
 
@@ -86,9 +84,19 @@ namespace Anabasis.TableStorage
 
             var response = await blobClient.UploadAsync(memoryStream, overwrite: true);
 
-            var uri = GetBlobUri(blobContainerClient.Uri.AbsolutePath, blobContainerPath);
+            var uri = GetBlobUri(blobContainerClient, blobContainerPath);
 
             return uri;
         }
+
+        public async Task DeleteFile(string blobContainerPath, string blobContainerName)
+        {
+            var blobContainerClient = GetBlobContainerClient(blobContainerName);
+
+            await blobContainerClient.CreateIfNotExistsAsync();
+
+            await blobContainerClient.DeleteBlobIfExistsAsync(blobContainerPath);
+        }
+
     }
 }

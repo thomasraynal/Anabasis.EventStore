@@ -214,9 +214,9 @@ namespace Anabasis.EventHubs
             await _eventHubProducerClient.SendAsync(eventDataBatch, cancellationToken);
         }
 
-        public async Task UnSubscribeToEventHub(Guid subscriptionId)
+        public async Task UnSubscribeFromEventHub(Guid subscriptionId)
         {
-            _eventHubProcessorClient.UnSubscribeToEventHub(subscriptionId);
+            _eventHubProcessorClient.UnSubscribeFromEventHub(subscriptionId);
 
             if (_eventHubProcessorClient.SubscribersCount == 0)
             {
@@ -249,7 +249,7 @@ namespace Anabasis.EventHubs
 
                 return Disposable.Create(async () =>
                 {
-                    await UnSubscribeToEventHub(subscriptionId);
+                    await UnSubscribeFromEventHub(subscriptionId);
                 });
 
             });

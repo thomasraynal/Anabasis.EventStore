@@ -12,7 +12,7 @@ namespace Anabasis.EventHubs
         Task<(bool isConnected, Exception? exception)> CheckConnectivity(CancellationToken cancellationToken = default);
         Task Emit(IEvent @event, SendEventOptions? sendEventOptions = null, CancellationToken cancellationToken = default);
         Task Emit(IEnumerable<IEvent> eventBatch, CreateBatchOptions? createBatchOptions = null, CancellationToken cancellationToken = default);
-        Task UnSubscribeToEventHub(Guid subscriptionId);
+        Task UnSubscribeFromEventHub(Guid subscriptionId);
         Task<Guid> SubscribeToEventHub(Func<IMessage[],CancellationToken, Task> onEventsReceived);
         IObservable<(IMessage[] messages, CancellationToken cancellationToken)> SubscribeToEventHub();
     }

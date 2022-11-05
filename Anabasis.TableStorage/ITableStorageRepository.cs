@@ -18,5 +18,6 @@ namespace Anabasis.TableStorage
         IAsyncEnumerable<TEntity> GetMany<TEntity>(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
         IAsyncEnumerable<TEntity> GetMany<TEntity>(string partitionKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
         Task<TEntity> GetOne<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
+        Task Truncate();
     }
 }

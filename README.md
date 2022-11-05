@@ -57,3 +57,8 @@
 **Anabasis.Insights**
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.Insights.svg)](https://www.nuget.org/packages/Anabasis.Insights)
+
+**Anabasis.TableStorage**
+
+[![NuGet](https://img.shields.io/nuget/v/Anabasis.TableStorage.svg)](https://www.nuget.org/packages/Anabasis.TableStorage)
+

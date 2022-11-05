@@ -87,7 +87,7 @@ namespace Anabasis.EventHubs
 
         internal int SubscribersCount => _eventHubSubscribers.Count;
 
-        internal void UnSubscribeToEventHub(Guid subscriptionId)
+        internal void UnSubscribeFromEventHub(Guid subscriptionId)
         {
             if (!_eventHubSubscribers.ContainsKey(subscriptionId))
             {
