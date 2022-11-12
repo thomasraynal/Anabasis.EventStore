@@ -64,11 +64,11 @@ namespace Anabasis.Common
 
             var tasks = actions.Select(action => new Task(action, cancellationToken.Value));
 
-            return Execute(tasks, batchSize);
+            return ExecuteAndWaitForCompletion(tasks, batchSize);
 
         }
 
-        public static async Task Execute(this IEnumerable<Task> tasks, 
+        public static async Task ExecuteAndWaitForCompletion(this IEnumerable<Task> tasks, 
             int batchSize = defaultBatchSize,
             TimeSpan? timeout = null,
             CancellationToken? cancellationToken = null)

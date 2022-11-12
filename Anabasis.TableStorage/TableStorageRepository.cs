@@ -118,5 +118,13 @@ namespace Anabasis.TableStorage
         {
           await _tableClient.DeleteAsync();
         }
+
+        public async Task<bool> DoesEntityExist<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken) where TEntity : class, ITableEntity, new()
+        {
+            var user = await GetOne<TEntity>(partitionKey, rowKey, cancellationToken);
+
+            return user != null;
+
+        }
     }
 }

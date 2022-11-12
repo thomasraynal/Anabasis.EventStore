@@ -36,8 +36,8 @@ namespace Anabasis.Api
 {
     public static class WebAppBuilder
     {
-  
-        public static IWebHostBuilder Create<THost>(
+
+        public static IHostBuilder Create<THost>(
             int apiPort = 80,
             int memoryCheckTresholdInMB = 200,
             bool useCors = false,
@@ -53,7 +53,7 @@ namespace Anabasis.Api
             Action<LoggerConfiguration>? configureLogging = null,
             Action<TracerProviderBuilder>? configureTracerProviderBuilder = null)
         {
-      
+
             var anabasisConfiguration = Configuration.GetConfigurations(configureConfigurationBuilder);
 
             var honeycombConfiguration = anabasisConfiguration.ConfigurationRoot.GetSection("Honeycomb").Get<HoneycombOptions>();
@@ -93,50 +93,51 @@ namespace Anabasis.Api
             if (null == configureKestrel)
                 configureKestrel = kestrelServerOptions => { kestrelServerOptions.AllowSynchronousIO = true; };
 
-            var webHostBuilder = WebHost.CreateDefaultBuilder()
-                                        .UseKestrel(configureKestrel);
-         
-            webHostBuilder = webHostBuilder
-                .UseUrls("http://+:" + anabasisAppContext.ApiPort)
-                .UseEnvironment($"{anabasisAppContext.Environment}")
-                .UseSetting(WebHostDefaults.ApplicationKey, anabasisAppContext.ApplicationName)
-                .UseSetting(WebHostDefaults.StartupAssemblyKey, Assembly.GetExecutingAssembly().GetName().Name)
-                .UseSerilog()
-                .ConfigureServices((context, services) =>
-                {
-                    
-                    ConfigureServices<THost>(services, 
-                        useCors, 
-                        anabasisAppContext, 
-                        honeycombConfiguration, 
-                        serializer,
-                        configureMvcBuilder,
-                        configureTracerProviderBuilder,
-                        configureMvc,
-                        configureJson);
 
-                    configureServiceCollection?.Invoke(anabasisAppContext, services, anabasisConfiguration.ConfigurationRoot);
+            var hostBuilder = Host.CreateDefaultBuilder().UseSerilog().ConfigureWebHostDefaults(webHostBuilder =>
+            {
+                webHostBuilder = webHostBuilder
+                    .UseKestrel(configureKestrel)
+                    .UseUrls("http://+:" + anabasisAppContext.ApiPort)
+                    .UseEnvironment($"{anabasisAppContext.Environment}")
+                    .UseSetting(WebHostDefaults.ApplicationKey, anabasisAppContext.ApplicationName)
+                    .UseSetting(WebHostDefaults.StartupAssemblyKey, Assembly.GetExecutingAssembly().GetName().Name)
 
-                })
-                .Configure((context, appBuilder) =>
-                {
+                    .ConfigureServices((context, services) =>
+                    {
+                        ConfigureServices<THost>(services,
+                            useCors,
+                            anabasisAppContext,
+                            honeycombConfiguration,
+                            serializer,
+                            configureMvcBuilder,
+                            configureTracerProviderBuilder,
+                            configureMvc,
+                            configureJson);
 
-                    configureMiddlewares?.Invoke(anabasisAppContext, appBuilder);
+                        configureServiceCollection?.Invoke(anabasisAppContext, services, anabasisConfiguration.ConfigurationRoot);
 
-                    ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useCors);
+                    })
+                    .Configure((context, appBuilder) =>
+                    {
 
-                    configureApplicationBuilder?.Invoke(anabasisAppContext, appBuilder);
+                        configureMiddlewares?.Invoke(anabasisAppContext, appBuilder);
 
-                });
+                        ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useCors);
 
-            return webHostBuilder;
+                        configureApplicationBuilder?.Invoke(anabasisAppContext, appBuilder);
+
+                    });
+            });
+
+            return hostBuilder;
         }
 
         private static void ConfigureServices<THost>(
             IServiceCollection services,
             bool useCors,
             AnabasisAppContext appContext,
-            HoneycombOptions? honeycombOptions =null,
+            HoneycombOptions? honeycombOptions = null,
             ISerializer? serializer = null,
             Action<MvcOptions>? configureMvcBuilder = null,
             Action<TracerProviderBuilder>? configureTracerProviderBuilder = null,
