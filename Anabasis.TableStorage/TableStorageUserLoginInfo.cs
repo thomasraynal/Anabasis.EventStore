@@ -1,7 +1,6 @@
 ﻿using Azure;
 using Azure.Data.Tables;
 using Microsoft.AspNetCore.Identity;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,15 +9,20 @@ using System.Threading.Tasks;
 
 namespace Anabasis.TableStorage
 {
-    public class TableStorageUser : IdentityUser<Guid>, ITableEntity
+    public class TableStorageUserLoginInfo : UserLoginInfo, ITableEntity
     {
-        [JsonIgnore]
+        public TableStorageUserLoginInfo() : base("default", "default", "default")
+        {
+
+        }
+
+        public TableStorageUserLoginInfo(string loginProvider, string providerKey, string displayName) : base(loginProvider, providerKey, displayName)
+        {
+        }
+
         public string PartitionKey { get; set; }
-        [JsonIgnore]
         public string RowKey { get; set; }
-        [JsonIgnore]
         public DateTimeOffset? Timestamp { get; set; }
-        [JsonIgnore]
         public ETag ETag { get; set; } = ETag.All;
     }
 }

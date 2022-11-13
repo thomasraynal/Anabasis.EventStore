@@ -66,6 +66,11 @@ namespace Anabasis.TableStorage
             await DeleteMany(new TEntity[] { entity }, cancellationToken: cancellationToken);
         }
 
+        public async Task DeleteOne<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken = default) where TEntity : ITableEntity
+        {
+            await _tableClient.DeleteEntityAsync(partitionKey, rowKey, cancellationToken: cancellationToken);
+        }
+
         public async IAsyncEnumerable<TEntity> GetAll<TEntity>([EnumeratorCancellation] CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new()
         {
 
@@ -103,6 +108,11 @@ namespace Anabasis.TableStorage
         public IAsyncEnumerable<TEntity> GetMany<TEntity>(string partitionKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new()
         {
             return GetMany<TEntity>((property) => property.PartitionKey == partitionKey, cancellationToken);
+        }
+
+        public async Task<TEntity> GetOne<TEntity>(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new()
+        {
+            return await GetMany(filter, cancellationToken: cancellationToken).FirstOrDefaultAsync(cancellationToken);
         }
 
         public async Task<TEntity> GetOne<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new()

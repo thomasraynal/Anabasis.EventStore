@@ -14,10 +14,12 @@ namespace Anabasis.TableStorage
         Task CreateOrUpdateOne<TEntity>(TEntity entity, TableTransactionActionType tableTransactionActionType = TableTransactionActionType.UpsertReplace, CancellationToken cancellationToken = default) where TEntity : ITableEntity;
         Task DeleteMany<TEntity>(TEntity[] entities, int batchSize = 100, CancellationToken cancellationToken = default) where TEntity : ITableEntity;
         Task DeleteOne<TEntity>(TEntity entity, CancellationToken cancellationToken = default) where TEntity : ITableEntity;
+        Task DeleteOne<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken = default) where TEntity : ITableEntity;
         IAsyncEnumerable<TEntity> GetAll<TEntity>(CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
         IAsyncEnumerable<TEntity> GetMany<TEntity>(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
         IAsyncEnumerable<TEntity> GetMany<TEntity>(string partitionKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
         Task<TEntity> GetOne<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
+        Task<TEntity> GetOne<TEntity>(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
         Task<bool> DoesEntityExist<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new();
         Task Truncate();
     }

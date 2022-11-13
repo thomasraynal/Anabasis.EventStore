@@ -21,6 +21,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using OpenTelemetry.Trace;
 using Serilog;
@@ -37,10 +38,11 @@ namespace Anabasis.Api
     public static class WebAppBuilder
     {
 
-        public static IHostBuilder Create<THost>(
+        public static IWebHostBuilder Create<THost>(
             int apiPort = 80,
             int memoryCheckTresholdInMB = 200,
             bool useCors = false,
+            bool useAuthorization = false,
             ISerializer? serializer = null,
             Action<MvcOptions>? configureMvcBuilder = null,
             Action<IMvcBuilder>? configureMvc = null,
@@ -92,14 +94,15 @@ namespace Anabasis.Api
 
             if (null == configureKestrel)
                 configureKestrel = kestrelServerOptions => { kestrelServerOptions.AllowSynchronousIO = true; };
+            
+            var webHostBuilder = WebHost.CreateDefaultBuilder()
+                              .UseKestrel(configureKestrel);
 
-
-            var hostBuilder = Host.CreateDefaultBuilder().UseSerilog().ConfigureWebHostDefaults(webHostBuilder =>
-            {
-                webHostBuilder = webHostBuilder
+            webHostBuilder = webHostBuilder
                     .UseKestrel(configureKestrel)
                     .UseUrls("http://+:" + anabasisAppContext.ApiPort)
                     .UseEnvironment($"{anabasisAppContext.Environment}")
+                    .UseSerilog()
                     .UseSetting(WebHostDefaults.ApplicationKey, anabasisAppContext.ApplicationName)
                     .UseSetting(WebHostDefaults.StartupAssemblyKey, Assembly.GetExecutingAssembly().GetName().Name)
 
@@ -123,14 +126,14 @@ namespace Anabasis.Api
 
                         configureMiddlewares?.Invoke(anabasisAppContext, appBuilder);
 
-                        ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useCors);
+                        ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useAuthorization, useCors);
 
                         configureApplicationBuilder?.Invoke(anabasisAppContext, appBuilder);
 
                     });
-            });
+         
 
-            return hostBuilder;
+            return webHostBuilder;
         }
 
         private static void ConfigureServices<THost>(
@@ -280,6 +283,7 @@ namespace Anabasis.Api
             IApplicationBuilder appBuilder,
             IWebHostEnvironment webHostEnvironment,
             AnabasisAppContext appContext,
+            bool useAuthorization,
             bool useCors)
         {
             appBuilder.WithClientIPAddress();
@@ -293,6 +297,11 @@ namespace Anabasis.Api
             });
 
             appBuilder.UseRouting();
+
+            if (useAuthorization)
+            {
+                appBuilder.UseAuthorization();
+            }
 
             appBuilder.UseSerilogRequestLogging();
 

@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.TableStorage
 {
-    public abstract class TableStorageRole : IdentityRole, ITableEntity
+    public class TableStorageRole : IdentityRole, ITableEntity
     {
         [JsonIgnore]
         public string PartitionKey { get; set; }
@@ -19,6 +19,6 @@ namespace Anabasis.TableStorage
         [JsonIgnore]
         public DateTimeOffset? Timestamp { get; set; }
         [JsonIgnore]
-        public ETag ETag { get; set; }
+        public ETag ETag { get; set; } = ETag.All;
     }
 }
