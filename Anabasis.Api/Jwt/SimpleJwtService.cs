@@ -15,17 +15,16 @@ namespace Anabasis.Api.Jwt
         public (string token, DateTime expirationUtcDate) BuildToken(ISimpleJwtUser user)
         {
             var claims = new[] {
-                new Claim("jti", $"{user.UserId}"),
+                new Claim("jti", $"{user.Id}"),
                 new Claim(ClaimTypes.Name, user.UserMail),
                 new Claim(ClaimTypes.Role, user.UserRole),
-                new Claim(ClaimTypes.NameIdentifier, $"{user.UserId}")
+                new Claim(ClaimTypes.NameIdentifier, $"{user.Id}")
         };
 
             var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(JwtKey));
             var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256Signature);
             var expirationUtcDate = DateTime.UtcNow.AddMinutes(EXPIRY_DURATION_MINUTES);
-            var tokenDescriptor = new JwtSecurityToken(claims: claims,
-                expires: expirationUtcDate, signingCredentials: credentials);
+            var tokenDescriptor = new JwtSecurityToken(claims: claims, expires: expirationUtcDate, signingCredentials: credentials);
 
             var token = new JwtSecurityTokenHandler().WriteToken(tokenDescriptor);
 

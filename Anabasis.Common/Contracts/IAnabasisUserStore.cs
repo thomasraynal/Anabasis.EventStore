@@ -7,6 +7,7 @@ namespace Anabasis.Common.Contracts
 {
     public interface IAnabasisUserStore<TUser> : IUserStore<TUser>,
                                  IUserClaimStore<TUser>,
+                                 IUserEmailStore<TUser>,
                                  IUserLoginStore<TUser>,
                                  IUserRoleStore<TUser>,
                                  IUserPasswordStore<TUser>,

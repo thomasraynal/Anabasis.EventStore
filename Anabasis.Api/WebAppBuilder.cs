@@ -300,6 +300,7 @@ namespace Anabasis.Api
 
             if (useAuthorization)
             {
+                appBuilder.UseAuthentication();
                 appBuilder.UseAuthorization();
             }
 

@@ -23,6 +23,10 @@ namespace Anabasis.TableStorage
         }
     }
 
+    public class TableStorageUserRepositoryOptions : TableStorageRepositoryOptions
+    {
+    }
+
     public class TableStorageUserStore<TUser, TUserLoginInfo, TRole, TClaim> : IAnabasisUserStore<TUser>
         where TUser : TableStorageUser, new()
         where TRole : TableStorageRole, new()
@@ -39,10 +43,10 @@ namespace Anabasis.TableStorage
         public const string UserRolesTable = "anabasiuserroles";
         public const string UserLoginsTable = "anabasiuserlogins";
 
-        public TableStorageUserStore(TableStorageRepositoryOptions tableStorageRepositoryOptions)
+        public TableStorageUserStore(TableStorageUserRepositoryOptions tableStorageUserRepositoryOptions)
         {
-            var storageUri = tableStorageRepositoryOptions.StorageUri;
-            var tableSharedKeyCredential = tableStorageRepositoryOptions.TableSharedKeyCredential;
+            var storageUri = tableStorageUserRepositoryOptions.StorageUri;
+            var tableSharedKeyCredential = tableStorageUserRepositoryOptions.TableSharedKeyCredential;
 
             _usersTableStorageRepository = new TableStorageRepository(storageUri, tableSharedKeyCredential, UsersTable);
             _userClaimsTableStorageRepository = new TableStorageRepository(storageUri, tableSharedKeyCredential, UserClaimsTable);
@@ -270,12 +274,18 @@ namespace Anabasis.TableStorage
 
         public Task SetSecurityStampAsync(TUser user, string stamp, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            user.SecurityStamp = stamp;
+
+            return Task.CompletedTask;
         }
 
         public Task<string> GetSecurityStampAsync(TUser user, CancellationToken cancellationToken = default)
         {
-            throw new NotImplementedException();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return Task.FromResult(user.SecurityStamp);
         }
 
         public Task<string> GetUserIdAsync(TUser user, CancellationToken cancellationToken = default)
@@ -346,10 +356,11 @@ namespace Anabasis.TableStorage
 
         public Task<TUser> FindByIdAsync(string userId, CancellationToken cancellationToken = default)
         {
+
+            cancellationToken.ThrowIfCancellationRequested();
+
             try
             {
-                cancellationToken.ThrowIfCancellationRequested();
-
                 return _usersTableStorageRepository.GetOne<TUser>(userId, userId, cancellationToken: cancellationToken);
             }
             catch (Exception ex)
@@ -375,5 +386,48 @@ namespace Anabasis.TableStorage
         {
         }
 
+        public Task SetEmailAsync(TUser user, string email, CancellationToken cancellationToken)
+        {
+            user.Email = email;
+
+            return Task.CompletedTask; 
+        }
+
+        public Task<string> GetEmailAsync(TUser user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.Email);
+        }
+
+        public Task<bool> GetEmailConfirmedAsync(TUser user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.EmailConfirmed);
+        }
+
+        public Task SetEmailConfirmedAsync(TUser user, bool confirmed, CancellationToken cancellationToken)
+        {
+            user.EmailConfirmed = confirmed;
+
+            return Task.CompletedTask;
+        }
+
+        public async Task<TUser> FindByEmailAsync(string normalizedEmail, CancellationToken cancellationToken)
+        {
+            cancellationToken.ThrowIfCancellationRequested();
+
+            return await _usersTableStorageRepository.GetMany<TUser>((user) => user.NormalizedEmail == normalizedEmail, cancellationToken: cancellationToken)
+                                                     .FirstOrDefaultAsync(cancellationToken: cancellationToken);
+        }
+
+        public Task<string> GetNormalizedEmailAsync(TUser user, CancellationToken cancellationToken)
+        {
+            return Task.FromResult(user.NormalizedEmail);
+        }
+
+        public Task SetNormalizedEmailAsync(TUser user, string normalizedEmail, CancellationToken cancellationToken)
+        {
+            user.NormalizedEmail = normalizedEmail;
+
+            return Task.CompletedTask;
+        }
     }
 }

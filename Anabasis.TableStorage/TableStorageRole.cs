@@ -12,6 +12,9 @@ namespace Anabasis.TableStorage
 {
     public class TableStorageRole : IdentityRole, ITableEntity
     {
+        public string UserId => PartitionKey;
+        public string Role => RowKey;
+
         [JsonIgnore]
         public string PartitionKey { get; set; }
         [JsonIgnore]

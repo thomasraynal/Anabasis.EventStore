@@ -26,7 +26,7 @@ namespace Anabasis.TableStorage.Tests
         {
             _userId = Guid.NewGuid();
 
-            var tableStorageRepositoryOptions = new TableStorageRepositoryOptions()
+            var tableStorageRepositoryOptions = new TableStorageUserRepositoryOptions()
             {
                 StorageUri = new Uri("https://anabasisteststorage.table.core.windows.net/"),
                 TableSharedKeyCredential = new TableSharedKeyCredential("", "")

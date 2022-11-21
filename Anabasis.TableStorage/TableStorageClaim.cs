@@ -13,8 +13,9 @@ namespace Anabasis.TableStorage
 {
     public class TableStorageClaim : IdentityRoleClaim<string>, ITableEntity
     {
-        public string UserId { get; set; }
-        public string Role { get; set; }
+        public string UserId => PartitionKey;
+        public string Role => RowKey;
+
         [JsonIgnore]
         public string PartitionKey { get; set; }
         [JsonIgnore]
