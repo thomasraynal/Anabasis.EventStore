@@ -49,7 +49,7 @@ namespace Anabasis.EventStore.Tests
 
             });
 
-            await tasks.Execute(batchSize);
+            await tasks.ExecuteAndWaitForCompletion(batchSize);
 
         }
 
@@ -63,7 +63,7 @@ namespace Anabasis.EventStore.Tests
             var task1 = new Task(() => Thread.Sleep(500));
             var task2 = new Task(() => Thread.Sleep(500));
 
-            await new[] { task1, task2 }.Execute(1, TimeSpan.FromSeconds(5));
+            await new[] { task1, task2 }.ExecuteAndWaitForCompletion(1, TimeSpan.FromSeconds(5));
 
             Assert.True(task1.Status == TaskStatus.RanToCompletion);
             Assert.True(task2.Status == TaskStatus.RanToCompletion);
@@ -79,7 +79,7 @@ namespace Anabasis.EventStore.Tests
 
             Assert.ThrowsAsync<OperationCanceledException>(async () =>
             {
-                await new[] { task1, task2 }.Execute(1, TimeSpan.FromMilliseconds(500));
+                await new[] { task1, task2 }.ExecuteAndWaitForCompletion(1, TimeSpan.FromMilliseconds(500));
             });
 
             Assert.True(task1.Status == TaskStatus.RanToCompletion);

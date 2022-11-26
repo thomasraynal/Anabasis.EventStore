@@ -286,7 +286,6 @@ namespace Anabasis.Api
             bool useAuthorization,
             bool useCors)
         {
-           // appBuilder.WithHttpErrorFormatting();
             appBuilder.WithClientIPAddress();
             appBuilder.WithRequestContextHeaders();
 

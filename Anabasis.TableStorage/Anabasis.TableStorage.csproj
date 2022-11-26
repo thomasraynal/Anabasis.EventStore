@@ -2,6 +2,17 @@
 
   <PropertyGroup>
     <TargetFramework>net6.0</TargetFramework>
+	  <OutputType>Library</OutputType>
+	  <LangVersion>Latest</LangVersion>
+	  <Platforms>AnyCPU;x64</Platforms>
+	  <PackageProjectUrl>https://github.com/thomasraynal/Anabasis.EventStore</PackageProjectUrl>
+	  <Description>Bootstrap actor based applications with EventStore and DynamicData</Description>
+	  <PackageTags>DynamicData;EventStore;EventSourcing;CQRS;Actors</PackageTags>
+	  <Authors>Thomas Raynal</Authors>
+	  <Company />
+	  <Product />
+	  <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+	  <Nullable>enable</Nullable>
   </PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Azure.Data.Tables" Version="12.5.0" />
