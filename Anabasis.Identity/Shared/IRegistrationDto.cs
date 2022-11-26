@@ -8,8 +8,8 @@ namespace Anabasis.Identity.Shared
 {
     public interface IRegistrationDto
     {
-        string UserName { get;  }
+        string Username { get;  }
         string Password { get; }
-        string UserMail { get; }
+        string UserEmail { get; }
     }
 }

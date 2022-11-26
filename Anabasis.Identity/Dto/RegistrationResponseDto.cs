@@ -8,15 +8,13 @@ namespace Anabasis.Identity.Dto
 {
     public class RegistrationResponseDto
     {
-        public RegistrationResponseDto(string username, string email, string emailConfirmationToken)
+        public RegistrationResponseDto(string username, string email)
         {
             Username = username;
             Email = email;
-            EmailConfirmationToken = emailConfirmationToken;
         }
 
         public string Username { get; set; }
         public string Email { get; set; }
-        public string EmailConfirmationToken { get; set; }
     }
 }

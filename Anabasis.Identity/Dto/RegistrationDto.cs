@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Anabasis.Identity.Shared;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -7,17 +8,17 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Identity.Dto
 {
-    public class RegistrationDto
+    public class RegistrationDto: IRegistrationDto
     {
 
         [Required(ErrorMessage = "Username is required")]
-        public string? UserName { get; init; }
+        public string? Username { get; init; }
 
         [Required(ErrorMessage = "Password is required")]
         public string? Password { get; init; }
 
         [Required(ErrorMessage = "Mail is required")]
-        public string? UserMail { get; init; }
+        public string? UserEmail { get; init; }
 
     }
 }

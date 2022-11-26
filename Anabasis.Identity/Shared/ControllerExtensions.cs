@@ -10,7 +10,7 @@ namespace Anabasis.Identity
 {
     public static class ControllerExtensions
     {
-        public static Task<TUser> GetCurrentUser<TUser>(this Controller controller, UserManager<TUser> userManager)
+        public static Task<TUser> GetCurrentRequestUser<TUser>(this Controller controller, UserManager<TUser> userManager)
             where TUser : class
         {
             return userManager.GetUserAsync(controller.HttpContext.User);

@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Identity.Dto
 {
-    public class UserLoginResponse
+    public class BearerTokenUserLoginResponse
     {
         public string? BearerToken { get; init; }
         public DateTime ExpirationUtcDate { get; init; }
