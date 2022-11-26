@@ -12,7 +12,7 @@ using System;
 namespace Anabasis.Api
 {
     [ApiController]
-    public abstract class BaseController : ControllerBase
+    public abstract class BaseAnabasisController : ControllerBase
     {
     }
 }

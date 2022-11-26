@@ -6,6 +6,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Anabasis.Common;
+using Anabasis.Api.Middleware;
 
 namespace Anabasis.Api.Filters
 {
@@ -15,25 +17,30 @@ namespace Anabasis.Api.Filters
         {
             if (!context.ModelState.IsValid)
             {
-                var errors =
-                    context.ModelState.Select(
-                        modelState => new UserErrorMessage(
-                            HttpStatusCode.BadRequest,
-                             modelState.Value.Errors.Select(e => e.ErrorMessage).Aggregate((s1, s2) => $"{s1}{Environment.NewLine}{s2}"),
-                            new Dictionary<string, object>()
-                            {
-                                { modelState.Key, modelState.Value?.RawValue?.ToString() ?? ""}
-                            })
-                            ).ToArray();
+                var errors = context.ModelState.Select(modelState =>
+                    {
+                        var errorMessage = string.Join(Environment.NewLine, modelState.Value.Errors.Select(modelError => modelError.ErrorMessage));
+
+                        return new UserErrorMessage(
+                                 HttpStatusCode.BadRequest,
+                                 errorMessage,
+                                 new Dictionary<string, object>()
+                                 {
+                                    { modelState.Key, modelState.Value?.RawValue?.ToString() ?? ""}
+                                 });
+
+                    }).ToArray();
 
                 var errorResponseMessage = new ErrorResponseMessage(errors);
 
                 context.Result = new ContentResult
                 {
                     StatusCode = (int)HttpStatusCode.BadRequest,
-                    Content = JsonConvert.SerializeObject(errorResponseMessage),
-                    ContentType = "application/json",
+                    Content = errorResponseMessage.ToJson(),
+                    ContentType = "application/json; charset=utf-8"
                 };
+
+              //  context.HttpContext.Items[HttpErrorFormattingMiddleware.IsFormatted] = true;
 
                 return;
             }

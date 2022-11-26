@@ -1,5 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc.Controllers;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.AspNetCore.Mvc.Filters;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -7,6 +9,8 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
+using Anabasis.Common;
+using Anabasis.Api.Middleware;
 
 namespace Anabasis.Api.Filters
 {
@@ -38,8 +42,15 @@ namespace Anabasis.Api.Filters
                                     { "parameterName", parameter}
                                 },
                                null)).ToArray());
+              
+                context.Result = new ContentResult
+                {
+                    StatusCode = (int)HttpStatusCode.BadRequest,
+                    Content = errorResponseMessage.ToJson(),
+                    ContentType = "application/json; charset=utf-8"
+                };
 
-                context.Result = new ErrorResponseMessageActionResult(errorResponseMessage, HttpStatusCode.BadRequest);
+             //   context.HttpContext.Items[HttpErrorFormattingMiddleware.IsFormatted] = true;
             }
         }
 

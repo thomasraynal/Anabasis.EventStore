@@ -16,8 +16,8 @@ namespace Anabasis.Api.Jwt
         {
             var claims = new[] {
                 new Claim("jti", $"{user.Id}"),
-                new Claim(ClaimTypes.Name, user.UserMail),
-                new Claim(ClaimTypes.Role, user.UserRole),
+                //new Claim(ClaimTypes.Name, user.Email),
+                //new Claim(ClaimTypes.Role, user.UserRole),
                 new Claim(ClaimTypes.NameIdentifier, $"{user.Id}")
         };
 

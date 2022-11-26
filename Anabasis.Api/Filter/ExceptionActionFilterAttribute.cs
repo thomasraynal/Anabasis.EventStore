@@ -77,7 +77,7 @@ namespace Anabasis.Api.Filters
                     null,
                     customMessage ?? exception.Message,
                     docUrl: docUrl,
-                    stackTrace: exception.StackTrace?.ToString()
+                    stackTrace: (int)statusCode>= 500? exception.StackTrace?.ToString() : null
                     )};
 
             return new ErrorResponseMessageActionResult(new ErrorResponseMessage(userErrorMessages), statusCode);

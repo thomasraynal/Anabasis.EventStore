@@ -50,9 +50,11 @@ namespace Anabasis.Api.Middleware
             var requestId = GetRequestIdFromRequest(context.Request);
       
             await LogRequestAsync(requestId, context.Request);
-            await LogResponseAsync(requestId, context);
 
             await _next(context);
+
+            await LogResponseAsync(requestId, context);
+
         }
 
         private async Task LogRequestAsync(Guid requestId, HttpRequest request)

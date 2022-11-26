@@ -13,7 +13,7 @@ namespace Anabasis.Api
 
         public UserErrorMessage(
             HttpStatusCode? httpStatusCode,
-            string message,
+            object message,
             Dictionary<string, object>? properties = null,
             Uri? docUrl = null,
             string? stackTrace = null
@@ -33,7 +33,7 @@ namespace Anabasis.Api
         public HttpStatusCode? HttpStatusCode { get; set; }
 
         [Required]
-        public string? Message { get; set; }
+        public object? Message { get; set; }
 
         public Dictionary<string, object>? Properties { get; set; }
 
