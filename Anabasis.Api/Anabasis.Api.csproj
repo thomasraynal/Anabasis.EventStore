@@ -31,10 +31,5 @@
     <ProjectReference Include="..\Anabasis.Insights\Anabasis.Insights.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Content Update="config.group.json">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </Content>
-  </ItemGroup>
 
 </Project>
