@@ -62,3 +62,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.TableStorage.svg)](https://www.nuget.org/packages/Anabasis.TableStorage)
 
+**Anabasis.Identity**
+
+[![NuGet](https://img.shields.io/nuget/v/Anabasis.Identity.svg)](https://www.nuget.org/packages/Anabasis.Identity)
+
