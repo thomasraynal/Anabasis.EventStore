@@ -95,7 +95,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.QueueStorage", "An
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.TableStorage.Tests", "Anabasis.TableStorage.Tests\Anabasis.TableStorage.Tests.csproj", "{EF4463A0-0A88-43A1-9F72-7636DD0E7B8B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.Identity", "Anabasis.Identity\Anabasis.Identity.csproj", "{58C06355-5710-4FC5-BA88-6CA34BAACA1C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Identity", "Anabasis.Identity\Anabasis.Identity.csproj", "{58C06355-5710-4FC5-BA88-6CA34BAACA1C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.ProtoActor", "Anabasis.ProtoActor\Anabasis.ProtoActor.csproj", "{4F344C46-11EF-46BC-93E1-C6E35F283C74}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -415,6 +417,14 @@ Global
 		{58C06355-5710-4FC5-BA88-6CA34BAACA1C}.Release|Any CPU.Build.0 = Release|Any CPU
 		{58C06355-5710-4FC5-BA88-6CA34BAACA1C}.Release|x64.ActiveCfg = Release|Any CPU
 		{58C06355-5710-4FC5-BA88-6CA34BAACA1C}.Release|x64.Build.0 = Release|Any CPU
+		{4F344C46-11EF-46BC-93E1-C6E35F283C74}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4F344C46-11EF-46BC-93E1-C6E35F283C74}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4F344C46-11EF-46BC-93E1-C6E35F283C74}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{4F344C46-11EF-46BC-93E1-C6E35F283C74}.Debug|x64.Build.0 = Debug|Any CPU
+		{4F344C46-11EF-46BC-93E1-C6E35F283C74}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4F344C46-11EF-46BC-93E1-C6E35F283C74}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4F344C46-11EF-46BC-93E1-C6E35F283C74}.Release|x64.ActiveCfg = Release|Any CPU
+		{4F344C46-11EF-46BC-93E1-C6E35F283C74}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
