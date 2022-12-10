@@ -11,7 +11,7 @@ using System;
 namespace Anabasis.EventStore.Standalone.Embedded
 {
     public static class EventStoreEmbeddedStatelessActorBuilder<TActor, TRegistry>
-        where TActor : IActor
+        where TActor : IAnabasisActor
         where TRegistry : ServiceRegistry, new()
     {
 

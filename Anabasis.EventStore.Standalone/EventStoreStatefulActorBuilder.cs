@@ -26,7 +26,7 @@ namespace Anabasis.EventStore.Standalone
         public ISnapshotStrategy? SnapshotStrategy { get; private set; }
 
 
-        private readonly Dictionary<Type, Action<Container, IActor>> _busToRegisterTo;
+        private readonly Dictionary<Type, Action<Container, IAnabasisActor>> _busToRegisterTo;
 
         public EventStoreStatefulActorBuilder(IActorConfiguration actorConfiguration,
             IEventStoreAggregateRepository eventStoreRepository,
@@ -46,7 +46,7 @@ namespace Anabasis.EventStore.Standalone
             SnapshotStrategy = snapshotStrategy;
             SnapshotStore = snapshotStore;
 
-            _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
+            _busToRegisterTo = new Dictionary<Type, Action<Container, IAnabasisActor>>();
         }
 
         public TActor Build()
@@ -180,7 +180,7 @@ namespace Anabasis.EventStore.Standalone
             if (_busToRegisterTo.ContainsKey(busType))
                 throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");
 
-            var onRegistration = new Action<Container, IActor>((container, actor) =>
+            var onRegistration = new Action<Container, IAnabasisActor>((container, actor) =>
             {
                 var bus = container.GetInstance<TBus>();
 

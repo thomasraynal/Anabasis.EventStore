@@ -1,6 +1,6 @@
 ﻿namespace Anabasis.Common
 {
-    public interface IEventStoreActor : IActor
+    public interface IEventStoreActor : IAnabasisActor
     {
     }
 }

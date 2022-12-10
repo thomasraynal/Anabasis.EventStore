@@ -21,7 +21,7 @@ namespace Anabasis.EventStore.Samples
                 .Build();
         }
 
-        public static void Run(IActor statelessActor)
+        public static void Run(IAnabasisActor statelessActor)
         {
             var rand = new Random();
             var position = 0;
@@ -75,7 +75,7 @@ namespace Anabasis.EventStore.Samples
                 });
             }
 
-            Run(statefulActors.First() as IActor);
+            Run(statefulActors.First() as IAnabasisActor);
 
         }
     }

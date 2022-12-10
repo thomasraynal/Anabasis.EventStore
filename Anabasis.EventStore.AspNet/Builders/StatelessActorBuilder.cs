@@ -7,15 +7,15 @@ using System.Threading.Tasks;
 namespace Anabasis.EventStore.AspNet.Builders
 {
     public class StatelessActorBuilder<TActor> : IActorBuilder
-        where TActor : IActor
+        where TActor : IAnabasisActor
     {
         private readonly World _world;
-        private readonly Dictionary<Type, Action<IServiceProvider, IActor>> _busToRegisterTo;
+        private readonly Dictionary<Type, Action<IServiceProvider, IAnabasisActor>> _busToRegisterTo;
 
         public StatelessActorBuilder(World world)
         {
             _world = world;
-            _busToRegisterTo = new Dictionary<Type, Action<IServiceProvider, IActor>>();
+            _busToRegisterTo = new Dictionary<Type, Action<IServiceProvider, IAnabasisActor>>();
         }
 
         public StatelessActorBuilder<TActor> WithBus<TBus>(Action<TActor, TBus>? onStartup = null) where TBus : IBus
@@ -27,7 +27,7 @@ namespace Anabasis.EventStore.AspNet.Builders
             if (_busToRegisterTo.ContainsKey(busType))
                 throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");
 
-            var onRegistration = new Action<IServiceProvider, IActor>((serviceProvider, actor) =>
+            var onRegistration = new Action<IServiceProvider, IAnabasisActor>((serviceProvider, actor) =>
             {
                 var bus = (TBus)serviceProvider.GetService(busType);
 
@@ -51,7 +51,7 @@ namespace Anabasis.EventStore.AspNet.Builders
             return _world;
         }
 
-        public (Type actor, Action<IServiceProvider, IActor> factory)[] GetBusFactories()
+        public (Type actor, Action<IServiceProvider, IAnabasisActor> factory)[] GetBusFactories()
         {
             return _busToRegisterTo.Select((keyValue) => (keyValue.Key, keyValue.Value)).ToArray();
         }

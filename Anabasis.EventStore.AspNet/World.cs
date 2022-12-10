@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.AspNet
             return _workerBuilders.ToArray();
         }
 
-        public void AddBuilder<TActor>(IActorBuilder builder) where TActor : IActor
+        public void AddBuilder<TActor>(IActorBuilder builder) where TActor : IAnabasisActor
         {
             _actorBuilders.Add((typeof(TActor), builder));
         }
@@ -97,7 +97,7 @@ namespace Anabasis.EventStore.AspNet
         }
 
         public StatelessActorBuilder<TActor> AddStatelessActor<TActor>(IActorConfiguration actorConfiguration)
-            where TActor : class, IActor
+            where TActor : class, IAnabasisActor
         {
 
             EnsureActorNotAlreadyRegistered<TActor>();

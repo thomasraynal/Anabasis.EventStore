@@ -12,7 +12,7 @@ namespace Anabasis.EventStore
     public static class EventStoreBusExtensions
     {
 
-        public static async Task EmitEventStore<TEvent>(this IActor actor, TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
+        public static async Task EmitEventStore<TEvent>(this IAnabasisActor actor, TEvent @event, TimeSpan? timeout = null, params KeyValuePair<string, string>[] extraHeaders) where TEvent : IEvent
         {
             var eventStoreBus = actor.GetConnectedBus<IEventStoreBus>();
 
@@ -20,7 +20,7 @@ namespace Anabasis.EventStore
         }
 
         public static void SubscribeToManyStreams(
-            this IActor actor,
+            this IAnabasisActor actor,
             string[] streamIds,
             Action<SubscribeToManyStreamsConfiguration>? getSubscribeToManyStreamsConfiguration = null,
             IEventTypeProvider? eventTypeProvider = null)
@@ -39,7 +39,7 @@ namespace Anabasis.EventStore
         }
 
         public static void SubscribeToOneStream(
-            this IActor actor,
+            this IAnabasisActor actor,
             string streamId,
             long streamPosition = StreamPosition.Start,
             Action<SubscribeToOneStreamConfiguration>? getSubscribeToOneStreamConfiguration = null,
@@ -60,7 +60,7 @@ namespace Anabasis.EventStore
         }
 
         public static void SubscribeToAllStreams(
-            this IActor actor,
+            this IAnabasisActor actor,
             Position position,
             Action<SubscribeToAllStreamsConfiguration>? getSubscribeToAllStreamsConfiguration = null,
             IEventTypeProvider? eventTypeProvider = null)
@@ -79,7 +79,7 @@ namespace Anabasis.EventStore
         }
 
         public static void SubscribeToPersistentSubscriptionStream(
-            this IActor actor,
+            this IAnabasisActor actor,
             string streamId,
             string groupId,
             IEventTypeProvider? eventTypeProvider = null,

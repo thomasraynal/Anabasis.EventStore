@@ -8,7 +8,7 @@ using System.Collections.Generic;
 namespace Anabasis.EventStore.Standalone
 {
     public class StatelessActorBuilder<TActor, TRegistry>
-      where TActor : IActor
+      where TActor : IAnabasisActor
       where TRegistry : ServiceRegistry, new()
     {
 
@@ -16,11 +16,11 @@ namespace Anabasis.EventStore.Standalone
         private IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; set; }
         private IActorConfiguration ActorConfiguration { get; set; }
 
-        private readonly Dictionary<Type, Action<Container, IActor>> _busToRegisterTo;
+        private readonly Dictionary<Type, Action<Container, IAnabasisActor>> _busToRegisterTo;
 
         private StatelessActorBuilder()
         {
-            _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
+            _busToRegisterTo = new Dictionary<Type, Action<Container, IAnabasisActor>>();
         }
 
         public static StatelessActorBuilder<TActor, TRegistry> Create(
@@ -79,7 +79,7 @@ namespace Anabasis.EventStore.Standalone
             if (_busToRegisterTo.ContainsKey(busType))
                 throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");
 
-            var onRegistration = new Action<Container, IActor>((container, actor) =>
+            var onRegistration = new Action<Container, IAnabasisActor>((container, actor) =>
             {
                 var bus = container.GetInstance<TBus>();
 

@@ -12,7 +12,7 @@ namespace Anabasis.RabbitMQ
 {
     public static class RabbitMqBusExtensions
     {
-        public static void EmitRabbitMq<TEvent>(this IActor actor, IEnumerable<TEvent> events, string exchange, 
+        public static void EmitRabbitMq<TEvent>(this IAnabasisActor actor, IEnumerable<TEvent> events, string exchange, 
             string exchangeType = "topic",
             TimeSpan? initialVisibilityDelay = null,
             TimeSpan? messageExpiration = null,
@@ -27,7 +27,7 @@ namespace Anabasis.RabbitMQ
             rabbitMqBus.Emit(events, exchange, exchangeType, initialVisibilityDelay, messageExpiration, isMessagePersistent, isMessageMandatory, createExchangeIfNotExist, additionalHeaders: additionalHeaders);
         }
 
-        public static void EmitRabbitMq<TEvent>(this IActor actor, TEvent @event, string exchange, 
+        public static void EmitRabbitMq<TEvent>(this IAnabasisActor actor, TEvent @event, string exchange, 
             string exchangeType = "topic", 
             TimeSpan? initialVisibilityDelay = null,
             TimeSpan? messageExpiration = null,
@@ -42,7 +42,7 @@ namespace Anabasis.RabbitMQ
             rabbitMqBus.Emit(@event, exchange, exchangeType, initialVisibilityDelay, messageExpiration, isMessagePersistent, isMessageMandatory, createExchangeIfNotExist, additionalHeaders: additionalHeaders);
         }
 
-        public static TEvent[] PullRabbitMq<TEvent>(this IActor actor, string queueName, bool isAutoAck = false, int? chunkSize = null)
+        public static TEvent[] PullRabbitMq<TEvent>(this IAnabasisActor actor, string queueName, bool isAutoAck = false, int? chunkSize = null)
                 where TEvent : class, IRabbitMqEvent
         {
             var rabbitMqBus = actor.GetConnectedBus<IRabbitMqBus>();
@@ -52,7 +52,7 @@ namespace Anabasis.RabbitMQ
                               .ToArray();
         }
 
-        public static void SubscribeToExchange<TEvent>(this IActor actor,
+        public static void SubscribeToExchange<TEvent>(this IAnabasisActor actor,
             string exchange,
             Expression<Func<TEvent, bool>>? routingStrategy = null,
             string queueName = "",

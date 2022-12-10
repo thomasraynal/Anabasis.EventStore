@@ -9,7 +9,7 @@ namespace Anabasis.EventStore.Demo.Bus
 {
     public static class MarketDataBusExtensions
     {
-        public static void SubscribeMarketDataBus(this IActor actor)
+        public static void SubscribeMarketDataBus(this IAnabasisActor actor)
         {
             var marketDataBus = actor.GetConnectedBus<IMarketDataBus>();
 

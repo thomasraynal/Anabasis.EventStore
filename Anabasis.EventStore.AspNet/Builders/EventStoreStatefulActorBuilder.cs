@@ -12,11 +12,11 @@ namespace Anabasis.EventStore.AspNet.Builders
         where TAggregate : class, IAggregate, new()
     {
         private readonly World _world;
-        private readonly Dictionary<Type, Action<IServiceProvider, IActor>> _busToRegisterTo;
+        private readonly Dictionary<Type, Action<IServiceProvider, IAnabasisActor>> _busToRegisterTo;
 
         public EventStoreStatefulActorBuilder(World world)
         {
-            _busToRegisterTo = new Dictionary<Type, Action<IServiceProvider, IActor>>();
+            _busToRegisterTo = new Dictionary<Type, Action<IServiceProvider, IAnabasisActor>>();
             _world = world;
         }
 
@@ -34,7 +34,7 @@ namespace Anabasis.EventStore.AspNet.Builders
             if (_busToRegisterTo.ContainsKey(busType))
                 throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");
 
-            var onRegistration = new Action<IServiceProvider, IActor>((serviceProvider, actor) =>
+            var onRegistration = new Action<IServiceProvider, IAnabasisActor>((serviceProvider, actor) =>
             {
 
                 var busCandidate = serviceProvider.GetService(busType);
@@ -59,7 +59,7 @@ namespace Anabasis.EventStore.AspNet.Builders
         }
 
 
-        public (Type actor, Action<IServiceProvider, IActor> factory)[] GetBusFactories()
+        public (Type actor, Action<IServiceProvider, IAnabasisActor> factory)[] GetBusFactories()
         {
             return _busToRegisterTo.Select((keyValue) => (keyValue.Key, keyValue.Value)).ToArray();
         }

@@ -10,7 +10,7 @@ using Anabasis.Common;
 namespace Anabasis.EventStore.Standalone
 {
     public class EventStoreStatelessActorBuilder<TActor, TRegistry>
-      where TActor : IActor
+      where TActor : IAnabasisActor
       where TRegistry : ServiceRegistry, new()
     {
 
@@ -19,7 +19,7 @@ namespace Anabasis.EventStore.Standalone
         public IConnectionStatusMonitor<IEventStoreConnection> ConnectionMonitor { get; private set; }
         public IActorConfiguration ActorConfiguration { get; private set; }
 
-        private readonly Dictionary<Type,Action<Container,IActor>> _busToRegisterTo;
+        private readonly Dictionary<Type,Action<Container,IAnabasisActor>> _busToRegisterTo;
 
         public EventStoreStatelessActorBuilder(
             IActorConfiguration actorConfiguration,
@@ -33,7 +33,7 @@ namespace Anabasis.EventStore.Standalone
             ActorConfiguration = actorConfiguration;
             ConnectionMonitor = connectionMonitor;
 
-            _busToRegisterTo = new Dictionary<Type, Action<Container, IActor>>();
+            _busToRegisterTo = new Dictionary<Type, Action<Container, IAnabasisActor>>();
         }
 
         public TActor Build()
@@ -130,7 +130,7 @@ namespace Anabasis.EventStore.Standalone
             if (_busToRegisterTo.ContainsKey(busType))
                 throw new InvalidOperationException($"ActorBuilder already has a reference to a bus of type {busType}");
 
-            var onRegistration = new Action<Container, IActor>((container, actor) =>
+            var onRegistration = new Action<Container, IAnabasisActor>((container, actor) =>
             {
                 var bus = container.GetInstance<TBus>();
 

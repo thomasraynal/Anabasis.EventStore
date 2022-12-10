@@ -13,7 +13,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public abstract class BaseStatelessActor : IActor
+    public abstract class BaseStatelessActor : IAnabasisActor
     {
 
         private MessageHandlerInvokerCache _messageHandlerInvokerCache;

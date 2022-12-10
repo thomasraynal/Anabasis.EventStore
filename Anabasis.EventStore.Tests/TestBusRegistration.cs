@@ -155,7 +155,7 @@ namespace Anabasis.EventStore.Tests
     }
     public static class DummyBusExtensions
     {
-        public static void SubscribeDummyBus(this IActor actor, string subject)
+        public static void SubscribeDummyBus(this IAnabasisActor actor, string subject)
         {
             var dummyBus = actor.GetConnectedBus<IDummyBus>();
 
@@ -167,7 +167,7 @@ namespace Anabasis.EventStore.Tests
             dummyBus.Subscribe(onMessageReceived);
         }
 
-        public static void SubscribeDummyBus2(this IActor actor, string subject)
+        public static void SubscribeDummyBus2(this IAnabasisActor actor, string subject)
         {
             var dummyBus = actor.GetConnectedBus<IDummyBus2>();
 

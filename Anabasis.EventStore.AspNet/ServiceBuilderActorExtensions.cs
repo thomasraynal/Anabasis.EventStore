@@ -48,7 +48,7 @@ namespace Anabasis.EventStore.AspNet
 
             var registerActorHealthChecksAndBus = new Action<IActorBuilder, Type>((builder, actorType) =>
             {
-                var actor = (IActor)applicationBuilder.ApplicationServices.GetService(actorType);
+                var actor = (IAnabasisActor)applicationBuilder.ApplicationServices.GetService(actorType);
 
                 if (null == actor)
                 {
@@ -67,7 +67,7 @@ namespace Anabasis.EventStore.AspNet
 
             var initializeActor = new Action<IActorBuilder, Type>((builder, actorType) =>
             {
-                var actor = (IActor)applicationBuilder.ApplicationServices.GetService(actorType);
+                var actor = (IAnabasisActor)applicationBuilder.ApplicationServices.GetService(actorType);
 
                 actor.OnInitialized().Wait();
 

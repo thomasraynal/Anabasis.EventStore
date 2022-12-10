@@ -116,7 +116,7 @@ namespace Anabasis.EventStore.Tests
 
     public static class TestActorDummyBusExtensions
     {
-        public static void SubscribeTestActorDummyBus(this IActor actor, string subject)
+        public static void SubscribeTestActorDummyBus(this IAnabasisActor actor, string subject)
         {
             var dummyBus = actor.GetConnectedBus<TestActorDummyBus>();
 

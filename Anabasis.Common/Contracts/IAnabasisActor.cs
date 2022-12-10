@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common
 {
-    public interface IActor : IHealthCheck, IDisposable
+    public interface IAnabasisActor : IHealthCheck, IDisposable
     {
         string Id { get; }
         bool IsConnected { get; }
