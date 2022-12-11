@@ -1,0 +1,36 @@
+﻿using Proto;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
+using System.Threading.Tasks;
+
+namespace Anabasis.ProtoActor
+{
+    public class AbsoluteTimeoutBufferingStrategy : IBufferingStrategy
+    {
+        private readonly TimeSpan _bufferConsumptionTimeout;
+        private DateTime _lastConsumeBufferExecutionUtcDate;
+
+        public AbsoluteTimeoutBufferingStrategy(TimeSpan bufferConsumptionTimeout)
+        {
+            _bufferConsumptionTimeout = bufferConsumptionTimeout;
+            _lastConsumeBufferExecutionUtcDate = DateTime.UtcNow;
+        }
+
+        public void Reset()
+        {
+            _lastConsumeBufferExecutionUtcDate = DateTime.UtcNow;
+        }
+
+        public bool ShouldConsumeBuffer(object message, IContext context)
+        {
+            return _lastConsumeBufferExecutionUtcDate.Add(_bufferConsumptionTimeout) >= DateTime.UtcNow;
+        }
+
+        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, IContext context)
+        {
+            return _lastConsumeBufferExecutionUtcDate.Add(_bufferConsumptionTimeout) >= DateTime.UtcNow;
+        }
+    }
+}

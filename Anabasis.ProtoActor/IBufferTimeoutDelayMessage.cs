@@ -1,6 +1,6 @@
 ﻿namespace Anabasis.ProtoActor
 {
-    public class Class1
+    public interface IBufferTimeoutDelayMessage
     {
 
     }

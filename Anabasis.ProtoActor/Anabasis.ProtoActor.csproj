@@ -11,4 +11,8 @@
     <PackageReference Include="Proto.Persistence" Version="0.33.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+  </ItemGroup>
+
 </Project>
