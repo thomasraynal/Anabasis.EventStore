@@ -1,7 +1,10 @@
 ﻿using Anabasis.Common;
 using Google.Protobuf.WellKnownTypes;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
+using Microsoft.Extensions.Logging;
+using NSubstitute;
 using NUnit.Framework;
+using Polly;
 using Proto;
 using Proto.Mailbox;
 using Proto.Router;
@@ -19,108 +22,6 @@ namespace Anabasis.ProtoActor.Tests
         public double Nominal { get; set; }
         public string Direction { get; set; }
         public string Counterparty { get; set; }
-    }
-
-    public class MarketDataBus1
-    {
-
-    }
-
-    public class MarketDataBus2
-    {
-
-    }
-
-    public abstract class BaseAnabasisActor : IAnabasisActor, IActor
-    {
-
-        private readonly Dictionary<Type, IBus> _connectedBus;
-
-        public BaseAnabasisActor()
-        {
-            Id = $"{Guid.NewGuid()}";
-
-            _connectedBus = new Dictionary<Type, IBus>();
-        }
-
-        public string Id { get; }
-
-        public bool IsConnected { get; }
-
-        public bool IsCaughtUp { get; }
-
-        public bool IsFaulted { get; }
-
-        public Exception? LastError { get; }
-
-        public void AddToCleanup(IDisposable disposable)
-        {
-        }
-
-        public Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
-        {
-            return Task.FromResult(HealthCheckResult.Healthy());
-        }
-
-        public Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false)
-        {
-
-            var busType = bus.GetType();
-
-            if (_connectedBus.ContainsKey(busType))
-            {
-                throw new InvalidOperationException($"Bus of type {busType} is already registered");
-            }
-
-            _connectedBus[busType] = bus;
-
-            return Task.CompletedTask;
-        }
-
-        public void Dispose()
-        {
-
-        }
-
-        public TBus GetConnectedBus<TBus>() where TBus : class
-        {
-            var busType = typeof(TBus);
-
-            if (!_connectedBus.ContainsKey(busType))
-            {
-
-                var candidate = _connectedBus.Values.FirstOrDefault(bus => (bus as TBus) != null);
-
-                if (null == candidate)
-                {
-                    throw new InvalidOperationException($"Bus of type {busType} is not registered");
-                }
-
-                return (TBus)candidate;
-            }
-
-            return (TBus)_connectedBus[busType];
-        }
-
-        public Task OnInitialized()
-        {
-            return Task.CompletedTask;
-        }
-
-        public void OnMessageReceived(IMessage @event, TimeSpan? timeout = null)
-        {
-            throw new NotImplementedException();
-        }
-
-        public Task ReceiveAsync(IContext context)
-        {
-            return Task.CompletedTask;
-        }
-
-        public Task WaitUntilConnected(TimeSpan? timeout = null)
-        {
-            return Task.CompletedTask;
-        }
     }
 
     public class TradeActorOne : IActor
@@ -148,7 +49,12 @@ namespace Anabasis.ProtoActor.Tests
         bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, IContext context);
     }
 
-    public class GracefullyStopMessage
+    public class GracefullyStopBufferActorMessage
+    {
+
+    }
+
+    public class BufferTimeoutDelayMessage : IBufferTimeoutDelayMessage
     {
 
     }
@@ -175,9 +81,9 @@ namespace Anabasis.ProtoActor.Tests
         {
             _lastMessageBufferizedUtcDate = DateTime.UtcNow;
 
-            Scheduler.Default.Schedule(_slidingTimeout, async () =>
+            Scheduler.Default.Schedule(_slidingTimeout, () =>
             {
-                context.Request(context.Self, message);
+                context.Request(context.Self, new BufferTimeoutDelayMessage());
             });
 
             return false;
@@ -226,6 +132,22 @@ namespace Anabasis.ProtoActor.Tests
         }
     }
 
+
+    public class KillAppOnFailureSupervisorStrategy : ISupervisorStrategy
+    {
+        private readonly IKillSwitch _killSwitch;
+
+        public KillAppOnFailureSupervisorStrategy(IKillSwitch killSwitch)
+        {
+            _killSwitch = killSwitch;
+        }
+
+        public void HandleFailure(ISupervisor supervisor, PID child, RestartStatistics rs, Exception cause, object? message)
+        {
+            _killSwitch.KillProcess(cause);
+        }
+    }
+
     public class BufferSizeBufferingStrategy : IBufferingStrategy
     {
         private long _currentBufferSize;
@@ -254,33 +176,96 @@ namespace Anabasis.ProtoActor.Tests
         }
     }
 
-    public abstract class MessageBufferActor : IActor
+    public abstract class MessageBufferActorBase : IActor
     {
-        //buffering strategies
-            //begin consume timeout
-        //stop gracefully
+        private readonly ILogger<MessageBufferActorBase> _logger;
+        private readonly IBufferingStrategy[] _bufferingStrategies;
+        private readonly List<object> _messageBuffer;
+        private bool _shouldGracefulyStop;
 
-        public Task ReceiveAsync(IContext context)
+        protected MessageBufferActorBase(IBufferingStrategy[] bufferingStrategies, ILoggerFactory loggerFactory)
         {
-            switch (context.Message)
+            _logger = loggerFactory.CreateLogger<MessageBufferActorBase>();
+            _bufferingStrategies = bufferingStrategies;
+            _shouldGracefulyStop = false;
+            _messageBuffer = new List<object>();
+        }
+
+        private bool ShouldConsumeBuffer(object message, IContext context)
+        {
+            if (_shouldGracefulyStop) return true;
+
+            var shouldConsumeBuffer = false;
+
+            foreach (var bufferingStrategy in _bufferingStrategies)
+            {
+                if (bufferingStrategy.ShouldConsumeBuffer(message, context))
+                {
+                    shouldConsumeBuffer = true;
+                    break;
+                }
+            }
+
+            return shouldConsumeBuffer;
+
+        }
+
+        private async Task ConsumeBuffer(IContext context)
+        {
+            foreach (var bufferingStrategy in _bufferingStrategies)
+            {
+                bufferingStrategy.Reset();
+            }
+
+            await ReceiveAsync(_messageBuffer.ToArray(), context);
+        }
+
+        public abstract Task ReceiveAsync(object[] messages, IContext context);
+
+        public async Task ReceiveAsync(IContext context)
+        {
+            var message = context.Message;
+
+            switch (message)
             {
                 case SystemMessage:
-                    Debug.WriteLine($"SystemMessage=>{context.Message.GetType()}");
+                    _logger.LogDebug($"Received SystemMessage => {message.GetType()}");
                     break;
-                case GracefullyStopMessage:
+                case GracefullyStopBufferActorMessage:
+                    _shouldGracefulyStop = true;
                     break;
                 case IBufferTimeoutDelayMessage:
-                    Debug.WriteLine($"BufferTimeoutDelayMessage=>{context.Message.GetType()}");
-                    break;
-                case BusOneMessage:
-                    Debug.WriteLine($"BusOneMessage=>{context.Message.GetType()}");
-                    break;
                 default:
-                    Debug.WriteLine($"Unkown=>{context.Message.GetType()}");
+
+                    if (message is not IBufferTimeoutDelayMessage || _shouldGracefulyStop)
+                    {
+                        _messageBuffer.Add(message);
+                    }
+
+                    var shouldConsumeBuffer = ShouldConsumeBuffer(message, context);
+
+                    if (shouldConsumeBuffer)
+                    {
+                        await ConsumeBuffer(context);
+
+                        _messageBuffer.Clear();
+                    }
+                    else
+                    {
+                        if (message is not IBufferTimeoutDelayMessage)
+                        {
+                            _messageBuffer.Add(message);
+                        }
+                    }
+
+                    if (_shouldGracefulyStop)
+                    {
+                        context.Stop(context.Self);
+                    }
+
                     break;
             }
 
-            return Task.CompletedTask;
         }
     }
 
@@ -430,6 +415,79 @@ namespace Anabasis.ProtoActor.Tests
             return (TBus)_connectedBus[busType];
         }
     }
+    public class ProtoBufferActorPoolSystemBuilder<TActor>: ProtoActorPoolSystemBuilder<TActor> where TActor : MessageBufferActorBase
+    {
+        private readonly IBufferingStrategy[] _bufferingStrategies;
+
+        public ProtoBufferActorPoolSystemBuilder(IBufferingStrategy[] bufferingStrategies,
+            ISupervisorStrategy? supervisorStrategy = null,
+            ISupervisorStrategy? chidSupervisorStrategy = null) : base(supervisorStrategy, chidSupervisorStrategy)
+        {
+            _bufferingStrategies = bufferingStrategies;
+        }
+    }
+
+    enum ProtoActorPoolSystemType
+    {
+        RoundRobinPool,
+        ConsistentHashPool
+    }
+
+    public class ProtoActorPoolSystemBuilder<TActor> where TActor : IActor
+    {
+
+        private readonly ISupervisorStrategy? _supervisorStrategy;
+        private readonly ISupervisorStrategy? _chidSupervisorStrategy;
+        private ProtoActorPoolSystemType _protoActorSystemType;
+        private Func<RootContext, Props, PID>? _doBuildActor;
+        private Func<Props, Props> _doBuildProps;
+
+        public ProtoActorPoolSystemBuilder(ISupervisorStrategy? supervisorStrategy, ISupervisorStrategy? chidSupervisorStrategy = null)
+        {
+            _supervisorStrategy = supervisorStrategy;
+            _chidSupervisorStrategy = chidSupervisorStrategy ?? supervisorStrategy;
+            _doBuildProps = (props) => props;
+        }
+
+        public ProtoActorPoolSystemBuilder<TActor> WithPropsOverride(Func<Props,Props> onCreateProps)
+        {
+            _doBuildProps = onCreateProps;
+
+            return this;
+        }
+
+        public ProtoActorPoolSystemBuilder<TActor> WithRoundRobinPool(int poolSize)
+        {
+            _protoActorSystemType = ProtoActorPoolSystemType.RoundRobinPool;
+
+            _doBuildActor = new Func<RootContext, Props, PID>((rootContext, props) =>
+            {
+                var newRoundRobinPoolProps = rootContext.NewRoundRobinPool(props, 5);
+                return rootContext.Spawn(props);
+            });
+
+            return this;
+        }
+
+        public ProtoActorPoolSystemBuilder<TActor> WithConsistentHashPool(int poolSize, int replicaCount = 100, Func<string, uint>? hash = null, Func<object, string>? messageHasher = null)
+        {
+            _protoActorSystemType = ProtoActorPoolSystemType.ConsistentHashPool;
+
+            _doBuildActor = new Func<RootContext,Props, PID>((rootContext, props) =>
+            {
+                var newRoundRobinPoolProps = rootContext.NewConsistentHashPool(props, 5);
+                return rootContext.Spawn(props);
+            });
+
+            return this;
+        }
+
+        public ProtoActorSystem<>
+
+
+    }
+
+
     [TestFixture]
     public class ProtoActorTests
     {
@@ -437,12 +495,16 @@ namespace Anabasis.ProtoActor.Tests
         [Test]
         public async Task ShouldCreateAnActor()
         {
-            //buffering strategies
+
+            var killSwitch = Substitute.For<IKillSwitch>();
 
             var tradeSystem = new ProtoActorSystem((context) =>
             {
-                var props = new Props().WithProducer(() => new TradeActorOne());
-                var newRoundRobinPoolProps = context.NewRoundRobinPool(props, 5);
+                var props = new Props()
+                    .WithProducer(() => new TradeActorOne())
+                    .WithGuardianSupervisorStrategy(new KillAppOnFailureSupervisorStrategy(killSwitch));
+
+                var newRoundRobinPoolProps = context.NewConsistentHashPool(props, 5);
                 return context.Spawn(props);
             });
 
