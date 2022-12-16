@@ -10,7 +10,7 @@ namespace Anabasis.ProtoActor
     public interface IBufferingStrategy
     {
         void Reset();
-        bool ShouldConsumeBuffer(object message, IContext context);
-        bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, IContext context);
+        bool ShouldConsumeBuffer(object currentMessage, object[] messageBuffer, IContext context);
+        bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context);
     }
 }

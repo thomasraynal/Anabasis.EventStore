@@ -9,7 +9,6 @@ namespace Anabasis.ProtoActor
 {
     public class BufferSizeBufferingStrategy : IBufferingStrategy
     {
-        private long _currentBufferSize;
         private readonly long _bufferMaxSize;
 
         public BufferSizeBufferingStrategy(long bufferMaxSize)
@@ -19,19 +18,16 @@ namespace Anabasis.ProtoActor
 
         public void Reset()
         {
-            _currentBufferSize = 0;
         }
 
-        public bool ShouldConsumeBuffer(object message, IContext context)
+        public bool ShouldConsumeBuffer(object message, object[] messageBuffer, IContext context)
         {
-            _currentBufferSize++;
-
-            return _currentBufferSize >= _bufferMaxSize;
+            return messageBuffer.Length >= _bufferMaxSize;
         }
 
-        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, IContext context)
+        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
         {
-            return _currentBufferSize >= _bufferMaxSize;
+            return messageBuffer.Length >= _bufferMaxSize;
         }
     }
 }

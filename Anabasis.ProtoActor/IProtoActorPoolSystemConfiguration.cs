@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor
 {
-    public class GracefullyStopBufferActorMessage: IGracefullyStopBufferActorMessage
+    public interface IProtoActorPoolSystemConfiguration
     {
     }
 }

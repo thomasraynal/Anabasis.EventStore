@@ -26,20 +26,15 @@ namespace Anabasis.ProtoActor
             _lastMessageBufferizedUtcDate = DateTime.UtcNow;
         }
 
-        public bool ShouldConsumeBuffer(object message, IContext context)
+        public bool ShouldConsumeBuffer(object message, object[] messageBuffer, IContext context)
         {
             _lastMessageBufferizedUtcDate = DateTime.UtcNow;
-
-            Scheduler.Default.Schedule(_slidingTimeout, () =>
-            {
-                context.Request(context.Self, new BufferTimeoutDelayMessage());
-            });
 
             return false;
 
         }
 
-        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, IContext context)
+        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
         {
 
             if (_lastMessageBufferizedUtcDate.Add(_absoluteTimeout) >= DateTime.UtcNow)

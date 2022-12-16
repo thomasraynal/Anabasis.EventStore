@@ -53,7 +53,7 @@ namespace Anabasis.Common.Worker
         private void Setup(IWorkerConfiguration workerConfiguration, IWorkerMessageDispatcherStrategy? workerMessageDispatcherStrategy, ILoggerFactory? loggerFactory)
         {
 
-            Id = $"{GetType().Name}-{Guid.NewGuid()}";
+            Id = $"{GetType().Name}_{Guid.NewGuid()}";
             Logger = loggerFactory?.CreateLogger(GetType());
 
             _cleanUp = new CompositeDisposable();
@@ -263,7 +263,10 @@ namespace Anabasis.Common.Worker
                     throw new ArgumentNullException("workerDispatchQueue");
                 }
 
-                workerDispatchQueue.TryPush(messagesToProcess, out messagesToProcess);
+                var processedMessages = workerDispatchQueue.TryPush(messagesToProcess, out messagesToProcess);
+
+                Logger?.LogDebug($"Processed {processedMessages.Length} messages");
+                Logger?.LogDebug($"{processedMessages.Length} unprocessed messages");
 
             }
 

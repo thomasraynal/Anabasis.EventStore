@@ -48,17 +48,20 @@ namespace Anabasis.Common.Worker
             _concurrentQueue.Enqueue(message);
         }
 
-        public void TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
+        public IMessage[] TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
         {
             LastEnqueuedUtcDate = DateTime.UtcNow;
 
             var unProcessedMessagesList = new List<IMessage>();
+            var processedMessagesList = new List<IMessage>();
 
             foreach (var message in messages)
             {
                 if (CanPush)
                 {
                     _concurrentQueue.Enqueue(message);
+
+                    processedMessagesList.Add(message);
                 }
                 else
                 {
@@ -67,6 +70,8 @@ namespace Anabasis.Common.Worker
             }
 
             unProcessedMessages = unProcessedMessagesList.ToArray();
+
+            return processedMessagesList.ToArray();
 
         }
 

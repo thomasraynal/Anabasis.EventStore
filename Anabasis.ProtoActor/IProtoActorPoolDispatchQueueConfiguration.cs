@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor
 {
-    public class GracefullyStopBufferActorMessage: IGracefullyStopBufferActorMessage
+    public interface IProtoActorPoolDispatchQueueConfiguration
     {
+        int MessageBufferMaxSize { get; }
+        bool CrashAppOnError { get; }
     }
 }

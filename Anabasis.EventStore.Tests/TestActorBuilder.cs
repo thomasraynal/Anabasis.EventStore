@@ -25,8 +25,11 @@ namespace Anabasis.EventStore.Tests
 
         public Guid? TraceId { get; set; }
 
+        public bool IsAcknowledged { get; private set; }
+
         public Task Acknowledge()
         {
+            IsAcknowledged = true;
             return Task.CompletedTask;
         }
 

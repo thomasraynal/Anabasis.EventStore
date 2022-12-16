@@ -23,6 +23,8 @@ namespace Anabasis.EventStore.Shared
 
         public Guid? TraceId { get; }
 
+        public bool IsAcknowledged { get; internal set; }
+
         public abstract Task Acknowledge();
 
         public abstract Task NotAcknowledge(string? reason = null);

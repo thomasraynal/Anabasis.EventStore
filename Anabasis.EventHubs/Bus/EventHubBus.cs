@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 using Anabasis.EventHubs.Bus;
 using System.Reactive.Linq;
 using System.Reactive.Disposables;
-using System.Reactive.Subjects;
 
 namespace Anabasis.EventHubs
 {

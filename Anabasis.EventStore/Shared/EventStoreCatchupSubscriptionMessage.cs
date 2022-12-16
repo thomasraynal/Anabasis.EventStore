@@ -16,6 +16,8 @@ namespace Anabasis.EventStore.Shared
 
         public override Task Acknowledge()
         {
+            IsAcknowledged = true;
+
             return Task.CompletedTask;
         }
 

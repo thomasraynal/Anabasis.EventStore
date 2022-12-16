@@ -4,6 +4,7 @@ using Proto.Mailbox;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reactive.Concurrency;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -11,15 +12,17 @@ namespace Anabasis.ProtoActor
 {
     public abstract class MessageBufferActorBase : IActor
     {
-        private readonly ILogger<MessageBufferActorBase> _logger;
+        private readonly ILogger<MessageBufferActorBase>? _logger;
+        private readonly MessageBufferActorConfiguration _messageBufferActorConfiguration;
         private readonly IBufferingStrategy[] _bufferingStrategies;
         private readonly List<object> _messageBuffer;
         private bool _shouldGracefulyStop;
 
-        protected MessageBufferActorBase(IBufferingStrategy[] bufferingStrategies, ILoggerFactory loggerFactory)
+        protected MessageBufferActorBase(MessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null)
         {
-            _logger = loggerFactory.CreateLogger<MessageBufferActorBase>();
-            _bufferingStrategies = bufferingStrategies;
+            _logger = loggerFactory?.CreateLogger<MessageBufferActorBase>();
+            _messageBufferActorConfiguration = messageBufferActorConfiguration;
+            _bufferingStrategies = messageBufferActorConfiguration.BufferingStrategies;
             _shouldGracefulyStop = false;
             _messageBuffer = new List<object>();
         }
@@ -32,7 +35,7 @@ namespace Anabasis.ProtoActor
 
             foreach (var bufferingStrategy in _bufferingStrategies)
             {
-                if (bufferingStrategy.ShouldConsumeBuffer(message, context))
+                if (bufferingStrategy.ShouldConsumeBuffer(message, _messageBuffer.ToArray(), context))
                 {
                     shouldConsumeBuffer = true;
                     break;
@@ -59,13 +62,18 @@ namespace Anabasis.ProtoActor
         {
             var message = context.Message;
 
+            if (null == message)
+            {
+                return;
+            }
+
             switch (message)
             {
                 case SystemMessage:
-                    _logger.LogInformation($"Received SystemMessage => {message.GetType()}");
+                    _logger?.LogInformation($"Received SystemMessage => {message.GetType()}");
                     break;
-                case GracefullyStopBufferActorMessage:
-                    _logger.LogInformation($"Received GracefullyStopBufferActorMessage => {message.GetType()}");
+                case IGracefullyStopBufferActorMessage:
+                    _logger?.LogInformation($"Received GracefullyStopBufferActorMessage => {message.GetType()}");
                     _shouldGracefulyStop = true;
                     break;
                 case IBufferedMessageGroup:
@@ -73,9 +81,11 @@ namespace Anabasis.ProtoActor
                 case IBufferTimeoutDelayMessage:
                 default:
 
-                    _logger.LogInformation($"Received message => {message.GetType()}");
+                    _logger?.LogInformation($"Received message => {message.GetType()}");
 
-                    if (message is not IBufferTimeoutDelayMessage || _shouldGracefulyStop)
+                    var isBufferTimeoutDelayMessage = message is IBufferTimeoutDelayMessage;
+
+                    if (!isBufferTimeoutDelayMessage)
                     {
                         _messageBuffer.Add(message);
                     }
@@ -84,16 +94,21 @@ namespace Anabasis.ProtoActor
 
                     if (shouldConsumeBuffer)
                     {
-                        await ConsumeBuffer(context);
+                        if (_messageBuffer.Any())
+                        {
+                            await ConsumeBuffer(context);
 
-                        _messageBuffer.Clear();
+                            _messageBuffer.Clear();
+                        }
                     }
                     else
                     {
-                        if (message is not IBufferTimeoutDelayMessage)
+
+                        Scheduler.Default.Schedule(_messageBufferActorConfiguration.ReminderSchedulingDelay, () =>
                         {
-                            _messageBuffer.Add(message);
-                        }
+                            context.Send(context.Self, new BufferTimeoutDelayMessage());
+                        });
+
                     }
 
                     if (_shouldGracefulyStop)

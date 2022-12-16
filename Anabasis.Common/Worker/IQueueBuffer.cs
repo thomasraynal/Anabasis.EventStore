@@ -10,7 +10,7 @@ namespace Anabasis.Common.Worker
         bool CanPush { get; }
         bool CanPull();
         IMessage[] Pull(int? maxNumberOfMessage = null);
-        void TryPush(IMessage[] messages, out IMessage[] unProcessedMessages);
+        IMessage[] TryPush(IMessage[] messages, out IMessage[] unProcessedMessages);
         void Push(IMessage message);
         Task<IMessage[]> Flush(bool nackMessages);
     }

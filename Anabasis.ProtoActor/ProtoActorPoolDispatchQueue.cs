@@ -1,49 +1,44 @@
-﻿using Microsoft.Extensions.Logging;
-using System;
-using System.Linq;
+﻿using Anabasis.Common;
+using Anabasis.Common.Worker;
+using Microsoft.Extensions.Logging;
+using System.Diagnostics;
 using System.Reactive.Disposables;
-using System.Threading;
-using System.Threading.Tasks;
 
-namespace Anabasis.Common.Worker
+namespace Anabasis.ProtoActor
 {
-    public class WorkerDispatchQueue : IWorkerDispatchQueue
+    public class ProtoActorPoolDispatchQueue : IProtoActorPoolDispatchQueue
     {
-        private readonly IQueueBuffer _queueBuffer;
-        private readonly IKillSwitch _killSwitch;
-        private readonly IWorkerDispatchQueueConfiguration _workerDispatchQueueConfiguration;
-        private readonly CancellationToken _cancellationToken;
-        private readonly Thread _thread;
+
+        private readonly IProtoActorPoolDispatchQueueConfiguration _protoActorPoolDispatchQueueConfiguration;
+        private readonly ILoggerFactory? _loggerFactory;
         private readonly CompositeDisposable _cleanUp;
+        private readonly Thread _thread;
+        private readonly IQueueBuffer _queueBuffer;
+        private readonly Action<IMessage[]> _messageHandler;
+        private readonly CancellationToken _cancellationToken;
+        private readonly IKillSwitch _killSwitch;
 
-        public long ProcessedMessagesCount { get; private set; }
-        public Exception? LastError { get; private set; }
-        public bool IsFaulted { get; private set; }
-        public ILogger? Logger { get; }
-        public string Owner { get; }
-        public string Id { get; }
-
-        public WorkerDispatchQueue(string ownerId,
-            IWorkerDispatchQueueConfiguration workerDispatchQueueConfiguration,
+        public ProtoActorPoolDispatchQueue(string owner, 
+            IProtoActorPoolDispatchQueueConfiguration protoActorPoolDispatchQueueConfiguration,
             CancellationToken cancellationToken,
+            Action<IMessage[]> messageHandler,
             IQueueBuffer? queueBuffer = null,
             ILoggerFactory? loggerFactory = null,
             IKillSwitch? killSwitch = null)
         {
-
+            Owner = owner;
+            Id = $"{nameof(ProtoActorPoolDispatchQueue)}_{Guid.NewGuid()}";
             Logger = loggerFactory?.CreateLogger(GetType());
-            Owner = ownerId;
-            Id = $"{nameof(DispatchQueue)}_{ownerId}_{Guid.NewGuid()}";
 
-            _killSwitch = killSwitch ?? new KillSwitch();
-            _workerDispatchQueueConfiguration = workerDispatchQueueConfiguration;
+            _queueBuffer = queueBuffer ?? new SimpleQueueBuffer(protoActorPoolDispatchQueueConfiguration.MessageBufferMaxSize, 0, 0);
+            _messageHandler = messageHandler;
 
             _cancellationToken = cancellationToken;
 
-            _queueBuffer = queueBuffer ?? new SimpleQueueBuffer(
-                    workerDispatchQueueConfiguration.MessageBufferMaxSize,
-                    workerDispatchQueueConfiguration.MessageBufferAbsoluteTimeoutInSecond,
-                    workerDispatchQueueConfiguration.MessageBufferSlidingTimeoutInSecond);
+            _killSwitch = killSwitch ?? new KillSwitch();
+
+            _protoActorPoolDispatchQueueConfiguration = protoActorPoolDispatchQueueConfiguration;
+            _loggerFactory = loggerFactory;
 
             _cleanUp = new CompositeDisposable();
 
@@ -56,21 +51,29 @@ namespace Anabasis.Common.Worker
             _thread.Start();
 
             Logger?.LogDebug($"{Id} started");
-
-        }
-        public void Push(IMessage message)
-        {
-            _queueBuffer.Push(message);
         }
 
-        public IMessage[] TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
+        public ILogger? Logger { get; }
+
+        public string Owner { get; }
+
+        public string Id { get; }
+
+        public long ProcessedMessagesCount { get; private set; }
+        public long PulledMessagesCount { get; private set; }
+        public bool IsFaulted { get; private set; }
+
+        public Exception? LastError { get; private set; }
+
+
+        public IMessage[] TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages)
         {
-            return _queueBuffer.TryPush(messages, out unProcessedMessages);
+           return _queueBuffer.TryPush(messages, out unProcessedMessages);
         }
 
         private async void HandleWork()
         {
-           var messageBatch = Array.Empty<IMessage>();
+            var messageBatch = Array.Empty<IMessage>();
 
             while (!_cancellationToken.IsCancellationRequested)
             {
@@ -85,14 +88,11 @@ namespace Anabasis.Common.Worker
                     {
                         messageBatch = _queueBuffer.Pull();
 
-                        var events = messageBatch.Select(message => message.Content).ToArray();
+                        PulledMessagesCount += messageBatch.Length;
 
-                        await _workerDispatchQueueConfiguration.OnEventsReceived(events);
+                        Debug.WriteLine($"Pulled batch of {messageBatch.Length} messages");
 
-                        foreach (var message in messageBatch)
-                        {
-                            await message.Acknowledge();
-                        }
+                        _messageHandler(messageBatch);
 
                         ProcessedMessagesCount += messageBatch.Length;
 
@@ -112,8 +112,8 @@ namespace Anabasis.Common.Worker
                     var unacknowledgeMessageTask = messageBatch.Where(message => !message.IsAcknowledged).Select(message => message.NotAcknowledge());
 
                     await Task.WhenAll(unacknowledgeMessageTask);
-                    
-                    if (_workerDispatchQueueConfiguration.CrashAppOnError)
+
+                    if (_protoActorPoolDispatchQueueConfiguration.CrashAppOnError)
                     {
                         IsFaulted = true;
 
@@ -135,7 +135,7 @@ namespace Anabasis.Common.Worker
             await _queueBuffer.Flush(true);
         }
 
-        public bool CanPush()
+        public bool CanEnqueue()
         {
             return _queueBuffer.CanPush;
         }

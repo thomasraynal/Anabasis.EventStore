@@ -11,6 +11,6 @@ namespace Anabasis.Common.Worker
         string Owner { get; }
         bool CanPush();
         void Push(IMessage message);
-        void TryPush(IMessage[] messages, out IMessage[] unProcessedMessages);
+        IMessage[] TryPush(IMessage[] messages, out IMessage[] unProcessedMessages);
     }
 }

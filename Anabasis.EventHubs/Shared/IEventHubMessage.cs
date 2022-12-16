@@ -4,6 +4,6 @@ namespace Anabasis.EventHubs.Shared
 {
     public interface IEventHubMessage: IMessage
     {
-        bool IsAcknowledged { get; }
+   
     }
 }

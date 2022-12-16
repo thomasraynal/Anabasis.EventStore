@@ -23,14 +23,14 @@ namespace Anabasis.ProtoActor
             _lastConsumeBufferExecutionUtcDate = DateTime.UtcNow;
         }
 
-        public bool ShouldConsumeBuffer(object message, IContext context)
+        public bool ShouldConsumeBuffer(object message, object[] messageBuffer, IContext context)
         {
-            return _lastConsumeBufferExecutionUtcDate.Add(_bufferConsumptionTimeout) >= DateTime.UtcNow;
+            return DateTime.UtcNow >= _lastConsumeBufferExecutionUtcDate.Add(_bufferConsumptionTimeout);
         }
 
-        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, IContext context)
+        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
         {
-            return _lastConsumeBufferExecutionUtcDate.Add(_bufferConsumptionTimeout) >= DateTime.UtcNow;
+            return DateTime.UtcNow >= _lastConsumeBufferExecutionUtcDate.Add(_bufferConsumptionTimeout);
         }
     }
 }

@@ -1,4 +1,7 @@
-﻿using Proto;
+﻿using Anabasis.Common.Worker;
+using Anabasis.Common;
+using Microsoft.Extensions.Logging;
+using Proto;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +16,18 @@ namespace Anabasis.ProtoActor
 
         public ProtoMessageBufferActorPoolSystemBuilder(IBufferingStrategy[] bufferingStrategies,
             ISupervisorStrategy supervisorStrategy,
+            IProtoActorPoolDispatchQueueConfiguration protoActorPoolDispatchQueueConfiguration,
             IServiceProvider serviceProvider,
-            ISupervisorStrategy? chidSupervisorStrategy = null) : base(supervisorStrategy, serviceProvider, chidSupervisorStrategy)
+            ILoggerFactory? loggerFactory = null,
+            IQueueBuffer? queueBuffer = null,
+            ISupervisorStrategy? chidSupervisorStrategy = null,
+            IKillSwitch? killSwitch = null) : base(supervisorStrategy,
+                protoActorPoolDispatchQueueConfiguration,
+                serviceProvider,
+                loggerFactory,
+                queueBuffer,
+                chidSupervisorStrategy,
+                killSwitch)
         {
             _bufferingStrategies = bufferingStrategies;
         }

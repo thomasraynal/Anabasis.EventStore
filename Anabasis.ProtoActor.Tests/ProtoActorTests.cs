@@ -5,46 +5,51 @@ using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
 using Proto;
+using Proto.DependencyInjection;
 using Proto.Mailbox;
 using Proto.Router;
+using System;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.Numerics;
 
 namespace Anabasis.ProtoActor.Tests
 {
-    public class TradeActor : IActor
+    public class TestActor : MessageBufferActorBase
     {
-        public Task ReceiveAsync(IContext context)
-        {
-            Debug.WriteLine(context.Message.GetType());
-
-            return Task.CompletedTask;
-        }
-    }
-
-    public class TradeActorOne : MessageBufferActorBase
-    {
-        public TradeActorOne(IBufferingStrategy[] bufferingStrategies, ILoggerFactory loggerFactory) : base(bufferingStrategies, loggerFactory)
+        public TestActor(MessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageBufferActorConfiguration, loggerFactory)
         {
         }
 
-        public override Task ReceiveAsync(object[] messages, IContext context)
+        public override async Task ReceiveAsync(object[] messages, IContext context)
         {
-            Debug.WriteLine($"Received message group => {messages.Length}");
 
-            return Task.CompletedTask;
+            var rand = new Random();
+
+            await Task.Delay(rand.Next(100, 500));
+
+            Debug.WriteLine($"{context.Self.Id} handle batch of {messages.Length} messages");
+
+            foreach (var message in messages.Cast<IMessage>())
+            {
+                await message.Acknowledge();
+            }
+
         }
     }
 
     public static class BusOneExtension
     {
-        public static void SubscribeToBusOne(this IProtoActorSystem protoActorSystem)
+        public static void SubscribeToBusOne(this IProtoActorPoolSystem protoActorSystem)
         {
 
             var busOne = protoActorSystem.GetConnectedBus<BusOne>();
 
-            busOne.Subscribe(async (message) =>
+            busOne.Subscribe(async (messages) =>
             {
-                await protoActorSystem.OnMessageReceived(message);
+                //Debug.WriteLine($"Process {message.GetType()}");
+
+                await protoActorSystem.Send(messages);
 
             });
         }
@@ -63,8 +68,12 @@ namespace Anabasis.ProtoActor.Tests
 
         public IEvent Content { get; }
 
+        public bool IsAcknowledged { get; private set; }
+
         public Task Acknowledge()
         {
+            IsAcknowledged = true;
+
             return Task.CompletedTask;
         }
 
@@ -76,7 +85,7 @@ namespace Anabasis.ProtoActor.Tests
 
     public class BusOne : IBus
     {
-        private readonly List<Func<IMessage, Task>> _subscribers = new();
+        private readonly List<Func<IMessage[], Task>> _subscribers = new();
 
         public string BusId => Guid.NewGuid().ToString();
 
@@ -92,7 +101,7 @@ namespace Anabasis.ProtoActor.Tests
             throw new NotImplementedException();
         }
 
-        public void Subscribe(Func<IMessage, Task> onMessageReceived)
+        public void Subscribe(Func<IMessage[], Task> onMessageReceived)
         {
             _subscribers.Add(onMessageReceived);
         }
@@ -101,23 +110,21 @@ namespace Anabasis.ProtoActor.Tests
         {
             throw new NotImplementedException();
         }
-        public void Emit(IMessage busOneMessage)
+
+        public List<IMessage> EmittedMessages { get; private set; } = new List<IMessage>();
+
+        public void Emit(IMessage[] busOneMessage)
         {
-            foreach(var subscriber in _subscribers)
+
+            EmittedMessages.AddRange(busOneMessage);
+
+            foreach (var subscriber in _subscribers)
             {
                 subscriber(busOneMessage);
             }
         }
     }
 
-
-    public class TestServiceProvider : IServiceProvider
-    {
-        public object? GetService(Type serviceType)
-        {
-            return
-        }
-    }
 
     //use lamar
     // handle https://proto.actor/docs/receive-timeout/
@@ -130,23 +137,45 @@ namespace Anabasis.ProtoActor.Tests
         public async Task ShouldCreateAnActor()
         {
 
+        }
+
+
+        [Test]
+        public async Task ShouldCreateAnActorPool()
+        {
+           
+            var container = new Lamar.Container(serviceRegistry =>
+            {
+                serviceRegistry.For<TestActor>().Use<TestActor>();
+
+                serviceRegistry.For<MessageBufferActorConfiguration>().Use((_) =>
+                {
+                    var messageBufferActorConfiguration = new MessageBufferActorConfiguration(TimeSpan.FromSeconds(1), new IBufferingStrategy[]
+                    {
+                        new AbsoluteTimeoutBufferingStrategy(TimeSpan.FromSeconds(1)),
+                        new BufferSizeBufferingStrategy(5)
+                    });
+
+                    return messageBufferActorConfiguration;
+                });
+            });
+
+
+            var actorSystem = new ActorSystem().WithServiceProvider(container);
+
+            var props = actorSystem.DI().PropsFor<TestActor>().WithMailbox(() => UnboundedMailbox.Create()).WithMailbox(() => UnboundedMailbox.Create());
+
+
             var killSwitch = Substitute.For<IKillSwitch>();
             var supervisorStrategy = new KillAppOnFailureSupervisorStrategy(killSwitch);
 
-            var bufferingStrategies = new IBufferingStrategy[]
-            {
-                new BufferSizeBufferingStrategy(5),
-                new AbsoluteTimeoutBufferingStrategy(TimeSpan.FromSeconds(5))
-            };
+            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(100, true);
 
-        
+            var protoActorPoolSystem = new ProtoActorPoolSystem(supervisorStrategy, 
+                protoActorPoolDispatchQueueConfiguration, 
+                container.ServiceProvider);
 
-
-            var testServiceProvider = new TestServiceProvider();
-
-            var protoActorPoolSystem = new ProtoActorPoolSystem(supervisorStrategy, testServiceProvider);
-
-            var ruondRobinPool = protoActorPoolSystem.CreateRoundRobinPool<TradeActor>(2);
+            var ruondRobinPool = protoActorPoolSystem.CreateRoundRobinPool<TestActor>(5);
 
             var busOne = new BusOne();
 
@@ -154,79 +183,16 @@ namespace Anabasis.ProtoActor.Tests
 
             protoActorPoolSystem.SubscribeToBusOne();
 
-            busOne.Emit(new BusOneMessage(new BusOneEvent()));
+            var rand = new Random();
 
-            await Task.Delay(1000);
+            for (var i = 0; i < 100; i++)
+            {
+                busOne.Emit(Enumerable.Range(0,rand.Next(1,10)).Select(_=> new BusOneMessage(new BusOneEvent())).ToArray());
+            }
 
+            await Task.Delay(10000);
 
-            //subscribe to the eventstream via type
-            //system.EventStream.Subscribe<object>(x => Console.WriteLine($"Got message for {x.Name}"));
-            //system.EventStream.SubscribeToTopic<SomeMessage>("MyTopic.*", x => Console.WriteLine($"Got message for {x.Name}"));
-
-
-            //var context = new RootContext(system);
-            //var props = context.NewConsistentHashPool(MyActorProps, 5);
-            //var pid = context.Spawn(props);
-
-            //var context = new RootContext(system);
-            //var props = context.NewRoundRobinPool(MyActorProps, 5);
-            //var pid = context.Spawn(props);
-
-            //Console.WriteLine("Actor system created");
-
-            //var eventProvider = new EventStoreProvider();
-            //var persistence = Persistence.WithEventSourcingAndSnapshotting(
-            //   eventProvider,
-            //   eventProvider,
-            //   "demo-app-id",
-            //   (ev)=> { },
-            //   (snapshot) => { });
-
-
-
-            //var props = Props.FromProducer(() => new AnabasisActor())
-            //    .WithDispatcher(new ThreadPoolDispatcher { Throughput = 300 })
-            //    .WithMailbox(() => UnboundedMailbox.Create());
-
-            //var behavior = new Behavior();
-
-            ////behavior.Become();
-
-            //var pid = system.Root.Spawn(props);
-
-
-            //var rootContext = new RootContext(system);
-
-            //var mailBox = UnboundedMailbox.Create();
-
-            //var props = new Props()
-            //    .WithProducer(() => new TradeActor())
-            //    .WithDispatcher(new ThreadPoolDispatcher { Throughput = 300 })
-            //    .WithMailbox(() => UnboundedMailbox.Create())
-            //    .WithChildSupervisorStrategy(new OneForOneStrategy((who, reason) => SupervisorDirective.Restart, 10, TimeSpan.FromSeconds(10)))
-            //    .WithReceiverMiddleware(
-            //        next => async (c, envelope) =>
-            //        {
-            //            Console.WriteLine($"middleware 1 enter {envelope.Message.GetType()}:{envelope.Message}");
-            //            await next(c, envelope);
-            //            Console.WriteLine($"middleware 1 exit");
-            //        })
-            //    .WithSenderMiddleware(
-            //        next => async (c, target, envelope) =>
-            //        {
-            //            Console.WriteLine($"middleware 1 enter {c.Message.GetType()}:{c.Message}");
-            //            await next(c, target, envelope);
-            //            Console.WriteLine($"middleware 1 enter {c.Message.GetType()}:{c.Message}");
-            //        },
-            //        next => async (c, target, envelope) =>
-            //        {
-            //            Console.WriteLine($"middleware 2 enter {c.Message.GetType()}:{c.Message}");
-            //            await next(c, target, envelope);
-            //            Console.WriteLine($"middleware 2 enter {c.Message.GetType()}:{c.Message}");
-            //        })
-            //    // the default spawner constructs the Actor, Context and Process
-            //    .WithSpawner(Props.DefaultSpawner);
-
+            var unackedMessages = busOne.EmittedMessages.Where(message => !message.IsAcknowledged).ToArray();
 
         }
 
