@@ -25,6 +25,8 @@ namespace Anabasis.EventStore.Shared
 
         public bool IsAcknowledged { get; internal set; }
 
+        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
+
         public abstract Task Acknowledge();
 
         public abstract Task NotAcknowledge(string? reason = null);

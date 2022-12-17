@@ -50,6 +50,10 @@ namespace Anabasis.EventStore.Tests
 
         public Guid? TraceId { get; set; }
 
+        public bool IsAcknowledged => throw new NotImplementedException();
+
+        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
+
         public TestMessage(int value)
         {
             Content = new TestEvent(value);

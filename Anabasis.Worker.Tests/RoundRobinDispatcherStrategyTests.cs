@@ -45,6 +45,11 @@ namespace Anabasis.Worker.Tests
             {
                 throw new NotImplementedException();
             }
+
+            IMessage[] IWorkerDispatchQueue.TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
+            {
+                throw new NotImplementedException();
+            }
         }
 
         [Test]

@@ -23,6 +23,10 @@ namespace Anabasis.EventStore.Tests
 
         public Guid? TraceId { get; }
 
+        public bool IsAcknowledged => throw new NotImplementedException();
+
+        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
+
         public Task Acknowledge()
         {
             return Task.CompletedTask;

@@ -37,6 +37,10 @@ namespace Anabasis.RabbitMQ
         public Guid MessageId { get; }
         public Guid? TraceId { get; }
 
+        public bool IsAcknowledged => throw new NotImplementedException();
+
+        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
+
         public Task Acknowledge()
         {
             if (!_isAutoAck)

@@ -27,6 +27,8 @@ namespace Anabasis.EventStore.Tests
 
         public bool IsAcknowledged { get; private set; }
 
+        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
+
         public Task Acknowledge()
         {
             IsAcknowledged = true;

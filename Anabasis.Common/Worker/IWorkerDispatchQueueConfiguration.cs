@@ -5,6 +5,7 @@ namespace Anabasis.Common.Worker
 {
     public interface IWorkerDispatchQueueConfiguration
     {
+        int DequeueAttemptDelayInMilliseconds { get; }
         bool CrashAppOnError { get; }
         double MessageBufferAbsoluteTimeoutInSecond { get; set; }
         int MessageBufferMaxSize { get; set; }

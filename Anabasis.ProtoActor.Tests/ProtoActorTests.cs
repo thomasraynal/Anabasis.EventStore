@@ -1,5 +1,4 @@
 ﻿using Anabasis.Common;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -7,17 +6,72 @@ using NUnit.Framework;
 using Proto;
 using Proto.DependencyInjection;
 using Proto.Mailbox;
-using Proto.Router;
-using System;
-using System.ComponentModel;
 using System.Diagnostics;
-using System.Numerics;
+using System.Reactive.Disposables;
+using System.Reactive.Subjects;
 
 namespace Anabasis.ProtoActor.Tests
 {
-    public class TestActor : MessageBufferActorBase
+
+    public class DummyLogger : ILogger
     {
-        public TestActor(MessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageBufferActorConfiguration, loggerFactory)
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return Disposable.Empty;
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return false;
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            Debug.WriteLine(state);
+        }
+    }
+
+    public class DummyLoggerFactory : ILoggerFactory
+    {
+        public void AddProvider(ILoggerProvider provider)
+        {
+        }
+
+        public ILogger CreateLogger(string categoryName)
+        {
+            return new DummyLogger();
+        }
+
+        public void Dispose()
+        {
+        }
+    }
+
+    public class TestActor : IActor
+    {
+        public async Task ReceiveAsync(IContext context)
+        {
+            if(context.Message is SystemMessage)
+            {
+                return;
+            }
+
+            var rand = new Random();
+
+            await Task.Delay(rand.Next(100, 500));
+
+            var ev = context.Message as BusOneMessage;
+
+            Debug.WriteLine($"Handle message {(ev.Content as BusOneEvent).EventNumber}");
+
+
+
+        }
+    }
+
+    public class TestMessageBufferActor : MessageBufferActorBase
+    {
+        public TestMessageBufferActor(MessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageBufferActorConfiguration, loggerFactory)
         {
         }
 
@@ -40,15 +94,13 @@ namespace Anabasis.ProtoActor.Tests
 
     public static class BusOneExtension
     {
-        public static void SubscribeToBusOne(this IProtoActorPoolSystem protoActorSystem)
+        public static void SubscribeToBusOne(this IProtoActorSystem protoActorSystem)
         {
 
             var busOne = protoActorSystem.GetConnectedBus<BusOne>();
 
             busOne.Subscribe(async (messages) =>
             {
-                //Debug.WriteLine($"Process {message.GetType()}");
-
                 await protoActorSystem.Send(messages);
 
             });
@@ -57,9 +109,12 @@ namespace Anabasis.ProtoActor.Tests
 
     public class BusOneMessage : IMessage
     {
+        private readonly Subject<bool> _onAcknowledgeSubject;
+
         public BusOneMessage(IEvent @event)
         {
             Content = @event;
+            _onAcknowledgeSubject = new Subject<bool>();
         }
 
         public Guid? TraceId => Guid.NewGuid();
@@ -70,15 +125,23 @@ namespace Anabasis.ProtoActor.Tests
 
         public bool IsAcknowledged { get; private set; }
 
+        public IObservable<bool> OnAcknowledged => _onAcknowledgeSubject;
+
         public Task Acknowledge()
         {
             IsAcknowledged = true;
+
+            _onAcknowledgeSubject.OnNext(true);
+            _onAcknowledgeSubject.OnCompleted();
 
             return Task.CompletedTask;
         }
 
         public Task NotAcknowledge(string? reason = null)
         {
+
+            _onAcknowledgeSubject.OnNext(false);
+            _onAcknowledgeSubject.OnCompleted();
             return Task.CompletedTask;
         }
     }
@@ -113,20 +176,29 @@ namespace Anabasis.ProtoActor.Tests
 
         public List<IMessage> EmittedMessages { get; private set; } = new List<IMessage>();
 
-        public void Emit(IMessage[] busOneMessage)
+        public void Emit(IMessage busOneMessage)
         {
-
-            EmittedMessages.AddRange(busOneMessage);
 
             foreach (var subscriber in _subscribers)
             {
-                subscriber(busOneMessage);
+                subscriber(new[] { busOneMessage });
+            }
+        }
+
+        public void Emit(IMessage[] busOneMessages)
+        {
+
+            EmittedMessages.AddRange(busOneMessages);
+
+            foreach (var subscriber in _subscribers)
+            {
+                subscriber(busOneMessages);
             }
         }
     }
 
 
-    //use lamar
+
     // handle https://proto.actor/docs/receive-timeout/
 
     [TestFixture]
@@ -136,6 +208,50 @@ namespace Anabasis.ProtoActor.Tests
         [Test]
         public async Task ShouldCreateAnActor()
         {
+            var container = new Lamar.Container(serviceRegistry =>
+            {
+                serviceRegistry.For<TestMessageBufferActor>().Use<TestMessageBufferActor>();
+                serviceRegistry.For<ILoggerFactory>().Use<DummyLoggerFactory>();
+
+                serviceRegistry.For<MessageBufferActorConfiguration>().Use((_) =>
+                {
+                    var messageBufferActorConfiguration = new MessageBufferActorConfiguration(TimeSpan.FromSeconds(1), new IBufferingStrategy[]
+                    {
+                        new AbsoluteTimeoutBufferingStrategy(TimeSpan.FromSeconds(1)),
+                        new BufferSizeBufferingStrategy(5)
+                    });
+
+                    return messageBufferActorConfiguration;
+                });
+            });
+
+            var actorSystem = new ActorSystem().WithServiceProvider(container);
+
+            var killSwitch = Substitute.For<IKillSwitch>();
+            // var props = actorSystem.DI().PropsFor<TestActor>().WithMailbox(() => UnboundedMailbox.Create());
+            var supervisorStrategy = new KillAppOnFailureSupervisorStrategy(killSwitch);
+            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(int.MaxValue, true);
+
+            var protoActoSystem = new ProtoActorSystem(supervisorStrategy,
+              protoActorPoolDispatchQueueConfiguration,
+              container.ServiceProvider,
+              new DummyLoggerFactory());
+
+            var pid = protoActoSystem.CreateActor<TestActor>();
+            var busOne = new BusOne();
+
+            await protoActoSystem.ConnectTo(busOne);
+
+            protoActoSystem.SubscribeToBusOne();
+
+            var rand = new Random();
+
+            for (var i = 0; i < 100; i++)
+            {
+                busOne.Emit(new BusOneMessage(new BusOneEvent(i)));
+            }
+
+            await Task.Delay(5000);
 
         }
 
@@ -146,8 +262,9 @@ namespace Anabasis.ProtoActor.Tests
            
             var container = new Lamar.Container(serviceRegistry =>
             {
-                serviceRegistry.For<TestActor>().Use<TestActor>();
-
+                serviceRegistry.For<TestMessageBufferActor>().Use<TestMessageBufferActor>();
+                serviceRegistry.For<ILoggerFactory>().Use<DummyLoggerFactory>();
+                
                 serviceRegistry.For<MessageBufferActorConfiguration>().Use((_) =>
                 {
                     var messageBufferActorConfiguration = new MessageBufferActorConfiguration(TimeSpan.FromSeconds(1), new IBufferingStrategy[]
@@ -163,31 +280,32 @@ namespace Anabasis.ProtoActor.Tests
 
             var actorSystem = new ActorSystem().WithServiceProvider(container);
 
-            var props = actorSystem.DI().PropsFor<TestActor>().WithMailbox(() => UnboundedMailbox.Create()).WithMailbox(() => UnboundedMailbox.Create());
+            var props = actorSystem.DI().PropsFor<TestMessageBufferActor>().WithMailbox(() => UnboundedMailbox.Create()).WithMailbox(() => UnboundedMailbox.Create());
 
 
             var killSwitch = Substitute.For<IKillSwitch>();
             var supervisorStrategy = new KillAppOnFailureSupervisorStrategy(killSwitch);
 
-            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(100, true);
+            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(int.MaxValue, true);
 
-            var protoActorPoolSystem = new ProtoActorPoolSystem(supervisorStrategy, 
-                protoActorPoolDispatchQueueConfiguration, 
-                container.ServiceProvider);
+            var protoActoSystem = new ProtoActorSystem(supervisorStrategy, 
+                    protoActorPoolDispatchQueueConfiguration, 
+                    container.ServiceProvider,
+                    new DummyLoggerFactory());
 
-            var ruondRobinPool = protoActorPoolSystem.CreateRoundRobinPool<TestActor>(5);
+            var ruondRobinPool = protoActoSystem.CreateRoundRobinPool<TestMessageBufferActor>(5);
 
             var busOne = new BusOne();
 
-            await protoActorPoolSystem.ConnectTo(busOne);
+            await protoActoSystem.ConnectTo(busOne);
 
-            protoActorPoolSystem.SubscribeToBusOne();
+            protoActoSystem.SubscribeToBusOne();
 
             var rand = new Random();
 
             for (var i = 0; i < 100; i++)
             {
-                busOne.Emit(Enumerable.Range(0,rand.Next(1,10)).Select(_=> new BusOneMessage(new BusOneEvent())).ToArray());
+                busOne.Emit(Enumerable.Range(0,rand.Next(1,10)).Select(_=> new BusOneMessage(new BusOneEvent(i))).ToArray());
             }
 
             await Task.Delay(10000);

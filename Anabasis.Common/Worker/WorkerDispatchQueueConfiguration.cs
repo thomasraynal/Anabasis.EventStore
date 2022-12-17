@@ -11,15 +11,18 @@ namespace Anabasis.Common.Worker
             bool crashAppOnError = true,
             int messageBufferMaxSize = 1,
             int messageBufferAbsoluteTimeoutInSecond = 0,
-            int messageBufferSlidingTimeoutInSecond = 0)
+            int messageBufferSlidingTimeoutInSecond = 0,
+            int dequeueAttemptDelayInMilliseconds = 100)
         {
             OnEventsReceived = onEventsReceived;
             CrashAppOnError = crashAppOnError;
             MessageBufferMaxSize = messageBufferMaxSize;
             MessageBufferAbsoluteTimeoutInSecond = messageBufferAbsoluteTimeoutInSecond;
             MessageBufferSlidingTimeoutInSecond = messageBufferSlidingTimeoutInSecond;
+            DequeueAttemptDelayInMilliseconds = dequeueAttemptDelayInMilliseconds;
         }
 
+        public int DequeueAttemptDelayInMilliseconds { get; set; }
         public int MessageBufferMaxSize { get; set; } = 1;
         public double MessageBufferAbsoluteTimeoutInSecond { get; set; } = 0;
         public double MessageBufferSlidingTimeoutInSecond { get; set; } = 0;
