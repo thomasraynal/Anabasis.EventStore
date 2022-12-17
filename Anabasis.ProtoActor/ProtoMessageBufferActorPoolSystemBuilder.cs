@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor
 {
-    public class ProtoMessageBufferActorPoolSystemBuilder<TActor> : ProtoActorPoolSystem where TActor : MessageBufferActorBase
+    public class ProtoMessageBufferActorPoolSystemBuilder<TActor> : ProtoActorSystem where TActor : MessageBufferActorBase
     {
         private readonly IBufferingStrategy[] _bufferingStrategies;
 

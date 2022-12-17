@@ -81,9 +81,10 @@ namespace Anabasis.Common.Worker
                         break;
                     }
 
-                    if (_queueBuffer.CanPull())
+                    var canPull = _queueBuffer.TryPull(out messageBatch);
+
+                    if (canPull)
                     {
-                        messageBatch = _queueBuffer.Pull();
 
                         var events = messageBatch.Select(message => message.Content).ToArray();
 
@@ -98,7 +99,7 @@ namespace Anabasis.Common.Worker
 
                     }
 
-                    await Task.Delay(100);
+                    Thread.Sleep(200);
 
                 }
                 catch (Exception exception)

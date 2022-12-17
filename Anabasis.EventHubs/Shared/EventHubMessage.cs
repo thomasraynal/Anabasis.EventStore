@@ -25,6 +25,8 @@ namespace Anabasis.EventHubs.Shared
 
         public Guid? TraceId { get; }
 
+        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
+
         public Task Acknowledge()
         {
             IsAcknowledged = true;

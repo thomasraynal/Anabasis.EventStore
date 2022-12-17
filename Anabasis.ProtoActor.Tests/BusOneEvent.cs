@@ -2,8 +2,17 @@
 
 namespace Anabasis.ProtoActor.Tests
 {
+    
     public class BusOneEvent : IEvent
     {
+        
+        public BusOneEvent(int eventNumber)
+        {
+            this.EventNumber = eventNumber;
+        }
+
+        public int EventNumber { get; }
+
         public Guid? TraceId => Guid.NewGuid();
 
         public Guid EventId => Guid.NewGuid();

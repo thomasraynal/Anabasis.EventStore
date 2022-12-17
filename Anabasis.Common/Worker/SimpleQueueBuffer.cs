@@ -2,11 +2,19 @@
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.Common.Worker
 {
+    public enum QueueBufferStatus
+    {
+        Available = 0,
+        Busy = 1
+    }
+
     public class SimpleQueueBuffer : IQueueBuffer
     {
 
@@ -15,9 +23,9 @@ namespace Anabasis.Common.Worker
         private readonly double _bufferAbsoluteTimeoutInSecond;
         private readonly double _bufferSlidingTimeoutInSecond;
 
-        public DateTime LastDequeuedUtcDate { get; set; }
-        public DateTime LastEnqueuedUtcDate { get; set; }
-      
+        public DateTime LastDequeuedUtcDate { get; private set; }
+        public DateTime LastEnqueuedUtcDate { get; private set; }
+
         public SimpleQueueBuffer(int bufferMaxSize,
             double bufferAbsoluteTimeoutInSecond,
             double bufferSlidingTimeoutInSecond)
@@ -75,9 +83,23 @@ namespace Anabasis.Common.Worker
 
         }
 
+        public bool TryPull(out IMessage[] pulledMessages, int? maxNumberOfMessage = null)
+        {
+            if (CanPull)
+            {
+                pulledMessages = Pull(maxNumberOfMessage);
+            }
+            else
+            {
+                pulledMessages = Array.Empty<IMessage>();
+            }
+
+            return pulledMessages.Length > 0;
+        }
+
         public IMessage[] Pull(int? maxNumberOfMessage = null)
         {
-            if (!CanPull())
+            if (!CanPull)
             {
                 throw new InvalidOperationException("Pull operation not possible");
             }
@@ -88,13 +110,15 @@ namespace Anabasis.Common.Worker
             {
                 var hasDequeued = _concurrentQueue.TryDequeue(out IMessage message);
 
-                messageBatch.Add(message);
-
-                if (null != maxNumberOfMessage && messageBatch.Count == maxNumberOfMessage.Value)
+                if (hasDequeued)
                 {
-                    break;
-                }
+                    messageBatch.Add(message);
 
+                    if (null != maxNumberOfMessage && messageBatch.Count == maxNumberOfMessage.Value)
+                    {
+                        break;
+                    }
+                }
             }
 
             LastDequeuedUtcDate = DateTime.UtcNow;
@@ -102,26 +126,37 @@ namespace Anabasis.Common.Worker
             return messageBatch.ToArray();
         }
 
-        public bool CanPull()
+        public bool HasMessages
         {
-            var now = DateTime.UtcNow;
-
-            if (_concurrentQueue.IsEmpty) return false;
-
-            if (now > LastDequeuedUtcDate.AddSeconds(_bufferAbsoluteTimeoutInSecond))
+            get
             {
-                var secondsSincelastEnqueudMessage = (now - LastEnqueuedUtcDate).TotalSeconds;
+                return _concurrentQueue.Count > 0;
+            }
+        }
 
-                if (secondsSincelastEnqueudMessage < _bufferSlidingTimeoutInSecond)
+        public bool CanPull
+        {
+            get
+            {
+                var now = DateTime.UtcNow;
+
+                if (_concurrentQueue.IsEmpty) return false;
+
+                if (now > LastDequeuedUtcDate.AddSeconds(_bufferAbsoluteTimeoutInSecond))
                 {
-                    return false;
+                    var secondsSincelastEnqueudMessage = (now - LastEnqueuedUtcDate).TotalSeconds;
+
+                    if (secondsSincelastEnqueudMessage < _bufferSlidingTimeoutInSecond)
+                    {
+                        return false;
+                    }
+
+                    return true;
+
                 }
 
-                return true;
-
+                return _concurrentQueue.Count >= _bufferMaxSize;
             }
-
-            return _concurrentQueue.Count >= _bufferMaxSize;
         }
 
         public async Task<IMessage[]> Flush(bool nackMessages)
@@ -155,5 +190,6 @@ namespace Anabasis.Common.Worker
         {
             Flush(true).Wait();
         }
+
     }
 }

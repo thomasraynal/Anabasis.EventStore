@@ -17,6 +17,7 @@ namespace Anabasis.ProtoActor
         private readonly Action<IMessage[]> _messageHandler;
         private readonly CancellationToken _cancellationToken;
         private readonly IKillSwitch _killSwitch;
+        private readonly ManualResetEventSlim _addSignal = new ManualResetEventSlim();
 
         public ProtoActorPoolDispatchQueue(string owner, 
             IProtoActorPoolDispatchQueueConfiguration protoActorPoolDispatchQueueConfiguration,
@@ -68,11 +69,19 @@ namespace Anabasis.ProtoActor
 
         public IMessage[] TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages)
         {
-           return _queueBuffer.TryPush(messages, out unProcessedMessages);
+            var pushedMessages = _queueBuffer.TryPush(messages, out unProcessedMessages);
+
+            if (pushedMessages.Length > 0)
+            {
+                _addSignal.Set();
+            }
+
+            return pushedMessages;
         }
 
         private async void HandleWork()
         {
+
             var messageBatch = Array.Empty<IMessage>();
 
             while (!_cancellationToken.IsCancellationRequested)
@@ -84,21 +93,26 @@ namespace Anabasis.ProtoActor
                         break;
                     }
 
-                    if (_queueBuffer.CanPull())
-                    {
-                        messageBatch = _queueBuffer.Pull();
+                    var canPull = _queueBuffer.TryPull(out messageBatch);
 
+                    if (canPull)
+                    {
                         PulledMessagesCount += messageBatch.Length;
 
-                        Debug.WriteLine($"Pulled batch of {messageBatch.Length} messages");
+                        Logger?.LogDebug($"Pulled batch of {messageBatch.Length} messages");
 
                         _messageHandler(messageBatch);
 
                         ProcessedMessagesCount += messageBatch.Length;
-
                     }
-
-                    await Task.Delay(100);
+                    else
+                    {
+                        if (_addSignal.Wait(200))
+                        {
+                            _addSignal.Reset();
+                        }
+                          
+                    }
 
                 }
                 catch (Exception exception)
@@ -107,7 +121,7 @@ namespace Anabasis.ProtoActor
 
                     Logger?.LogError(exception, $"An exception occured during the message consumption process");
 
-                    this.LastError = exception;
+                    LastError = exception;
 
                     var unacknowledgeMessageTask = messageBatch.Where(message => !message.IsAcknowledged).Select(message => message.NotAcknowledge());
 
