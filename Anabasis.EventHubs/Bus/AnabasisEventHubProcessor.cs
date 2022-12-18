@@ -172,6 +172,7 @@ namespace Anabasis.EventHubs
             {
                 isEventBatchAcknowledged = eventHubMessage.All(message => message.IsAcknowledged);
 
+                //todo: use observable
                 await Task.Delay(100);
             }
 

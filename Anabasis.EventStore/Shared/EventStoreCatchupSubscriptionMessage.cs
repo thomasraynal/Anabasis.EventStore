@@ -10,18 +10,16 @@ namespace Anabasis.EventStore.Shared
 {
     public class EventStoreCatchupSubscriptionMessage : BaseEventStoreMessage
     {
-        public EventStoreCatchupSubscriptionMessage(Guid? messageId, IEvent content, ResolvedEvent resolvedEvent) : base(messageId, content, resolvedEvent)
+        public EventStoreCatchupSubscriptionMessage(Guid messageId, IEvent content, ResolvedEvent resolvedEvent, Guid? traceId = null) : base(messageId, content, resolvedEvent, traceId)
         {
         }
 
-        public override Task Acknowledge()
+        protected override Task AcknowledgeInternal()
         {
-            IsAcknowledged = true;
-
             return Task.CompletedTask;
         }
 
-        public override Task NotAcknowledge(string? reason = null)
+        protected override Task NotAcknowledgeInternal(string? reason = null)
         {
             return Task.CompletedTask;
         }

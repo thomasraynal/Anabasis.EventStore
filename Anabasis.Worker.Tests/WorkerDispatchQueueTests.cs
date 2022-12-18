@@ -61,7 +61,7 @@ namespace Anabasis.Worker.Tests
 
             var messageBatch = Enumerable.Range(0, messageBatchSize).Select(_ => GetEvent()).ToArray();
 
-            workerDispatchQueue.TryPush(messageBatch, out var unprocessedMessages);
+            workerDispatchQueue.TryEnqueue(messageBatch, out var unprocessedMessages);
 
             await Task.Delay(200);
 
@@ -102,14 +102,14 @@ namespace Anabasis.Worker.Tests
 
             var messageBatch = Enumerable.Range(0, messageBatchSize).Select(_ => GetEvent()).ToArray();
 
-            workerDispatchQueue.TryPush(messageBatch, out var unprocessedMessages);
+            workerDispatchQueue.TryEnqueue(messageBatch, out var unprocessedMessages);
 
             await Task.Delay(200);
 
             Assert.AreEqual(messageBatchSize - bufferSize, unprocessedMessages.Length);
             Assert.AreEqual(messageBatchSize - bufferSize, receivedEvents.Count);
 
-            workerDispatchQueue.TryPush(unprocessedMessages, out  unprocessedMessages);
+            workerDispatchQueue.TryEnqueue(unprocessedMessages, out  unprocessedMessages);
 
             await Task.Delay(200);
 

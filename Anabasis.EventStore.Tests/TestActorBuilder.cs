@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.Common.Contracts;
 using Anabasis.EventStore.Standalone;
 using Lamar;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
@@ -12,30 +13,18 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
-    public class TestActorMessage : IMessage
+    public class TestActorMessage : BaseMessage
     {
-        public TestActorMessage(IEvent @event)
+        public TestActorMessage(IEvent content, Guid? traceId = null) : base(Guid.NewGuid(), content, traceId)
         {
-            Content = @event;
         }
 
-        public Guid MessageId => Guid.NewGuid();
-
-        public IEvent Content { get; }
-
-        public Guid? TraceId { get; set; }
-
-        public bool IsAcknowledged { get; private set; }
-
-        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
-
-        public Task Acknowledge()
+        protected override Task AcknowledgeInternal()
         {
-            IsAcknowledged = true;
-            return Task.CompletedTask;
+           return Task.CompletedTask;
         }
 
-        public Task NotAcknowledge(string reason=null)
+        protected override Task NotAcknowledgeInternal(string reason = null)
         {
             return Task.CompletedTask;
         }

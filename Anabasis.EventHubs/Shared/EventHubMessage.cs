@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Contracts;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -7,37 +8,19 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventHubs.Shared
 {
-    public class EventHubMessage : IEventHubMessage
+    public class EventHubMessage : BaseMessage, IEventHubMessage
     {
-        public EventHubMessage(Guid messageId, IEvent content, Guid? traceId = null)
+        public EventHubMessage(Guid messageId, IEvent content, Guid? traceId = null) : base(messageId, content, traceId)
         {
-            MessageId = messageId;
-            Content = content;
-            TraceId = traceId;
-
         }
 
-        public Guid MessageId { get; }
-
-        public IEvent Content { get; }
-
-        public bool IsAcknowledged { get; private set; }
-
-        public Guid? TraceId { get; }
-
-        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
-
-        public Task Acknowledge()
+        protected override Task AcknowledgeInternal()
         {
-            IsAcknowledged = true;
-
             return Task.CompletedTask;
         }
 
-        public Task NotAcknowledge(string? reason = null)
+        protected override Task NotAcknowledgeInternal(string? reason = null)
         {
-            IsAcknowledged = false;
-
             return Task.CompletedTask;
         }
     }

@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
+using Anabasis.Common.Contracts;
 using Anabasis.EventStore.Standalone;
 using Microsoft.Extensions.Logging;
 using NUnit.Framework;
@@ -10,28 +11,18 @@ using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Tests
 {
-    public class EventMessage : IMessage
+    public class EventMessage : BaseMessage
     {
-        public EventMessage(IEvent @event)
+        public EventMessage(IEvent content, Guid? traceId = null) : base(Guid.NewGuid(), content, traceId)
         {
-            Content = @event;
         }
 
-        public Guid MessageId { get; }
-
-        public IEvent Content { get; }
-
-        public Guid? TraceId { get; }
-
-        public bool IsAcknowledged => throw new NotImplementedException();
-
-        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
-
-        public Task Acknowledge()
+        protected override Task AcknowledgeInternal()
         {
-            return Task.CompletedTask;
+           return Task.CompletedTask;
         }
-        public Task NotAcknowledge(string reason = null)
+
+        protected override Task NotAcknowledgeInternal(string reason = null)
         {
             return Task.CompletedTask;
         }

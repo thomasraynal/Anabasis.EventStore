@@ -17,7 +17,7 @@ namespace Anabasis.ProtoActor
         private readonly Action<IMessage[]> _messageHandler;
         private readonly CancellationToken _cancellationToken;
         private readonly IKillSwitch _killSwitch;
-        private readonly ManualResetEventSlim _addSignal = new ManualResetEventSlim();
+        private readonly ManualResetEventSlim _addSignal = new();
 
         public ProtoActorPoolDispatchQueue(string owner, 
             IProtoActorPoolDispatchQueueConfiguration protoActorPoolDispatchQueueConfiguration,
@@ -69,7 +69,7 @@ namespace Anabasis.ProtoActor
 
         public IMessage[] TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages)
         {
-            var pushedMessages = _queueBuffer.TryPush(messages, out unProcessedMessages);
+            var pushedMessages = _queueBuffer.TryEnqueue(messages, out unProcessedMessages);
 
             if (pushedMessages.Length > 0)
             {

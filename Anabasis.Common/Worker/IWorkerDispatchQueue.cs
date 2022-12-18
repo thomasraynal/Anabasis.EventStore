@@ -9,8 +9,8 @@ namespace Anabasis.Common.Worker
         bool IsFaulted { get; }
         Exception? LastError { get; }
         string Owner { get; }
-        bool CanPush();
-        void Push(IMessage message);
-        IMessage[] TryPush(IMessage[] messages, out IMessage[] unProcessedMessages);
+        bool CanPush { get; }
+
+        IMessage[] TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages);
     }
 }

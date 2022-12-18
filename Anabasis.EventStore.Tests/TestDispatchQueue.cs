@@ -1,5 +1,7 @@
 ﻿using Anabasis.Common;
+using Anabasis.Common.Contracts;
 using Anabasis.Common.Queue;
+using LamarCodeGeneration.Util;
 using NSubstitute;
 using NUnit.Framework;
 using System;
@@ -38,36 +40,24 @@ namespace Anabasis.EventStore.Tests
     }
 
 
-    public class TestMessage : IMessage
+    public class TestMessage : BaseMessage
     {
-        public int Value { get; }
-        public bool IsAcknowledge { get; set; }
-        public int DequeueCount => 0;
-
-        public Guid MessageId => Guid.NewGuid();
-
-        public IEvent Content { get; }
-
-        public Guid? TraceId { get; set; }
-
-        public bool IsAcknowledged => throw new NotImplementedException();
-
-        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
-
-        public TestMessage(int value)
+        public TestMessage(int value, IEvent content) : base(Guid.NewGuid(), content)
         {
-            Content = new TestEvent(value);
+            Value = value;
         }
 
-        public Task Acknowledge()
+        public int Value { get; }
+  
+        public int DequeueCount => 0;
+
+        protected override Task AcknowledgeInternal()
         {
-            IsAcknowledge = true;
             return Task.CompletedTask;
         }
 
-        public Task NotAcknowledge(string reason = null)
+        protected override Task NotAcknowledgeInternal(string reason = null)
         {
-            IsAcknowledge = false;
             return Task.CompletedTask;
         }
     }
@@ -103,7 +93,7 @@ namespace Anabasis.EventStore.Tests
 
             for (var i = 0; i < messageCount; i++)
             {
-                dispatchQueue.Enqueue(new TestMessage(i));
+                dispatchQueue.Enqueue(new TestMessage(i, new TestEvent(i)));
             }
 
             await Task.Delay(messageConsumptionWait * batchSize);
@@ -136,9 +126,7 @@ namespace Anabasis.EventStore.Tests
             dispatchQueue.Dispose();
 
             Assert.IsFalse(dispatchQueue.CanEnqueue());
-
-            Assert.Throws<InvalidOperationException>(() => dispatchQueue.Enqueue(new TestMessage(1)));
-
+            Assert.Throws<InvalidOperationException>(() => dispatchQueue.Enqueue(new TestMessage(1, new TestEvent(1))));
         }
 
         [TestCase(true)]
@@ -147,8 +135,8 @@ namespace Anabasis.EventStore.Tests
         {
             var killSwitch = Substitute.For<IKillSwitch>();
 
-            var message1 = new TestMessage(0);
-            var message2 = new TestMessage(1);
+            var message1 = new TestMessage(0, new TestEvent(0));
+            var message2 = new TestMessage(1, new TestEvent(1));
 
             var dispatchQueueConfiguration = new DispatchQueueConfiguration(
                  (m) =>
@@ -173,15 +161,15 @@ namespace Anabasis.EventStore.Tests
 
             if (shouldCrashApp)
             {
-                Assert.IsFalse(message1.IsAcknowledge);
-                Assert.IsFalse(message2.IsAcknowledge);
+                Assert.IsFalse(message1.IsAcknowledged);
+                Assert.IsFalse(message2.IsAcknowledged);
                 Assert.IsFalse(dispatchQueue.CanEnqueue());
                 Assert.IsTrue(dispatchQueue.IsFaulted);
             }
             else
             {
-                Assert.IsFalse(message1.IsAcknowledge);
-                Assert.IsTrue(message2.IsAcknowledge);
+                Assert.IsFalse(message1.IsAcknowledged);
+                Assert.IsTrue(message2.IsAcknowledged);
                 Assert.IsTrue(dispatchQueue.CanEnqueue());
                 Assert.IsFalse(dispatchQueue.IsFaulted);
             }
@@ -212,7 +200,11 @@ namespace Anabasis.EventStore.Tests
 
             while (dispatchQueue.CanEnqueue() && messages.Count < 100)
             {
-                var message = new TestMessage(i++);
+               
+                var message = new TestMessage(i, new TestEvent(i));
+
+                i++;
+
                 messages.Add(message);
                 dispatchQueue.Enqueue(message);
             }
@@ -222,11 +214,11 @@ namespace Anabasis.EventStore.Tests
             Assert.IsFalse(dispatchQueue.CanEnqueue());
             Assert.IsTrue(dispatchQueue.IsFaulted);
 
-            Assert.IsTrue(messages.First().IsAcknowledge);
+            Assert.IsTrue(messages.First().IsAcknowledged);
 
             foreach (var message in messages.Skip(1))
             {
-                Assert.IsFalse(message.IsAcknowledge);
+                Assert.IsFalse(message.IsAcknowledged);
             }
 
 
@@ -258,7 +250,9 @@ namespace Anabasis.EventStore.Tests
 
             while (dispatchQueue.CanEnqueue() && messages.Count < 100)
             {
-                var message = new TestMessage(i++);
+                i++;
+
+                var message = new TestMessage(i, new TestEvent(i));
                 messages.Add(message);
                 dispatchQueue.Enqueue(message);
             }
@@ -268,7 +262,7 @@ namespace Anabasis.EventStore.Tests
             Assert.IsTrue(dispatchQueue.CanEnqueue());
             Assert.IsFalse(dispatchQueue.IsFaulted);
 
-            Assert.IsTrue(messages.Where(m => !m.IsAcknowledge).Count() == 1);
+            Assert.IsTrue(messages.Where(m => !m.IsAcknowledged).Count() == 1);
         }
     }
 }

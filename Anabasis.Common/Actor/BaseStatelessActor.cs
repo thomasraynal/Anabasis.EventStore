@@ -122,7 +122,9 @@ namespace Anabasis.Common
                 SpinWait.SpinUntil(() => _dispatchQueue.CanEnqueue(), (int)timeout.Value.TotalMilliseconds);
 
                 if (!_dispatchQueue.CanEnqueue())
+                {
                     throw new TimeoutException("Unable to process event - timeout reached");
+                }
             }
 
             _dispatchQueue.Enqueue(@event);
@@ -209,7 +211,7 @@ namespace Anabasis.Common
             if (_connectedBus.Count == 0) return new HealthCheckResult(HealthStatus.Healthy, healthCheckDescription);
 
             Exception? exception = null;
-
+            
             var healthChecksResults = new HealthCheckResult[0];
             var healthStatus = HealthStatus.Healthy;
             var data = new Dictionary<string, object>();

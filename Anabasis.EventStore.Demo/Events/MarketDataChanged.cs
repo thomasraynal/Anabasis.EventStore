@@ -1,32 +1,22 @@
 using Anabasis.Common;
+using Anabasis.Common.Contracts;
 using System;
 using System.Threading.Tasks;
 
 namespace Anabasis.EventStore.Demo
 {
-    public class MarketDataBusMessage : IMessage
+    public class MarketDataBusMessage : BaseMessage
     {
-        public MarketDataBusMessage(IEvent content)
+        public MarketDataBusMessage(IEvent content, Guid? traceId = null) : base(Guid.NewGuid(), content, traceId)
         {
-            Content = content;
         }
 
-        public Guid MessageId => Guid.NewGuid();
-
-        public IEvent Content { get; }
-
-        public Guid? TraceId { get; }
-
-        public bool IsAcknowledged => throw new NotImplementedException();
-
-        public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
-
-        public Task Acknowledge()
+        protected override Task AcknowledgeInternal()
         {
             return Task.CompletedTask;
         }
 
-        public Task NotAcknowledge(string reason=null)
+        protected override Task NotAcknowledgeInternal(string reason = null)
         {
             return Task.CompletedTask;
         }

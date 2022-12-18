@@ -9,12 +9,6 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Common.Worker
 {
-    public enum QueueBufferStatus
-    {
-        Available = 0,
-        Busy = 1
-    }
-
     public class SimpleQueueBuffer : IQueueBuffer
     {
 
@@ -44,22 +38,10 @@ namespace Anabasis.Common.Worker
 
         public bool CanPush => _concurrentQueue.Count < _bufferMaxSize;
 
-        public void Push(IMessage message)
+
+        public IMessage[] TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages)
         {
-            if (!CanPush)
-            {
-                throw new InvalidOperationException("Push operation not possible");
-            }
-  
-            LastEnqueuedUtcDate = DateTime.UtcNow;
            
-            _concurrentQueue.Enqueue(message);
-        }
-
-        public IMessage[] TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
-        {
-            LastEnqueuedUtcDate = DateTime.UtcNow;
-
             var unProcessedMessagesList = new List<IMessage>();
             var processedMessagesList = new List<IMessage>();
 
@@ -70,6 +52,8 @@ namespace Anabasis.Common.Worker
                     _concurrentQueue.Enqueue(message);
 
                     processedMessagesList.Add(message);
+
+                    LastEnqueuedUtcDate = DateTime.UtcNow;
                 }
                 else
                 {
@@ -85,14 +69,8 @@ namespace Anabasis.Common.Worker
 
         public bool TryPull(out IMessage[] pulledMessages, int? maxNumberOfMessage = null)
         {
-            if (CanPull)
-            {
-                pulledMessages = Pull(maxNumberOfMessage);
-            }
-            else
-            {
-                pulledMessages = Array.Empty<IMessage>();
-            }
+
+            pulledMessages = Pull(maxNumberOfMessage);
 
             return pulledMessages.Length > 0;
         }
@@ -101,7 +79,7 @@ namespace Anabasis.Common.Worker
         {
             if (!CanPull)
             {
-                throw new InvalidOperationException("Pull operation not possible");
+               return Array.Empty<IMessage>();
             }
 
             var messageBatch = new List<IMessage>();

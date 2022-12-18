@@ -18,7 +18,7 @@ namespace Anabasis.Worker.Tests
 
             var testMessage = new TestEventBusMessage(EventA.New());
 
-            simpleQueueBuffer.Push(testMessage);
+            simpleQueueBuffer.TryEnqueue(new[] { testMessage }, out _);
 
             Assert.IsFalse(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanPull);
@@ -42,7 +42,7 @@ namespace Anabasis.Worker.Tests
 
             var testMessage = new TestEventBusMessage(EventA.New());
 
-            simpleQueueBuffer.Push(testMessage);
+            simpleQueueBuffer.TryEnqueue(new[] { testMessage }, out _);
 
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanPull);
@@ -56,8 +56,8 @@ namespace Anabasis.Worker.Tests
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanPull);
 
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
 
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanPull);
@@ -84,7 +84,7 @@ namespace Anabasis.Worker.Tests
 
             var testMessage = new TestEventBusMessage(EventA.New());
 
-            simpleQueueBuffer.Push(testMessage);
+            simpleQueueBuffer.TryEnqueue(new[] { testMessage }, out _);
 
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanPull);
@@ -98,8 +98,8 @@ namespace Anabasis.Worker.Tests
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanPull);
 
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
 
             Assert.IsFalse(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanPull);
@@ -113,9 +113,9 @@ namespace Anabasis.Worker.Tests
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanPull);
 
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
 
             await Task.Delay(1000);
 
@@ -125,8 +125,8 @@ namespace Anabasis.Worker.Tests
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanPull);
 
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
-     
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
+
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanPull);
 
@@ -136,7 +136,7 @@ namespace Anabasis.Worker.Tests
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsTrue(simpleQueueBuffer.CanPull);
 
-            simpleQueueBuffer.Push(new TestEventBusMessage(EventA.New()));
+            simpleQueueBuffer.TryEnqueue(new[] { new TestEventBusMessage(EventA.New()) }, out _);
 
             Assert.IsTrue(simpleQueueBuffer.CanPush);
             Assert.IsFalse(simpleQueueBuffer.CanPull);

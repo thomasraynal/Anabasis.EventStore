@@ -263,7 +263,7 @@ namespace Anabasis.Common.Worker
                     throw new ArgumentNullException("workerDispatchQueue");
                 }
 
-                var processedMessages = workerDispatchQueue.TryPush(messagesToProcess, out messagesToProcess);
+                var processedMessages = workerDispatchQueue.TryEnqueue(messagesToProcess, out messagesToProcess);
 
                 Logger?.LogDebug($"Processed {processedMessages.Length} messages");
                 Logger?.LogDebug($"{processedMessages.Length} unprocessed messages");

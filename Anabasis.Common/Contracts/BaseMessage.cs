@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq.Expressions;
+using System.Reactive.Subjects;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -8,11 +10,15 @@ namespace Anabasis.Common.Contracts
     public abstract class BaseMessage : IMessage
     {
 
+        private readonly Subject<bool> _onAcknowledgeSubject;
+
         public BaseMessage(Guid messageId, IEvent content, Guid? traceId = null)
         {
             MessageId = messageId;
             Content = content;
             TraceId = traceId;
+
+            _onAcknowledgeSubject = new Subject<bool>();
 
         }
 
@@ -22,22 +28,32 @@ namespace Anabasis.Common.Contracts
 
         public bool IsAcknowledged { get; private set; }
 
-        public abstract IObservable<bool> OnAcknowledged { get; }
+        public IObservable<bool> OnAcknowledged => _onAcknowledgeSubject;
 
         public IEvent Content { get; }
 
         protected abstract Task AcknowledgeInternal();
 
-        public Task Acknowledge()
+        public async Task Acknowledge()
         {
-            throw new NotImplementedException();
+           await AcknowledgeInternal();
+
+            IsAcknowledged = true;
+
+            _onAcknowledgeSubject.OnNext(true);
+            _onAcknowledgeSubject.OnCompleted();
         }
 
-        protected abstract Task NotAcknowledgeInternal();
+        protected abstract Task NotAcknowledgeInternal(string? reason = null);
 
-        public Task NotAcknowledge(string? reason = null)
+        public async Task NotAcknowledge(string? reason = null)
         {
-            throw new NotImplementedException();
+            await NotAcknowledgeInternal();
+
+            IsAcknowledged = false;
+
+            _onAcknowledgeSubject.OnNext(false);
+            _onAcknowledgeSubject.OnCompleted();
         }
     }
 }

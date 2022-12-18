@@ -15,6 +15,7 @@ namespace Anabasis.Common.Worker
         private readonly CancellationToken _cancellationToken;
         private readonly Thread _thread;
         private readonly CompositeDisposable _cleanUp;
+        private readonly ManualResetEventSlim _addSignal = new();
 
         public long ProcessedMessagesCount { get; private set; }
         public Exception? LastError { get; private set; }
@@ -58,19 +59,22 @@ namespace Anabasis.Common.Worker
             Logger?.LogDebug($"{Id} started");
 
         }
-        public void Push(IMessage message)
-        {
-            _queueBuffer.Push(message);
-        }
 
-        public IMessage[] TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
+        public IMessage[] TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages)
         {
-            return _queueBuffer.TryPush(messages, out unProcessedMessages);
+            var enqueuedMessages = _queueBuffer.TryEnqueue(messages, out unProcessedMessages);
+
+            if (enqueuedMessages.Length > 0)
+            {
+                _addSignal.Set();
+            }
+
+            return enqueuedMessages;
         }
 
         private async void HandleWork()
         {
-           var messageBatch = Array.Empty<IMessage>();
+            var messageBatch = Array.Empty<IMessage>();
 
             while (!_cancellationToken.IsCancellationRequested)
             {
@@ -81,9 +85,9 @@ namespace Anabasis.Common.Worker
                         break;
                     }
 
-                    var canPull = _queueBuffer.TryPull(out messageBatch);
+                    var hasPull = _queueBuffer.TryPull(out messageBatch);
 
-                    if (canPull)
+                    if (hasPull)
                     {
 
                         var events = messageBatch.Select(message => message.Content).ToArray();
@@ -98,8 +102,14 @@ namespace Anabasis.Common.Worker
                         ProcessedMessagesCount += messageBatch.Length;
 
                     }
+                    else
+                    {
+                        if (_addSignal.Wait(200))
+                        {
+                            _addSignal.Reset();
+                        }
 
-                    Thread.Sleep(200);
+                    }
 
                 }
                 catch (Exception exception)
@@ -113,7 +123,7 @@ namespace Anabasis.Common.Worker
                     var unacknowledgeMessageTask = messageBatch.Where(message => !message.IsAcknowledged).Select(message => message.NotAcknowledge());
 
                     await Task.WhenAll(unacknowledgeMessageTask);
-                    
+
                     if (_workerDispatchQueueConfiguration.CrashAppOnError)
                     {
                         IsFaulted = true;
@@ -136,9 +146,12 @@ namespace Anabasis.Common.Worker
             await _queueBuffer.Flush(true);
         }
 
-        public bool CanPush()
+        public bool CanPush
         {
-            return _queueBuffer.CanPush;
+            get
+            {
+                return _queueBuffer.CanPush;
+            }
         }
 
         public void Dispose()

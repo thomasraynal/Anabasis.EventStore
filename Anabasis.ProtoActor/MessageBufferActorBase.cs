@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Anabasis.Common.Contracts;
+using Microsoft.Extensions.Logging;
 using Proto;
 using Proto.Mailbox;
 using System;
@@ -10,21 +11,22 @@ using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor
 {
-    public abstract class MessageBufferActorBase : IActor
+
+    public abstract class MessageBufferActorBase<TMessage> : IActor where TMessage : class
     {
-        private readonly ILogger<MessageBufferActorBase>? _logger;
+        private readonly ILogger<MessageBufferActorBase<TMessage>>? _logger;
         private readonly MessageBufferActorConfiguration _messageBufferActorConfiguration;
         private readonly IBufferingStrategy[] _bufferingStrategies;
-        private readonly List<object> _messageBuffer;
+        private readonly List<TMessage> _messageBuffer;
         private bool _shouldGracefulyStop;
 
         protected MessageBufferActorBase(MessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null)
         {
-            _logger = loggerFactory?.CreateLogger<MessageBufferActorBase>();
+            _logger = loggerFactory?.CreateLogger<MessageBufferActorBase<TMessage>>();
             _messageBufferActorConfiguration = messageBufferActorConfiguration;
             _bufferingStrategies = messageBufferActorConfiguration.BufferingStrategies;
             _shouldGracefulyStop = false;
-            _messageBuffer = new List<object>();
+            _messageBuffer = new List<TMessage>();
         }
 
         private bool ShouldConsumeBuffer(object message, IContext context)
@@ -46,6 +48,11 @@ namespace Anabasis.ProtoActor
 
         }
 
+        protected virtual Task OnBufferConsumed(TMessage[] buffer)
+        {
+            return Task.CompletedTask;
+        }
+
         private async Task ConsumeBuffer(IContext context)
         {
             foreach (var bufferingStrategy in _bufferingStrategies)
@@ -56,7 +63,7 @@ namespace Anabasis.ProtoActor
             await ReceiveAsync(_messageBuffer.ToArray(), context);
         }
 
-        public abstract Task ReceiveAsync(object[] messages, IContext context);
+        public abstract Task ReceiveAsync(TMessage[] messages, IContext context);
 
         public async Task ReceiveAsync(IContext context)
         {
@@ -78,8 +85,10 @@ namespace Anabasis.ProtoActor
                     break;
                 case IBufferedMessageGroup:
                     break;
-                case IBufferTimeoutDelayMessage:
                 default:
+                    throw new InvalidOperationException($"Message {message.GetType()} is not of type {typeof(TMessage)}");
+                case IBufferTimeoutDelayMessage:
+                case TMessage:
 
                     _logger?.LogInformation($"Received message => {message.GetType()}");
 
@@ -87,7 +96,12 @@ namespace Anabasis.ProtoActor
 
                     if (!isBufferTimeoutDelayMessage)
                     {
-                        _messageBuffer.Add(message);
+                        if (message is not TMessage tMessage)
+                        {
+                            throw new InvalidOperationException($"Message {message.GetType()} is not of type {typeof(TMessage)}");
+                        }
+
+                        _messageBuffer.Add(tMessage);
                     }
 
                     var shouldConsumeBuffer = ShouldConsumeBuffer(message, context);
@@ -97,6 +111,8 @@ namespace Anabasis.ProtoActor
                         if (_messageBuffer.Any())
                         {
                             await ConsumeBuffer(context);
+
+                            await OnBufferConsumed(_messageBuffer.ToArray());
 
                             _messageBuffer.Clear();
                         }
@@ -117,6 +133,7 @@ namespace Anabasis.ProtoActor
                     }
 
                     break;
+
             }
 
         }

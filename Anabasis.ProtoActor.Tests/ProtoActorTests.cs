@@ -69,13 +69,13 @@ namespace Anabasis.ProtoActor.Tests
         }
     }
 
-    public class TestMessageBufferActor : MessageBufferActorBase
+    public class TestMessageBufferActor : AcknowledgableMessageBufferActorBase<BusOneMessage>
     {
         public TestMessageBufferActor(MessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageBufferActorConfiguration, loggerFactory)
         {
         }
 
-        public override async Task ReceiveAsync(object[] messages, IContext context)
+        public override async Task ReceiveAsync(BusOneMessage[] messages, IContext context)
         {
 
             var rand = new Random();
@@ -84,10 +84,6 @@ namespace Anabasis.ProtoActor.Tests
 
             Debug.WriteLine($"{context.Self.Id} handle batch of {messages.Length} messages");
 
-            foreach (var message in messages.Cast<IMessage>())
-            {
-                await message.Acknowledge();
-            }
 
         }
     }
@@ -303,12 +299,19 @@ namespace Anabasis.ProtoActor.Tests
 
             var rand = new Random();
 
-            for (var i = 0; i < 100; i++)
+            for (var i = 0; i < 50; i++)
             {
                 busOne.Emit(Enumerable.Range(0,rand.Next(1,10)).Select(_=> new BusOneMessage(new BusOneEvent(i))).ToArray());
             }
 
-            await Task.Delay(10000);
+            await Task.Delay(6000);
+
+            for (var i = 0; i < 50; i++)
+            {
+                busOne.Emit(Enumerable.Range(0, rand.Next(1, 10)).Select(_ => new BusOneMessage(new BusOneEvent(i))).ToArray());
+            }
+
+            await Task.Delay(6000);
 
             var unackedMessages = busOne.EmittedMessages.Where(message => !message.IsAcknowledged).ToArray();
 

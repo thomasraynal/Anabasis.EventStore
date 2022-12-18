@@ -9,19 +9,19 @@ namespace Anabasis.EventStore.Shared
     {
         private readonly EventStorePersistentSubscriptionBase? _eventStorePersistentSubscriptionBase;
 
-        public EventStorePersistentSubscriptionMessage(Guid? messageId, IEvent content, ResolvedEvent resolvedEvent, EventStorePersistentSubscriptionBase? eventStorePersistentSubscriptionBase) : base(messageId, content, resolvedEvent)
+        public EventStorePersistentSubscriptionMessage(Guid messageId, IEvent content, ResolvedEvent resolvedEvent, EventStorePersistentSubscriptionBase? eventStorePersistentSubscriptionBase, Guid? traceId = null) : base(messageId, content, resolvedEvent, traceId)
         {
             _eventStorePersistentSubscriptionBase = eventStorePersistentSubscriptionBase;
         }
 
-        public override Task Acknowledge()
+        protected override Task AcknowledgeInternal()
         {
             _eventStorePersistentSubscriptionBase?.Acknowledge(ResolvedEvent);
 
             return Task.CompletedTask;
         }
 
-        public override Task NotAcknowledge(string? reason = null)
+        protected override Task NotAcknowledgeInternal(string? reason = null)
         {
             _eventStorePersistentSubscriptionBase?.Fail(ResolvedEvent, PersistentSubscriptionNakEventAction.Retry, reason);
 

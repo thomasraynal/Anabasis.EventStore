@@ -62,7 +62,7 @@ namespace Anabasis.Common.Worker
 
                     foreach (var timestampedResource in _workerDispatchQueuesByTimestampUsage)
                     {
-                        if (timestampedResource.Resource.CanPush())
+                        if (timestampedResource.Resource.CanPush)
                         {
                             workerDispatchQueue = timestampedResource.Resource;
                             timestampedResource.Timestamp = DateTime.UtcNow;

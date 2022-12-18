@@ -26,10 +26,7 @@ namespace Anabasis.Worker.Tests
 
             public long ProcessedMessagesCount => throw new NotImplementedException();
 
-            public bool CanPush()
-            {
-                return true;
-            }
+            public bool CanPush=> true;
 
             public void Dispose()
             {
@@ -46,7 +43,7 @@ namespace Anabasis.Worker.Tests
                 throw new NotImplementedException();
             }
 
-            IMessage[] IWorkerDispatchQueue.TryPush(IMessage[] messages, out IMessage[] unProcessedMessages)
+            IMessage[] IWorkerDispatchQueue.TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages)
             {
                 throw new NotImplementedException();
             }

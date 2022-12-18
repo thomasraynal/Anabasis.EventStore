@@ -12,8 +12,7 @@ namespace Anabasis.Common.Worker
         bool CanPull { get; }
         IMessage[] Pull(int? maxNumberOfMessage = null);
         bool TryPull(out IMessage[] pulledMessages, int? maxNumberOfMessage = null);
-        IMessage[] TryPush(IMessage[] messages, out IMessage[] unProcessedMessages);
-        void Push(IMessage message);
+        IMessage[] TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages);
         Task<IMessage[]> Flush(bool nackMessages);
 
     }
