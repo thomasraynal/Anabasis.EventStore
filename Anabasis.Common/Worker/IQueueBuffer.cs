@@ -7,6 +7,7 @@ namespace Anabasis.Common.Worker
 {
     public interface IQueueBuffer : IDisposable
     {
+        string Id { get; }
         bool HasMessages { get; }
         bool CanPush { get; }
         bool CanPull { get; }

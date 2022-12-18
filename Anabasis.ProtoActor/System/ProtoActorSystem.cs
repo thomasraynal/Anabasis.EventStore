@@ -239,9 +239,9 @@ namespace Anabasis.ProtoActor.System
 
         public void Dispose()
         {
-            _cleanUp.Dispose();
-
             _cancellationTokenSource.Cancel();
+
+            _cleanUp.Dispose();
 
             foreach (var pid in _rootPidRegistry)
             {

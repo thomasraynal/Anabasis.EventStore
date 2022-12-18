@@ -1,6 +1,8 @@
 using Anabasis.Common.Queue;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -90,11 +92,18 @@ namespace Anabasis.Common
 
                             try
                             {
+                                var messagesToNack = new List<IMessage>();
 
                                 while (remainingMessages.TryDequeue(out var remainingMessage))
                                 {
-                                    await remainingMessage.NotAcknowledge();
+                                    messagesToNack.Add(remainingMessage);
+
                                 }
+
+                                var messagesToNackTasks = messagesToNack.Select(messageToNack => messageToNack.NotAcknowledge($"Flushing {Id}"));
+
+                                await messagesToNackTasks.ExecuteAndWaitForCompletion();
+
 
                             }
                             catch { }

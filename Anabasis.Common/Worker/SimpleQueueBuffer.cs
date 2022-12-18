@@ -20,10 +20,14 @@ namespace Anabasis.Common.Worker
         public DateTime LastDequeuedUtcDate { get; private set; }
         public DateTime LastEnqueuedUtcDate { get; private set; }
 
+        public string Id { get; }
+
         public SimpleQueueBuffer(int bufferMaxSize,
             double bufferAbsoluteTimeoutInSecond,
             double bufferSlidingTimeoutInSecond)
         {
+
+            Id = $"{nameof(SimpleQueueBuffer)}_{Guid.NewGuid()}";
 
             _concurrentQueue = new ConcurrentQueue<IMessage>();
 
@@ -149,11 +153,15 @@ namespace Anabasis.Common.Worker
 
                     messages.Add(message);
 
-                    if (hasDequeued)
-                    {
-                        await message.NotAcknowledge();
-                    }
                 }
+
+                if (messages.Count > 0) 
+                {
+                    var nackMessageTasks = messages.Select(message => message.NotAcknowledge($"Flushing {Id}"));
+
+                    await nackMessageTasks.ExecuteAndWaitForCompletion();
+                }
+
             }
             else
             {
