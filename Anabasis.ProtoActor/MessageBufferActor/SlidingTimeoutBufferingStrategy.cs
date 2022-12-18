@@ -6,7 +6,7 @@ using System.Reactive.Concurrency;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.MessageBufferActor
 {
     public class SlidingTimeoutBufferingStrategy : IBufferingStrategy
     {

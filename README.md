@@ -66,3 +66,7 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Anabasis.Identity.svg)](https://www.nuget.org/packages/Anabasis.Identity)
 
+**Anabasis.ProtoActor**
+
+[![NuGet](https://img.shields.io/nuget/v/Anabasis.ProtoActor.svg)](https://www.nuget.org/packages/Anabasis.ProtoActor)
+

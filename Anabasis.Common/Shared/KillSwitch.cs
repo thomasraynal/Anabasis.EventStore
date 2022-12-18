@@ -15,5 +15,9 @@ namespace Anabasis.Common
         {
             KillProcess(new Exception(reason));
         }
+        public void KillProcess(string reason, Exception exception)
+        {
+            KillProcess(new Exception(reason, exception));
+        }
     }
 }

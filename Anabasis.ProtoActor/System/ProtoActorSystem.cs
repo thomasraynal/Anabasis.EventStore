@@ -1,15 +1,21 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Worker;
+using Anabasis.ProtoActor.Queue;
 using Microsoft.Extensions.Logging;
 using Proto;
 using Proto.DependencyInjection;
 using Proto.Mailbox;
 using Proto.Router;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.System
 {
 
     public class ProtoActorSystem : IProtoActorSystem
@@ -58,6 +64,7 @@ namespace Anabasis.ProtoActor
                 loggerFactory,
                 killSwitch);
 
+            _cleanUp.Add(Disposable.Create(() => _cancellationTokenSource.Cancel()));
             _cleanUp.Add(_protoActorPoolDispatchQueue);
 
             ActorSystem = new ActorSystem().WithServiceProvider(serviceProvider);
@@ -73,7 +80,7 @@ namespace Anabasis.ProtoActor
             var pid = RootContext.Spawn(newRoundRobinPoolProps);
 
             _rootPidRegistry.Add(pid);
-            
+
             return pid;
 
         }
@@ -148,7 +155,7 @@ namespace Anabasis.ProtoActor
 
             var taskCompletionSource = new TaskCompletionSource();
 
-            var onMessageBatchAck = Observable.Merge(messages.Select(message => message.OnAcknowledged)).Subscribe(_ =>
+            var onMessageBatchAck = messages.Select(message => message.OnAcknowledged).Merge().Subscribe(_ =>
             {
                 AcknowledgeMessagesCount++;
 
@@ -217,7 +224,7 @@ namespace Anabasis.ProtoActor
             if (!_connectedBus.ContainsKey(busType))
             {
 
-                var candidate = _connectedBus.Values.FirstOrDefault(bus => (bus as TBus) != null);
+                var candidate = _connectedBus.Values.FirstOrDefault(bus => bus as TBus != null);
 
                 if (null == candidate)
                 {
@@ -234,7 +241,14 @@ namespace Anabasis.ProtoActor
         {
             _cleanUp.Dispose();
 
-            ActorSystem.ShutdownAsync().Wait();
+            _cancellationTokenSource.Cancel();
+
+            foreach (var pid in _rootPidRegistry)
+            {
+                RootContext.Stop(pid);
+            }
+
+            ActorSystem.ShutdownAsync($"Disposing {nameof(ProtoActorSystem)}").Wait();
 
         }
 

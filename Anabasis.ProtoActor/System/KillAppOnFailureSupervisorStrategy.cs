@@ -6,7 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.System
 {
     public class KillAppOnFailureSupervisorStrategy : ISupervisorStrategy
     {
@@ -19,7 +19,7 @@ namespace Anabasis.ProtoActor
 
         public void HandleFailure(ISupervisor supervisor, PID child, RestartStatistics rs, Exception cause, object? message)
         {
-            _killSwitch.KillProcess(cause);
+            _killSwitch.KillProcess($"PID=>{child} - {cause}");
         }
     }
 }

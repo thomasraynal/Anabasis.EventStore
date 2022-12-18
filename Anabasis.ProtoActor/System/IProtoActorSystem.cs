@@ -1,7 +1,9 @@
 ﻿using Anabasis.Common;
 using Proto;
+using System;
+using System.Threading.Tasks;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.System
 {
     public interface IProtoActorSystem : IDisposable
     {

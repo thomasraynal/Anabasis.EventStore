@@ -7,7 +7,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Anabasis.Common;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.MessageBufferActor
 {
     public abstract class AcknowledgableMessageBufferActorBase<TAcknowledgable> : MessageBufferActorBase<TAcknowledgable>
         where TAcknowledgable : class, IAcknowledgable

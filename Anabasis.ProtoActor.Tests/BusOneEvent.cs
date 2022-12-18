@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using System;
 
 namespace Anabasis.ProtoActor.Tests
 {

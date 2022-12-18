@@ -26,6 +26,11 @@ namespace Anabasis.Worker.Tests
             {
                 IsAppKilled = true;
             }
+
+            public void KillProcess(string reason, Exception exception)
+            {
+                IsAppKilled = true;
+            }
         }
 
         [Theory]

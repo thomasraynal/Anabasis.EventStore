@@ -1,10 +1,14 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Worker;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Diagnostics;
+using System.Linq;
 using System.Reactive.Disposables;
+using System.Threading;
+using System.Threading.Tasks;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.Queue
 {
     public class ProtoActorPoolDispatchQueue : IProtoActorPoolDispatchQueue
     {
@@ -19,7 +23,7 @@ namespace Anabasis.ProtoActor
         private readonly IKillSwitch _killSwitch;
         private readonly ManualResetEventSlim _addSignal = new();
 
-        public ProtoActorPoolDispatchQueue(string owner, 
+        public ProtoActorPoolDispatchQueue(string owner,
             IProtoActorPoolDispatchQueueConfiguration protoActorPoolDispatchQueueConfiguration,
             CancellationToken cancellationToken,
             Action<IMessage[]> messageHandler,
@@ -111,7 +115,7 @@ namespace Anabasis.ProtoActor
                         {
                             _addSignal.Reset();
                         }
-                          
+
                     }
 
                 }
@@ -156,6 +160,7 @@ namespace Anabasis.ProtoActor
 
         public void Dispose()
         {
+            _cleanUp.Dispose();
             _queueBuffer.Dispose();
             _thread?.Join();
         }

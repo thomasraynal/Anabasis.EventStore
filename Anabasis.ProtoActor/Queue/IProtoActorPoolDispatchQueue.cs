@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.Queue
 {
 
     public interface IProtoActorPoolDispatchQueue : IDisposable
@@ -16,5 +16,5 @@ namespace Anabasis.ProtoActor
         Exception? LastError { get; }
         bool CanEnqueue();
         IMessage[] TryEnqueue(IMessage[] messages, out IMessage[] unProcessedMessages);
-    }   
+    }
 }

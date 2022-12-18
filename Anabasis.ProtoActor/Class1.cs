@@ -6,7 +6,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor
 {
-    public class GracefullyStopBufferActorMessage: IGracefullyStopBufferActorMessage
+    //stand alone + asp net builders
+    //Actor dispacth message on handler
+    internal class Class1
     {
     }
 }

@@ -1,4 +1,8 @@
 ﻿using Anabasis.Common;
+using Anabasis.ProtoActor.MessageBufferActor;
+using Anabasis.ProtoActor.Queue;
+using Anabasis.ProtoActor.System;
+using Lamar;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
@@ -6,9 +10,14 @@ using NUnit.Framework;
 using Proto;
 using Proto.DependencyInjection;
 using Proto.Mailbox;
+using System;
+using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Subjects;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.Tests
 {
@@ -193,10 +202,6 @@ namespace Anabasis.ProtoActor.Tests
         }
     }
 
-
-
-    // handle https://proto.actor/docs/receive-timeout/
-
     [TestFixture]
     public class ProtoActorTests
     {
@@ -204,27 +209,11 @@ namespace Anabasis.ProtoActor.Tests
         [Test]
         public async Task ShouldCreateAnActor()
         {
-            var container = new Lamar.Container(serviceRegistry =>
-            {
-                serviceRegistry.For<TestMessageBufferActor>().Use<TestMessageBufferActor>();
-                serviceRegistry.For<ILoggerFactory>().Use<DummyLoggerFactory>();
-
-                serviceRegistry.For<MessageBufferActorConfiguration>().Use((_) =>
-                {
-                    var messageBufferActorConfiguration = new MessageBufferActorConfiguration(TimeSpan.FromSeconds(1), new IBufferingStrategy[]
-                    {
-                        new AbsoluteTimeoutBufferingStrategy(TimeSpan.FromSeconds(1)),
-                        new BufferSizeBufferingStrategy(5)
-                    });
-
-                    return messageBufferActorConfiguration;
-                });
-            });
+            var container = GetContainer();
 
             var actorSystem = new ActorSystem().WithServiceProvider(container);
 
             var killSwitch = Substitute.For<IKillSwitch>();
-            // var props = actorSystem.DI().PropsFor<TestActor>().WithMailbox(() => UnboundedMailbox.Create());
             var supervisorStrategy = new KillAppOnFailureSupervisorStrategy(killSwitch);
             var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(int.MaxValue, true);
 
@@ -234,13 +223,12 @@ namespace Anabasis.ProtoActor.Tests
               new DummyLoggerFactory());
 
             var pid = protoActoSystem.CreateActor<TestActor>();
+
             var busOne = new BusOne();
 
             await protoActoSystem.ConnectTo(busOne);
 
             protoActoSystem.SubscribeToBusOne();
-
-            var rand = new Random();
 
             for (var i = 0; i < 100; i++)
             {
@@ -251,16 +239,13 @@ namespace Anabasis.ProtoActor.Tests
 
         }
 
-
-        [Test]
-        public async Task ShouldCreateAnActorPool()
+        private Container GetContainer()
         {
-           
             var container = new Lamar.Container(serviceRegistry =>
             {
                 serviceRegistry.For<TestMessageBufferActor>().Use<TestMessageBufferActor>();
                 serviceRegistry.For<ILoggerFactory>().Use<DummyLoggerFactory>();
-                
+
                 serviceRegistry.For<MessageBufferActorConfiguration>().Use((_) =>
                 {
                     var messageBufferActorConfiguration = new MessageBufferActorConfiguration(TimeSpan.FromSeconds(1), new IBufferingStrategy[]
@@ -273,10 +258,49 @@ namespace Anabasis.ProtoActor.Tests
                 });
             });
 
+            return container;
+        }
+
+        [Test]
+        public async Task ShouldStopAnActorSystem()
+        {
+            var container = GetContainer();
 
             var actorSystem = new ActorSystem().WithServiceProvider(container);
 
-            var props = actorSystem.DI().PropsFor<TestMessageBufferActor>().WithMailbox(() => UnboundedMailbox.Create()).WithMailbox(() => UnboundedMailbox.Create());
+            var props = actorSystem.DI().PropsFor<TestMessageBufferActor>().WithMailbox(() => UnboundedMailbox.Create());
+
+
+            var killSwitch = Substitute.For<IKillSwitch>();
+            var supervisorStrategy = new KillAppOnFailureSupervisorStrategy(killSwitch);
+
+            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(int.MaxValue, true);
+
+            var protoActorSystem = new ProtoActorSystem(supervisorStrategy,
+                    protoActorPoolDispatchQueueConfiguration,
+                    container.ServiceProvider,
+                    new DummyLoggerFactory());
+
+            var pid = protoActorSystem.CreateActor<TestActor>();
+
+
+            protoActorSystem.Dispose();
+
+            await Task.Delay(1000);
+
+        }
+
+
+            [Test]
+        public async Task ShouldCreateAnActorPool()
+        {
+
+
+            var container = GetContainer();
+
+            var actorSystem = new ActorSystem().WithServiceProvider(container);
+
+            var props = actorSystem.DI().PropsFor<TestMessageBufferActor>().WithMailbox(() => UnboundedMailbox.Create());
 
 
             var killSwitch = Substitute.For<IKillSwitch>();

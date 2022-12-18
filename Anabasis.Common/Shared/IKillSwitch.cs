@@ -8,5 +8,6 @@ namespace Anabasis.Common
     {
         void KillProcess(Exception exception);
         void KillProcess(string reason);
+        void KillProcess(string reason, Exception exception);
     }
 }

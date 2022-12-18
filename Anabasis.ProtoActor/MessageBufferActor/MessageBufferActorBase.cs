@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common.Contracts;
+using Anabasis.ProtoActor.System;
 using Microsoft.Extensions.Logging;
 using Proto;
 using Proto.Mailbox;
@@ -9,7 +10,7 @@ using System.Reactive.Concurrency;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.MessageBufferActor
 {
 
     public abstract class MessageBufferActorBase<TMessage> : IActor where TMessage : class
@@ -82,8 +83,6 @@ namespace Anabasis.ProtoActor
                 case IGracefullyStopBufferActorMessage:
                     _logger?.LogInformation($"Received GracefullyStopBufferActorMessage => {message.GetType()}");
                     _shouldGracefulyStop = true;
-                    break;
-                case IBufferedMessageGroup:
                     break;
                 default:
                     throw new InvalidOperationException($"Message {message.GetType()} is not of type {typeof(TMessage)}");
