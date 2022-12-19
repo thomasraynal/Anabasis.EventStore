@@ -32,7 +32,7 @@ namespace Anabasis.ProtoActor.Queue
             IKillSwitch? killSwitch = null)
         {
             Owner = owner;
-            Id = $"{nameof(ProtoActorPoolDispatchQueue)}_{Guid.NewGuid()}";
+            Id = this.GetUniqueIdFromType();
             Logger = loggerFactory?.CreateLogger(GetType());
 
             _queueBuffer = queueBuffer ?? new SimpleQueueBuffer(protoActorPoolDispatchQueueConfiguration.MessageBufferMaxSize, 0, 0);
@@ -129,7 +129,7 @@ namespace Anabasis.ProtoActor.Queue
 
                     var unacknowledgeMessageTask = messageBatch.Where(message => !message.IsAcknowledged).Select(message => message.NotAcknowledge());
 
-                    await Task.WhenAll(unacknowledgeMessageTask);
+                    await unacknowledgeMessageTask.ExecuteAndWaitForCompletion();
 
                     if (_protoActorPoolDispatchQueueConfiguration.CrashAppOnError)
                     {

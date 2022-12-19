@@ -51,7 +51,7 @@ namespace Anabasis.EventHubs
             _eventHubProducerClient = GetEventHubProducerClient();
             _eventHubProcessorClient = GetEventProcessorClient(eventHubPartitionMonitoring);
 
-            BusId = $"{nameof(EventHubBus)}_{Guid.NewGuid()}";
+            BusId = this.GetUniqueIdFromType();
 
             ConnectionStatusMonitor = new EventHubConnectionStatusMonitor(this, loggerFactory);
 

@@ -27,7 +27,7 @@ namespace Anabasis.Common.Worker
             double bufferSlidingTimeoutInSecond)
         {
 
-            Id = $"{nameof(SimpleQueueBuffer)}_{Guid.NewGuid()}";
+            Id = this.GetUniqueIdFromType();
 
             _concurrentQueue = new ConcurrentQueue<IMessage>();
 

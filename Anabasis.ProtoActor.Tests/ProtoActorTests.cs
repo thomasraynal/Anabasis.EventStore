@@ -7,6 +7,7 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
+using Polly;
 using Proto;
 using Proto.DependencyInjection;
 using Proto.Mailbox;
@@ -56,45 +57,37 @@ namespace Anabasis.ProtoActor.Tests
         }
     }
 
-    public class TestActor : IActor
+    public class TestActor : MessageHandlerProtoActorBase
     {
-        public async Task ReceiveAsync(IContext context)
+        public TestActor(IMessageHandlerActorConfiguration messageHandlerActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageHandlerActorConfiguration, loggerFactory)
         {
-            if(context.Message is SystemMessage)
-            {
-                return;
-            }
+        }
 
+        public async Task Handle(BusOneEvent busOneEvent)
+        {
             var rand = new Random();
 
             await Task.Delay(rand.Next(100, 500));
 
-            var ev = context.Message as BusOneMessage;
-
-            Debug.WriteLine($"Handle message {(ev.Content as BusOneEvent).EventNumber}");
-
-
-
+            Debug.WriteLine($"Handle message {busOneEvent.EventNumber}");
         }
     }
 
-    public class TestMessageBufferActor : AcknowledgableMessageBufferActorBase<BusOneMessage>
+    public class TestMessageBufferActor : MessageBufferHandlerProtoActorBase
     {
         public TestMessageBufferActor(MessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageBufferActorConfiguration, loggerFactory)
         {
         }
-
-        public override async Task ReceiveAsync(BusOneMessage[] messages, IContext context)
+        public async Task Handle(IEvent[] events)
         {
 
             var rand = new Random();
 
             await Task.Delay(rand.Next(100, 500));
 
-            Debug.WriteLine($"{context.Self.Id} handle batch of {messages.Length} messages");
-
-
+            Debug.WriteLine($"Handle {events.Length} message(s)");
         }
+
     }
 
     public static class BusOneExtension
@@ -248,7 +241,7 @@ namespace Anabasis.ProtoActor.Tests
 
                 serviceRegistry.For<MessageBufferActorConfiguration>().Use((_) =>
                 {
-                    var messageBufferActorConfiguration = new MessageBufferActorConfiguration(TimeSpan.FromSeconds(1), new IBufferingStrategy[]
+                    var messageBufferActorConfiguration = new MessageBufferActorConfiguration(TimeSpan.FromSeconds(1), bufferingStrategies: new IBufferingStrategy[]
                     {
                         new AbsoluteTimeoutBufferingStrategy(TimeSpan.FromSeconds(1)),
                         new BufferSizeBufferingStrategy(5)

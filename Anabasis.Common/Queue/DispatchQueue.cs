@@ -28,7 +28,8 @@ namespace Anabasis.Common
 
             Logger = loggerFactory?.CreateLogger(GetType());
             Owner = ownerId;
-            Id = $"{nameof(DispatchQueue)}_{ownerId}_{Guid.NewGuid()}";
+
+            Id = this.GetUniqueIdFromType(postfix: ownerId);
 
             _killSwitch = killSwitch ?? new KillSwitch();
 

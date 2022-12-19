@@ -1,11 +1,12 @@
 ﻿using Anabasis.Common;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Proto;
 using System;
 using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.System
 {
-    public interface IProtoActorSystem : IDisposable
+    public interface IProtoActorSystem : IHealthCheck, IDisposable
     {
         ActorSystem ActorSystem { get; }
         RootContext RootContext { get; }

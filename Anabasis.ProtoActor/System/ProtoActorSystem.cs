@@ -1,6 +1,7 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Worker;
 using Anabasis.ProtoActor.Queue;
+using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using Proto;
 using Proto.DependencyInjection;
@@ -14,6 +15,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Anabasis.Common.Utilities;
 
 namespace Anabasis.ProtoActor.System
 {
@@ -28,6 +30,7 @@ namespace Anabasis.ProtoActor.System
         private readonly List<PID> _rootPidRegistry;
         private readonly CancellationTokenSource _cancellationTokenSource;
         private readonly IProtoActorPoolDispatchQueue _protoActorPoolDispatchQueue;
+        private readonly EventStreamSubscription<object> _deadLettersSubscription;
 
         public ActorSystem ActorSystem { get; }
         public RootContext RootContext { get; }
@@ -56,7 +59,7 @@ namespace Anabasis.ProtoActor.System
             _cancellationTokenSource = new CancellationTokenSource();
 
             Logger = loggerFactory?.CreateLogger<ProtoActorSystem>();
-            Id = $"{nameof(ProtoActorSystem)}_{Guid.NewGuid()}";
+            Id = this.GetUniqueIdFromType();
 
             _protoActorPoolDispatchQueue = new ProtoActorPoolDispatchQueue(Id, protoActorPoolDispatchQueueConfiguration, _cancellationTokenSource.Token,
                 ProcessMessage,
@@ -66,9 +69,20 @@ namespace Anabasis.ProtoActor.System
 
             _cleanUp.Add(Disposable.Create(() => _cancellationTokenSource.Cancel()));
             _cleanUp.Add(_protoActorPoolDispatchQueue);
-
+            
             ActorSystem = new ActorSystem().WithServiceProvider(serviceProvider);
             RootContext = new RootContext(ActorSystem);
+
+           _deadLettersSubscription = ActorSystem.EventStream.Subscribe<DeadLetterEvent>(
+                deadLetterEvent =>
+                {
+                    var logMessage = $"Received dead letter : {Environment.NewLine} {deadLetterEvent.ToJson()}";
+
+                    Logger?.LogError(logMessage);
+                });
+
+            _cleanUp.Add(Disposable.Create(() => _deadLettersSubscription.Unsubscribe()));
+
         }
 
         public PID CreateRoundRobinPool<TActor>(int poolSize, Action<Props>? onCreateProps = null) where TActor : IActor
@@ -87,7 +101,7 @@ namespace Anabasis.ProtoActor.System
 
         private Props CreateCommonProps<TActor>(Action<Props>? onCreateProps = null) where TActor : IActor
         {
-            var props = ActorSystem.DI().PropsFor<TActor>();
+            var props = ActorSystem.DI().PropsFor<TActor>().WithExceptionHandler(Logger);
 
             props.WithGuardianSupervisorStrategy(_supervisorStrategy);
 
@@ -252,5 +266,50 @@ namespace Anabasis.ProtoActor.System
 
         }
 
+        public async Task<HealthCheckResult> CheckHealthAsync(HealthCheckContext context, CancellationToken cancellationToken = default)
+        {
+            if (ActorSystem.Shutdown.IsCancellationRequested)
+            {
+                return HealthCheckResult.Unhealthy();
+            }
+
+            var healthCheckDescription = $"{Id} HealthChecks";
+
+            if (_connectedBus.Count == 0) return new HealthCheckResult(HealthStatus.Healthy, healthCheckDescription);
+
+            Exception? exception = null;
+
+            var healthChecksResults = Array.Empty<HealthCheckResult>();
+            var healthStatus = HealthStatus.Healthy;
+            var data = new Dictionary<string, object>();
+
+            try
+            {
+                healthChecksResults = await Task.WhenAll(_connectedBus.Select(bus => bus.Value.CheckHealthAsync(context)));
+                healthStatus = healthChecksResults.Select(anabasisHealthCheck => anabasisHealthCheck.Status).Min();
+
+                foreach (var anabasisHealthCheck in healthChecksResults.SelectMany(anabasisHealthCheck => anabasisHealthCheck.Data))
+                {
+                    data.Add(anabasisHealthCheck.Key, anabasisHealthCheck.Value);
+                }
+            }
+
+            catch (Exception ex)
+            {
+                healthStatus = HealthStatus.Unhealthy;
+                exception = ex.GetActualException();
+            }
+
+            if (_protoActorPoolDispatchQueue.IsFaulted)
+            {
+                exception = _protoActorPoolDispatchQueue.LastError;
+                healthStatus = HealthStatus.Unhealthy;
+                data.Add($"{nameof(ProtoActorSystem)} is in a faulted state", _protoActorPoolDispatchQueue.LastError?.Message);
+            }
+
+            return new HealthCheckResult(healthStatus, healthCheckDescription, exception, data);
+
+
+        }
     }
 }

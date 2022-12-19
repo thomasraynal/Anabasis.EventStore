@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Repository
         {
             Logger = loggerFactory?.CreateLogger<EventStoreRepository>();
 
-            Id = $"{GetType()}-{Guid.NewGuid()}";
+            Id = this.GetUniqueIdFromType();
 
             _eventStoreRepositoryConfiguration = eventStoreRepositoryConfiguration;
             _eventStoreConnection = eventStoreConnection;

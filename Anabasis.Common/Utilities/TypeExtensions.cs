@@ -31,6 +31,11 @@ namespace Anabasis.Common
             {typeof(void), "void"}
         };
 
+        public static string GetUniqueIdFromType(this object @object, string? prefix = null, string? postfix = null)
+        {
+            return $"{prefix ?? string.Empty}{@object.GetType().Name}_{Guid.NewGuid()}{postfix ?? string.Empty}";
+        }
+
         public static string GetReadableNameFromType(this object @object)
         {
             return @object.GetType().GetReadableNameFromType();

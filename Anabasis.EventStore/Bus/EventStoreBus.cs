@@ -29,7 +29,7 @@ namespace Anabasis.EventStore
             IEventStoreRepository eventStoreRepository,
             ILoggerFactory? loggerFactory = null)
         {
-            BusId = $"{nameof(EventStoreBus)}_{Guid.NewGuid()}";
+            BusId = this.GetUniqueIdFromType();
 
             ConnectionStatusMonitor = _connectionStatusMonitor = connectionStatusMonitor;
 

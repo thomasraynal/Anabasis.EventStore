@@ -30,7 +30,7 @@ namespace Anabasis.EventStore.Stream
 
             Logger = loggerFactory?.CreateLogger(GetType());
 
-            Id = $"{GetType()}-{Guid.NewGuid()}";
+            Id = this.GetUniqueIdFromType();
 
             _eventStoreStreamConfiguration = cacheConfiguration;
             _eventTypeProvider = eventTypeProvider;

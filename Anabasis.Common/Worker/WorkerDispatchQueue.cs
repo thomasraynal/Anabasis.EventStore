@@ -34,7 +34,8 @@ namespace Anabasis.Common.Worker
 
             Logger = loggerFactory?.CreateLogger(GetType());
             Owner = ownerId;
-            Id = $"{nameof(DispatchQueue)}_{ownerId}_{Guid.NewGuid()}";
+
+            Id = this.GetUniqueIdFromType(postfix: ownerId);
 
             _killSwitch = killSwitch ?? new KillSwitch();
             _workerDispatchQueueConfiguration = workerDispatchQueueConfiguration;
@@ -120,7 +121,7 @@ namespace Anabasis.Common.Worker
 
                     this.LastError = exception;
 
-                    var unacknowledgeMessageTask = messageBatch.Where(message => !message.IsAcknowledged).Select(message => message.NotAcknowledge());
+                    var unacknowledgeMessageTask = messageBatch.Where(message => !message.IsAcknowledged).Select(message => message.NotAcknowledge($"Error while handling a message batch"));
 
                     await Task.WhenAll(unacknowledgeMessageTask);
 

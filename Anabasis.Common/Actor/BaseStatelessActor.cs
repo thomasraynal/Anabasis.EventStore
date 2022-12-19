@@ -42,7 +42,8 @@ namespace Anabasis.Common
 
         private void Setup(IActorConfiguration actorConfiguration, ILoggerFactory? loggerFactory)
         {
-            Id = $"{GetType().Name}-{Guid.NewGuid()}";
+            Id = this.GetUniqueIdFromType();
+
             Logger = loggerFactory?.CreateLogger(GetType());
 
             _cleanUp = new CompositeDisposable();
@@ -81,7 +82,7 @@ namespace Anabasis.Common
             }
         }
 
-        public virtual Task OnError(IEvent source, Exception exception)
+        protected virtual Task OnError(IEvent source, Exception exception)
         {
             ExceptionDispatchInfo.Capture(exception).Throw();
 
@@ -138,7 +139,7 @@ namespace Anabasis.Common
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id);
+            return Id.GetHashCode();
         }
 
         public virtual void Dispose()

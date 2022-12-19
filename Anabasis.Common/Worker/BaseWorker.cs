@@ -53,7 +53,7 @@ namespace Anabasis.Common.Worker
         private void Setup(IWorkerConfiguration workerConfiguration, IWorkerMessageDispatcherStrategy? workerMessageDispatcherStrategy, ILoggerFactory? loggerFactory)
         {
 
-            Id = $"{GetType().Name}_{Guid.NewGuid()}";
+            Id = this.GetUniqueIdFromType();
             Logger = loggerFactory?.CreateLogger(GetType());
 
             _cleanUp = new CompositeDisposable();
@@ -110,7 +110,7 @@ namespace Anabasis.Common.Worker
             }
         }
 
-        public virtual Task OnError(IEvent source, Exception exception)
+        protected virtual Task OnError(IEvent source, Exception exception)
         {
             ExceptionDispatchInfo.Capture(exception).Throw();
 
@@ -124,7 +124,7 @@ namespace Anabasis.Common.Worker
 
         public override int GetHashCode()
         {
-            return HashCode.Combine(Id);
+            return Id.GetHashCode();
         }
 
         public virtual void Dispose()

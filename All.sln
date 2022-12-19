@@ -99,7 +99,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.Identity", "Anabas
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.ProtoActor", "Anabasis.ProtoActor\Anabasis.ProtoActor.csproj", "{4F344C46-11EF-46BC-93E1-C6E35F283C74}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.ProtoActor.Tests", "Anabasis.ProtoActor.Tests\Anabasis.ProtoActor.Tests.csproj", "{7C9C2985-0CDB-4927-9383-59D739A49DD0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Anabasis.ProtoActor.Tests", "Anabasis.ProtoActor.Tests\Anabasis.ProtoActor.Tests.csproj", "{7C9C2985-0CDB-4927-9383-59D739A49DD0}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Anabasis.ProtoActor.AspNet", "Anabasis.ProtoActor.AspNet\Anabasis.ProtoActor.AspNet.csproj", "{161033F7-9E37-467D-8A30-1A337D274DB9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -435,6 +437,14 @@ Global
 		{7C9C2985-0CDB-4927-9383-59D739A49DD0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{7C9C2985-0CDB-4927-9383-59D739A49DD0}.Release|x64.ActiveCfg = Release|Any CPU
 		{7C9C2985-0CDB-4927-9383-59D739A49DD0}.Release|x64.Build.0 = Release|Any CPU
+		{161033F7-9E37-467D-8A30-1A337D274DB9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{161033F7-9E37-467D-8A30-1A337D274DB9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{161033F7-9E37-467D-8A30-1A337D274DB9}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{161033F7-9E37-467D-8A30-1A337D274DB9}.Debug|x64.Build.0 = Debug|Any CPU
+		{161033F7-9E37-467D-8A30-1A337D274DB9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{161033F7-9E37-467D-8A30-1A337D274DB9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{161033F7-9E37-467D-8A30-1A337D274DB9}.Release|x64.ActiveCfg = Release|Any CPU
+		{161033F7-9E37-467D-8A30-1A337D274DB9}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

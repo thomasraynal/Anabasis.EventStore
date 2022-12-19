@@ -60,7 +60,7 @@ namespace Anabasis.EventStore.Cache
            IKillSwitch? killSwitch = null)
         {
 
-            Id = $"{GetType()}-{Guid.NewGuid()}";
+            Id = this.GetUniqueIdFromType();
             EventTypeProvider = eventTypeProvider;
 
             Logger = loggerFactory?.CreateLogger(this.GetType());

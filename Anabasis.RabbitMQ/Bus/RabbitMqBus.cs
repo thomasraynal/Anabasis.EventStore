@@ -53,7 +53,7 @@ namespace Anabasis.RabbitMQ
                    IKillSwitch? killSwitch = null,
                    RetryPolicy? retryPolicy = null)
         {
-            BusId = $"{nameof(RabbitMqBus)}_{Guid.NewGuid()}";
+            BusId = this.GetUniqueIdFromType();
 
             _logger = loggerFactory?.CreateLogger<RabbitMqBus>();
             _serializer = serializer;
