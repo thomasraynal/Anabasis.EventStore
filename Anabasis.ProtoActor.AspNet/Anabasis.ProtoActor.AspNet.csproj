@@ -14,5 +14,11 @@
 		<Product />
 		<GeneratePackageOnBuild>true</GeneratePackageOnBuild>
 	</PropertyGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\Anabasis.Api\Anabasis.Api.csproj" />
+	  <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+	  <ProjectReference Include="..\Anabasis.ProtoActor\Anabasis.ProtoActor.csproj" />
+	</ItemGroup>
 	
 </Project>

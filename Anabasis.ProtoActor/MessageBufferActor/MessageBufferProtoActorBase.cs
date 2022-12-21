@@ -1,5 +1,4 @@
 ﻿using Anabasis.Common;
-using Anabasis.Common.Contracts;
 using Anabasis.ProtoActor.System;
 using Microsoft.Extensions.Logging;
 using Proto;
@@ -9,33 +8,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.MessageBufferActor
 {
 
-    public abstract class MessageBufferProtoActorBase : IActor, IDisposable
+    public abstract class MessageBufferProtoActorBase<TMessageBufferActorConfiguration> : IActor, IDisposable
+      where TMessageBufferActorConfiguration : IMessageBufferActorConfiguration
     {
 
-        protected readonly IMessageBufferActorConfiguration _messageBufferActorConfiguration;
+        protected TMessageBufferActorConfiguration MessageBufferActorConfiguration { get; }
 
         private readonly IBufferingStrategy[] _bufferingStrategies;
         private readonly List<IMessage> _messageBuffer;
         private readonly CompositeDisposable _cleanUp;
 
         public string Id { get; }
-        public ILogger<MessageBufferProtoActorBase>? Logger { get; }
+        public ILogger<MessageBufferProtoActorBase<TMessageBufferActorConfiguration>>? Logger { get; }
 
-        protected MessageBufferProtoActorBase(IMessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null)
+        protected MessageBufferProtoActorBase(TMessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null)
         {
-            _messageBufferActorConfiguration = messageBufferActorConfiguration;
+            MessageBufferActorConfiguration = messageBufferActorConfiguration;
+
             _bufferingStrategies = messageBufferActorConfiguration.BufferingStrategies;
             _messageBuffer = new List<IMessage>();
             _cleanUp = new CompositeDisposable();
 
             Id = this.GetUniqueIdFromType();
-            Logger = loggerFactory?.CreateLogger<MessageBufferProtoActorBase>();
+            Logger = loggerFactory?.CreateLogger<MessageBufferProtoActorBase<TMessageBufferActorConfiguration>>();
         }
 
         private bool ShouldConsumeBuffer(object message, IContext context)
@@ -101,11 +101,11 @@ namespace Anabasis.ProtoActor.MessageBufferActor
 
             switch (message)
             {
-                case Started:
+                case SystemMessage:
 
                     if (message is Started)
                     {
-                        context.SetReceiveTimeout(_messageBufferActorConfiguration.IdleTimeoutFrequency);
+                        context.SetReceiveTimeout(MessageBufferActorConfiguration.IdleTimeoutFrequency);
                     }
 
                     if (message is ReceiveTimeout)
@@ -164,7 +164,7 @@ namespace Anabasis.ProtoActor.MessageBufferActor
                     else
                     {
 
-                        Scheduler.Default.Schedule(_messageBufferActorConfiguration.ReminderSchedulingDelay, () =>
+                        Scheduler.Default.Schedule(MessageBufferActorConfiguration.ReminderSchedulingDelay, () =>
                         {
                             context.Send(context.Self, new BufferTimeoutDelayMessage());
                         });

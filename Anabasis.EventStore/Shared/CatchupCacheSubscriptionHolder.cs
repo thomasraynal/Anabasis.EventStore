@@ -10,14 +10,14 @@ namespace Anabasis.EventStore
 
         private readonly BehaviorSubject<bool> _isCaughtUpSubject;
 
-        internal CatchupCacheSubscriptionHolder(bool doAppCrashIfSubscriptionFail)
+        public CatchupCacheSubscriptionHolder(bool doAppCrashIfSubscriptionFail)
         {
             IsSuscribeToAll = true;
             CrashAppIfSubscriptionFail = doAppCrashIfSubscriptionFail;
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
         }
 
-        internal CatchupCacheSubscriptionHolder(string streamId, bool doAppCrashIfSubscriptionFail)
+        public CatchupCacheSubscriptionHolder(string streamId, bool doAppCrashIfSubscriptionFail)
         {
             StreamId = streamId;
             CrashAppIfSubscriptionFail = doAppCrashIfSubscriptionFail;
@@ -28,13 +28,13 @@ namespace Anabasis.EventStore
         public bool CrashAppIfSubscriptionFail { get; private set; }
         public bool IsSuscribeToAll { get; private set; }
         public bool IsCaughtUp => _isCaughtUpSubject.Value;
-        internal BehaviorSubject<bool> OnCaughtUpSubject => _isCaughtUpSubject;
-        internal IObservable<bool> OnCaughtUp => _isCaughtUpSubject.AsObservable();
+        public BehaviorSubject<bool> OnCaughtUpSubject => _isCaughtUpSubject;
+        public IObservable<bool> OnCaughtUp => _isCaughtUpSubject.AsObservable();
         public string? StreamId { get; }
-        public DateTime LastProcessedEventUtcTimestamp { get; internal set; }
-        internal IDisposable? EventStreamConnectionDisposable { get; set; }
-        public long? LastProcessedEventSequenceNumber { get; internal set; } = null;
-        public long? CurrentSnapshotEventVersion { get; internal set; } = null;
+        public DateTime LastProcessedEventUtcTimestamp { get; set; }
+        public IDisposable? EventStreamConnectionDisposable { get; set; }
+        public long? LastProcessedEventSequenceNumber { get; set; } = null;
+        public long? CurrentSnapshotEventVersion { get; set; } = null;
 
         public void Dispose()
         {

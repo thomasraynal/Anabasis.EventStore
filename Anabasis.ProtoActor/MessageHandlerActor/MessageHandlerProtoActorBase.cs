@@ -3,32 +3,36 @@ using Anabasis.ProtoActor.MessageBufferActor;
 using Anabasis.ProtoActor.System;
 using Microsoft.Extensions.Logging;
 using Proto;
+using Proto.Mailbox;
 using System;
 using System.Reactive.Disposables;
 using System.Runtime.ExceptionServices;
 using System.Threading.Tasks;
 
-namespace Anabasis.ProtoActor
+namespace Anabasis.ProtoActor.MessageHandlerActor
 {
-    public abstract class MessageHandlerProtoActorBase : IActor, IDisposable
+    public abstract class MessageHandlerProtoActorBase<TMessageHandlerActorConfiguration> : IActor, IDisposable
+        where TMessageHandlerActorConfiguration : IMessageHandlerActorConfiguration
     {
 
-        private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
-        private readonly IMessageHandlerActorConfiguration _messageHandlerActorConfiguration;
+        protected readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         private readonly CompositeDisposable _cleanUp;
 
-        public ILogger<MessageHandlerProtoActorBase>? Logger { get; }
+        public ILogger<MessageHandlerProtoActorBase<TMessageHandlerActorConfiguration>>? Logger { get; }
         public string Id { get; }
-        public Exception? LastError { get; private set; }
+        public Exception? LastError { get; protected set; }
+        protected TMessageHandlerActorConfiguration MessageHandlerActorConfiguration { get; private set; }
 
-        protected MessageHandlerProtoActorBase(IMessageHandlerActorConfiguration messageHandlerActorConfiguration, ILoggerFactory? loggerFactory = null)
+        protected MessageHandlerProtoActorBase(TMessageHandlerActorConfiguration messageHandlerActorConfiguration, ILoggerFactory? loggerFactory = null)
         {
-            Logger = loggerFactory?.CreateLogger<MessageHandlerProtoActorBase>();
+            Logger = loggerFactory?.CreateLogger<MessageHandlerProtoActorBase<TMessageHandlerActorConfiguration>>();
+
             Id = this.GetUniqueIdFromType();
 
             _cleanUp = new CompositeDisposable();
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
-            _messageHandlerActorConfiguration = messageHandlerActorConfiguration;
+
+            MessageHandlerActorConfiguration = messageHandlerActorConfiguration;
         }
 
         public async Task ReceiveAsync(IContext context)
@@ -42,11 +46,13 @@ namespace Anabasis.ProtoActor
 
             switch (message)
             {
-                case Started:
+                case SystemMessage:
 
                     if (message is Started)
                     {
-                        context.SetReceiveTimeout(_messageHandlerActorConfiguration.IdleTimeoutFrequency);
+                        await OnStarted(context);
+
+                        context.SetReceiveTimeout(MessageHandlerActorConfiguration.IdleTimeoutFrequency);
                     }
 
                     if (message is ReceiveTimeout)
@@ -58,7 +64,7 @@ namespace Anabasis.ProtoActor
 
                     break;
                 case IGracefullyStopBufferActorMessage:
-                  
+
                     await OnReceivedGracefullyStop(context);
 
                     context.Stop(context.Self);
@@ -85,6 +91,12 @@ namespace Anabasis.ProtoActor
             }
         }
 
+
+        protected virtual Task OnStarted(IContext context)
+        {
+            return Task.CompletedTask;
+        }
+
         protected virtual Task OnReceivedGracefullyStop(IContext context)
         {
             return Task.CompletedTask;
@@ -102,7 +114,7 @@ namespace Anabasis.ProtoActor
             return Task.CompletedTask;
         }
 
-        private async Task ConsumeEvent(IEvent @event)
+        protected virtual async Task ConsumeEvent(IEvent @event)
         {
             try
             {
@@ -116,7 +128,7 @@ namespace Anabasis.ProtoActor
                     await (Task)candidateHandler.Invoke(this, new object[] { @event });
                 }
 
-                if (!_messageHandlerActorConfiguration.SwallowUnkwownEvents)
+                if (!MessageHandlerActorConfiguration.SwallowUnkwownEvents)
                 {
                     throw new InvalidOperationException($"{Id} cannot handle event {@event.GetType()}");
                 }
@@ -136,7 +148,7 @@ namespace Anabasis.ProtoActor
         }
         public override bool Equals(object? obj)
         {
-            return obj is MessageHandlerProtoActorBase actor && Id == actor.Id;
+            return obj is MessageHandlerProtoActorBase<TMessageHandlerActorConfiguration> actor && Id == actor.Id;
         }
 
         public override int GetHashCode()

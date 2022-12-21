@@ -1,5 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.ProtoActor.MessageBufferActor;
+using Anabasis.ProtoActor.MessageHandlerActor;
 using Anabasis.ProtoActor.Queue;
 using Anabasis.ProtoActor.System;
 using Lamar;
@@ -7,7 +8,6 @@ using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
-using Polly;
 using Proto;
 using Proto.DependencyInjection;
 using Proto.Mailbox;
@@ -57,38 +57,7 @@ namespace Anabasis.ProtoActor.Tests
         }
     }
 
-    public class TestActor : MessageHandlerProtoActorBase
-    {
-        public TestActor(IMessageHandlerActorConfiguration messageHandlerActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageHandlerActorConfiguration, loggerFactory)
-        {
-        }
 
-        public async Task Handle(BusOneEvent busOneEvent)
-        {
-            var rand = new Random();
-
-            await Task.Delay(rand.Next(100, 500));
-
-            Debug.WriteLine($"Handle message {busOneEvent.EventNumber}");
-        }
-    }
-
-    public class TestMessageBufferActor : MessageBufferHandlerProtoActorBase
-    {
-        public TestMessageBufferActor(MessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageBufferActorConfiguration, loggerFactory)
-        {
-        }
-        public async Task Handle(IEvent[] events)
-        {
-
-            var rand = new Random();
-
-            await Task.Delay(rand.Next(100, 500));
-
-            Debug.WriteLine($"Handle {events.Length} message(s)");
-        }
-
-    }
 
     public static class BusOneExtension
     {
@@ -215,7 +184,7 @@ namespace Anabasis.ProtoActor.Tests
               container.ServiceProvider,
               new DummyLoggerFactory());
 
-            var pid = protoActoSystem.CreateActor<TestActor>();
+            var pid = protoActoSystem.CreateActors<TestActor>(1);
 
             var busOne = new BusOne();
 
@@ -236,10 +205,11 @@ namespace Anabasis.ProtoActor.Tests
         {
             var container = new Lamar.Container(serviceRegistry =>
             {
+                serviceRegistry.For<TestActor>().Use<TestActor>();
                 serviceRegistry.For<TestMessageBufferActor>().Use<TestMessageBufferActor>();
                 serviceRegistry.For<ILoggerFactory>().Use<DummyLoggerFactory>();
-
-                serviceRegistry.For<MessageBufferActorConfiguration>().Use((_) =>
+                serviceRegistry.For<IMessageHandlerActorConfiguration>().Use<MessageHandlerActorConfiguration>();
+                serviceRegistry.For<IMessageBufferActorConfiguration>().Use((_) =>
                 {
                     var messageBufferActorConfiguration = new MessageBufferActorConfiguration(TimeSpan.FromSeconds(1), bufferingStrategies: new IBufferingStrategy[]
                     {
@@ -274,7 +244,7 @@ namespace Anabasis.ProtoActor.Tests
                     container.ServiceProvider,
                     new DummyLoggerFactory());
 
-            var pid = protoActorSystem.CreateActor<TestActor>();
+            var pid = protoActorSystem.CreateActors<TestActor>(1);
 
 
             protoActorSystem.Dispose();
@@ -287,7 +257,6 @@ namespace Anabasis.ProtoActor.Tests
             [Test]
         public async Task ShouldCreateAnActorPool()
         {
-
 
             var container = GetContainer();
 

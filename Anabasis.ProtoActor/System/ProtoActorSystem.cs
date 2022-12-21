@@ -69,17 +69,17 @@ namespace Anabasis.ProtoActor.System
 
             _cleanUp.Add(Disposable.Create(() => _cancellationTokenSource.Cancel()));
             _cleanUp.Add(_protoActorPoolDispatchQueue);
-            
+
             ActorSystem = new ActorSystem().WithServiceProvider(serviceProvider);
             RootContext = new RootContext(ActorSystem);
 
-           _deadLettersSubscription = ActorSystem.EventStream.Subscribe<DeadLetterEvent>(
-                deadLetterEvent =>
-                {
-                    var logMessage = $"Received dead letter : {Environment.NewLine} {deadLetterEvent.ToJson()}";
+            _deadLettersSubscription = ActorSystem.EventStream.Subscribe<DeadLetterEvent>(
+                 deadLetterEvent =>
+                 {
+                     var logMessage = $"Received dead letter : {Environment.NewLine} {deadLetterEvent.ToJson()}";
 
-                    Logger?.LogError(logMessage);
-                });
+                     Logger?.LogError(logMessage);
+                 });
 
             _cleanUp.Add(Disposable.Create(() => _deadLettersSubscription.Unsubscribe()));
 
@@ -128,15 +128,25 @@ namespace Anabasis.ProtoActor.System
             return pid;
         }
 
-        public PID CreateActor<TActor>(Action<Props>? onCreateProps = null) where TActor : IActor
+        public PID[] CreateActors<TActor>(int instanceCount, Action<Props>? onCreateProps = null) where TActor : IActor
         {
-            var props = CreateCommonProps<TActor>(onCreateProps).WithMailbox(() => UnboundedMailbox.Create());
+            var pids = new List<PID>();
 
-            var pid = RootContext.Spawn(props);
+            foreach (var _ in Enumerable.Range(0, instanceCount))
+            {
 
-            _rootPidRegistry.Add(pid);
+                var props = CreateCommonProps<TActor>(onCreateProps).WithMailbox(() => UnboundedMailbox.Create());
 
-            return pid;
+                var pid = RootContext.Spawn(props);
+
+                _rootPidRegistry.Add(pid);
+
+                pids.Add(pid);
+
+            }
+
+            return pids.ToArray();
+
         }
 
         private void ProcessMessage(IMessage[] messages)
@@ -179,14 +189,18 @@ namespace Anabasis.ProtoActor.System
 
                 if (isMessageBatchAcknowledged)
                 {
-                    taskCompletionSource.SetResult();
+                    if (!taskCompletionSource.Task.IsCompleted)
+                    {
+                        taskCompletionSource.SetResult();
 
-                    Logger?.LogDebug($"Finalized batch of {messages.Length} acknowledged");
+                        Logger?.LogDebug($"Finalized batch of {messages.Length} acknowledged");
+                    }
+
                 }
 
             });
 
-            Scheduler.CurrentThread.Schedule(() =>
+            Scheduler.Default.Schedule(() =>
             {
 
                 while (messagesToProcess.Length > 0)
@@ -262,7 +276,7 @@ namespace Anabasis.ProtoActor.System
                 RootContext.Stop(pid);
             }
 
-            ActorSystem.ShutdownAsync($"Disposing {nameof(ProtoActorSystem)}").Wait();
+            ActorSystem.ShutdownAsync($"Disposing {nameof(System.ProtoActorSystem)}").Wait();
 
         }
 
@@ -304,7 +318,7 @@ namespace Anabasis.ProtoActor.System
             {
                 exception = _protoActorPoolDispatchQueue.LastError;
                 healthStatus = HealthStatus.Unhealthy;
-                data.Add($"{nameof(ProtoActorSystem)} is in a faulted state", _protoActorPoolDispatchQueue.LastError?.Message);
+                data.Add($"{nameof(System.ProtoActorSystem)} is in a faulted state", _protoActorPoolDispatchQueue.LastError?.Message);
             }
 
             return new HealthCheckResult(healthStatus, healthCheckDescription, exception, data);

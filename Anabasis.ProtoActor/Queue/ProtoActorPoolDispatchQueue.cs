@@ -14,7 +14,6 @@ namespace Anabasis.ProtoActor.Queue
     {
 
         private readonly IProtoActorPoolDispatchQueueConfiguration _protoActorPoolDispatchQueueConfiguration;
-        private readonly ILoggerFactory? _loggerFactory;
         private readonly CompositeDisposable _cleanUp;
         private readonly Thread _thread;
         private readonly IQueueBuffer _queueBuffer;
@@ -43,7 +42,6 @@ namespace Anabasis.ProtoActor.Queue
             _killSwitch = killSwitch ?? new KillSwitch();
 
             _protoActorPoolDispatchQueueConfiguration = protoActorPoolDispatchQueueConfiguration;
-            _loggerFactory = loggerFactory;
 
             _cleanUp = new CompositeDisposable();
 
@@ -55,13 +53,11 @@ namespace Anabasis.ProtoActor.Queue
 
             _thread.Start();
 
-            Logger?.LogDebug($"{Id} started");
+   
         }
 
         public ILogger? Logger { get; }
-
         public string Owner { get; }
-
         public string Id { get; }
 
         public long ProcessedMessagesCount { get; private set; }
@@ -85,6 +81,8 @@ namespace Anabasis.ProtoActor.Queue
 
         private async void HandleWork()
         {
+
+            Logger?.LogDebug($"{Id} started");
 
             var messageBatch = Array.Empty<IMessage>();
 

@@ -105,7 +105,7 @@ namespace Anabasis.EventStore.AspNet
         public static World AddWorld(this IServiceCollection services,
             string eventStoreConnectionString,
             ConnectionSettingsBuilder connectionSettingsBuilder,
-            Action<IEventStoreRepositoryConfiguration> getEventStoreRepositoryConfiguration = null)
+            Action<IEventStoreRepositoryConfiguration>? getEventStoreRepositoryConfiguration = null)
         {
 
             var eventStoreConnection = EventStoreConnection.Create(eventStoreConnectionString, connectionSettingsBuilder);

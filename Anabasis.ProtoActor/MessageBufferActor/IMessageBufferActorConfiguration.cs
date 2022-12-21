@@ -1,4 +1,5 @@
 ﻿using System;
+using Anabasis.ProtoActor.MessageHandlerActor;
 
 namespace Anabasis.ProtoActor.MessageBufferActor
 {

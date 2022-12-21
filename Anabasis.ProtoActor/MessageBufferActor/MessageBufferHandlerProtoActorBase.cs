@@ -8,16 +8,17 @@ using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.MessageBufferActor
 {
-    public abstract class MessageBufferHandlerProtoActorBase : MessageBufferProtoActorBase
+    public abstract class MessageBufferHandlerProtoActorBase<TMessageBufferActorConfiguration> : MessageBufferProtoActorBase<TMessageBufferActorConfiguration>
+           where TMessageBufferActorConfiguration : IMessageBufferActorConfiguration
     {
         private readonly MessageHandlerInvokerCache _messageHandlerInvokerCache;
         public Exception? LastError { get; private set; }
 
-        protected MessageBufferHandlerProtoActorBase(IMessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageBufferActorConfiguration, loggerFactory)
+        protected MessageBufferHandlerProtoActorBase(TMessageBufferActorConfiguration messageBufferActorConfiguration, ILoggerFactory? loggerFactory = null) : base(messageBufferActorConfiguration, loggerFactory)
         {
             _messageHandlerInvokerCache = new MessageHandlerInvokerCache();
         }
-
+            
         protected virtual Task OnError(IEvent[] source, Exception exception)
         {
             ExceptionDispatchInfo.Capture(exception).Throw();
@@ -41,7 +42,7 @@ namespace Anabasis.ProtoActor.MessageBufferActor
                     await (Task)candidateHandler.Invoke(this, new object[] { events });
                 }
 
-                if (!_messageBufferActorConfiguration.SwallowUnkwownEvents)
+                if (!MessageBufferActorConfiguration.SwallowUnkwownEvents)
                 {
                     throw new InvalidOperationException($"{Id} cannot handle batch of type {events.GetType()}");
                 }
