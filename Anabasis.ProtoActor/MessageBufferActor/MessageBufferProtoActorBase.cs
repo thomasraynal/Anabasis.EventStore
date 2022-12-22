@@ -116,7 +116,7 @@ namespace Anabasis.ProtoActor.MessageBufferActor
                     Logger?.LogInformation($"Received SystemMessage => {message.GetType()}");
 
                     break;
-                case IGracefullyStopBufferActorMessage:
+                case GracefullyStopBufferActorMessage:
 
                     await OnReceivedGracefullyStop(context);
 
@@ -131,12 +131,12 @@ namespace Anabasis.ProtoActor.MessageBufferActor
                     break;
                 default:
                     throw new InvalidOperationException($"Message {message.GetType()} is not of type {typeof(IMessage)}");
-                case IBufferTimeoutDelayMessage:
+                case BufferTimeoutDelayMessage:
                 case IMessage:
 
                     Logger?.LogInformation($"Received message => {message.GetType()}");
 
-                    var isBufferTimeoutDelayMessage = message is IBufferTimeoutDelayMessage;
+                    var isBufferTimeoutDelayMessage = message is BufferTimeoutDelayMessage;
 
                     if (!isBufferTimeoutDelayMessage)
                     {
@@ -166,7 +166,7 @@ namespace Anabasis.ProtoActor.MessageBufferActor
 
                         Scheduler.Default.Schedule(MessageBufferActorConfiguration.ReminderSchedulingDelay, () =>
                         {
-                            context.Send(context.Self, new BufferTimeoutDelayMessage());
+                            context.Send(context.Self, BufferTimeoutDelayMessage.Instance);
                         });
 
                     }

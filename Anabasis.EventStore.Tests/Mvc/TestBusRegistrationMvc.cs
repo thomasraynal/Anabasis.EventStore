@@ -4,7 +4,7 @@ using Anabasis.EventStore.Actor;
 using Anabasis.EventStore.AspNet;
 using Anabasis.EventStore.AspNet.Embedded;
 using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Snapshot;
+
 using Anabasis.EventStore.Tests.Mvc;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;

@@ -1,10 +1,9 @@
 using Anabasis.Common;
-using Anabasis.EventStore.Shared;
 using System;
 using System.Collections.Generic;
 using System.Text;
 
-namespace Anabasis.EventStore.Snapshot
+namespace Anabasis.Common
 {
     public interface ISnapshotStrategy
     {

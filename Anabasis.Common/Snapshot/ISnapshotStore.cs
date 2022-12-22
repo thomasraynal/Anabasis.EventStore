@@ -1,10 +1,8 @@
-using Anabasis.Common;
-using Anabasis.EventStore.Shared;
 using System.Threading.Tasks;
 
-namespace Anabasis.EventStore.Snapshot
+namespace Anabasis.Common
 {
-  public interface ISnapshotStore< TAggregate> where TAggregate : IAggregate, new()
+    public interface ISnapshotStore< TAggregate> where TAggregate : IAggregate, new()
   {
     Task<TAggregate[]> GetAll();
     Task<TAggregate[]> GetByVersionOrLast(string[] eventFilters, int? version = null);

@@ -3,10 +3,8 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 
-
 namespace Anabasis.Common
 {
-
     public abstract class BaseAggregate : IAggregate
     {
         private readonly List<IEvent> _pendingEvents = new();

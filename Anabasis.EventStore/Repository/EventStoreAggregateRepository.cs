@@ -18,7 +18,7 @@ namespace Anabasis.EventStore.Repository
         {
         }
 
-        public async Task<TAggregate> GetById<TAggregate>(string streamId, IEventTypeProvider eventTypeProvider, bool loadEvents = false)
+        public async Task<TAggregate> GetAggregateByStreamId<TAggregate>(string streamId, long? fromVersion, IEventTypeProvider eventTypeProvider, bool loadEvents = false)
             where TAggregate : class, IAggregate, new()
         {
             if (!IsConnected) throw new InvalidOperationException("Client is not connected to EventStore");
@@ -27,7 +27,7 @@ namespace Anabasis.EventStore.Repository
 
             aggregate.SetEntityId(streamId);
 
-            var eventNumber = 0L;
+            var eventNumber = fromVersion ?? 0L;
 
             StreamEventsSlice currentSlice;
 

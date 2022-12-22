@@ -34,7 +34,7 @@ namespace Anabasis.ProtoActor.MessageBufferActor
 
         }
 
-        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
+        public bool ShouldConsumeBuffer(BufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
         {
 
             if (_lastMessageBufferizedUtcDate.Add(_absoluteTimeout) >= DateTime.UtcNow)

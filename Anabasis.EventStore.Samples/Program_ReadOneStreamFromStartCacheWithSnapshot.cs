@@ -1,6 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.EventStore.Cache;
-using Anabasis.EventStore.Snapshot;
+
 using Anabasis.EventStore.Standalone;
 
 namespace Anabasis.EventStore.Samples

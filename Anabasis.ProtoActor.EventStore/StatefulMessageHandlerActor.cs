@@ -2,7 +2,7 @@
 //using Anabasis.Common.Configuration;
 //using Anabasis.EventStore;
 //using Anabasis.EventStore.Shared;
-//using Anabasis.EventStore.Snapshot;
+//
 //using Anabasis.ProtoActor.MessageHandlerActor;
 //using DynamicData;
 //using EventStore.ClientAPI;

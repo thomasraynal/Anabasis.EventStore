@@ -63,7 +63,7 @@ namespace Anabasis.ProtoActor.MessageHandlerActor
                     Logger?.LogInformation($"Received SystemMessage => {message.GetType()}");
 
                     break;
-                case IGracefullyStopBufferActorMessage:
+                case GracefullyStopBufferActorMessage:
 
                     await OnReceivedGracefullyStop(context);
 
@@ -72,7 +72,7 @@ namespace Anabasis.ProtoActor.MessageHandlerActor
                     break;
                 default:
                     throw new InvalidOperationException($"Message {message.GetType()} is not of type {typeof(IMessage)}");
-                case IBufferTimeoutDelayMessage:
+                case BufferTimeoutDelayMessage:
                 case IMessage:
 
                     Logger?.LogInformation($"Received message => {message.GetType()}");

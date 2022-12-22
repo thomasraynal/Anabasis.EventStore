@@ -1,4 +1,4 @@
-using Anabasis.EventStore.Snapshot;
+
 using Anabasis.EventStore.Snapshot.InMemory;
 using NUnit.Framework;
 using System;

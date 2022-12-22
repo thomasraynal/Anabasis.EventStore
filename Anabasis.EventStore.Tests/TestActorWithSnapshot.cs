@@ -2,7 +2,7 @@ using Anabasis.Common;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Snapshot;
+
 using Anabasis.EventStore.Snapshot.InMemory;
 using DynamicData;
 using DynamicData.Binding;

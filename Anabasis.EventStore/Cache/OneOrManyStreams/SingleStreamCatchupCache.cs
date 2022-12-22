@@ -1,4 +1,4 @@
-using Anabasis.EventStore.Snapshot;
+
 using Microsoft.Extensions.Logging;
 using Anabasis.Common;
 using EventStore.ClientAPI;

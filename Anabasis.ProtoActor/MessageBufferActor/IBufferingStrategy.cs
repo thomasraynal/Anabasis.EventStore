@@ -11,6 +11,6 @@ namespace Anabasis.ProtoActor.MessageBufferActor
     {
         void Reset();
         bool ShouldConsumeBuffer(object currentMessage, object[] messageBuffer, IContext context);
-        bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context);
+        bool ShouldConsumeBuffer(BufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context);
     }
 }

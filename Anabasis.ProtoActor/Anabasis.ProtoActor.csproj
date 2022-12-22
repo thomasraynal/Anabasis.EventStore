@@ -23,6 +23,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Anabasis.Common\Anabasis.Common.csproj" />
+    <ProjectReference Include="..\Anabasis.EventStore\Anabasis.EventStore.csproj" />
   </ItemGroup>
 
 </Project>

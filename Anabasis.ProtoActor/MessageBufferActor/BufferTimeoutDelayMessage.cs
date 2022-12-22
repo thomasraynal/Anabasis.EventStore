@@ -6,7 +6,11 @@ using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.MessageBufferActor
 {
-    public class BufferTimeoutDelayMessage : IBufferTimeoutDelayMessage
+    public class BufferTimeoutDelayMessage
     {
+        public static readonly BufferTimeoutDelayMessage Instance = new();
+        private BufferTimeoutDelayMessage()
+        {
+        }
     }
 }

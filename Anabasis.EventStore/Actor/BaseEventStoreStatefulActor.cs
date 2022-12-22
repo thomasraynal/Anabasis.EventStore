@@ -1,7 +1,6 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Shared;
-using Anabasis.EventStore.Snapshot;
 using DynamicData;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;

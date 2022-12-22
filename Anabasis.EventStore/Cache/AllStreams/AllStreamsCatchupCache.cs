@@ -1,7 +1,6 @@
 using System;
 using System.Threading.Tasks;
 using Anabasis.Common;
-using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
 

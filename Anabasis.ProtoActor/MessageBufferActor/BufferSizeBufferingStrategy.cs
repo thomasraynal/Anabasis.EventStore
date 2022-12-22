@@ -25,7 +25,7 @@ namespace Anabasis.ProtoActor.MessageBufferActor
             return messageBuffer.Length >= _bufferMaxSize;
         }
 
-        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
+        public bool ShouldConsumeBuffer(BufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
         {
             return messageBuffer.Length >= _bufferMaxSize;
         }

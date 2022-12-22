@@ -1,6 +1,5 @@
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
-using Anabasis.EventStore.Snapshot;
 using EventStore.ClientAPI;
 using Lamar;
 using Microsoft.Extensions.Logging;

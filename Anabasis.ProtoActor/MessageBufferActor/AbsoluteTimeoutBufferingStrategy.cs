@@ -28,7 +28,7 @@ namespace Anabasis.ProtoActor.MessageBufferActor
             return DateTime.UtcNow >= _lastConsumeBufferExecutionUtcDate.Add(_bufferConsumptionTimeout);
         }
 
-        public bool ShouldConsumeBuffer(IBufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
+        public bool ShouldConsumeBuffer(BufferTimeoutDelayMessage timeoutMessage, object[] messageBuffer, IContext context)
         {
             return DateTime.UtcNow >= _lastConsumeBufferExecutionUtcDate.Add(_bufferConsumptionTimeout);
         }

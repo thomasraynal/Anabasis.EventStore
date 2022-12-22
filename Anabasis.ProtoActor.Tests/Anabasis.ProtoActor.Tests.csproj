@@ -6,6 +6,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
+		<PackageReference Include="EventStore.Client.Embedded" Version="20.6.0" />
 		<PackageReference Include="Lamar" Version="10.0.0" />
 		<PackageReference Include="Lamar.Microsoft.DependencyInjection" Version="10.0.0" />
 		<PackageReference Include="nunit" Version="3.13.3" />

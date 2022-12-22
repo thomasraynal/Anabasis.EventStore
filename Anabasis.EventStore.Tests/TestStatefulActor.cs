@@ -15,7 +15,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Anabasis.Common;
-using Anabasis.EventStore.Snapshot;
+
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
 
