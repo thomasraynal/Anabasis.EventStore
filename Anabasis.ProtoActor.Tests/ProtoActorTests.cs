@@ -4,7 +4,6 @@ using Anabasis.ProtoActor.MessageHandlerActor;
 using Anabasis.ProtoActor.Queue;
 using Anabasis.ProtoActor.System;
 using Lamar;
-using Microsoft.Extensions.Diagnostics.HealthChecks;
 using Microsoft.Extensions.Logging;
 using NSubstitute;
 using NUnit.Framework;
@@ -12,12 +11,7 @@ using Proto;
 using Proto.DependencyInjection;
 using Proto.Mailbox;
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Reactive.Disposables;
-using System.Reactive.Subjects;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.Tests

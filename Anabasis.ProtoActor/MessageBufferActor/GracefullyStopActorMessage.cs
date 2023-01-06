@@ -8,10 +8,10 @@ using Anabasis.ProtoActor.System;
 
 namespace Anabasis.ProtoActor.MessageBufferActor
 {
-    public class GracefullyStopBufferActorMessage
+    public class GracefullyStopActorMessage
     {
-        public static readonly GracefullyStopBufferActorMessage Instance = new();
-        private GracefullyStopBufferActorMessage()
+        public static readonly GracefullyStopActorMessage Instance = new();
+        private GracefullyStopActorMessage()
         {
         }
     }

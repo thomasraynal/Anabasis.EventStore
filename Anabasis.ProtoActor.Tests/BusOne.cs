@@ -2,6 +2,7 @@
 using Anabasis.ProtoActor.System;
 using Microsoft.Extensions.Diagnostics.HealthChecks;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Subjects;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.Tests
 {
-    public static class TestEventStoreBusExtension
+    public static class BusOneExtension
     {
         public static void SubscribeToBusOne(this IProtoActorSystem protoActorSystem)
         {
@@ -93,11 +94,11 @@ namespace Anabasis.ProtoActor.Tests
             throw new NotImplementedException();
         }
 
-        public List<IMessage> EmittedMessages { get; private set; } = new List<IMessage>();
+        public ConcurrentBag<IMessage> EmittedMessages { get; private set; } = new ConcurrentBag<IMessage>();
 
         public void Emit(IMessage busOneMessage)
         {
-
+            EmittedMessages.Add(busOneMessage);
             foreach (var subscriber in _subscribers)
             {
                 subscriber(new[] { busOneMessage });
@@ -106,9 +107,11 @@ namespace Anabasis.ProtoActor.Tests
 
         public void Emit(IMessage[] busOneMessages)
         {
-
-            EmittedMessages.AddRange(busOneMessages);
-
+            foreach(var busOneMessage in busOneMessages)
+            {
+                EmittedMessages.Add(busOneMessage);
+            }
+    
             foreach (var subscriber in _subscribers)
             {
                 subscriber(busOneMessages);

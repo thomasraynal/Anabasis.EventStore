@@ -16,6 +16,7 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Anabasis.Common.Utilities;
+using System.Diagnostics;
 
 namespace Anabasis.ProtoActor.System
 {
@@ -167,13 +168,40 @@ namespace Anabasis.ProtoActor.System
             return Send(new[] { message });
         }
 
+        public void SendInternal(IMessage[] messages, TimeSpan timeout) 
+        {
+            Scheduler.Default.Schedule(async () =>
+            {
+                var now = DateTime.UtcNow;
+                var messagesToProcess = messages;
+
+                while (messagesToProcess.Length > 0)
+                {
+
+                    if (now.Add(timeout) <= DateTime.UtcNow)
+                    {
+                        throw new TimeoutException("Unable to process message - timeout reached");
+                    }
+
+                    Logger?.LogDebug($"Trying to enqueue batch of {messagesToProcess.Length}");
+
+                    var processedMessages = _protoActorPoolDispatchQueue.TryEnqueue(messagesToProcess, out var unProcessedMessages);
+
+                    Logger?.LogDebug($"Processed {processedMessages.Count()}/{messagesToProcess.Length}");
+
+                    EnqueuedMessagesCount += processedMessages.Length;
+                    messagesToProcess = unProcessedMessages;
+
+                    await Task.Delay(50);
+
+                }
+            });
+        }
+
         public Task Send(IMessage[] messages, TimeSpan? timeout = null)
         {
 
             timeout = timeout == null ? TimeSpan.FromMinutes(30) : timeout.Value;
-
-            var now = DateTime.UtcNow;
-            var messagesToProcess = messages;
 
             ReceivedMessagesCount += messages.Length;
 
@@ -195,32 +223,11 @@ namespace Anabasis.ProtoActor.System
 
                         Logger?.LogDebug($"Finalized batch of {messages.Length} acknowledged");
                     }
-
                 }
 
             });
 
-            Scheduler.Default.Schedule(() =>
-            {
-
-                while (messagesToProcess.Length > 0)
-                {
-
-                    if (now.Add(timeout.Value) <= DateTime.UtcNow)
-                    {
-                        throw new TimeoutException("Unable to process message - timeout reached");
-                    }
-
-                    Logger?.LogDebug($"Handle batch of {messagesToProcess.Length}");
-
-                    var processedMessages = _protoActorPoolDispatchQueue.TryEnqueue(messagesToProcess, out var unProcessedMessages);
-
-                    EnqueuedMessagesCount += processedMessages.Length;
-                    messagesToProcess = unProcessedMessages;
-
-                }
-
-            });
+            SendInternal(messages, timeout.Value);
 
             return taskCompletionSource.Task.ContinueWith(_ => onMessageBatchAck.Dispose());
 

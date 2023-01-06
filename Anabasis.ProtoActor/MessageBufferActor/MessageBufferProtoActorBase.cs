@@ -116,7 +116,7 @@ namespace Anabasis.ProtoActor.MessageBufferActor
                     Logger?.LogInformation($"Received SystemMessage => {message.GetType()}");
 
                     break;
-                case GracefullyStopBufferActorMessage:
+                case GracefullyStopActorMessage:
 
                     await OnReceivedGracefullyStop(context);
 

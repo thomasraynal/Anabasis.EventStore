@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore;
 using Anabasis.EventStore.Repository;
 using System;
 using System.Collections.Generic;
@@ -19,7 +20,7 @@ namespace Anabasis.ProtoActor.AggregateActor
         {
             _eventStoreAggregateRepository = eventStoreAggregateRepository;
         }
-        public Task<TAggregate> GetAggregateByStreamIdFromVersion(string streamId, IEventTypeProvider eventTypeProvider, long? version = null, bool useSnapshot = false, bool keepEventsOnAggregate = false)
+        public Task<TAggregate> GetAggregateByStreamIdFromVersion(string streamId, long? version, IEventTypeProvider eventTypeProvider, bool useSnapshot = false, bool keepEventsOnAggregate = false)
         {
             return _eventStoreAggregateRepository.GetAggregateByStreamId<TAggregate>(streamId, version, eventTypeProvider, keepEventsOnAggregate);
         }

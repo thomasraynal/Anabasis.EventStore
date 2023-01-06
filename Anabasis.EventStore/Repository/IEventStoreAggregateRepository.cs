@@ -1,5 +1,6 @@
 using Anabasis.Common;
 using Anabasis.EventStore.Shared;
+using EventStore.ClientAPI;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 

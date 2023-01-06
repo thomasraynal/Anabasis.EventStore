@@ -27,7 +27,7 @@ namespace Anabasis.EventStore.Repository
 
             aggregate.SetEntityId(streamId);
 
-            var eventNumber = fromVersion ?? 0L;
+            var eventNumber = fromVersion ?? StreamPosition.Start;
 
             StreamEventsSlice currentSlice;
 

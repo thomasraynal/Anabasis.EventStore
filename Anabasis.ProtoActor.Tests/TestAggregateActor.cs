@@ -1,26 +1,34 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore;
+using Anabasis.EventStore.Bus;
 using Anabasis.ProtoActor.AggregateActor;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.SystemData;
+using JasperFx.Core;
 using Microsoft.Extensions.Logging;
+using NSubstitute;
+using Proto;
 using System;
+using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.Tests
 {
     public class TestAggregateActorConfiguration : IAggregateMessageHandlerActorConfiguration
     {
-        public TestAggregateActorConfiguration(params string[] streamIds)
+        public TestAggregateActorConfiguration(params StreamIdAndPosition[] streamIdAndPositions)
         {
-            if (null == streamIds || streamIds.Length == 0)
+            if (null == streamIdAndPositions || streamIdAndPositions.Length == 0)
             {
-                throw new ArgumentException($"{streamIds} should not be empty");
+                throw new ArgumentException($"{nameof(StreamIdAndPosition)} should not be empty");
             }
 
-            StreamIds = streamIds;
+            StreamIdAndPositions = streamIdAndPositions;
         }
 
-        public string[] StreamIds { get; set; }
+        public StreamIdAndPosition[] StreamIdAndPositions { get; set; }
 
         public bool KeepAppliedEventsOnAggregate { get; set; } = false;
 
@@ -33,6 +41,8 @@ namespace Anabasis.ProtoActor.Tests
         public bool SwallowUnkwownEvents { get; set; } = true;
 
         public TimeSpan IdleTimeoutFrequency { get; set; } = TimeSpan.FromSeconds(10);
+
+        public bool CrashAppIfSubscriptionFail { get; set; }
     }
 
     public class TestAggregate : BaseAggregate
@@ -63,8 +73,41 @@ namespace Anabasis.ProtoActor.Tests
 
     public class TestAggregateActor : AggregateMessageHandlerProtoActorBase<TestAggregate, TestAggregateActorConfiguration>
     {
-        public TestAggregateActor(TestAggregateActorConfiguration aggregateMessageHandlerActorConfiguration, IAggregateRepository<TestAggregate> aggregateRepository, IEventTypeProvider eventTypeProvider, ILoggerFactory? loggerFactory = null) : base(aggregateMessageHandlerActorConfiguration, aggregateRepository, eventTypeProvider, loggerFactory)
+        public TestAggregateActor(TestAggregateActorConfiguration aggregateMessageHandlerActorConfiguration, IEventStoreBus eventStoreBus, IEventTypeProvider eventTypeProvider, ISnapshotStore<TestAggregate>? snapshotStore = null, ISnapshotStrategy? snapshotStrategy = null, ILoggerFactory? loggerFactory = null) : base(aggregateMessageHandlerActorConfiguration, eventStoreBus, eventTypeProvider, snapshotStore, snapshotStrategy, loggerFactory)
         {
+            InitializeSubscriptions();
+        }
+
+        public static ConcurrentDictionary<string, IMessage[]> MessageCache { get; } = new();
+
+ 
+        private void InitializeSubscriptions()
+        {
+            SourceCache.Connect().Subscribe(changeSet =>
+            {
+              //  Logger?.LogInformation($"changeSet count => {changeSet.Count}");
+            });
+        }
+
+        protected override Task OnMessageConsumed(IContext context)
+        {
+            //MessageCache.AddOrUpdate(context.Self.Id, new[] { (IMessage) context.Message } , (key, current) =>
+            //{
+            //    return current.Append(current);
+            //});
+
+            return Task.CompletedTask;
+        }
+
+        protected override Task OnStarted(IContext context)
+        {
+            return base.OnStarted(context);
+        }
+
+        public Task Handle(BusOneEvent busOneEvent)
+        {
+            Debug.WriteLine($"Received {nameof(BusOneEvent)}");
+            return Task.CompletedTask;
         }
     }
 }

@@ -24,6 +24,14 @@ namespace Anabasis.EventStore
             _isCaughtUpSubject = new BehaviorSubject<bool>(false);
         }
 
+        public CatchupCacheSubscriptionHolder(string streamId, long lastProcessedEventSequenceNumber, bool doAppCrashIfSubscriptionFail)
+        {
+            StreamId = streamId;
+            CrashAppIfSubscriptionFail = doAppCrashIfSubscriptionFail;
+            LastProcessedEventSequenceNumber = lastProcessedEventSequenceNumber;
+            _isCaughtUpSubject = new BehaviorSubject<bool>(false);
+        }
+
         public EventStoreCatchUpSubscription? EventStoreCatchUpSubscription { get;  set; }
         public bool CrashAppIfSubscriptionFail { get; private set; }
         public bool IsSuscribeToAll { get; private set; }

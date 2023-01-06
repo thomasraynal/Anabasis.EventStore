@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.Bus;
 using Anabasis.EventStore.Stream;
 using Anabasis.EventStore.Stream.Configuration;
 using Anabasis.EventStore2.Configuration;
@@ -21,7 +22,7 @@ namespace Anabasis.EventStore
             Action<PersistentSubscriptionStreamConfiguration>? getPersistentSubscriptionEventStoreStreamConfiguration = null);
 
         IDisposable SubscribeToManyStreams(
-            string[] streamIds,
+            StreamIdAndPosition[] streamIds,
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
             Action<SubscribeToManyStreamsConfiguration>? getSubscribeToManyStreamsConfiguration = null);

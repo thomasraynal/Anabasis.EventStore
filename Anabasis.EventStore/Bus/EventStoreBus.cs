@@ -1,4 +1,5 @@
 ﻿using Anabasis.Common;
+using Anabasis.EventStore.Bus;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
 using Anabasis.EventStore.Stream;
@@ -136,23 +137,23 @@ namespace Anabasis.EventStore
         }
 
         public IDisposable SubscribeToManyStreams(
-            string[] streamIds,
+            StreamIdAndPosition[] streamIdAndPositions,
             Action<IMessage, TimeSpan?> onMessageReceived,
             IEventTypeProvider eventTypeProvider,
             Action<SubscribeToManyStreamsConfiguration>? getSubscribeToManyStreamsConfiguration = null)
         {
-            var subscribeToManyStreamsConfiguration = new SubscribeToManyStreamsConfiguration(streamIds);
+            var subscribeToManyStreamsConfiguration = new SubscribeToManyStreamsConfiguration(streamIdAndPositions);
 
             getSubscribeToManyStreamsConfiguration?.Invoke(subscribeToManyStreamsConfiguration);
 
-            var subscribeToOneStreamEventStoreStreams = streamIds.Select(streamId =>
+            var subscribeToOneStreamEventStoreStreams = streamIdAndPositions.Select(streamIdAndPosition =>
             {
-                _logger?.LogDebug($"{BusId} => Subscribing to {streamId}");
+                _logger?.LogDebug($"{BusId} => Subscribing to {streamIdAndPosition.StreamId}");
 
-                var subscribeToManyStreamsConfiguration = new SubscribeToOneStreamConfiguration(streamId);
+                var subscribeToManyStreamsConfiguration = new SubscribeToOneStreamConfiguration(streamIdAndPosition.StreamId, streamIdAndPosition.StreamPosition);
 
-                var subscribeToOneStreamEventStoreStream = CreateSubscribeToOneStream(streamId, 
-                    StreamPosition.Start, 
+                var subscribeToOneStreamEventStoreStream = CreateSubscribeToOneStream(streamIdAndPosition.StreamId,
+                    streamIdAndPosition.StreamPosition, 
                     eventTypeProvider,
                     (subscribeToOneStreamConfiguration) =>
                     {

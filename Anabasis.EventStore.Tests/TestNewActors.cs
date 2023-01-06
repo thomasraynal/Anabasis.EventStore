@@ -1,6 +1,7 @@
 ﻿using Anabasis.Common;
 using Anabasis.Common.Configuration;
 using Anabasis.EventStore.Actor;
+using Anabasis.EventStore.Bus;
 using Anabasis.EventStore.Cache;
 using Anabasis.EventStore.Connection;
 using Anabasis.EventStore.Repository;
@@ -341,7 +342,11 @@ namespace Anabasis.EventStore.Tests
 
             var eventList = new List<IMessage>();
 
-            var subscription = eventStoreBus.SubscribeToManyStreams(new[] { "stream1", "stream2" }, (message, timeout) =>
+            var subscription = eventStoreBus.SubscribeToManyStreams(new[] 
+            { 
+                new StreamIdAndPosition("stream1",0),
+                new StreamIdAndPosition("stream2",0)
+            }, (message, timeout) =>
             {
                 eventList.Add(message);
 
