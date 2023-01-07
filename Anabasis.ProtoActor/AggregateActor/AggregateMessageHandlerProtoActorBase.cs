@@ -106,7 +106,7 @@ namespace Anabasis.ProtoActor.AggregateActor
 
             switch (message)
             {
-                case SystemMessage:
+                case InfrastructureMessage:
 
                     if (message is Started)
                     {
@@ -125,6 +125,8 @@ namespace Anabasis.ProtoActor.AggregateActor
                     {
                         await OnReceivedIdleTimout(context);
                     }
+
+                    if(message is Restarting)
 
                     Logger?.LogInformation($"Received SystemMessage => {message.GetType()}");
 
@@ -202,8 +204,6 @@ namespace Anabasis.ProtoActor.AggregateActor
                     await HandleEventConsumed(tMessage.Content);
 
                     await tMessage.Acknowledge();
-
-                    Console.WriteLine("got one message");
 
                     await OnMessageConsumed(context);
 
@@ -318,6 +318,7 @@ namespace Anabasis.ProtoActor.AggregateActor
                     if (!IsCaughtUp && @event.IsCommand) return;
 
                     Logger?.LogDebug($"{Id} => Receiving aggregate event {@event.EntityId} - {@event.GetType()}");
+
 #nullable disable
                     var entry = SourceCache.Lookup(@event.EntityId);
 #nullable enable

@@ -19,6 +19,7 @@ using NUnit.Framework;
 using Proto;
 using Proto.DependencyInjection;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -116,20 +117,18 @@ namespace Anabasis.ProtoActor.Tests
         }
 
         [Test]
-        public async Task ShouldCreateAggregatedActor()
+        public async Task ShouldCreateAnAggregatedActorAndCrashIt()
         {
             var container = await GetContainer();
 
-            var actorSystem = new ActorSystem().WithServiceProvider(container);
-
             var killSwitch = Substitute.For<IKillSwitch>();
             var supervisorStrategy = new KillAppOnFailureSupervisorStrategy(killSwitch);
-            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(1, true);
+            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(10, true);
 
             var protoActoSystem = new ProtoActorSystem(supervisorStrategy,
-              protoActorPoolDispatchQueueConfiguration,
-              container.ServiceProvider,
-              new DummyLoggerFactory());
+                  protoActorPoolDispatchQueueConfiguration,
+                  container.ServiceProvider,
+                  new DummyLoggerFactory());
 
             var eventStoreRepository = container.GetService<IEventStoreRepository>();
             var eventStoreBus = container.GetService<IEventStoreBus>();
@@ -139,15 +138,67 @@ namespace Anabasis.ProtoActor.Tests
 
             await protoActoSystem.ConnectTo(eventStoreBus);
             await protoActoSystem.ConnectTo(busOne);
-
             protoActoSystem.SubscribeToBusOne();
 
+            var allmesssages = new List<IMessage>();
+
+            protoActoSystem.CreateActors<TestAggregateActor>(1);
+
+            for (var i = 0; i < 10; i++)
+            {
+                await eventStoreRepository.Emit(new TestAggregateEventOne(_streamIds[0]));
+            }
+
+            busOne.Emit(new FaultyBusOneMessage());
+
+            await Task.Delay(1000);
+
+
+            killSwitch.Received(1).KillProcess(Arg.Any<string>(), Arg.Any<Exception>());
+
+
+
+        }
+
+        [Test]
+        public async Task ShouldCreateAggregatedActor()
+        {
+            var container = await GetContainer();
+
+            var actorSystem = new ActorSystem().WithServiceProvider(container);
+
+            var killSwitch = Substitute.For<IKillSwitch>();
+            var supervisorStrategy = new KillAppOnFailureSupervisorStrategy(killSwitch);
+            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(10, true);
+
+            var protoActoSystem = new ProtoActorSystem(supervisorStrategy,
+              protoActorPoolDispatchQueueConfiguration,
+              container.ServiceProvider,
+              new DummyLoggerFactory());
+
+            //var protoActoSystem2 = new ProtoActorSystem(supervisorStrategy,
+            //  protoActorPoolDispatchQueueConfiguration,
+            //  container.ServiceProvider,
+            //  new DummyLoggerFactory());
+
+            var eventStoreRepository = container.GetService<IEventStoreRepository>();
+            var eventStoreBus = container.GetService<IEventStoreBus>();
+            var eventTypeProvider = container.GetService<IEventTypeProvider>();
+
+            var busOne = new BusOne();
+
+            await protoActoSystem.ConnectTo(eventStoreBus);
+            await protoActoSystem.ConnectTo(busOne);
+            //await protoActoSystem2.ConnectTo(eventStoreBus);
+            //await protoActoSystem2.ConnectTo(busOne);
+            protoActoSystem.SubscribeToBusOne();
+            //protoActoSystem2.SubscribeToBusOne();
             var rand = new Random();
 
-            //for (var i = 0; i < 10; i++)
-            //{
-            //    await eventStoreRepository.Emit(new TestAggregateEventOne(_streamIds[0]));
-            //}
+            for (var i = 0; i < 10; i++)
+            {
+                await eventStoreRepository.Emit(new TestAggregateEventOne(_streamIds[0]));
+            }
 
 
 
@@ -156,33 +207,56 @@ namespace Anabasis.ProtoActor.Tests
 
             await Task.Delay(1000);
 
-            //Task.Run(() =>
-            //{
+            var allmesssages = new List<IMessage>();
+
+            Task.Run(() =>
+            {
                 for (var i = 0; i < 10; i++)
                 {
-                    busOne.Emit(Enumerable.Range(1, 10).Select(_ => new BusOneMessage(new BusOneEvent(i))).ToArray());
+                    var messsages = Enumerable.Range(0, 5).Select(_ => new BusOneMessage(new BusOneEvent(i))).ToArray();
+                    allmesssages.AddRange(messsages);
+                    busOne.Emit(messsages);
                 }
-            //});
-
+            });
+            //600
 
             //await Task.Delay(1000);
 
+            for (var i = 0; i < 10; i++)
+            {
+                await eventStoreRepository.Emit(new TestAggregateEventOne(_streamIds[0]));
+            }
 
 
 
-         //   protoActoSystem.CreateActors<TestAggregateActor>(1);
+          //  protoActoSystem2.CreateActors<TestAggregateActor>(1);
 
 
-            //Task.Run(() =>
-            //{
-            //    for (var i = 0; i < 50; i++)
-            //    {
-            //        busOne.Emit(Enumerable.Range(0, rand.Next(1, 10)).Select(_ => new BusOneMessage(new BusOneEvent(i))).ToArray());
-            //    }
-            //});
+            Task.Run(() =>
+            {
+                for (var i = 0; i < 10; i++)
+                {
+                    var messsages = Enumerable.Range(0, 5).Select(_ => new BusOneMessage(new BusOneEvent(i))).ToArray();
+                    allmesssages.AddRange(messsages);
+                    busOne.Emit(messsages);
+                }
+            });
 
 
-            await Task.Delay(8000);
+            await Task.Delay(6000);
+
+            Assert.IsTrue(allmesssages.All(m => m.IsAcknowledged));
+
+            Assert.AreEqual(allmesssages.Count, protoActoSystem.ProcessedMessagesCount);
+            Assert.AreEqual(allmesssages.Count, protoActoSystem.ReceivedMessagesCount);
+            Assert.AreEqual(allmesssages.Count, protoActoSystem.AcknowledgeMessagesCount);
+            Assert.AreEqual(allmesssages.Count, protoActoSystem.EnqueuedMessagesCount);
+
+            //Assert.AreEqual(allmesssages.Count, protoActoSystem2.ProcessedMessagesCount);
+            //Assert.AreEqual(allmesssages.Count, protoActoSystem2.ReceivedMessagesCount);
+            //Assert.AreEqual(allmesssages.Count, protoActoSystem2.AcknowledgeMessagesCount);
+            //Assert.AreEqual(allmesssages.Count, protoActoSystem2.EnqueuedMessagesCount);
+
 
         }
     }

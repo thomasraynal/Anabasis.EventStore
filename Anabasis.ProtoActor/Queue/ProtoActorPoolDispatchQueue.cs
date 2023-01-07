@@ -2,11 +2,9 @@
 using Anabasis.Common.Worker;
 using Microsoft.Extensions.Logging;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Threading;
-using System.Threading.Tasks;
 
 namespace Anabasis.ProtoActor.Queue
 {
@@ -53,7 +51,6 @@ namespace Anabasis.ProtoActor.Queue
 
             _thread.Start();
 
-   
         }
 
         public ILogger? Logger { get; }
@@ -63,7 +60,6 @@ namespace Anabasis.ProtoActor.Queue
         public long ProcessedMessagesCount { get; private set; }
         public long PulledMessagesCount { get; private set; }
         public bool IsFaulted { get; private set; }
-
         public Exception? LastError { get; private set; }
 
 

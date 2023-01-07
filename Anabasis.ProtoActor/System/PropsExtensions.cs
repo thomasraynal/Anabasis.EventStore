@@ -23,6 +23,8 @@ namespace Anabasis.ProtoActor.System
                           catch (Exception ex)
                           {
                               logger?.LogError(ex, "An error occured while receiving a message");
+
+                              throw;
                           }
 
                       }).WithSenderMiddleware(next => async (context, target, envelop) =>
@@ -34,6 +36,8 @@ namespace Anabasis.ProtoActor.System
                           catch (Exception ex)
                           {
                               logger?.LogError(ex, "An error occured while sending a message");
+
+                              throw;
                           }
 
                       });

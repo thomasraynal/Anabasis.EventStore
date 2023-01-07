@@ -117,7 +117,7 @@ namespace Anabasis.Worker.Tests.Model
 
         public Guid? TraceId { get; set; }
 
-        public bool IsAcknowledged => throw new NotImplementedException();
+        public bool IsAcknowledged { get; set; }
 
         public IObservable<bool> OnAcknowledged => throw new NotImplementedException();
 

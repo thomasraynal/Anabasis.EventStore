@@ -20,7 +20,6 @@ using System.Diagnostics;
 
 namespace Anabasis.ProtoActor.System
 {
-
     public class ProtoActorSystem : IProtoActorSystem
     {
 
@@ -71,9 +70,20 @@ namespace Anabasis.ProtoActor.System
             _cleanUp.Add(Disposable.Create(() => _cancellationTokenSource.Cancel()));
             _cleanUp.Add(_protoActorPoolDispatchQueue);
 
-            ActorSystem = new ActorSystem().WithServiceProvider(serviceProvider);
-            RootContext = new RootContext(ActorSystem);
+            var actorSystemConfig = new ActorSystemConfig()
+            {
+                ConfigureSystemProps = (_,props) =>
+                {
+                    props.WithChildSupervisorStrategy(_supervisorStrategy)
+                         .WithGuardianSupervisorStrategy(_supervisorStrategy);
+                    return props;
+                }
+            };
 
+            ActorSystem = new ActorSystem(actorSystemConfig).WithServiceProvider(serviceProvider);
+           
+            RootContext = new RootContext(ActorSystem);
+    
             _deadLettersSubscription = ActorSystem.EventStream.Subscribe<DeadLetterEvent>(
                  deadLetterEvent =>
                  {
@@ -102,8 +112,9 @@ namespace Anabasis.ProtoActor.System
 
         private Props CreateCommonProps<TActor>(Action<Props>? onCreateProps = null) where TActor : IActor
         {
+            
             var props = ActorSystem.DI().PropsFor<TActor>().WithExceptionHandler(Logger);
-
+            
             props.WithGuardianSupervisorStrategy(_supervisorStrategy);
 
             if (null != _chidSupervisorStrategy)
@@ -136,8 +147,8 @@ namespace Anabasis.ProtoActor.System
             foreach (var _ in Enumerable.Range(0, instanceCount))
             {
 
-                var props = CreateCommonProps<TActor>(onCreateProps).WithMailbox(() => UnboundedMailbox.Create());
-
+                var props = CreateCommonProps<TActor>(onCreateProps).WithMailbox(() => UnboundedMailbox.Create()).WithGuardianSupervisorStrategy(_supervisorStrategy);
+          
                 var pid = RootContext.Spawn(props);
 
                 _rootPidRegistry.Add(pid);
@@ -192,7 +203,7 @@ namespace Anabasis.ProtoActor.System
                     EnqueuedMessagesCount += processedMessages.Length;
                     messagesToProcess = unProcessedMessages;
 
-                    await Task.Delay(50);
+                    await Task.Delay(200);
 
                 }
             });

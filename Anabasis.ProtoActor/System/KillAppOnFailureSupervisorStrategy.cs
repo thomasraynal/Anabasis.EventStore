@@ -19,7 +19,7 @@ namespace Anabasis.ProtoActor.System
 
         public void HandleFailure(ISupervisor supervisor, PID child, RestartStatistics rs, Exception cause, object? message)
         {
-            _killSwitch.KillProcess($"PID=>{child} - {cause}");
+            _killSwitch.KillProcess($"supervisor => {supervisor.GetType()} child => {child} - message => {message}", cause);
         }
     }
 }

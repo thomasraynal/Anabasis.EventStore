@@ -26,7 +26,43 @@ namespace Anabasis.ProtoActor.Tests
             });
         }
     }
+    public class FaultyBusOneMessage : IMessage
+    {
+        private readonly Subject<bool> _onAcknowledgeSubject;
 
+        public FaultyBusOneMessage()
+        {
+            _onAcknowledgeSubject = new Subject<bool>();
+        }
+
+        public Guid? TraceId => Guid.NewGuid();
+
+        public Guid MessageId => Guid.NewGuid();
+
+        public IEvent Content => throw new InvalidOperationException("boom");
+
+        public bool IsAcknowledged { get; private set; }
+
+        public IObservable<bool> OnAcknowledged => _onAcknowledgeSubject;
+
+        public Task Acknowledge()
+        {
+            IsAcknowledged = true;
+
+            _onAcknowledgeSubject.OnNext(true);
+            _onAcknowledgeSubject.OnCompleted();
+
+            return Task.CompletedTask;
+        }
+
+        public Task NotAcknowledge(string? reason = null)
+        {
+
+            _onAcknowledgeSubject.OnNext(false);
+            _onAcknowledgeSubject.OnCompleted();
+            return Task.CompletedTask;
+        }
+    }
     public class BusOneMessage : IMessage
     {
         private readonly Subject<bool> _onAcknowledgeSubject;
