@@ -121,9 +121,9 @@ namespace Anabasis.ProtoActor.Queue
 
                     LastError = exception;
 
-                    var unacknowledgeMessageTask = messageBatch.Where(message => !message.IsAcknowledged).Select(message => message.NotAcknowledge());
+                    var unacknowledgeMessageTasks = messageBatch.Where(message => !message.IsAcknowledged).Select(message => message.NotAcknowledge());
 
-                    await unacknowledgeMessageTask.ExecuteAndWaitForCompletion();
+                    await unacknowledgeMessageTasks.ExecuteAndWaitForCompletion();
 
                     if (_protoActorPoolDispatchQueueConfiguration.CrashAppOnError)
                     {

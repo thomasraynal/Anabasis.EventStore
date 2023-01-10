@@ -7,6 +7,7 @@ using Anabasis.ProtoActor.AggregateActor;
 using Anabasis.ProtoActor.MessageHandlerActor;
 using Anabasis.ProtoActor.Queue;
 using Anabasis.ProtoActor.System;
+using DynamicData;
 using EventStore.ClientAPI;
 using EventStore.ClientAPI.Embedded;
 using EventStore.ClientAPI.SystemData;
@@ -20,6 +21,7 @@ using Proto;
 using Proto.DependencyInjection;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -105,7 +107,6 @@ namespace Anabasis.ProtoActor.Tests
                 serviceRegistry.For<IEventTypeProvider>().Use(eventTypeProvider);
                 serviceRegistry.For<IEventStoreAggregateRepository>().Use(eventStoreRepository);
                 serviceRegistry.For<IConnectionStatusMonitor<IEventStoreConnection>>().Use(connectionMonitor);
-                serviceRegistry.For<IAggregateRepository<TestAggregate>>().Use<AggregateRepository<TestAggregate>>();
                 serviceRegistry.For<IEventStoreRepositoryConfiguration>().Use(eventStoreRepositoryConfiguration);
                 serviceRegistry.For<IEventStoreRepository>().Use(eventStoreRepository);
                 serviceRegistry.For<IEventStoreBus>().Use<EventStoreBus>();
@@ -115,6 +116,62 @@ namespace Anabasis.ProtoActor.Tests
 
             return container;
         }
+
+        private static class Decider
+        {
+            public static SupervisorDirective Decide(PID pid, Exception reason)
+            {
+                return SupervisorDirective.Restart;
+            }
+        }
+
+        [Test]
+        public async Task ShouldTestActorRestart()
+        {
+            var container = await GetContainer();
+            var protoActorPoolDispatchQueueConfiguration = new ProtoActorPoolDispatchQueueConfiguration(10, true);
+            var protoActoSystem = new ProtoActorSystem(new OneForOneStrategy(Decider.Decide, 1, null),
+                  protoActorPoolDispatchQueueConfiguration,
+                  container.ServiceProvider,
+                  new DummyLoggerFactory());
+
+            var eventStoreRepository = container.GetService<IEventStoreRepository>();
+            var eventStoreBus = container.GetService<IEventStoreBus>();
+            var eventTypeProvider = container.GetService<IEventTypeProvider>();
+
+            var actorPid = protoActoSystem.CreateActors<TestAggregateActor>(1);
+
+            var actor = protoActoSystem.GetSystemSpawnActor<TestAggregateActor>(actorPid[0]);
+
+            var firstActorInstanceId = actor.Id;
+
+            var busOne = new BusOne();
+
+            await protoActoSystem.ConnectTo(eventStoreBus);
+            await protoActoSystem.ConnectTo(busOne);
+            protoActoSystem.SubscribeToBusOne();
+
+            await Task.Delay(1000);
+
+            for (var i = 0; i < 2; i++)
+            {
+                await eventStoreRepository.Emit(new TestAggregateEventOne(_streamIds[0]));
+            }
+
+            await Task.Delay(500);
+
+            busOne.Emit(new FaultyBusOneMessage());
+
+            await Task.Delay(500);
+
+            actor = protoActoSystem.GetSystemSpawnActor<TestAggregateActor>(actorPid[0]);
+
+            var secondActorInstanceId = actor.Id;
+
+            Assert.AreNotEqual(firstActorInstanceId, secondActorInstanceId);
+
+        }
+
 
         [Test]
         public async Task ShouldCreateAnAggregatedActorAndCrashIt()
@@ -142,7 +199,11 @@ namespace Anabasis.ProtoActor.Tests
 
             var allmesssages = new List<IMessage>();
 
-            protoActoSystem.CreateActors<TestAggregateActor>(1);
+            var actorPid = protoActoSystem.CreateActors<TestAggregateActor>(1);
+
+            var actor = protoActoSystem.GetSystemSpawnActor<TestAggregateActor>(actorPid[0]);
+
+            var firstActorInstanceId = actor.Id;
 
             for (var i = 0; i < 10; i++)
             {
@@ -153,15 +214,12 @@ namespace Anabasis.ProtoActor.Tests
 
             await Task.Delay(1000);
 
-
             killSwitch.Received(1).KillProcess(Arg.Any<string>(), Arg.Any<Exception>());
-
-
 
         }
 
         [Test]
-        public async Task ShouldCreateAggregatedActor()
+        public async Task ShouldCreateAnAggregatedActorAndConsumeEvents()
         {
             var container = await GetContainer();
 
@@ -176,10 +234,6 @@ namespace Anabasis.ProtoActor.Tests
               container.ServiceProvider,
               new DummyLoggerFactory());
 
-            //var protoActoSystem2 = new ProtoActorSystem(supervisorStrategy,
-            //  protoActorPoolDispatchQueueConfiguration,
-            //  container.ServiceProvider,
-            //  new DummyLoggerFactory());
 
             var eventStoreRepository = container.GetService<IEventStoreRepository>();
             var eventStoreBus = container.GetService<IEventStoreBus>();
@@ -189,21 +243,24 @@ namespace Anabasis.ProtoActor.Tests
 
             await protoActoSystem.ConnectTo(eventStoreBus);
             await protoActoSystem.ConnectTo(busOne);
-            //await protoActoSystem2.ConnectTo(eventStoreBus);
-            //await protoActoSystem2.ConnectTo(busOne);
             protoActoSystem.SubscribeToBusOne();
-            //protoActoSystem2.SubscribeToBusOne();
-            var rand = new Random();
 
             for (var i = 0; i < 10; i++)
             {
                 await eventStoreRepository.Emit(new TestAggregateEventOne(_streamIds[0]));
             }
 
+            var actorPid  =protoActoSystem.CreateActors<TestAggregateActor>(1);
 
 
-            protoActoSystem.CreateActors<TestAggregateActor>(1);
+            var actor = protoActoSystem.GetSystemSpawnActor<TestAggregateActor>(actorPid[0]);
 
+            var aggregateMessages = new List<Change<TestAggregate, string>>();
+
+            actor.SourceCache.Connect().Subscribe((changes) =>
+            {
+                aggregateMessages.AddRange(changes.ToArray());
+            });
 
             await Task.Delay(1000);
 
@@ -218,18 +275,11 @@ namespace Anabasis.ProtoActor.Tests
                     busOne.Emit(messsages);
                 }
             });
-            //600
-
-            //await Task.Delay(1000);
 
             for (var i = 0; i < 10; i++)
             {
                 await eventStoreRepository.Emit(new TestAggregateEventOne(_streamIds[0]));
             }
-
-
-
-          //  protoActoSystem2.CreateActors<TestAggregateActor>(1);
 
 
             Task.Run(() =>

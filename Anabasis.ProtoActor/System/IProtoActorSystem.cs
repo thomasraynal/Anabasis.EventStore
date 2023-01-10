@@ -12,7 +12,7 @@ namespace Anabasis.ProtoActor.System
 
         public ActorSystem ActorSystem { get; }
         public RootContext RootContext { get; }
-
+        TActor GetSystemSpawnActor<TActor>(PID pid) where TActor : class, IActor;
         Task ConnectTo(IBus bus, bool closeUnderlyingSubscriptionOnDispose = false);
         PID[] CreateActors<TActor>(int instanceCount, Action<Props>? onCreateProps = null) where TActor : IActor;
         PID CreateConsistentHashPool<TActor>(int poolSize, int replicaCount = 100, Action<Props>? onCreateProps = null, Func<string, uint>? hash = null, Func<object, string>? messageHasher = null) where TActor : IActor;

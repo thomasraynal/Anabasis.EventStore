@@ -6,6 +6,7 @@ using Anabasis.ProtoActor.MessageHandlerActor;
 using DynamicData;
 using EventStore.ClientAPI;
 using Microsoft.Extensions.Logging;
+using Polly;
 using Proto;
 using Proto.Mailbox;
 using System;
@@ -24,7 +25,7 @@ namespace Anabasis.ProtoActor.AggregateActor
         private readonly ISnapshotStore<TAggregate>? _snapshotStore;
         private readonly ISnapshotStrategy? _snapshotStrategy;
         private readonly IEventStoreBus _eventStoreBus;
-        private readonly CompositeDisposable _cleanUp;
+        private CompositeDisposable _cleanUp;
         private readonly IEventTypeProvider _eventTypeProvider;
 
         //todo: switch to dictionnary
@@ -79,6 +80,8 @@ namespace Anabasis.ProtoActor.AggregateActor
                     aggregateMessageHandlerActorConfiguration.CrashAppIfSubscriptionFail))
                 .ToArray();
 
+
+            Logger?.LogDebug($"Starting {Id}");
         }
 
         public IProtoActorCatchupCacheSubscriptionHolder[] GetSubscriptionStates()
@@ -108,30 +111,45 @@ namespace Anabasis.ProtoActor.AggregateActor
             {
                 case InfrastructureMessage:
 
-                    if (message is Started)
-                    {
-
-                        IsCaughtUp = false;
-
-                        await OnStarted(context);
-
-                        context.SetReceiveTimeout(AggregateMessageHandlerActorConfiguration.IdleTimeoutFrequency);
-
-                        context.Send(context.Self, StartCaughtUp.Instance);
-
-                    }
-
-                    if (message is ReceiveTimeout)
-                    {
-                        await OnReceivedIdleTimout(context);
-                    }
-
-                    if(message is Restarting)
-
                     Logger?.LogInformation($"Received SystemMessage => {message.GetType()}");
 
-                    break;
+                    switch (message)
+                    {
 
+                        case Started:
+
+                            IsCaughtUp = false;
+
+                            await OnStarted(context);
+
+                            context.SetReceiveTimeout(AggregateMessageHandlerActorConfiguration.IdleTimeoutFrequency);
+
+                            context.Send(context.Self, StartCaughtUp.Instance);
+
+                            break;
+
+                        case ReceiveTimeout:
+
+                            await OnReceivedIdleTimout(context);
+
+                            break;
+
+                        case Stop:
+                            
+                            Dispose();
+                            
+                            break;
+
+                        case Terminated:
+                        case Failure:
+                        case Stopped:
+                        case Stopping:
+                        default:
+                            break;
+
+                    }
+
+                    break;
 
                 case StartCaughtUp:
 
@@ -157,6 +175,8 @@ namespace Anabasis.ProtoActor.AggregateActor
                         _eventStoreBus.SubscribeToManyStreams(streamIdAndVersions,
                         ((message, timeSpan) =>
                             {
+                                Logger?.LogDebug($"Send eventstore message to {context.Self}");
+
                                 context.Send(context.Self, message);
 
                             }), _eventTypeProvider);
@@ -170,8 +190,6 @@ namespace Anabasis.ProtoActor.AggregateActor
                     _isGracefullyStopRequired = true;
 
                     await OnReceivedGracefullyStop(context);
-
-                    _cleanUp.Dispose();
 
                     context.Stop(context.Self);
 
@@ -401,6 +419,8 @@ namespace Anabasis.ProtoActor.AggregateActor
 
         public void Dispose()
         {
+            Logger?.LogDebug($"Disposing {Id}");
+
             _cleanUp.Dispose();
         }
     }
