@@ -67,7 +67,7 @@ build_script:
 deploy:
   provider: NuGet
   api_key:
-    secure: JzaW0RfXr2aho3B7rvbuIJZoSMqb6kTXrGsYnrlW/ZCFOC2ZG8F/VD/R3tJjb19b
+    secure: 0jv3285WXG6tbW+xL4Ap4ZhBPOQ7CYUoVq6tOdqCh/1WnwU1eyCcWxEHXXBe9nQE
   skip_symbols: false
   artifact: /.*\.nupkg/
   on:
