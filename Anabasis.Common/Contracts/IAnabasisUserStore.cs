@@ -12,6 +12,8 @@ namespace Anabasis.Common.Contracts
                                  IUserRoleStore<TUser>,
                                  IUserPasswordStore<TUser>,
                                  IUserSecurityStampStore<TUser>
+                                 
+
         where TUser : IdentityUser<Guid>
     {
     }

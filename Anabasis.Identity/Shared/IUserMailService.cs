@@ -6,8 +6,9 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Identity
 {
-    public interface IPasswordResetMailService
+    public interface IUserMailService
     {
         Task SendEmailPasswordReset(string email, string token);
+        Task SendEmailConfirmationToken(string email, string token);
     }
 }

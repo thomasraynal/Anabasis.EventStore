@@ -27,7 +27,7 @@ namespace Anabasis.TableStorage
     {
     }
 
-    public class TableStorageUserStore<TUser, TUserLoginInfo, TRole, TClaim> : IAnabasisUserStore<TUser>
+    public class TableStorageUserStore<TUser, TUserLoginInfo, TRole, TClaim> : IAnabasisUserStore<TUser>, IQueryableUserStore<TUser>
         where TUser : TableStorageUser, new()
         where TRole : TableStorageRole, new()
         where TUserLoginInfo : TableStorageUserLoginInfo, new()
@@ -37,11 +37,21 @@ namespace Anabasis.TableStorage
         private readonly TableStorageRepository _userClaimsTableStorageRepository;
         private readonly TableStorageRepository _userRolesTableStorageRepository;
         private readonly TableStorageRepository _userLoginsTableStorageRepository;
+        private readonly TableStorageRepository _userTokensTableStorageRepository;
 
         public const string UsersTable = "anabasisusers";
         public const string UserClaimsTable = "anabasiuserclaims";
         public const string UserRolesTable = "anabasiuserroles";
         public const string UserLoginsTable = "anabasiuserlogins";
+        public const string UserTokensTable = "anabasiusertokens";
+
+        public IQueryable<TUser> Users
+        {
+            get
+            {
+                return _usersTableStorageRepository.Entities<TUser>().Where(c=> c.Email == "thomas.raynal2@gmail.com");
+            }
+        }
 
         public TableStorageUserStore(TableStorageUserRepositoryOptions tableStorageUserRepositoryOptions)
         {
@@ -52,6 +62,7 @@ namespace Anabasis.TableStorage
             _userClaimsTableStorageRepository = new TableStorageRepository(storageUri, tableSharedKeyCredential, UserClaimsTable);
             _userRolesTableStorageRepository = new TableStorageRepository(storageUri, tableSharedKeyCredential, UserRolesTable);
             _userLoginsTableStorageRepository = new TableStorageRepository(storageUri, tableSharedKeyCredential, UserLoginsTable);
+            _userTokensTableStorageRepository = new TableStorageRepository(storageUri, tableSharedKeyCredential, UserTokensTable);
         }
 
         public async Task<IList<Claim>> GetClaimsAsync(TUser user, CancellationToken cancellationToken = default)
@@ -138,7 +149,7 @@ namespace Anabasis.TableStorage
 
             await getUserTasks.ExecuteAndWaitForCompletion(10);
 
-            return getUserTasks.Select(task => task.Result).ToList();
+            return getUserTasks.Select(task => task.Result).Where(user => null != user).ToList();
 
         }
 
@@ -428,6 +439,21 @@ namespace Anabasis.TableStorage
             user.NormalizedEmail = normalizedEmail;
 
             return Task.CompletedTask;
+        }
+
+        public Task SetTokenAsync(TUser user, string loginProvider, string name, string value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task RemoveTokenAsync(TUser user, string loginProvider, string name, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        public Task<string> GetTokenAsync(TUser user, string loginProvider, string name, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
         }
     }
 }

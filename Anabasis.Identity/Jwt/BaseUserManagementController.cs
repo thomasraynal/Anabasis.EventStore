@@ -6,6 +6,9 @@ using System.Threading.Tasks;
 using Anabasis.Api.Shared;
 using Anabasis.Identity.Dto;
 using Anabasis.Identity.Shared;
+using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
+using System.Web;
 
 namespace Anabasis.Identity
 {
@@ -13,19 +16,29 @@ namespace Anabasis.Identity
         where TUser : class, IHaveEmail
         where TRegistrationDto: IRegistrationDto
     {
-        private readonly IPasswordResetMailService _passwordResetMailService;
+        private readonly IUserMailService _userMailService;
 
         protected UserManager<TUser> UserManager { get; }
 
-        public BaseUserManagementController(IPasswordResetMailService passwordResetMailService,
+        public BaseUserManagementController(IUserMailService passwordResetMailService,
             UserManager<TUser> userManager)
         {
-            _passwordResetMailService = passwordResetMailService;
+            _userMailService = passwordResetMailService;
             UserManager = userManager;
         }
 
         protected abstract Task<TUser> CreateUser(TRegistrationDto registrationDto);
         protected abstract Task<TUserLoginResponse> GetLoginResponse(TUser user);
+
+        protected virtual Task OnUserRegistered(TUser user)
+        {
+            return Task.CompletedTask;
+        }
+
+        protected virtual Task OnUserLoginSuccess(TUserLoginResponse userLoginResponse)
+        {
+            return Task.CompletedTask;
+        }
 
         [AllowAnonymous]
         [HttpPost("login")]
@@ -45,7 +58,9 @@ namespace Anabasis.Identity
                 return BadRequest($"Password for user {userLoginDto.Username} is not valid").WithErrorFormatting();
             }
 
-            var userLoginResponse = GetLoginResponse(user);
+            var userLoginResponse = await GetLoginResponse(user);
+
+            await OnUserLoginSuccess(userLoginResponse);
 
             return Ok(userLoginResponse);
         }
@@ -61,7 +76,7 @@ namespace Anabasis.Identity
 
             if (!userResult.Succeeded)
             {
-                return BadRequest(userResult).WithErrorFormatting();
+                return BadRequest(userResult.FlattenErrors()).WithErrorFormatting();
             }
 
             var createdUser = await UserManager.FindByEmailAsync(registrationDto.UserEmail);
@@ -73,18 +88,23 @@ namespace Anabasis.Identity
 
             var emailConfirmationToken = await UserManager.GenerateEmailConfirmationTokenAsync(createdUser);
 
-            await _passwordResetMailService.SendEmailPasswordReset(registrationDto.UserEmail, emailConfirmationToken);
+            var httpEncodedToken = HttpUtility.UrlEncode(emailConfirmationToken);
+
+            await _userMailService.SendEmailConfirmationToken(registrationDto.UserEmail, httpEncodedToken);
 
             var registrationResponseDto = new RegistrationResponseDto(registrationDto.Username, registrationDto.UserEmail);
+
+            await OnUserRegistered(createdUser);
 
             return StatusCode(201, registrationResponseDto);
         }
 
         [AllowAnonymous]
-        [HttpPost("confirm")]
-        public async Task<IActionResult> ConfirmEmail([FromBody] ConfirmMailDto confirmMailDto)
+        [HttpGet("confirm")]
+        public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmMailDto confirmMailDto)
         {
             var user = await UserManager.FindByEmailAsync(confirmMailDto.Email);
+
 
             if (null == user)
             {
@@ -99,7 +119,7 @@ namespace Anabasis.Identity
             }
             else
             {
-                return BadRequest(confirmEmailResult).WithErrorFormatting();
+                return BadRequest(confirmEmailResult.FlattenErrors()).WithErrorFormatting();
             }
         }
 
@@ -109,14 +129,17 @@ namespace Anabasis.Identity
         {
 
             var user = await UserManager.FindByEmailAsync(forgotPasswordDto.Email);
+
             if (null == user)
             {
                 return NotFound($"User with mail {forgotPasswordDto.Email} was not found").WithErrorFormatting();
             }
 
-            var token = await UserManager.GeneratePasswordResetTokenAsync(user);
+            var generatePasswordResetToken = await UserManager.GeneratePasswordResetTokenAsync(user);
 
-            await _passwordResetMailService.SendEmailPasswordReset(user.Email, token);
+            var httpEncodedToken = HttpUtility.UrlEncode(generatePasswordResetToken);
+
+            await _userMailService.SendEmailPasswordReset(user.Email, generatePasswordResetToken);
 
             return Accepted();
 
@@ -138,7 +161,7 @@ namespace Anabasis.Identity
 
             if (!resetPassResult.Succeeded)
             {
-                return BadRequest(resetPassResult).WithErrorFormatting();
+                return BadRequest(resetPassResult.FlattenErrors()).WithErrorFormatting();
             }
 
             return Ok();

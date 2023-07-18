@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System.Threading;
 using System.Runtime.CompilerServices;
+using Azure;
 
 namespace Anabasis.TableStorage
 {
@@ -22,6 +23,7 @@ namespace Anabasis.TableStorage
             _tableClient = _tableServiceClient.GetTableClient(tableName);
         }
 
+    
         private async Task ExecuteBatchOperation<TEntity>(TEntity[] entities, TableTransactionActionType tableTransactionActionType, int batchSize, CancellationToken cancellationToken) where TEntity : ITableEntity
         {
             await _tableClient.CreateIfNotExistsAsync(cancellationToken);
@@ -110,18 +112,32 @@ namespace Anabasis.TableStorage
             return GetMany<TEntity>((property) => property.PartitionKey == partitionKey, cancellationToken);
         }
 
-        public async Task<TEntity> GetOne<TEntity>(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new()
+        public async Task<TEntity?> GetOne<TEntity>(Expression<Func<TEntity, bool>> filter, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new()
         {
             return await GetMany(filter, cancellationToken: cancellationToken).FirstOrDefaultAsync(cancellationToken);
         }
 
-        public async Task<TEntity> GetOne<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new()
+        public async Task<TEntity?> GetOne<TEntity>(string partitionKey, string rowKey, CancellationToken cancellationToken = default) where TEntity : class, ITableEntity, new()
         {
-            await _tableClient.CreateIfNotExistsAsync(cancellationToken);
+            try
+            {
 
-            var azureResponse = await _tableClient.GetEntityAsync<TEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+                await _tableClient.CreateIfNotExistsAsync(cancellationToken);
 
-            return azureResponse.Value;
+                var azureResponse = await _tableClient.GetEntityAsync<TEntity>(partitionKey, rowKey, cancellationToken: cancellationToken);
+
+                return azureResponse.Value;
+
+            }
+            catch (Exception ex)
+            {
+                if (ex.IsEntityNotFound())
+                {
+                    return null;
+                }
+
+                throw;
+            }
         }
 
         public async Task Truncate()
@@ -135,6 +151,13 @@ namespace Anabasis.TableStorage
 
             return user != null;
 
+        }
+
+        public IQueryable<TEntity> Entities<TEntity>() where TEntity : class, ITableEntity, new()
+        {
+            var tableStorageQueryProvider = new TableStorageQueryProvider<TEntity>(_tableClient);
+
+            return new QueryableTableStorage<TEntity>(tableStorageQueryProvider);
         }
     }
 }
