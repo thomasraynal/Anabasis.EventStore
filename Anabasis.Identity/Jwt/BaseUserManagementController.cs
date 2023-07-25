@@ -12,9 +12,10 @@ using System.Web;
 
 namespace Anabasis.Identity
 {
-    public abstract class BaseUserManagementController<TRegistrationDto,TUserLoginResponse,TUser> : ControllerBase 
+    public abstract class BaseUserManagementController<TRegistrationDto, TUserLoginDto, TUserLoginResponse,TUser> : ControllerBase 
         where TUser : class, IHaveEmail
         where TRegistrationDto: IRegistrationDto
+         where TUserLoginDto : IUserLoginDto
     {
         private readonly IUserMailService _userMailService;
 
@@ -28,7 +29,7 @@ namespace Anabasis.Identity
         }
 
         protected abstract Task<TUser> CreateUser(TRegistrationDto registrationDto);
-        protected abstract Task<TUserLoginResponse> GetLoginResponse(TUser user);
+        protected abstract Task<TUserLoginResponse> GetLoginResponse(TUserLoginDto userLoginDto, TUser user);
 
         protected virtual Task OnUserRegistered(TUser user)
         {
@@ -42,7 +43,7 @@ namespace Anabasis.Identity
 
         [AllowAnonymous]
         [HttpPost("login")]
-        public async Task<IActionResult> Login([FromBody] UserLoginDto userLoginDto)
+        public async Task<IActionResult> Login([FromBody] TUserLoginDto userLoginDto)
         {
             var user = await UserManager.FindByNameAsync(userLoginDto.Username);
 
@@ -58,7 +59,7 @@ namespace Anabasis.Identity
                 return BadRequest($"Password for user {userLoginDto.Username} is not valid").WithErrorFormatting();
             }
 
-            var userLoginResponse = await GetLoginResponse(user);
+            var userLoginResponse = await GetLoginResponse(userLoginDto, user);
 
             await OnUserLoginSuccess(userLoginResponse);
 
@@ -69,7 +70,7 @@ namespace Anabasis.Identity
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] TRegistrationDto registrationDto)
         {
-           
+
             var user = await CreateUser(registrationDto);
 
             var userResult = await UserManager.CreateAsync(user, registrationDto.Password);
@@ -139,7 +140,7 @@ namespace Anabasis.Identity
 
             var httpEncodedToken = HttpUtility.UrlEncode(generatePasswordResetToken);
 
-            await _userMailService.SendEmailPasswordReset(user.Email, generatePasswordResetToken);
+            await _userMailService.SendEmailPasswordReset(user.UserEmail, generatePasswordResetToken);
 
             return Accepted();
 

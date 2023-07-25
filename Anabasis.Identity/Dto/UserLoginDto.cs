@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Anabasis.Identity.Dto
 {
-    public class UserLoginDto
+    public class UserLoginDto : IUserLoginDto
     {
         [Required(ErrorMessage = "Username is required")]
         public string? Username { get; init; }

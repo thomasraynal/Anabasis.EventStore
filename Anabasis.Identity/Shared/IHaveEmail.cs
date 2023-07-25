@@ -8,6 +8,6 @@ namespace Anabasis.Identity.Shared
 {
     public interface IHaveEmail
     {
-        string Email { get; }
+        string UserEmail { get; }
     }
 }
