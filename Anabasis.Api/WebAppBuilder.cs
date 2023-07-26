@@ -56,7 +56,7 @@ namespace Anabasis.Api
             Action<TracerProviderBuilder>? configureTracerProviderBuilder = null)
         {
 
-            var anabasisConfiguration = Configuration.GetConfigurations(configureConfigurationBuilder);
+            var anabasisConfiguration = Configuration.GetAnabasisConfigurations(configureConfigurationBuilder);
 
             var honeycombConfiguration = anabasisConfiguration.ConfigurationRoot.GetSection("Honeycomb").Get<HoneycombOptions>();
 

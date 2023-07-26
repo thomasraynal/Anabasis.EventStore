@@ -40,7 +40,7 @@ namespace Anabasis.Common.Configuration
             return string.Format(GroupConfigurationFileTemplate, anabasisEnvironment).ToLowerInvariant();
         }
 
-        public static AnabasisConfiguration GetConfigurations(Action<ConfigurationBuilder>? configureConfigurationBuilder = null, DirectoryInfo? rootDirectory =null)
+        public static AnabasisConfiguration GetAnabasisConfigurations(Action<ConfigurationBuilder>? configureConfigurationBuilder = null, DirectoryInfo? rootDirectory =null)
         {
             rootDirectory ??= new DirectoryInfo(Directory.GetCurrentDirectory());
 

@@ -14,7 +14,7 @@ namespace Anabasis.EventStore.Snapshot.SQLServer
         public TAggregateDbContext CreateDbContext(string[] _)
         {
 
-            var anabasisConfiguration = Configuration.GetConfigurations();
+            var anabasisConfiguration = Configuration.GetAnabasisConfigurations();
 
             var sqlServerSnapshotStoreOptions = anabasisConfiguration.ConfigurationRoot
                                                                      .GetSection(nameof(SqlServerSnapshotStoreOptions))

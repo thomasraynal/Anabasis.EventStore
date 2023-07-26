@@ -16,7 +16,7 @@ namespace Anabasis.Deployment
             AppName = appName;
             AppRelease = appRelease;
 
-            var anabasisConfiguration = Configuration.GetConfigurations(rootDirectory: projectBuildDirectory);
+            var anabasisConfiguration = Configuration.GetAnabasisConfigurations(rootDirectory: projectBuildDirectory);
 
             AppConfiguration = anabasisConfiguration.AppConfigurationOptions;
             GroupConfiguration = anabasisConfiguration.GroupConfigurationOptions;
