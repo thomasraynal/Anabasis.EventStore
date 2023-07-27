@@ -43,6 +43,7 @@ namespace Anabasis.Api
             int memoryCheckTresholdInMB = 200,
             bool useCors = false,
             bool useAuthorization = false,
+            bool useSwaggerUI =false,
             ISerializer? serializer = null,
             Action<MvcOptions>? configureMvcBuilder = null,
             Action<IMvcBuilder>? configureMvc = null,
@@ -126,7 +127,7 @@ namespace Anabasis.Api
 
                         configureMiddlewares?.Invoke(anabasisAppContext, appBuilder);
 
-                        ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useAuthorization, useCors);
+                        ConfigureApplication(appBuilder, context.HostingEnvironment, anabasisAppContext, useAuthorization, useCors, useSwaggerUI);
 
                         configureApplicationBuilder?.Invoke(anabasisAppContext, appBuilder);
 
@@ -284,7 +285,8 @@ namespace Anabasis.Api
             IWebHostEnvironment webHostEnvironment,
             AnabasisAppContext appContext,
             bool useAuthorization,
-            bool useCors)
+            bool useCors,
+            bool useSwaggerUI)
         {
             appBuilder.WithClientIPAddress();
             appBuilder.WithRequestContextHeaders();
@@ -310,7 +312,7 @@ namespace Anabasis.Api
 
             appBuilder.UseSwagger();
 
-            if (webHostEnvironment.IsDevelopment())
+            if (useSwaggerUI)
             {
                 appBuilder.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{appContext.ApiVersion.Major}/swagger.json",
                      $"{appContext.Environment} v{appContext.ApiVersion.Major}"));
