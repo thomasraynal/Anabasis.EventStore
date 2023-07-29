@@ -17,7 +17,7 @@ namespace Anabasis.Identity.Dto
         [Required(ErrorMessage = "Password is required")]
         public string? Password { get; init; }
 
-        [Required(ErrorMessage = "Mail is required")]
+        [Required(ErrorMessage = "UserEmail is required")]
         public string? UserEmail { get; init; }
 
     }

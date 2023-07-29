@@ -6,9 +6,9 @@ using System.Threading.Tasks;
 using Anabasis.Api.Shared;
 using Anabasis.Identity.Dto;
 using Anabasis.Identity.Shared;
-using Microsoft.Extensions.Options;
-using Newtonsoft.Json.Linq;
 using System.Web;
+using Anabasis.Api;
+using System.Net;
 
 namespace Anabasis.Identity
 {
@@ -42,6 +42,8 @@ namespace Anabasis.Identity
         }
 
         [AllowAnonymous]
+        [ProducesResponseType(typeof(ErrorResponseMessage), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [HttpPost("login")]
         public async Task<IActionResult> Login([FromBody] TUserLoginDto userLoginDto)
         {
@@ -67,6 +69,8 @@ namespace Anabasis.Identity
         }
 
         [AllowAnonymous]
+        [ProducesResponseType(typeof(ErrorResponseMessage), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.Created)]
         [HttpPost("register")]
         public async Task<IActionResult> Register([FromBody] TRegistrationDto registrationDto)
         {
@@ -101,6 +105,8 @@ namespace Anabasis.Identity
         }
 
         [AllowAnonymous]
+        [ProducesResponseType(typeof(ErrorResponseMessage), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [HttpGet("confirm")]
         public async Task<IActionResult> ConfirmEmail([FromQuery] ConfirmMailDto confirmMailDto)
         {
@@ -125,6 +131,8 @@ namespace Anabasis.Identity
         }
 
         [AllowAnonymous]
+        [ProducesResponseType(typeof(ErrorResponseMessage), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.NoContent)]
         [HttpPost("forgot")]
         public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto forgotPasswordDto)
         {
@@ -138,15 +146,16 @@ namespace Anabasis.Identity
 
             var generatePasswordResetToken = await UserManager.GeneratePasswordResetTokenAsync(user);
 
-            var httpEncodedToken = HttpUtility.UrlEncode(generatePasswordResetToken);
 
             await _userMailService.SendEmailPasswordReset(user.UserEmail, generatePasswordResetToken);
 
-            return Accepted();
+            return NoContent();
 
         }
 
         [AllowAnonymous]
+        [ProducesResponseType(typeof(ErrorResponseMessage), (int)HttpStatusCode.BadRequest)]
+        [ProducesResponseType((int)HttpStatusCode.OK)]
         [HttpPost("reset")]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDto resetPassword)
         {
