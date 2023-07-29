@@ -257,6 +257,8 @@ namespace Anabasis.Api
                 });
             }
 
+            services.AddSwaggerGenNewtonsoftSupport();
+
             services.AddSwaggerGen(swaggerGenOptions =>
             {
                 swaggerGenOptions.DocInclusionPredicate((version, apiDesc) => !string.IsNullOrEmpty(apiDesc.HttpMethod));
