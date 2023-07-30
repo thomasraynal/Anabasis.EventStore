@@ -26,6 +26,7 @@ using Microsoft.OpenApi.Models;
 using OpenTelemetry.Trace;
 using Serilog;
 using Serilog.Events;
+using Swashbuckle.AspNetCore.SwaggerGen;
 using System;
 using System.IO;
 using System.Linq;
@@ -47,6 +48,7 @@ namespace Anabasis.Api
             ISerializer? serializer = null,
             Action<MvcOptions>? configureMvcBuilder = null,
             Action<IMvcBuilder>? configureMvc = null,
+            Action<SwaggerGenOptions>? configureSwaggerGen = null,
             Action<MvcNewtonsoftJsonOptions>? configureJson = null,
             Action<KestrelServerOptions>? configureKestrel = null,
             Action<AnabasisAppContext, IApplicationBuilder>? configureMiddlewares = null,
@@ -117,7 +119,8 @@ namespace Anabasis.Api
                             configureMvcBuilder,
                             configureTracerProviderBuilder,
                             configureMvc,
-                            configureJson);
+                            configureJson,
+                            configureSwaggerGen);
 
                         configureServiceCollection?.Invoke(anabasisAppContext, services, anabasisConfiguration.ConfigurationRoot);
 
@@ -146,7 +149,8 @@ namespace Anabasis.Api
             Action<MvcOptions>? configureMvcBuilder = null,
             Action<TracerProviderBuilder>? configureTracerProviderBuilder = null,
             Action<IMvcBuilder>? configureMvc = null,
-            Action<MvcNewtonsoftJsonOptions>? configureJson = null)
+            Action<MvcNewtonsoftJsonOptions>? configureJson = null,
+            Action<SwaggerGenOptions>? configureSwaggerGen = null)
         {
             const long MBytes = 1024L * 1024L;
 
@@ -262,7 +266,6 @@ namespace Anabasis.Api
             services.AddSwaggerGen(swaggerGenOptions =>
             {
                 swaggerGenOptions.DocInclusionPredicate((version, apiDesc) => !string.IsNullOrEmpty(apiDesc.HttpMethod));
-
                 swaggerGenOptions.MapType<Guid>(() => new OpenApiSchema { Type = "string", Format = "Guid" });
                 swaggerGenOptions.CustomSchemaIds(type => type.Name);
                 swaggerGenOptions.IgnoreObsoleteProperties();
@@ -270,6 +273,9 @@ namespace Anabasis.Api
 
                 swaggerGenOptions.SwaggerDoc($"v{appContext.ApiVersion.Major}",
                     new OpenApiInfo { Title = appContext.ApplicationName, Version = $"v{appContext.ApiVersion.Major}" });
+
+
+                configureSwaggerGen?.Invoke(swaggerGenOptions);
             });
 
             var mvcBuilder = services.AddMvc(mvcOptions =>

@@ -95,7 +95,7 @@ namespace Anabasis.Identity
 
             var httpEncodedToken = HttpUtility.UrlEncode(emailConfirmationToken);
 
-            await _userMailService.SendEmailConfirmationToken(registrationDto.UserEmail, httpEncodedToken);
+            await _userMailService.SendEmailConfirmationTokenAsync(registrationDto.UserEmail, httpEncodedToken);
 
             var registrationResponseDto = new RegistrationResponseDto(registrationDto.Username, registrationDto.UserEmail);
 
@@ -147,7 +147,7 @@ namespace Anabasis.Identity
             var generatePasswordResetToken = await UserManager.GeneratePasswordResetTokenAsync(user);
 
 
-            await _userMailService.SendEmailPasswordReset(user.UserEmail, generatePasswordResetToken);
+            await _userMailService.SendEmailPasswordResetAsync(user.UserEmail, generatePasswordResetToken);
 
             return NoContent();
 

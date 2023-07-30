@@ -8,7 +8,7 @@ namespace Anabasis.Identity
 {
     public interface IUserMailService
     {
-        Task SendEmailPasswordReset(string email, string token);
-        Task SendEmailConfirmationToken(string email, string token);
+        Task SendEmailPasswordResetAsync(string email, string token);
+        Task SendEmailConfirmationTokenAsync(string email, string token);
     }
 }
