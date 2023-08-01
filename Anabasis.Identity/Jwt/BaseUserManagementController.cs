@@ -58,7 +58,7 @@ namespace Anabasis.Identity
 
             if (!checkPasswordResult)
             {
-                return BadRequest($"Password for user {userLoginDto.Username} is not valid").WithErrorFormatting();
+                return Unauthorized($"Password for user {userLoginDto.Username} is not valid").WithErrorFormatting();
             }
 
             var userLoginResponse = await GetLoginResponse(userLoginDto, user);
